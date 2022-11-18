@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Commands\CheckCommand;
 use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
@@ -149,7 +150,7 @@ class PulseServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                //
+                CheckCommand::class,
             ]);
         }
     }
