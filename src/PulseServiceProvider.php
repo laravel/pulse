@@ -7,12 +7,15 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Routing\RouteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Commands\CheckCommand;
+use Laravel\Pulse\Handlers\HandleCacheHit;
+use Laravel\Pulse\Handlers\HandleCacheMiss;
+use Laravel\Pulse\Handlers\HandleHttpRequest;
+use Laravel\Pulse\Handlers\HandleLogMessage;
+use Laravel\Pulse\Handlers\HandleQuery;
 use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
@@ -24,6 +27,10 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
+
         // $this->mergeConfigFrom(
         //     __DIR__.'/../config/pulse.php', 'pulse'
         // );
@@ -38,39 +45,21 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents()
     {
-        $this->app->make(Kernel::class)->whenRequestLifecycleIsLongerThan(0, function ($startedAt, $request, $response) {
-            ray('Request Duration: '.$startedAt->diffInMilliseconds(now()).'ms');
+        $this->app->make(Kernel::class)
+            ->whenRequestLifecycleIsLongerThan(0, function ($startedAt, $request, $response) {
+                (new HandleHttpRequest)($startedAt, $request, $response);
+            });
 
-            $action = $request->route()?->getAction();
-            $hasController = $action && is_string($action['uses']) && ! RouteAction::containsSerializedClosure($action);
+        DB::listen(fn ($e) => (new HandleQuery)($e));
 
-            ray('Route Path: '.$request->route()?->uri());
+        $this->app->make(ExceptionHandler::class)
+            ->reportable(function (Throwable $e) {
+                (new HandleException)($e);
+            });
 
-            if ($hasController) {
-                $parsedAction = Str::parseCallback($action['uses']);
-                ray('Route Controller: '.$parsedAction[0].'@'.$parsedAction[1]);
-            }
-        });
-
-        DB::listen(function ($e) {
-            ray('Query Duration: '.$e->time);
-        });
-
-        $this->app->make(ExceptionHandler::class)->reportable(function (Throwable $e) {
-            ray('Received Exception...');
-        });
-
-        Event::listen(function (MessageLogged $e) {
-            ray('Message Logged: '.$e->message);
-        });
-
-        Event::listen(function (CacheHit $e) {
-            ray('Cache Hit: '.$e->key);
-        });
-
-        Event::listen(function (CacheMissed $e) {
-            ray('Cache Miss: '.$e->key);
-        });
+        Event::listen(MessageLogged::class, HandleLogMessage::class);
+        Event::listen(CacheHit::class, HandleCacheHit::class);
+        Event::listen(CacheMissed::class, HandleCacheMiss::class);
     }
 
     /**
