@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
 
 class CheckCommand extends Command
 {
@@ -27,6 +28,21 @@ class CheckCommand extends Command
      */
     public function handle()
     {
+        while (true) {
+            $stats = [
+                'timestamp' => now()->timestamp,
+                // Linux
+                'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
+            ];
+
+            Redis::xAdd('stats:server-1', '*', $stats);
+            Redis::xTrim('stats:server-1', 20);
+
+            $this->line(json_encode($stats));
+
+            sleep(2);
+        }
+
         $this->line('Total space: '.(number_format(disk_total_space('/') / 1024 / 1024 / 1024, 2)).'GB');
         $this->line('Free space: '.(number_format(disk_free_space('/') / 1024 / 1024 / 1024, 2)).'GB');
 
