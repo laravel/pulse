@@ -29,14 +29,15 @@ class CheckCommand extends Command
     public function handle()
     {
         while (true) {
+            $server = 'server-1';
             $stats = [
                 'timestamp' => now()->timestamp,
                 // Linux
                 'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
             ];
 
-            Redis::xAdd('stats:server-1', '*', $stats);
-            Redis::xTrim('stats:server-1', 20);
+            Redis::xAdd("pulse_servers:{$server}", '*', $stats);
+            Redis::xTrim("pulse_servers:{$server}", 20);
 
             $this->line(json_encode($stats));
 
