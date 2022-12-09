@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -13,7 +14,14 @@ class Pulse
     {
         // TODO: Find all reporting servers and retrieve their data.
         return [
-            collect(Redis::xRange('pulse_servers:server-1', '-', '+'))->values(),
+            collect(Redis::xRange('pulse_servers:server-1', '-', '+'))
+                ->map(fn ($server) => [
+                    'cpu' => (int) $server['cpu'],
+                    'memory_used' => (int) $server['memory_used'],
+                    'memory_total' => (int) $server['memory_total'],
+                    'storage' => json_decode($server['storage'])
+                ])
+                ->values(),
         ];
     }
 
@@ -85,7 +93,7 @@ class Pulse
                 $route = Route::getRoutes()->get($method)[$path] ?? null;
 
                 return [
-                    'uri' => $uri,
+                    'uri' => $method.' '.Str::start($path, '/'),
                     'action' => $route?->getActionName(),
                     'request_count' => (int) $requestCount,
                     'slowest_duration' => (int) $slowestDurations[$uri],
@@ -149,5 +157,35 @@ class Pulse
                 ->map(fn ($days) => Redis::get('pulse_cache_misses:' . now()->subDays($days)->format('Y-m-d')))
                 ->sum(),
         ];
+    }
+
+    public function exceptions()
+    {
+        Redis::zUnionStore(
+            'pulse_exception_counts:7-day',
+            collect(range(0, 6))
+                ->map(fn ($days) => 'pulse_exception_counts:' . now()->subDays($days)->format('Y-m-d'))
+                ->toArray(),
+            ['aggregate' => 'SUM']
+        );
+
+        Redis::zUnionStore(
+            'pulse_exception_last_occurrences:7-day',
+            collect(range(0, 6))
+                ->map(fn ($days) => 'pulse_exception_last_occurrences:' . now()->subDays($days)->format('Y-m-d'))
+                ->toArray(),
+            ['aggregate' => 'MAX']
+        );
+
+        $exceptionCounts = Redis::zRevRange('pulse_exception_counts:7-day', 0, -1, ['WITHSCORES' => true]);
+        $exceptionLastOccurrences = Redis::zRevRange('pulse_exception_last_occurrences:7-day', 0, -1, ['WITHSCORES' => true]);
+
+        return collect($exceptionCounts)
+            ->map(fn ($count, $exception) => [
+                ...json_decode($exception, true),
+                'count' => $count,
+                'last_occurrence' => Carbon::createFromTimestamp($exceptionLastOccurrences[$exception])->toISOString(),
+            ])
+            ->values();
     }
 }

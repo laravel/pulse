@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Handlers\HandleCacheHit;
 use Laravel\Pulse\Handlers\HandleCacheMiss;
+use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Handlers\HandleLogMessage;
 use Laravel\Pulse\Handlers\HandleQuery;
