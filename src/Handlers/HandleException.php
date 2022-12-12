@@ -36,11 +36,21 @@ class HandleException
      */
     protected function getLocation(Throwable $e): string
     {
-        if ($this->thrownByHelper($e)) {
-            return $this->formatLocation($e->getTrace()[0]['file'], $e->getTrace()[0]['line']);
+        $firstNonVendorFrame = collect($e->getTrace())->firstWhere(fn ($frame) => $this->isNonVendorFile($frame['file']));
+
+        if ($this->isNonVendorFile($e->getFile()) || $firstNonVendorFrame === null) {
+            return $this->formatLocation($e->getFile(), $e->getLine());
         }
 
-        return $this->formatLocation($e->getFile(), $e->getLine());
+        return $this->formatLocation($firstNonVendorFrame['file'], $firstNonVendorFrame['line']);
+    }
+
+    /**
+     * Determine whether a file is in the vendor directory.
+     */
+    protected function isNonVendorFile(string $file): bool
+    {
+        return ! Str::startsWith($file, base_path('vendor'));
     }
 
     /**
@@ -49,16 +59,5 @@ class HandleException
     protected function formatLocation(string $file, int $line): string
     {
         return Str::replaceFirst(base_path(), '', $file).':'.$line;
-    }
-
-    /**
-     * Determine whether the exception was thrown by a helper.
-     */
-    protected function thrownByHelper(Throwable $e): bool
-    {
-        return in_array(
-            $e->getTrace()[0]['function'] ?? null,
-            ['throw_if', 'throw_unless']
-        );
     }
 }

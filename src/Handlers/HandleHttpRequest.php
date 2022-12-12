@@ -34,6 +34,12 @@ class HandleHttpRequest
             $slowestKey = "pulse_slow_endpoint_slowest_durations:{$keyDate}";
             Redis::rawCommand('ZADD', $keyPrefix.$slowestKey, 'GT', $duration, $route); // TODO: phpredis zAdd doesn't support 'GT' in 5.3.7
             Redis::rawCommand('EXPIREAT', $keyPrefix.$slowestKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+
+            if ($request->user()) {
+                $userKey = "pulse_slow_endpoint_user_counts:{$keyDate}";
+                Redis::zIncrBy($userKey, 1, $request->user()->id);
+                Redis::rawCommand('EXPIREAT', $keyPrefix.$userKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+            }
         }
 
         // Top 10 users hitting the application

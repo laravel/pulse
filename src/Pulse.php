@@ -3,7 +3,7 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -103,6 +103,34 @@ class Pulse
             ->values();
     }
 
+    public function usersExperiencingSlowEndpoints()
+    {
+        Redis::zUnionStore(
+            'pulse_slow_endpoint_user_counts:7-day',
+            collect(range(0, 6))
+                ->map(fn ($days) => 'pulse_slow_endpoint_user_counts:' . now()->subDays($days)->format('Y-m-d'))
+                ->toArray(),
+            ['aggregate' => 'SUM']
+        );
+
+        $userCounts = collect(Redis::zRevRange('pulse_slow_endpoint_user_counts:7-day', 0, -1, ['WITHSCORES' => true]));
+
+        // TODO: polling for this every 2 seconds is not good.
+        $users = User::findMany($userCounts->keys());
+
+        return $userCounts
+            ->map(function ($count, $userId) use ($users) {
+                $user = $users->firstWhere('id', $userId);
+
+                return $user ? [
+                    'count' => $count,
+                    'user' => $user->setVisible(['name', 'email']),
+                ] : null;
+            })
+            ->filter()
+            ->values();
+    }
+
     public function slowQueries()
     {
         // TODO: Do we want to rebuild this on every request?
@@ -184,8 +212,24 @@ class Pulse
             ->map(fn ($count, $exception) => [
                 ...json_decode($exception, true),
                 'count' => $count,
-                'last_occurrence' => Carbon::createFromTimestamp($exceptionLastOccurrences[$exception])->toISOString(),
+                'last_occurrence' => $exceptionLastOccurrences[$exception],
             ])
             ->values();
+    }
+
+    public function queues()
+    {
+        return [
+            [
+                'queue' => 'default',
+                'size' => Queue::size('default'),
+                'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === 'default')->count(),
+            ],
+            [
+                'queue' => 'high',
+                'size' => Queue::size('high'),
+                'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === 'high')->count(),
+            ]
+        ];
     }
 }
