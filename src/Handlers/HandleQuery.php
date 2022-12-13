@@ -12,7 +12,7 @@ class HandleQuery
      */
     public function __invoke(QueryExecuted $event): void
     {
-        if ($event->time < 0) {
+        if ($event->time < config('pulse.slow_query_threshold')) {
             return;
         }
 

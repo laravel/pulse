@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 
 class CheckCommand extends Command
 {
@@ -28,8 +29,10 @@ class CheckCommand extends Command
      */
     public function handle()
     {
+        $slug = Str::slug(config('pulse.server_name'));
+        Redis::hSet('pulse_servers', $slug, config('pulse.server_name'));
+
         while (true) {
-            $server = 'server-1';
             $stats = [
                 'timestamp' => now()->timestamp,
                 // Linux
@@ -45,8 +48,8 @@ class CheckCommand extends Command
                 ])
             ];
 
-            Redis::xAdd("pulse_servers:{$server}", '*', $stats);
-            Redis::xTrim("pulse_servers:{$server}", 20);
+            Redis::xAdd("pulse_servers:{$slug}", '*', $stats);
+            Redis::xTrim("pulse_servers:{$slug}", 20);
 
             $this->line(json_encode($stats));
 

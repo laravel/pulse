@@ -12,17 +12,28 @@ class Pulse
 {
     public function servers()
     {
-        // TODO: Find all reporting servers and retrieve their data.
-        return [
-            collect(Redis::xRange('pulse_servers:server-1', '-', '+'))
-                ->map(fn ($server) => [
-                    'cpu' => (int) $server['cpu'],
-                    'memory_used' => (int) $server['memory_used'],
-                    'memory_total' => (int) $server['memory_total'],
-                    'storage' => json_decode($server['storage'])
-                ])
-                ->values(),
-        ];
+        return collect(Redis::hGetAll('pulse_servers'))
+            ->map(function ($name, $slug) {
+                $readings = collect(Redis::xRange("pulse_servers:{$slug}", '-', '+'))
+                    ->map(fn ($server) => [
+                        'cpu' => (int) $server['cpu'],
+                        'memory_used' => (int) $server['memory_used'],
+                        'memory_total' => (int) $server['memory_total'],
+                        'storage' => json_decode($server['storage'])
+                    ])
+                    ->values();
+
+                if ($readings->isEmpty()) {
+                    return null;
+                }
+
+                return [
+                    'name' => $name,
+                    'readings' => $readings,
+                ];
+            })
+            ->filter()
+            ->values();
     }
 
     public function userRequestCounts()

@@ -32,9 +32,9 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        // $this->mergeConfigFrom(
-        //     __DIR__.'/../config/pulse.php', 'pulse'
-        // );
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/pulse.php', 'pulse'
+        );
 
         $this->listenForEvents();
     }

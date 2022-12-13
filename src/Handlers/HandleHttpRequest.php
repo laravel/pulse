@@ -22,7 +22,7 @@ class HandleHttpRequest
         $keyPrefix = config('database.redis.options.prefix');
 
         // Slow endpoint
-        if ($duration >= 10) {
+        if ($duration >= config('pulse.slow_endpoint_threshold')) {
             $countKey = "pulse_slow_endpoint_request_counts:{$keyDate}";
             Redis::zIncrBy($countKey, 1, $route);
             Redis::rawCommand('EXPIREAT', $keyPrefix.$countKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
