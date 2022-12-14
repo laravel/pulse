@@ -36,7 +36,8 @@ class HandleException
      */
     protected function getLocation(Throwable $e): string
     {
-        $firstNonVendorFrame = collect($e->getTrace())->firstWhere(fn ($frame) => $this->isNonVendorFile($frame['file']));
+        $firstNonVendorFrame = collect($e->getTrace())
+            ->firstWhere(fn ($frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
 
         if ($this->isNonVendorFile($e->getFile()) || $firstNonVendorFrame === null) {
             return $this->formatLocation($e->getFile(), $e->getLine());
