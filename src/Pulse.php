@@ -243,4 +243,9 @@ class Pulse
             ]
         ];
     }
+
+    public function css()
+    {
+        return file_get_contents(__DIR__.'/../dist/pulse.css');
+    }
 }

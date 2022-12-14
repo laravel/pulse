@@ -7,9 +7,12 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Handlers\HandleCacheHit;
 use Laravel\Pulse\Handlers\HandleCacheMiss;
@@ -17,6 +20,14 @@ use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Handlers\HandleLogMessage;
 use Laravel\Pulse\Handlers\HandleQuery;
+use Laravel\Pulse\Http\Livewire\Cache;
+use Laravel\Pulse\Http\Livewire\Exceptions;
+use Laravel\Pulse\Http\Livewire\Queues;
+use Laravel\Pulse\Http\Livewire\Servers;
+use Laravel\Pulse\Http\Livewire\SlowEndpoints;
+use Laravel\Pulse\Http\Livewire\SlowQueries;
+use Laravel\Pulse\Http\Livewire\Usage;
+use Livewire\Livewire;
 use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
@@ -75,6 +86,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->registerMigrations();
         $this->registerPublishing();
         $this->registerCommands();
+        $this->registerComponents();
     }
 
     /**
@@ -84,7 +96,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes()
     {
-        //
+        Route::get('pulse', function () {
+            return view('pulse::dashboard');
+        })->middleware('web');
     }
 
     /**
@@ -94,7 +108,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerResources()
     {
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'pulse');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'pulse');
     }
 
     /**
@@ -128,6 +142,10 @@ class PulseServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/pulse.php' => config_path('pulse.php'),
             ], 'pulse-config');
+
+            $this->publishes([
+                __DIR__.'/../resources/views/dashboard.blade.php' => resource_path('views/vendor/pulse/dashboard.blade.php'),
+            ], 'pulse-dashboard');
         }
     }
 
@@ -143,5 +161,23 @@ class PulseServiceProvider extends ServiceProvider
                 CheckCommand::class,
             ]);
         }
+    }
+
+    /**
+     * Register the package's components.
+     *
+     * @return void
+     */
+    protected function registerComponents()
+    {
+        Blade::component('pulse', PulseComponent::class);
+
+        Livewire::component('servers', Servers::class);
+        Livewire::component('usage', Usage::class);
+        Livewire::component('exceptions', Exceptions::class);
+        Livewire::component('slow-endpoints', SlowEndpoints::class);
+        Livewire::component('slow-queries', SlowQueries::class);
+        Livewire::component('cache', Cache::class);
+        Livewire::component('queues', Queues::class);
     }
 }

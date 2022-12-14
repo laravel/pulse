@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "tailwindcss -i resources/css/tailwind.css -o dist/pulse.css",
+    "watch": "tailwindcss -i resources/css/tailwind.css -o dist/pulse.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.2.4"
+  }
+}
