@@ -7,13 +7,10 @@ use Livewire\Component;
 
 class SlowEndpoints extends Component
 {
-    public function getSlowEndpointsProperty()
+    public function render(Pulse $pulse)
     {
-        return app(Pulse::class)->slowEndpoints();
-    }
-
-    public function render()
-    {
-        return view('pulse::livewire.slow-endpoints');
+        return view('pulse::livewire.slow-endpoints', [
+            'slowEndpoints' => $pulse->slowEndpoints(),
+        ]);
     }
 }

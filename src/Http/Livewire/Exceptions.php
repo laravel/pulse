@@ -7,13 +7,12 @@ use Livewire\Component;
 
 class Exceptions extends Component
 {
-    public function getExceptionsProperty()
-    {
-        return app(Pulse::class)->exceptions();
-    }
+    public string $sortBy = 'count';
 
-    public function render()
+    public function render(Pulse $pulse)
     {
-        return view('pulse::livewire.exceptions');
+        return view('pulse::livewire.exceptions', [
+            'exceptions' => $pulse->exceptions()->sortByDesc($this->sortBy),
+        ]);
     }
 }

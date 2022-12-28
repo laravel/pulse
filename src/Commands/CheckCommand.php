@@ -49,7 +49,7 @@ class CheckCommand extends Command
             ];
 
             Redis::xAdd("pulse_servers:{$slug}", '*', $stats);
-            Redis::xTrim("pulse_servers:{$slug}", 20);
+            Redis::xTrim("pulse_servers:{$slug}", 60);
 
             $this->line(json_encode($stats));
 

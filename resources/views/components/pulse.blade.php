@@ -10,13 +10,15 @@
         <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
 
         <style>
-            <?php
-                echo app(\Laravel\Pulse\Pulse::class)->css();
-            ?>
+            {!! app(\Laravel\Pulse\Pulse::class)->css() !!}
         </style>
 
         <!-- Scripts -->
         @livewireStyles
+        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script>
+            {!! app(\Laravel\Pulse\Pulse::class)->js() !!}
+        </script>
     </head>
     <body class="font-sans antialiased">
         <div class="bg-gray-50 min-h-screen">
@@ -40,12 +42,13 @@
             </header>
 
             <main class="p-5">
-                <div class="container mx-auto">
+                <div class="container mx-auto grid grid-cols-6 gap-10">
                     {{ $slot }}
                 </div>
             </main>
         </div>
 
         @livewireScripts
+        @stack('scripts')
     </body>
 </html>

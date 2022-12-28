@@ -7,13 +7,10 @@ use Livewire\Component;
 
 class SlowQueries extends Component
 {
-    public function getSlowQueriesProperty()
+    public function render(Pulse $pulse)
     {
-        return app(Pulse::class)->slowQueries();
-    }
-
-    public function render()
-    {
-        return view('pulse::livewire.slow-queries');
+        return view('pulse::livewire.slow-queries', [
+            'slowQueries' => $pulse->slowQueries(),
+        ]);
     }
 }

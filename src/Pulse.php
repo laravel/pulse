@@ -32,8 +32,7 @@ class Pulse
                     'readings' => $readings,
                 ];
             })
-            ->filter()
-            ->values();
+            ->filter();
     }
 
     public function userRequestCounts()
@@ -247,5 +246,10 @@ class Pulse
     public function css()
     {
         return file_get_contents(__DIR__.'/../dist/pulse.css');
+    }
+
+    public function js()
+    {
+        return file_get_contents(__DIR__.'/../dist/pulse.js');
     }
 }

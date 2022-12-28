@@ -7,13 +7,13 @@ use Livewire\Component;
 
 class Usage extends Component
 {
-    public function getUsageProperty()
-    {
-        return app(Pulse::class)->usage();
-    }
+    public string $view = 'request-counts';
 
-    public function render()
+    public function render(Pulse $pulse)
     {
-        return view('pulse::livewire.usage');
+        return view('pulse::livewire.usage', [
+            'userRequestCounts' => $pulse->userRequestCounts(),
+            'usersExperiencingSlowEndpoints' => $pulse->usersExperiencingSlowEndpoints(),
+        ]);
     }
 }

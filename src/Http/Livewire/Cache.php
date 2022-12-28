@@ -7,13 +7,10 @@ use Livewire\Component;
 
 class Cache extends Component
 {
-    public function getCacheProperty()
+    public function render(Pulse $pulse)
     {
-        return app(Pulse::class)->cache();
-    }
-
-    public function render()
-    {
-        return view('pulse::livewire.cache');
+        return view('pulse::livewire.cache', [
+            'cacheStats' => $pulse->cacheStats(),
+        ]);
     }
 }

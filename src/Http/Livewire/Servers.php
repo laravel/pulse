@@ -7,13 +7,20 @@ use Livewire\Component;
 
 class Servers extends Component
 {
-    public function getServersProperty()
+    public function render(Pulse $pulse)
     {
-        return app(Pulse::class)->servers();
-    }
+        $servers = $pulse->servers()->toArray();
 
-    public function render()
-    {
-        return view('pulse::livewire.servers');
+        if (request()->hasHeader('X-Livewire')) {
+            $this->emit('chartUpdate', $servers);
+
+            return view('pulse::livewire.servers', [
+                'servers' => $servers,
+            ]);
+        }
+
+        return view('pulse::livewire.servers', [
+            'servers' => $servers,
+        ]);
     }
 }

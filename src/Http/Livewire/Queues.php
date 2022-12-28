@@ -7,13 +7,10 @@ use Livewire\Component;
 
 class Queues extends Component
 {
-    public function getQueuesProperty()
+    public function render(Pulse $pulse)
     {
-        return app(Pulse::class)->queues();
-    }
-
-    public function render()
-    {
-        return view('pulse::livewire.queues');
+        return view('pulse::livewire.queues', [
+            'queues' => $pulse->queues(),
+        ]);
     }
 }
