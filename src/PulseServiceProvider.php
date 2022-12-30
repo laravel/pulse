@@ -69,7 +69,7 @@ class PulseServiceProvider extends ServiceProvider
                 (new HandleException)($e);
             });
 
-        Event::listen(MessageLogged::class, HandleLogMessage::class);
+        //Event::listen(MessageLogged::class, HandleLogMessage::class);
         Event::listen(CacheHit::class, HandleCacheHit::class);
         Event::listen(CacheMissed::class, HandleCacheMiss::class);
     }

@@ -39,13 +39,11 @@ class CheckCommand extends Command
                 'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
                 'memory_total' => $memTotal = (int) `cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'`,
                 'memory_used' => $memTotal - (int) `cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'`,
-                'storage' => json_encode([
-                    [
-                        'directory' => '/',
-                        'total' => $total = (int) round(disk_total_space('/') / 1024 / 1024),
-                        'used' => (int) round($total - (disk_free_space('/') / 1024 / 1024)),
-                    ]
-                ])
+                'storage' => collect(config('pulse.directories'))->map(fn ($directory) => [
+                    'directory' => $directory,
+                    'total' => $total = (int) round(disk_total_space($directory) / 1024 / 1024),
+                    'used' => (int) round($total - (disk_free_space($directory) / 1024 / 1024)),
+                ])->toJson(),
             ];
 
             Redis::xAdd("pulse_servers:{$slug}", '*', $stats);

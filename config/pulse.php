@@ -10,4 +10,14 @@ return [
     // in milliseconds
     'slow_query_threshold' => 1000,
 
+    // queues to show stats for
+    'queues' => [
+        'default',
+    ],
+
+    // directories to monitor sizes for
+    'directories' => [
+        '/',
+    ],
+
 ];

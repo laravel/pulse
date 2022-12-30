@@ -179,7 +179,7 @@ class Pulse
                     'sql' => $sql,
                     'execution_count' => (int) $executionCount,
                     'slowest_duration' => $slowestDurations[$sql],
-                    'average_duration' => round($totalDurations[$sql] / $executionCount, 2),
+                    'average_duration' => (int) round($totalDurations[$sql] / $executionCount),
                 ];
             })
             ->values();
@@ -242,18 +242,11 @@ class Pulse
 
     public function queues()
     {
-        return [
-            [
-                'queue' => 'default',
-                'size' => Queue::size('default'),
-                'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === 'default')->count(),
-            ],
-            [
-                'queue' => 'high',
-                'size' => Queue::size('high'),
-                'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === 'high')->count(),
-            ]
-        ];
+        return collect(config('pulse.queues'))->map(fn ($queue) => [
+            'queue' => $queue,
+            'size' => Queue::size($queue),
+            'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === $queue)->count(),
+        ]);
     }
 
     public function css()
