@@ -13,6 +13,35 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto">
-        TODO
+        <x-pulse::table>
+            <x-pulse::thead>
+                <tr>
+                    <x-pulse::th class="text-left">Query</x-pulse::th>
+                    <x-pulse::th class="text-center w-24">Times</x-pulse::th>
+                    <x-pulse::th class="text-center w-24">Average</x-pulse::th>
+                    <x-pulse::th class="text-center w-24">Slowest</x-pulse::th>
+                </tr>
+            </x-pulse::thead>
+            <tbody>
+                @foreach ($slowQueries as $query)
+                    <tr>
+                        <x-pulse::td class="truncate">
+                            <code class="text-xs text-gray-900" title="{{ $query['sql'] }}">
+                                {{ $query['sql'] }}
+                            </code>
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $query['execution_count'] }}
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $query['average_duration'] }}ms
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $query['slowest_duration'] }}ms
+                        </x-pulse::td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </x-pulse::table>
     </div>
 </x-pulse::card>

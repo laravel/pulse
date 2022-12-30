@@ -11,7 +11,40 @@
         </x-pulse::card-title>
     </x-slot:title>
 
-    <div class="max-h-56 h-full relative overflow-y-auto">
-        TODO
-    </div>
+    <table class="w-full border-separate border-spacing-y-2">
+        <thead class="sticky top-0 p-2 bg-white">
+            <tr class="p-2">
+                <th class="text-xs text-gray-500 uppercase px-3 text-left">
+                    Name
+                </th>
+                <th class="text-xs text-gray-500 uppercase px-3 text-right">
+                    Pending
+                </th>
+                <th class="text-xs text-gray-500 uppercase px-3 text-right">
+                    Failed
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($queues as $queue)
+                <tr>
+                    <td class="rounded-l-md bg-gray-50 px-3 py-2 text-left">
+                        <div class="text-gray-700 text-sm">
+                            {{ $queue['queue'] }}
+                        </div>
+                    </td>
+                    <td class="bg-gray-50 px-3 py-2 text-right">
+                        <div class="text-gray-700 text-sm font-bold">
+                            {{ $queue['size'] }}
+                        </div>
+                    </td>
+                    <td class="rounded-r-md bg-gray-50 px-3 py-2 text-right">
+                        <div class="text-gray-700 text-sm font-bold">
+                            {{ $queue['failed'] }}
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 </x-pulse::card>

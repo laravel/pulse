@@ -18,55 +18,37 @@
 
     <div class="max-h-56 h-full relative overflow-y-auto">
         @if (count($exceptions) === 0)
-            <div class="h-full flex flex-col items-center justify-center">
-                <ClipboardIcon class="w-8 h-8 text-gray-300" />
-                <p class="mt-2 text-sm text-gray-400">
-                    No results
-                </p>
-            </div>
+            <x-pulse::no-results />
         @else
-            <table class="w-full border-separate border-spacing-y-2">
-                <thead class="sticky top-0 p-2 bg-white">
-                    <tr class="p-2">
-                        <th class="text-xs text-gray-500 uppercase px-3 text-left">
-                            Type
-                        </th>
-                        <th class="text-xs text-gray-500 uppercase px-3 text-center">
-                            Occurrences
-                        </th>
-                        <th class="text-xs text-gray-500 uppercase px-3 text-center">
-                            Most Recent
-                        </th>
+            <x-pulse::table>
+                <x-pulse::thead>
+                    <tr>
+                        <x-pulse::th class="text-left">Type</x-pulse::th>
+                        <x-pulse::th>Occurrences</x-pulse::th>
+                        <x-pulse::th class="whitespace-nowrap">Most Recent</x-pulse::th>
                     </tr>
-                </thead>
+                </x-pulse::thead>
                 <tbody>
                     @foreach ($exceptions as $exception)
                         <tr>
-                            <td class="rounded-l-md bg-gray-50 px-3 py-2 text-left">
-                                <div>
-                                    <code class="text-xs text-gray-900">
-                                        {{ $exception['class'] }}
-                                    </code>
-                                </div>
-                                <div class="text-xs text-gray-500">
+                            <x-pulse::td>
+                                <code class="block text-xs text-gray-900">
+                                    {{ $exception['class'] }}
+                                </code>
+                                <p class="text-xs text-gray-500">
                                     {{ $exception['location'] }}
-                                </div>
-                            </td>
-                            <td class="bg-gray-50 px-3 py-2 text-center">
-                                <div class="text-gray-700 text-sm font-bold">
-                                    {{ $exception['count'] }}
-                                </div>
-                            </td>
-                            <td class="rounded-r-md bg-gray-50 px-3 py-2 text-center">
-                                <div class="text-gray-700 text-sm font-bold whitespace-nowrap">
-                                    {{-- TODO: relative --}}
-                                    {{ Carbon\Carbon::parse($exception['last_occurrence'])->fromNow() }}
-                                </div>
-                            </td>
+                                </p>
+                            </x-pulse::td>
+                            <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                                {{ $exception['count'] }}
+                            </x-pulse::td>
+                            <x-pulse::td class="text-center text-gray-700 text-sm font-bold whitespace-nowrap">
+                                {{ Carbon\Carbon::parse($exception['last_occurrence'])->fromNow() }}
+                            </x-pulse::td>
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </x-pulse::table>
         @endif
     </div>
 </x-pulse::card>

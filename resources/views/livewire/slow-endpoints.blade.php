@@ -13,6 +13,36 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto">
-        TODO
+        <x-pulse::table>
+            <x-pulse::thead>
+                <tr>
+                    <x-pulse::th class="text-left">Location</x-th::thead>
+                    <x-pulse::th>Times</x-th::thead>
+                    <x-pulse::th>Average</x-th::thead>
+                    <x-pulse::th>Slowest</x-th::thead>
+                </tr>
+            </x-pulse::thead>
+            <tbody>
+                @foreach ($slowEndpoints as $slowEndpoint)
+                    <tr>
+                        <x-pulse::td>
+                            <code class="block text-xs text-gray-900">{{ $slowEndpoint['uri'] }}</code>
+                            <div class="text-xs text-gray-500">
+                                {{ $slowEndpoint['action'] }}
+                            </div>
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $slowEndpoint['request_count'] }}
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $slowEndpoint['average_duration'] }}ms
+                        </x-pulse::td>
+                        <x-pulse::td class="text-center text-gray-700 text-sm font-bold">
+                            {{ $slowEndpoint['slowest_duration'] }}ms
+                        </x-pulse::td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </x-pulse::table>
     </div>
 </x-pulse::card>

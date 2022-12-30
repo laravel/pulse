@@ -23,16 +23,11 @@
     <div class="max-h-56 h-full relative overflow-y-auto">
         @if ($view === 'request-counts')
             @if (count($userRequestCounts) === 0)
-                <div class="h-full flex flex-col items-center justify-center">
-                    <ClipboardIcon class="w-8 h-8 text-gray-300" />
-                    <p class="mt-2 text-sm text-gray-400">
-                        No results
-                    </p>
-                </div>
+                <x-pulse::no-results />
             @else
                 <div class="grid grid-cols-2 gap-2">
                     @foreach ($userRequestCounts as $userRequestCount)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50">
+                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
                             <div>
                                 <div class="text-sm text-gray-900 font-medium">
                                     {{ $userRequestCount['user']['name'] }}
@@ -53,12 +48,7 @@
             @endif
         @elseif ($view === 'slow-endpoint-counts')
             @if (count($usersExperiencingSlowEndpoints) === 0)
-                <div class="h-full flex flex-col items-center justify-center">
-                    <ClipboardIcon class="w-8 h-8 text-gray-300" />
-                    <p class="mt-2 text-sm text-gray-400">
-                        No results
-                    </p>
-                </div>
+                <x-pulse::no-results />
             @else
                 <div class="grid grid-cols-2 gap-2">
                     @foreach ($usersExperiencingSlowEndpoints as $userExperiencingSlowEndpoints)

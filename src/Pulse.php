@@ -187,13 +187,26 @@ class Pulse
 
     public function cacheStats()
     {
+        $hits = collect(range(0, 6))
+            ->map(fn ($days) => Redis::get('pulse_cache_hits:' . now()->subDays($days)->format('Y-m-d')))
+            ->sum();
+
+        $misses = collect(range(0, 6))
+            ->map(fn ($days) => Redis::get('pulse_cache_misses:' . now()->subDays($days)->format('Y-m-d')))
+            ->sum();
+
+        $total = $hits + $misses;
+
+        if ($total === 0) {
+            $rate = 0;
+        } else {
+            $rate = (int) (($hits / $total) * 100);
+        }
+
         return [
-            'hits' => collect(range(0, 6))
-                ->map(fn ($days) => Redis::get('pulse_cache_hits:' . now()->subDays($days)->format('Y-m-d')))
-                ->sum(),
-            'misses' => collect(range(0, 6))
-                ->map(fn ($days) => Redis::get('pulse_cache_misses:' . now()->subDays($days)->format('Y-m-d')))
-                ->sum(),
+            'hits' => $hits,
+            'misses' => $misses,
+            'hit_rate' => $rate,
         ];
     }
 

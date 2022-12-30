@@ -12,7 +12,30 @@
         </x-pulse::card-title>
     </x-slot:title>
 
-    <div class="max-h-56 h-full relative overflow-y-auto">
-        TODO
+    <div class="grid grid-cols-3">
+        <div>
+            <div class="text-xs uppercase font-bold text-gray-500">
+                Hits
+            </div>
+            <div class="text-xl uppercase font-bold text-gray-700">
+                {{ $cacheStats['hits'] }}
+            </div>
+        </div>
+        <div>
+            <div class="text-xs uppercase font-bold text-gray-500">
+                Misses
+            </div>
+            <div class="text-xl uppercase font-bold text-gray-700">
+                {{ $cacheStats['misses'] }}
+            </div>
+        </div>
+        <div>
+            <div class="text-xs uppercase font-bold text-gray-500">
+                Hit Rate
+            </div>
+            <div class="text-xl uppercase font-bold text-gray-700">
+                {{ $cacheStats['hit_rate'] }}%
+            </div>
+        </div>
     </div>
 </x-pulse::card>
