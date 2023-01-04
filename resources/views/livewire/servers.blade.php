@@ -2,12 +2,12 @@
     <?php
     function friendly_size($mb, int $precision = 0) {
         if ($mb >= 1024 * 1024) {
-            return round($mb / 1024 / 1024, $precision) . "TB";
+            return round($mb / 1024 / 1024, $precision) . 'TB';
         }
         if ($mb >= 1024) {
-            return round($mb / 1024, $precision) . "GB";
+            return round($mb / 1024, $precision) . 'GB';
         }
-        return round($mb, $precision) + "MB";
+        return round($mb, $precision) . 'MB';
     }
     ?>
     <div
