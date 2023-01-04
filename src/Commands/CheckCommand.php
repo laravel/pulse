@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class CheckCommand extends Command
 {
@@ -35,10 +36,7 @@ class CheckCommand extends Command
         while (true) {
             $stats = [
                 'timestamp' => now()->timestamp,
-                // Linux
-                'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
-                'memory_total' => $memTotal = (int) `cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'`,
-                'memory_used' => $memTotal - (int) `cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'`,
+                ...$this->getStats(),
                 'storage' => collect(config('pulse.directories'))->map(fn ($directory) => [
                     'directory' => $directory,
                     'total' => $total = (int) round(disk_total_space($directory) / 1024 / 1024),
@@ -53,19 +51,32 @@ class CheckCommand extends Command
 
             sleep(2);
         }
+    }
 
-        $this->line('Total space: '.(number_format(disk_total_space('/') / 1024 / 1024 / 1024, 2)).'GB');
-        $this->line('Free space: '.(number_format(disk_free_space('/') / 1024 / 1024 / 1024, 2)).'GB');
+    protected function getStats()
+    {
+        return match (PHP_OS_FAMILY) {
+            'Darwin' => $this->getDarwinStats(),
+            'Linux' => $this->getLinuxStats(),
+            default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
+        };
+    }
 
-        // Total memory (Mac): hostinfo | grep 'Primary memory available:' | grep -Eo '[0-9]+' | head -n 1
-        // Total memory (Linux): cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'
+    protected function getDarwinStats()
+    {
+        return [
+            'cpu' => (int) `top -l  2 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
+            'memory_total' => (int) `hostinfo | grep 'Primary memory available:' | grep -Eo '[0-9]+' | head -n 1`,
+            'memory_used' => (int) `top -l 1 | grep "Mem:" | grep -Eo '[0-9]+' | head -n 1`,
+        ];
+    }
 
-        // Used memory (Mac): top -l 1 | grep "Mem:" | grep -Eo '[0-9]+' | head -n 1
-        // Used memory (Linux): top -l 1 | grep "Mem:" | grep -Eo '[0-9]+' | head -n 1
-
-        // Available memory (Linux): free -m | head -2 | tail -1 | grep -Eo '[0-9]+' | tail -1
-
-        // CPU % (Mac): top -l  2 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'
-        // CPU % (Linux): top -bn2 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'
+    protected function getLinuxStats()
+    {
+        return [
+            'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
+            'memory_total' => $memTotal = (int) `cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'`, // kB
+            'memory_used' => $memTotal - (int) `cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'`, // kB
+        ];
     }
 }
