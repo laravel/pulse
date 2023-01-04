@@ -1,13 +1,13 @@
 @if ($servers)
     <?php
-    function friendly_size($mb) {
-        if ($mb >= 1000000) {
-            return $mb / 1000000 . "TB";
+    function friendly_size($mb, int $precision = 0) {
+        if ($mb >= 1024 * 1024) {
+            return round($mb / 1024 / 1024, $precision) . "TB";
         }
-        if ($mb >= 1000) {
-            return round($mb / 1000) . "GB";
+        if ($mb >= 1024) {
+            return round($mb / 1024, $precision) . "GB";
         }
-        return $mb + "MB";
+        return round($mb, $precision) + "MB";
     }
     ?>
     <div
@@ -36,10 +36,10 @@
                 <div class="flex items-center gap-4 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }}">
                     <div class="w-32">
                         <span class="text-base font-bold text-gray-700">
-                            {{ round($lastReading['memory_used'] / 1000 / 1000, 1) }}GB
+                            {{ friendly_size($lastReading['memory_used'], 1) }}
                         </span>
                         <span class="text-sm font-medium text-gray-500">
-                            / {{ round($lastReading['memory_total'] / 1000 / 1000, 1) }}GB
+                            / {{ friendly_size($lastReading['memory_total'], 1) }}
                         </span>
                     </div>
 
