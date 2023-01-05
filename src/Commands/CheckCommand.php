@@ -66,8 +66,8 @@ class CheckCommand extends Command
     {
         return [
             'cpu' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
-            'memory_total' => intval(`sysctl hw.memsize | grep -Eo '[0-9]+'` / 1024 / 1024), // MB
-            'memory_used' => intval(`top -l 1 | grep "Mem": | grep -Eo '[0-9]+' | head -n 1`), // MB
+            'memory_total' => $memoryTotal = intval(`sysctl hw.memsize | grep -Eo '[0-9]+'` / 1024 / 1024), // MB
+            'memory_used' => $memoryTotal - intval(intval(`vm_stat | grep 'Pages free' | grep -Eo '[0-9]+'`) * intval(`pagesize`) / 1024 / 1024), // MB
         ];
     }
 
