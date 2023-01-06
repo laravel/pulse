@@ -49,17 +49,14 @@ class Pulse
 
         $scores = collect(Redis::zRevRange('pulse_user_request_counts:7-day', 0, 9, ['WITHSCORES' => true]));
 
-        $minutesElapsedToday = now()->diffInMinutes(now()->startOfDay());
-        $days = 6 + ($minutesElapsedToday / (24 * 60));
-
         $users = User::findMany($scores->keys());
 
         return collect($scores)
-            ->map(function ($score, $userId) use ($users, $days) {
+            ->map(function ($score, $userId) use ($users) {
                 $user = $users->firstWhere('id', $userId);
 
                 return $user ? [
-                    'daily_average' => floor($score / $days),
+                    'count' => $score,
                     'user' => $user->setVisible(['name', 'email']),
                 ] : null;
             })

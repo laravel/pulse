@@ -43,9 +43,8 @@
                             </div>
                             <div>
                                 <b class="text-xl text-gray-900 font-bold">
-                                    {{ $userRequestCount['daily_average'] > 1 ? $userRequestCount['daily_average'] : '< 1' }}
+                                    {{ $userRequestCount['count'] }}
                                 </b>
-                                <small class="ml-1 text-sm text-gray-500">/ day</small>
                             </div>
                         </div>
                     @endforeach
@@ -68,7 +67,6 @@
                             </div>
                             <div>
                                 <b class="text-xl text-gray-900 font-bold">{{ $userExperiencingSlowEndpoints['count'] }}</b>
-                                <small class="ml-1 text-sm text-gray-500">times</small>
                             </div>
                         </div>
                     @endforeach
