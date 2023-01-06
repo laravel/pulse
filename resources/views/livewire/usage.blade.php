@@ -9,17 +9,20 @@
                 <small class="ml-2 text-gray-400 text-xs font-medium">Past 7 days</small>
             </span>
         </x-pulse::card-title>
-        <select
-            wire:model="view"
-            class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
-        >
-            <option value="request-counts">
-                Most requests
-            </option>
-            <option value="slow-endpoint-counts">
-                Experiencing slow endpoints
-            </option>
-        </select>
+        <div class="flex items-center gap-2">
+            <div class="text-sm text-gray-700">Top 10 users</div>
+            <select
+                wire:model="view"
+                class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
+            >
+                <option value="request-counts">
+                    by request count
+                </option>
+                <option value="slow-endpoint-counts">
+                    experiencing slow endpoints
+                </option>
+            </select>
+        </div>
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto">
