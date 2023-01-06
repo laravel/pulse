@@ -8,6 +8,8 @@ return [
         'web'
     ],
 
+    // The name that will appear in the dashboard after running the `pulse:check` command.
+    // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
     // in milliseconds
