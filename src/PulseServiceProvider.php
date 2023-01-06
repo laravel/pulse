@@ -96,9 +96,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes()
     {
-        Route::get('pulse', function () {
+        Route::get(config('pulse.path'), function () {
             return view('pulse::dashboard');
-        })->middleware('web');
+        })->middleware(config('pulse.middleware'));
     }
 
     /**

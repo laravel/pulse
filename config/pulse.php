@@ -2,6 +2,12 @@
 
 return [
 
+    'path' => env('PULSE_PATH', 'pulse'),
+
+    'middleware' => [
+        'web'
+    ],
+
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
     // in milliseconds
