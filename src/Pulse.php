@@ -14,10 +14,12 @@ class Pulse
 
     public function servers()
     {
+        // TODO: Exclude servers that haven't reported recently?
         return collect(Redis::hGetAll('pulse_servers'))
             ->map(function ($name, $slug) {
                 $readings = collect(Redis::xRange("pulse_servers:{$slug}", '-', '+'))
                     ->map(fn ($server) => [
+                        'timestamp' => (int) $server['timestamp'],
                         'cpu' => (int) $server['cpu'],
                         'memory_used' => (int) $server['memory_used'],
                         'memory_total' => (int) $server['memory_total'],
