@@ -1,15 +1,15 @@
-@if ($servers)
-    <?php
-    function friendly_size($mb, int $precision = 0) {
-        if ($mb >= 1024 * 1024) {
-            return round($mb / 1024 / 1024, $precision) . 'TB';
-        }
-        if ($mb >= 1024) {
-            return round($mb / 1024, $precision) . 'GB';
-        }
-        return round($mb, $precision) . 'MB';
+@php
+$friendlySize = function(int $mb, int $precision = 0) {
+    if ($mb >= 1024 * 1024) {
+        return round($mb / 1024 / 1024, $precision) . 'TB';
     }
-    ?>
+    if ($mb >= 1024) {
+        return round($mb / 1024, $precision) . 'GB';
+    }
+    return round($mb, $precision) . 'MB';
+};
+@endphp
+@if ($servers)
     <div
         wire:poll
         class="col-span-6"
@@ -36,10 +36,10 @@
                 <div class="flex items-center gap-4 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }}">
                     <div class="w-32">
                         <span class="text-base font-bold text-gray-700">
-                            {{ friendly_size($lastReading['memory_used'], 1) }}
+                            {{ $friendlySize($lastReading['memory_used'], 1) }}
                         </span>
                         <span class="text-sm font-medium text-gray-500">
-                            / {{ friendly_size($lastReading['memory_total'], 1) }}
+                            / {{ $friendlySize($lastReading['memory_total'], 1) }}
                         </span>
                     </div>
 
@@ -168,8 +168,8 @@
                                 </div>
                             @endif
                             <div>
-                                <span class="text-base font-bold text-gray-700">{{ friendly_size($storage->used) }}</span>
-                                <span class="text-sm font-medium text-gray-500">/ {{ friendly_size($storage->total) }}</span>
+                                <span class="text-base font-bold text-gray-700">{{ $friendlySize($storage->used) }}</span>
+                                <span class="text-sm font-medium text-gray-500">/ {{ $friendlySize($storage->total) }}</span>
                             </div>
 
                             <div wire:ignore>
