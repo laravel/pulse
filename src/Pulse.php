@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 
 class Pulse
 {
+    public bool $doNotReportUsage = false;
+
     public function servers()
     {
         return collect(Redis::hGetAll('pulse_servers'))

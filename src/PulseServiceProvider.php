@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Laravel\Pulse\Commands\CheckCommand;
+use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheHit;
 use Laravel\Pulse\Handlers\HandleCacheMiss;
 use Laravel\Pulse\Handlers\HandleException;
@@ -42,6 +43,8 @@ class PulseServiceProvider extends ServiceProvider
         if ($this->app->runningUnitTests()) {
             return;
         }
+
+        $this->app->singleton(Pulse::class);
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -81,6 +84,12 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Livewire::listen('component.boot', function ($instance) {
+            if ($instance instanceof ShouldNotReportUsage) {
+                $this->app->make(Pulse::class)->doNotReportUsage = true;
+            }
+        });
+
         $this->registerRoutes();
         $this->registerResources();
         $this->registerMigrations();
@@ -97,6 +106,8 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerRoutes()
     {
         Route::get(config('pulse.path'), function () {
+            $this->app->make(Pulse::class)->doNotReportUsage = true;
+
             return view('pulse::dashboard');
         })->middleware(config('pulse.middleware'));
     }

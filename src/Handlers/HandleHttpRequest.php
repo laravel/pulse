@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleHttpRequest
@@ -42,9 +43,12 @@ class HandleHttpRequest
             }
         }
 
+        if (app(Pulse::class)->doNotReportUsage) {
+            return;
+        }
+
         // Top 10 users hitting the application
-        // TODO: Improve Dashboard ignoring
-        if ($request->user() && $request->route()?->uri() !== 'pulse') {
+        if ($request->user()) {
             $hitsKey = "pulse_user_request_counts:{$keyDate}";
             Redis::zIncrBy($hitsKey, 1, $request->user()->id);
             Redis::rawCommand('EXPIREAT', $keyPrefix.$hitsKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
