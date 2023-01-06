@@ -36,6 +36,7 @@ class HandleException
      */
     protected function getLocation(Throwable $e): string
     {
+        // TODO: has issue when exception occurs in Blade/Livewire view.
         $firstNonVendorFrame = collect($e->getTrace())
             ->firstWhere(fn ($frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
 

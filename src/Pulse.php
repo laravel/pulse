@@ -39,7 +39,7 @@ class Pulse
 
     public function userRequestCounts()
     {
-        // TODO: We don't need to rebuild this on every request - maybe once per hour?
+        // TODO: We probably don't need to rebuild this on every request - maybe once per hour?
         Redis::zUnionStore(
             'pulse_user_request_counts:7-day',
             collect(range(0, 6))
@@ -57,6 +57,7 @@ class Pulse
 
                 return $user ? [
                     'count' => $score,
+                    // TODO: Make configurable
                     'user' => $user->setVisible(['name', 'email']),
                 ] : null;
             })
@@ -124,7 +125,7 @@ class Pulse
 
         $userCounts = collect(Redis::zRevRange('pulse_slow_endpoint_user_counts:7-day', 0, -1, ['WITHSCORES' => true]));
 
-        // TODO: polling for this every 2 seconds is not good.
+        // TODO: polling for this every 2 seconds is probably not great.
         $users = User::findMany($userCounts->keys());
 
         return $userCounts
