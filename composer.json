@@ -19,7 +19,7 @@
         "illuminate/console": "^10.0",
         "illuminate/routing": "^10.0",
         "illuminate/support": "^10.0",
-        "livewire/livewire": "^2.10"
+        "livewire/livewire": "^2.11"
     },
     "require-dev": {
         "mockery/mockery": "^1.0",
