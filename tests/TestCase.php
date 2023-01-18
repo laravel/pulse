@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\PulseServiceProvider;
+use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
@@ -26,6 +27,9 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function getPackageProviders($app)
     {
-        return [PulseServiceProvider::class];
+        return [
+            LivewireServiceProvider::class,
+            PulseServiceProvider::class,
+        ];
     }
 }
