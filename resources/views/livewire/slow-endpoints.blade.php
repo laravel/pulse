@@ -42,10 +42,18 @@
                                 <strong>{{ $slowEndpoint['request_count'] }}</strong>
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm">
-                                <strong>{{ $slowEndpoint['average_duration'] ?: '<1' }}</strong> ms
+                                @if ($slowEndpoint['average_duration'] === null)
+                                    <strong>Unknown</strong>
+                                @else
+                                    <strong>{{ $slowEndpoint['average_duration'] ?: '<1' }}</strong> ms
+                                @endif
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm">
-                                <strong class="font-bold">{{ $slowEndpoint['slowest_duration'] ?: '<1' }}</strong> ms
+                                @if ($slowEndpoint['slowest_duration'] === null)
+                                    <strong>Unknown</strong>
+                                @else
+                                    <strong>{{ $slowEndpoint['slowest_duration'] ?: '<1' }}</strong> ms
+                                @endif
                             </x-pulse::td>
                         </tr>
                     @endforeach

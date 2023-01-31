@@ -39,10 +39,18 @@
                                 <strong>{{ $query['execution_count'] }}</strong>
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm w-24">
-                                <strong>{{ $query['average_duration'] ?: '<1' }}</strong> ms
+                                @if ($query['average_duration'] === null)
+                                    <strong>Unknown</strong>
+                                @else
+                                    <strong>{{ $query['average_duration'] ?: '<1' }}</strong> ms
+                                @endif
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm w-24">
-                                <strong>{{ $query['slowest_duration'] ?: '<1' }}</strong> ms
+                                @if ($query['slowest_duration'] === null)
+                                    <strong>Unknown</strong>
+                                @else
+                                    <strong>{{ $query['slowest_duration'] ?: '<1' }}</strong> ms
+                                @endif
                             </x-pulse::td>
                         </tr>
                     @endforeach

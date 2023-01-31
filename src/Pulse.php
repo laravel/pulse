@@ -107,8 +107,8 @@ class Pulse
                     'uri' => $method.' '.Str::start($path, '/'),
                     'action' => $route?->getActionName(),
                     'request_count' => (int) $requestCount,
-                    'slowest_duration' => (int) $slowestDurations[$uri],
-                    'average_duration' => (int) round($totalDurations[$uri] / $requestCount),
+                    'slowest_duration' => isset($slowestDurations[$uri]) ? (int) $slowestDurations[$uri] : null,
+                    'average_duration' => isset($totalDurations[$uri]) ? (int) round($totalDurations[$uri] / $requestCount) : null,
                 ];
             })
             ->values();
@@ -179,8 +179,8 @@ class Pulse
                 return [
                     'sql' => $sql,
                     'execution_count' => (int) $executionCount,
-                    'slowest_duration' => $slowestDurations[$sql],
-                    'average_duration' => (int) round($totalDurations[$sql] / $executionCount),
+                    'slowest_duration' => isset($slowestDurations[$sql]) ? (int) $slowestDurations[$sql] : null,
+                    'average_duration' => isset($totalDurations[$sql]) ? (int) round($totalDurations[$sql] / $executionCount) : null,
                 ];
             })
             ->values();
@@ -236,7 +236,7 @@ class Pulse
             ->map(fn ($count, $exception) => [
                 ...json_decode($exception, true),
                 'count' => $count,
-                'last_occurrence' => $exceptionLastOccurrences[$exception],
+                'last_occurrence' => isset($exceptionLastOccurrences[$exception]) ? (int) $exceptionLastOccurrences[$exception] : null,
             ])
             ->values();
     }
