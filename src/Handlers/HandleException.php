@@ -13,6 +13,18 @@ class HandleException
      */
     public function __invoke(Throwable $e): void
     {
+        try {
+            $this->recordException($e);
+        } catch (Throwable) {
+            // TODO: What should we do with the new exception?
+        }
+    }
+
+    /**
+     * Record the exception.
+     */
+    protected function recordException(Throwable $e)
+    {
         $keyDate = now()->format('Y-m-d');
         $keyExpiry = now()->toImmutable()->startOfDay()->addDays(7)->timestamp;
 
