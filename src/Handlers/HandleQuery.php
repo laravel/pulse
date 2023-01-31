@@ -3,7 +3,7 @@
 namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Support\Facades\Redis;
+use Laravel\Pulse\RedisAdapter;
 
 class HandleQuery
 {
@@ -20,18 +20,17 @@ class HandleQuery
 
         $keyDate = now()->format('Y-m-d');
         $keyExpiry = now()->startOfDay()->addDays(7)->timestamp;
-        $keyPrefix = config('database.redis.options.prefix');
 
         $countKey = "pulse_slow_query_execution_counts:{$keyDate}";
-        Redis::zIncrBy($countKey, 1, $event->sql);
-        Redis::rawCommand('EXPIREAT', $keyPrefix.$countKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+        RedisAdapter::zincrby($countKey, 1, $event->sql);
+        RedisAdapter::expireat($countKey, $keyExpiry, 'NX');
 
         $durationKey = "pulse_slow_query_total_durations:{$keyDate}";
-        Redis::zIncrBy($durationKey, round($event->time), $event->sql);
-        Redis::rawCommand('EXPIREAT', $keyPrefix.$durationKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+        RedisAdapter::zincrby($durationKey, round($event->time), $event->sql);
+        RedisAdapter::expireat($durationKey, $keyExpiry, 'NX');
 
         $slowestKey = "pulse_slow_query_slowest_durations:{$keyDate}";
-        Redis::rawCommand('ZADD', $keyPrefix.$slowestKey, 'GT', round($event->time), $event->sql); // TODO: phpredis zAdd doesn't support 'GT' in 5.3.7
-        Redis::rawCommand('EXPIREAT', $keyPrefix.$slowestKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+        RedisAdapter::zadd($slowestKey, round($event->time), $event->sql, 'GT');
+        RedisAdapter::expireat($slowestKey, $keyExpiry, 'NX');
     }
 }

@@ -4,8 +4,8 @@ namespace Laravel\Pulse\Handlers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redis;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\RedisAdapter;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleHttpRequest
@@ -20,26 +20,25 @@ class HandleHttpRequest
 
         $keyDate = $startedAt->format('Y-m-d');
         $keyExpiry = $startedAt->toImmutable()->startOfDay()->addDays(7)->timestamp;
-        $keyPrefix = config('database.redis.options.prefix');
 
         // Slow endpoint
         if ($duration >= config('pulse.slow_endpoint_threshold')) {
             $countKey = "pulse_slow_endpoint_request_counts:{$keyDate}";
-            Redis::zIncrBy($countKey, 1, $route);
-            Redis::rawCommand('EXPIREAT', $keyPrefix.$countKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+            RedisAdapter::zincrby($countKey, 1, $route);
+            RedisAdapter::expireat($countKey, $keyExpiry, 'NX');
 
             $durationKey = "pulse_slow_endpoint_total_durations:{$keyDate}";
-            Redis::zIncrBy($durationKey, $duration, $route);
-            Redis::rawCommand('EXPIREAT', $keyPrefix.$durationKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+            RedisAdapter::zincrby($durationKey, $duration, $route);
+            RedisAdapter::expireat($durationKey, $keyExpiry, 'NX');
 
             $slowestKey = "pulse_slow_endpoint_slowest_durations:{$keyDate}";
-            Redis::rawCommand('ZADD', $keyPrefix.$slowestKey, 'GT', $duration, $route); // TODO: phpredis zAdd doesn't support 'GT' in 5.3.7
-            Redis::rawCommand('EXPIREAT', $keyPrefix.$slowestKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+            RedisAdapter::zadd($slowestKey, $duration, $route, 'GT');
+            RedisAdapter::expireat($slowestKey, $keyExpiry, 'NX');
 
             if ($request->user()) {
                 $userKey = "pulse_slow_endpoint_user_counts:{$keyDate}";
-                Redis::zIncrBy($userKey, 1, $request->user()->id);
-                Redis::rawCommand('EXPIREAT', $keyPrefix.$userKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+                RedisAdapter::zincrby($userKey, 1, $request->user()->id);
+                RedisAdapter::expireat($userKey, $keyExpiry, 'NX');
             }
         }
 
@@ -50,8 +49,8 @@ class HandleHttpRequest
         // Top 10 users hitting the application
         if ($request->user()) {
             $hitsKey = "pulse_user_request_counts:{$keyDate}";
-            Redis::zIncrBy($hitsKey, 1, $request->user()->id);
-            Redis::rawCommand('EXPIREAT', $keyPrefix.$hitsKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+            RedisAdapter::zincrby($hitsKey, 1, $request->user()->id);
+            RedisAdapter::expireAt($hitsKey, $keyExpiry, 'NX');
         }
     }
 }

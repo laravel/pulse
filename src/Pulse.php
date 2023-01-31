@@ -4,7 +4,6 @@ namespace Laravel\Pulse;
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -15,9 +14,9 @@ class Pulse
     public function servers()
     {
         // TODO: Exclude servers that haven't reported recently?
-        return collect(Redis::hGetAll('pulse_servers'))
+        return collect(RedisAdapter::hgetall('pulse_servers'))
             ->map(function ($name, $slug) {
-                $readings = collect(Redis::xRange("pulse_servers:{$slug}", '-', '+'))
+                $readings = collect(RedisAdapter::xrange("pulse_servers:{$slug}", '-', '+'))
                     ->map(fn ($server) => [
                         'timestamp' => (int) $server['timestamp'],
                         'cpu' => (int) $server['cpu'],
@@ -42,14 +41,14 @@ class Pulse
     public function userRequestCounts()
     {
         // TODO: We probably don't need to rebuild this on every request - maybe once per hour?
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_user_request_counts:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_user_request_counts:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray()
         );
 
-        $scores = collect(Redis::zRevRange('pulse_user_request_counts:7-day', 0, 9, ['WITHSCORES' => true]));
+        $scores = collect(RedisAdapter::zrevrange('pulse_user_request_counts:7-day', 0, 9, true));
 
         $users = User::findMany($scores->keys());
 
@@ -70,33 +69,33 @@ class Pulse
     public function slowEndpoints()
     {
         // TODO: Do we want to rebuild this on every request?
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_endpoint_request_counts:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_endpoint_request_counts:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_endpoint_total_durations:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_endpoint_total_durations:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_endpoint_slowest_durations:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_endpoint_slowest_durations:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'MAX']
+           'MAX'
         );
 
-        $requestCounts = Redis::zRevRange('pulse_slow_endpoint_request_counts:7-day', 0, -1, ['WITHSCORES' => true]);
-        $totalDurations = Redis::zRevRange('pulse_slow_endpoint_total_durations:7-day', 0, -1, ['WITHSCORES' => true]);
-        $slowestDurations = Redis::zRevRange('pulse_slow_endpoint_slowest_durations:7-day', 0, -1, ['WITHSCORES' => true]);
+        $requestCounts = RedisAdapter::zrevrange('pulse_slow_endpoint_request_counts:7-day', 0, -1, true);
+        $totalDurations = RedisAdapter::zrevrange('pulse_slow_endpoint_total_durations:7-day', 0, -1, true);
+        $slowestDurations = RedisAdapter::zrevrange('pulse_slow_endpoint_slowest_durations:7-day', 0, -1, true);
 
         return collect($requestCounts)
             ->map(function ($requestCount, $uri) use ($totalDurations, $slowestDurations) {
@@ -117,15 +116,15 @@ class Pulse
 
     public function usersExperiencingSlowEndpoints()
     {
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_endpoint_user_counts:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_endpoint_user_counts:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        $userCounts = collect(Redis::zRevRange('pulse_slow_endpoint_user_counts:7-day', 0, -1, ['WITHSCORES' => true]));
+        $userCounts = collect(RedisAdapter::zrevrange('pulse_slow_endpoint_user_counts:7-day', 0, -1, true));
 
         // TODO: polling for this every 2 seconds is probably not great.
         $users = User::findMany($userCounts->keys());
@@ -146,33 +145,33 @@ class Pulse
     public function slowQueries()
     {
         // TODO: Do we want to rebuild this on every request?
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_query_execution_counts:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_query_execution_counts:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_query_total_durations:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_query_total_durations:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_slow_query_slowest_durations:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_slow_query_slowest_durations:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'MAX']
+           'MAX'
         );
 
-        $executionCounts = Redis::zRevRange('pulse_slow_query_execution_counts:7-day', 0, -1, ['WITHSCORES' => true]);
-        $totalDurations = Redis::zRevRange('pulse_slow_query_total_durations:7-day', 0, -1, ['WITHSCORES' => true]);
-        $slowestDurations = Redis::zRevRange('pulse_slow_query_slowest_durations:7-day', 0, -1, ['WITHSCORES' => true]);
+        $executionCounts = RedisAdapter::zrevrange('pulse_slow_query_execution_counts:7-day', 0, -1, true);
+        $totalDurations = RedisAdapter::zrevrange('pulse_slow_query_total_durations:7-day', 0, -1, true);
+        $slowestDurations = RedisAdapter::zrevrange('pulse_slow_query_slowest_durations:7-day', 0, -1, true);
 
         return collect($executionCounts)
             ->map(function ($executionCount, $sql) use ($totalDurations, $slowestDurations) {
@@ -190,11 +189,11 @@ class Pulse
     public function cacheStats()
     {
         $hits = collect(range(0, 6))
-            ->map(fn ($days) => Redis::get('pulse_cache_hits:' . now()->subDays($days)->format('Y-m-d')))
+            ->map(fn ($days) => RedisAdapter::get('pulse_cache_hits:' . now()->subDays($days)->format('Y-m-d')))
             ->sum();
 
         $misses = collect(range(0, 6))
-            ->map(fn ($days) => Redis::get('pulse_cache_misses:' . now()->subDays($days)->format('Y-m-d')))
+            ->map(fn ($days) => RedisAdapter::get('pulse_cache_misses:' . now()->subDays($days)->format('Y-m-d')))
             ->sum();
 
         $total = $hits + $misses;
@@ -214,24 +213,24 @@ class Pulse
 
     public function exceptions()
     {
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_exception_counts:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_exception_counts:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'SUM']
+           'SUM'
         );
 
-        Redis::zUnionStore(
+        RedisAdapter::zunionstore(
             'pulse_exception_last_occurrences:7-day',
             collect(range(0, 6))
                 ->map(fn ($days) => 'pulse_exception_last_occurrences:' . now()->subDays($days)->format('Y-m-d'))
                 ->toArray(),
-            ['aggregate' => 'MAX']
+           'MAX'
         );
 
-        $exceptionCounts = Redis::zRevRange('pulse_exception_counts:7-day', 0, -1, ['WITHSCORES' => true]);
-        $exceptionLastOccurrences = Redis::zRevRange('pulse_exception_last_occurrences:7-day', 0, -1, ['WITHSCORES' => true]);
+        $exceptionCounts = RedisAdapter::zrevrange('pulse_exception_counts:7-day', 0, -1, true);
+        $exceptionLastOccurrences = RedisAdapter::zrevrange('pulse_exception_last_occurrences:7-day', 0, -1, true);
 
         return collect($exceptionCounts)
             ->map(fn ($count, $exception) => [

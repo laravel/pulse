@@ -2,8 +2,8 @@
 
 namespace Laravel\Pulse\Handlers;
 
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
+use Laravel\Pulse\RedisAdapter;
 use Throwable;
 
 class HandleException
@@ -15,7 +15,6 @@ class HandleException
     {
         $keyDate = now()->format('Y-m-d');
         $keyExpiry = now()->toImmutable()->startOfDay()->addDays(7)->timestamp;
-        $keyPrefix = config('database.redis.options.prefix');
 
         $exception = json_encode([
             'class' => get_class($e),
@@ -23,12 +22,12 @@ class HandleException
         ]);
 
         $countKey = "pulse_exception_counts:{$keyDate}";
-        Redis::zIncrBy($countKey, 1, $exception);
-        Redis::rawCommand('EXPIREAT', $keyPrefix.$countKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+        RedisAdapter::zincrby($countKey, 1, $exception);
+        RedisAdapter::expireat($countKey, $keyExpiry, 'NX');
 
         $lastOccurrenceKey = "pulse_exception_last_occurrences:{$keyDate}";
-        Redis::zAdd($lastOccurrenceKey, now()->timestamp, $exception);
-        Redis::rawCommand('EXPIREAT', $keyPrefix.$lastOccurrenceKey, $keyExpiry, 'NX'); // TODO: phpredis expireAt doesn't support 'NX' in 5.3.7
+        RedisAdapter::zadd($lastOccurrenceKey, now()->timestamp, $exception);
+        RedisAdapter::expireat($lastOccurrenceKey, $keyExpiry, 'NX');
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace Laravel\Pulse\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
+use Laravel\Pulse\RedisAdapter;
 use RuntimeException;
 
 class CheckCommand extends Command
@@ -31,7 +31,7 @@ class CheckCommand extends Command
     public function handle()
     {
         $slug = Str::slug(config('pulse.server_name'));
-        Redis::hSet('pulse_servers', $slug, config('pulse.server_name'));
+        RedisAdapter::hset('pulse_servers', $slug, config('pulse.server_name'));
 
         while (true) {
             $stats = [
@@ -44,8 +44,8 @@ class CheckCommand extends Command
                 ])->toJson(),
             ];
 
-            Redis::xAdd("pulse_servers:{$slug}", '*', $stats);
-            Redis::xTrim("pulse_servers:{$slug}", 60);
+            RedisAdapter::xadd("pulse_servers:{$slug}", $stats);
+            RedisAdapter::xtrim("pulse_servers:{$slug}", 60);
 
             $this->line(json_encode($stats));
 
