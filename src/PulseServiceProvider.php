@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheHit;
@@ -28,6 +27,7 @@ use Laravel\Pulse\Http\Livewire\Servers;
 use Laravel\Pulse\Http\Livewire\SlowEndpoints;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\Usage;
+use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
 use Throwable;
 

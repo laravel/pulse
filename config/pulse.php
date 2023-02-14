@@ -5,7 +5,7 @@ return [
     'path' => env('PULSE_PATH', 'pulse'),
 
     'middleware' => [
-        'web'
+        'web',
     ],
 
     // The name that will appear in the dashboard after running the `pulse:check` command.
