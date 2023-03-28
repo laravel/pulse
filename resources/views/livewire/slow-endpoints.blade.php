@@ -41,14 +41,14 @@
                             <x-pulse::td class="text-right text-gray-700 text-sm">
                                 <strong>{{ $slowEndpoint['request_count'] }}</strong>
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 text-sm">
+                            <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
                                 @if ($slowEndpoint['average_duration'] === null)
                                     <strong>Unknown</strong>
                                 @else
                                     <strong>{{ $slowEndpoint['average_duration'] ?: '<1' }}</strong> ms
                                 @endif
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 text-sm">
+                            <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
                                 @if ($slowEndpoint['slowest_duration'] === null)
                                     <strong>Unknown</strong>
                                 @else
