@@ -38,21 +38,17 @@ class RedisAdapter
 
     public static function xadd($key, $dictionary)
     {
-        $prefix = config('database.redis.options.prefix');
-
         return match (true) {
             Redis::client() instanceof \Redis => Redis::xAdd($key, '*', $dictionary),
-            Redis::client() instanceof \Predis\Client => Redis::xadd($prefix.$key, $dictionary),
+            Redis::client() instanceof \Predis\Client => Redis::xadd($key, $dictionary),
         };
     }
 
     public static function xrange($key, $start, $end)
     {
-        $prefix = config('database.redis.options.prefix');
-
         return match (true) {
             Redis::client() instanceof \Redis => Redis::xrange($key, $start, $end),
-            Redis::client() instanceof \Predis\Client => Redis::xrange($prefix.$key, $start, $end),
+            Redis::client() instanceof \Predis\Client => Redis::xrange($key, $start, $end),
         };
     }
 
@@ -62,6 +58,7 @@ class RedisAdapter
 
         return match (true) {
             Redis::client() instanceof \Redis => Redis::xTrim($key, $threshold),
+            // Predis currently doesn't apply the prefix on XTRIM commands.
             Redis::client() instanceof \Predis\Client => Redis::xtrim($prefix.$key, 'MAXLEN', $threshold),
         };
     }
