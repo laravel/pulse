@@ -46,10 +46,7 @@ class RedisAdapter
 
     public static function xrange($key, $start, $end)
     {
-        return match (true) {
-            Redis::client() instanceof \Redis => Redis::xrange($key, $start, $end),
-            Redis::client() instanceof \Predis\Client => Redis::xrange($key, $start, $end),
-        };
+        return Redis::xrange($key, $start, $end);
     }
 
     public static function xtrim($key, $threshold)
