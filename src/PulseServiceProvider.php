@@ -105,8 +105,8 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes()
     {
-        Route::get(config('pulse.path'), function () {
-            $this->app->make(Pulse::class)->doNotReportUsage = true;
+        Route::get(config('pulse.path'), function (Pulse $pulse) {
+            $pulse->doNotReportUsage = true;
 
             return view('pulse::dashboard');
         })->middleware(config('pulse.middleware'));
