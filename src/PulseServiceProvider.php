@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
+use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheHit;
 use Laravel\Pulse\Handlers\HandleCacheMiss;
@@ -129,9 +130,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations()
     {
-        // if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
-        //     $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // }
+        if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        }
     }
 
     /**
@@ -170,6 +171,7 @@ class PulseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 CheckCommand::class,
+                WorkCommand::class,
             ]);
         }
     }

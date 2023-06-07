@@ -3,12 +3,20 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class Pulse
 {
+    /**
+     * Indicates if Pulse migrations will be run.
+     *
+     * @var bool
+     */
+    public static $runsMigrations = true;
+
     public bool $doNotReportUsage = false;
 
     public function servers()
@@ -40,6 +48,32 @@ class Pulse
 
     public function userRequestCounts()
     {
+        $top10 = DB::table('pulse_requests')
+            ->selectRaw('user_id, SUM(volume) as volume')
+            ->where('resolution', 5)
+            ->whereNotNull('user_id')
+            ->groupBy('user_id')
+            ->orderByRaw('SUM(volume) DESC')
+            ->limit(10)
+            ->get();
+
+        $users = User::findMany($top10->pluck('user_id'));
+
+        return $top10
+            ->map(function ($row) use ($users) {
+                $user = $users->firstWhere('id', $row->user_id);
+
+                return $user ? [
+                    'count' => $row->volume,
+                    'user' => $user->setVisible(['name', 'email']),
+                ] : null;
+            })
+            ->filter()
+            ->values();
+
+
+        return;
+
         // TODO: We probably don't need to rebuild this on every request - maybe once per hour?
         RedisAdapter::zunionstore(
             'pulse_user_request_counts:7-day',
@@ -68,6 +102,29 @@ class Pulse
 
     public function slowEndpoints()
     {
+        return DB::table('pulse_requests')
+            ->selectRaw('route, MAX(slowest) as slowest, AVG(average) as average, COUNT(*) as request_count')
+            ->where('resolution', 5)
+            ->groupBy('route')
+            ->orderByRaw('MAX(slowest) DESC')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                $method = substr($row->route, 0, strpos($row->route, ' '));
+                $path = substr($row->route, strpos($row->route, '/') + 1);
+                $route = Route::getRoutes()->get($method)[$path] ?? null;
+
+                return [
+                    'uri' => $row->route,
+                    'action' => $route?->getActionName(),
+                    'request_count' => (int) $row->request_count,
+                    'slowest_duration' => (int) $row->slowest,
+                    'average_duration' => (int) $row->average,
+                ];
+            });
+
+        // return;
+
         // TODO: Do we want to rebuild this on every request?
         RedisAdapter::zunionstore(
             'pulse_slow_endpoint_request_counts:7-day',
@@ -257,5 +314,17 @@ class Pulse
     public function js()
     {
         return file_get_contents(__DIR__.'/../dist/pulse.js');
+    }
+
+    /**
+     * Configure Pulse to not register its migrations.
+     *
+     * @return static
+     */
+    public static function ignoreMigrations()
+    {
+        static::$runsMigrations = false;
+
+        return new static;
     }
 }

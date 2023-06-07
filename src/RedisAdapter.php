@@ -36,6 +36,11 @@ class RedisAdapter
         return Redis::incr($key);
     }
 
+    public static function time()
+    {
+        return Redis::time();
+    }
+
     public static function xadd($key, $dictionary)
     {
         return match (true) {
@@ -44,9 +49,22 @@ class RedisAdapter
         };
     }
 
-    public static function xrange($key, $start, $end)
+    public static function xrange($key, $start, $end, $count = null)
     {
+        if ($count) {
+            return Redis::xrange($key, $start, $end, $count);
+        }
+
         return Redis::xrange($key, $start, $end);
+    }
+
+    public static function xrevrange($key, $end, $start, $count = null)
+    {
+        if ($count) {
+            return Redis::xrevrange($key, $end, $start, $count);
+        }
+
+        return Redis::xrevrange($key, $end, $start);
     }
 
     public static function xtrim($key, $threshold)

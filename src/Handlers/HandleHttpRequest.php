@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Handlers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\RedisAdapter;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +16,24 @@ class HandleHttpRequest
      */
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
+        if (app(Pulse::class)->doNotReportUsage) {
+            return;
+        }
+
+        RedisAdapter::xadd('pulse_requests', [
+            // 'started_at' => $startedAt->toIso8601String(),
+            'duration' => $startedAt->diffInMilliseconds(now()),
+            // 'method' => $request->method(),
+            // 'route' => $request->route()?->uri() ?? $request->path(),
+            //'status' => $response->getStatusCode(),
+            'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
+            'user_id' => $request->user()?->id,
+        ]);
+
+        // TODO: Trim the stream to 7 days just in case...
+
+        return;
+
         $duration = $startedAt->diffInMilliseconds(now());
         $route = $request->method().' '.($request->route()?->uri() ?? $request->path());
 
