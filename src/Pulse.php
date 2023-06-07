@@ -71,7 +71,6 @@ class Pulse
             ->filter()
             ->values();
 
-
         return;
 
         // TODO: We probably don't need to rebuild this on every request - maybe once per hour?

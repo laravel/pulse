@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Benchmark;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,14 +39,14 @@ class WorkCommand extends Command
 
         $redisNow = Carbon::createFromTimestamp(RedisAdapter::time()[0], 'UTC');
 
-        dump('redisNow: ' . $redisNow->format('Y-m-d H:i:s v'));
+        dump('redisNow: '.$redisNow->format('Y-m-d H:i:s v'));
 
         // Get the latest date from the database
         $lastDate = DB::table('pulse_requests')
             ->where('resolution', 5)
             ->max('date');
 
-        dump('lastDate: ' . $lastDate);
+        dump('lastDate: '.$lastDate);
 
         // dd(RedisAdapter::xrange('pulse_requests', '-', '+'));
 
@@ -60,16 +59,16 @@ class WorkCommand extends Command
 
             if ($oldestStreamKey) {
                 $oldestStreamDate = Carbon::createFromTimestampMs(Str::before($oldestStreamKey, '-'), 'UTC')->startOfSecond();
-                dump('oldestStreamDate: ' . $oldestStreamDate->format('Y-m-d H:i:s v'));
+                dump('oldestStreamDate: '.$oldestStreamDate->format('Y-m-d H:i:s v'));
                 $from = $redisNow->copy()->subDays(7)->max($oldestStreamDate);
-                dump('from: ' . $from->format('Y-m-d H:i:s v'));
+                dump('from: '.$from->format('Y-m-d H:i:s v'));
             } else {
                 dd('no data in the stream');
             }
         } else {
             dump('lastDate found');
             $from = Carbon::parse($lastDate, 'UTC')->addSeconds(5);
-            dump('from: ' . $from->format('Y-m-d H:i:s v'));
+            dump('from: '.$from->format('Y-m-d H:i:s v'));
         }
 
         $from->ceilSeconds(5); // 20:00:00 000
@@ -87,7 +86,7 @@ class WorkCommand extends Command
         dump('count: '.$aggregates->count());
 
         if ($aggregates->count() > 0) {
-            dump("inserting records...");
+            dump('inserting records...');
             foreach ($aggregates->chunk(1000) as $chunk) {
                 DB::table('pulse_requests')->insert($chunk->toArray());
             }
@@ -95,13 +94,12 @@ class WorkCommand extends Command
 
         // DB::table('pulse_requests')->insert(array_merge(...$allAggregates));
 
-//         foreach ($allAggregates as $aggregate) {
-//             dump($aggregate);
-//         }
+        //         foreach ($allAggregates as $aggregate) {
+        //             dump($aggregate);
+        //         }
 
         // $latestStream = array_key_first(RedisAdapter::xrevrange('pulse_requests', '+', '-', 1));
         // dd($oldestStream, $latestStream);
-
 
         // $allRequests = collect(RedisAdapter::xrange('pulse_requests', '-', '+'));
         // dump($allRequests->keys()->first(), $allRequests->keys()->last(), $allRequests->count());
