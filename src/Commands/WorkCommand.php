@@ -2,11 +2,11 @@
 
 namespace Laravel\Pulse\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Pulse\RedisAdapter;
+use Laravel\Pulse\Redis;
 
 class WorkCommand extends Command
 {
@@ -29,7 +29,7 @@ class WorkCommand extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(Redis $redis)
     {
         // Database may have nothing or may have existing records.
         // Stream may have nothing or may have existing records.
@@ -37,7 +37,7 @@ class WorkCommand extends Command
         // Need to make sure we have a full 5 seconds.
         // TODO: Add test for millisecond boundaries
 
-        $redisNow = Carbon::createFromTimestamp(RedisAdapter::time()[0], 'UTC');
+        $redisNow = $redis->now();
 
         dump('redisNow: '.$redisNow->format('Y-m-d H:i:s v'));
 
@@ -48,39 +48,39 @@ class WorkCommand extends Command
 
         dump('lastDate: '.$lastDate);
 
-        // dd(RedisAdapter::xrange('pulse_requests', '-', '+'));
+        // dd($redis->xrange('pulse_requests', '-', '+'));
 
         // Back fill the database from the stream
 
         // If there is nothing in the database, start from the oldest record in the stream, or 7 days ago, which ever is closest.
         if ($lastDate === null) {
             dump('No last date, getting oldest stream key...');
-            $oldestStreamKey = array_key_first(RedisAdapter::xrange('pulse_requests', '-', '+', 1));
 
-            if ($oldestStreamKey) {
-                $oldestStreamDate = Carbon::createFromTimestampMs(Str::before($oldestStreamKey, '-'), 'UTC')->startOfSecond();
+            $oldestStreamDate = $redis->oldestStreamEntryDate('pulse_requests');
+
+            if ($oldestStreamDate) {
                 dump('oldestStreamDate: '.$oldestStreamDate->format('Y-m-d H:i:s v'));
-                $from = $redisNow->copy()->subDays(7)->max($oldestStreamDate);
+                $from = $redisNow->subDays(7)->max($oldestStreamDate);
                 dump('from: '.$from->format('Y-m-d H:i:s v'));
             } else {
                 dd('no data in the stream');
             }
         } else {
             dump('lastDate found');
-            $from = Carbon::parse($lastDate, 'UTC')->addSeconds(5);
+            $from = CarbonImmutable::parse($lastDate, 'UTC')->addSeconds(5);
             dump('from: '.$from->format('Y-m-d H:i:s v'));
         }
 
-        $from->ceilSeconds(5); // 20:00:00 000
+        $from = $from->ceilSeconds(5); // 20:00:00 000
 
-        $to = $from->copy()->addSeconds(4)->endOfSecond(); // 20:00:04 999
+        $to = $from->addSeconds(4)->endOfSecond(); // 20:00:04 999
 
         $aggregates = collect([]);
-        while ($to->lte($redisNow->copy()->floorSeconds(5))) {
+        while ($to->lte($redisNow->floorSeconds(5))) {
             $aggregates = $aggregates->merge($this->getAggregates($from, $to));
             // $aggregates->merge(dump($this->getAggregates($from, $to)));
-            $from->addSeconds(5);
-            $to->addSeconds(5);
+            $from = $from->addSeconds(5);
+            $to = $to->addSeconds(5);
         }
 
         dump('count: '.$aggregates->count());
@@ -98,17 +98,17 @@ class WorkCommand extends Command
         //             dump($aggregate);
         //         }
 
-        // $latestStream = array_key_first(RedisAdapter::xrevrange('pulse_requests', '+', '-', 1));
+        // $latestStream = array_key_first($redis->xrevrange('pulse_requests', '+', '-', 1));
         // dd($oldestStream, $latestStream);
 
-        // $allRequests = collect(RedisAdapter::xrange('pulse_requests', '-', '+'));
+        // $allRequests = collect($redis->xrange('pulse_requests', '-', '+'));
         // dump($allRequests->keys()->first(), $allRequests->keys()->last(), $allRequests->count());
 
     }
 
     protected function getAggregates($from, $to)
     {
-        $requests = collect(RedisAdapter::xrange('pulse_requests', $from->getTimestampMs(), $to->getTimestampMs()));
+        $requests = collect($redis->xrange('pulse_requests', $from->getTimestampMs(), $to->getTimestampMs()));
 
         $counts = [];
         foreach ($requests as $request) {

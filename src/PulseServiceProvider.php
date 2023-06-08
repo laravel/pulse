@@ -41,11 +41,14 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->runningUnitTests()) {
-            return;
-        }
+        // TODO: will need to restore this one. Probably with a static.
+        // if ($this->app->runningUnitTests()) {
+        //     return;
+        // }
 
         $this->app->singleton(Pulse::class);
+
+        $this->app->singleton(Redis::class, fn ($app) => new Redis($app['redis']->connection()->client()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -62,9 +65,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents()
     {
         $this->app->make(Kernel::class)
-            ->whenRequestLifecycleIsLongerThan(0, function ($startedAt, $request, $response) {
-                (new HandleHttpRequest)($startedAt, $request, $response);
-            });
+            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
         DB::listen(fn ($e) => (new HandleQuery)($e));
 
