@@ -67,14 +67,13 @@ class RedisAdapter
         return Redis::xrevrange($key, $end, $start);
     }
 
-    public static function xtrim($key, $threshold)
+    public static function xtrim($key, $strategy, $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 
         return match (true) {
-            Redis::client() instanceof \Redis => Redis::xTrim($key, $threshold),
-            // Predis currently doesn't apply the prefix on XTRIM commands.
-            Redis::client() instanceof \Predis\Client => Redis::xtrim($prefix.$key, 'MAXLEN', $threshold),
+            Redis::client() instanceof \Redis => Redis::rawCommand('XTRIM', $prefix.$key, $strategy, $threshold),
+            Redis::client() instanceof \Predis\Client => Redis::xtrim($key, 'MAXLEN', $threshold),
         };
     }
 

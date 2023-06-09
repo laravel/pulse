@@ -27,6 +27,11 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      *
+     * @todo
+     *  - Roll up into 30 seconds, etc.
+     *  - Handle other streams, not just the requests.
+     *  - Trimming the streams.
+     *
      * @return int
      */
     public function handle(Redis $redis)
@@ -55,7 +60,7 @@ class WorkCommand extends Command
 
         $requests = collect();
         while (true) {
-
+            $redisNow = $redis->now();
             $newRequests = collect($redis->xrange('pulse_requests', $from, '+', 1000));
             echo '.';
             $requests = $requests->merge($newRequests);
@@ -64,29 +69,35 @@ class WorkCommand extends Command
                 $from = '(' . $requests->keys()->last();
             }
 
+            $aggregates = collect();
             while ($requests->count() > 0) {
                 $firstKey = $requests->keys()->first();
-                $endTime = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'))->floorSeconds(5)->addSeconds(4)->endOfSecond();
-                $lastKey = $endTime->getTimestampMs();
+                $bucketStart = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'))->floorSeconds(5);
+                $maxKey = $bucketStart->addSeconds(4)->endOfSecond()->getTimestampMs();
                 // dump($firstKey, $lastKey);
 
-                $bucket = $requests->takeWhile(function ($item, $key) use ($lastKey) {
+                $bucket = $requests->takeWhile(function ($item, $key) use ($maxKey) {
                     $time = Str::before($key, '-');
-                    return $time <= $lastKey;
+                    return $time <= $maxKey;
                 });
 
-                if ($bucket->count() === $requests->count()) {
-                    // The bucket probably spans over to the next chunk
-                    // Ignore the bucket and consume from the stream again, merging onto whatever is left.
+                if ($bucket->count() === $requests->count() && $redisNow->getTimestampMs() < $maxKey) {
                     break 1;
-                    // Once caught up to live data, we currently won't save until a request has happened in the next 5 second window.
                 }
 
+                $aggregates = $aggregates->merge($this->getAggregates($bucketStart, $bucket));
                 $requests = $requests->skip($bucket->count());
                 dump("saving bucket of {$bucket->count()} requests");
-                // Save bucket to database
-
             }
+
+            if ($aggregates->count() > 0) {
+                dump('inserting records...');
+                foreach ($aggregates->chunk(1000) as $chunk) {
+                    DB::table('pulse_requests')->insert($chunk->all());
+                }
+            }
+
+            //
 
             if ($newRequests->count() < 1000) {
                 sleep(5);
@@ -176,10 +187,8 @@ class WorkCommand extends Command
 
     }
 
-    protected function getAggregates($from, $to)
+    protected function getAggregates($from, $requests)
     {
-        $requests = collect($redis->xrange('pulse_requests', $from->getTimestampMs(), $to->getTimestampMs()));
-
         $counts = [];
         foreach ($requests as $request) {
             $counts[$request['route']][$request['user_id'] ?: '0'][] = $request['duration'];

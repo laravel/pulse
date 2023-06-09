@@ -14,8 +14,10 @@ class Redis
 {
     /**
      * Create a new Redis instance.
+     *
+     * @param  \Redis|\Predis\Client  $client
      */
-    public function __construct(protected PhpRedis|Predis $client)
+    public function __construct(protected $client)
     {
         //
     }
@@ -58,16 +60,16 @@ class Redis
         return $this->client->xrevrange($key, $end, $start);
     }
 
-    public function xtrim($key, $threshold)
+    public function xtrim($key, $strategy, $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 
         if ($this->isPhpRedis()) {
-            return $this->client->xTrim($key, $threshold);
+            // PHP Redis does not support the minid strategy.
+            return $this->client->rawCommand('XTRIM', $prefix.$key, $strategy, $threshold);
         }
 
-        // Predis currently doesn't apply the prefix on XTRIM commands.
-        return $this->client->xtrim($prefix.$key, 'MAXLEN', $threshold);
+        return $this->client->xtrim($key, $strategy, $threshold);
     }
 
     public function zadd($key, $score, $member, $options = null)

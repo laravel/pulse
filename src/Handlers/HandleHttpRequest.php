@@ -3,6 +3,8 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
@@ -30,7 +32,7 @@ class HandleHttpRequest
             return;
         }
 
-        $this->redis->xadd('pulse_requests', [
+        $id = $this->redis->xadd('pulse_requests', [
             // 'started_at' => $startedAt->toIso8601String(),
             'duration' => $startedAt->diffInMilliseconds(now()),
             // 'method' => $request->method(),
@@ -40,7 +42,13 @@ class HandleHttpRequest
             'user_id' => $request->user()?->id,
         ]);
 
-        // TODO: Trim the stream to 7 days just in case...
+        dump("id: {$id}");
+
+        $oldestId = CarbonImmutable::createFromTimestampMs(Str::before($id, '-'))->subDays(7)->getTimestampMs();
+        dump("oldest id: {$oldestId}");
+
+        dump('trimming', );
+        dump($this->redis->xtrim('pulse_requests', 'MINID', $oldestId));
 
         return;
 

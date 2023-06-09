@@ -45,7 +45,7 @@ class CheckCommand extends Command
             ];
 
             RedisAdapter::xadd("pulse_servers:{$slug}", $stats);
-            RedisAdapter::xtrim("pulse_servers:{$slug}", 60);
+            RedisAdapter::xtrim("pulse_servers:{$slug}", 'MAXLEN', 60);
 
             $this->line(json_encode($stats));
 
