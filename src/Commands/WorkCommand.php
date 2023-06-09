@@ -31,6 +31,76 @@ class WorkCommand extends Command
      */
     public function handle(Redis $redis)
     {
+        $redisNow = $redis->now();
+
+        dump('redisNow: '.$redisNow->format('Y-m-d H:i:s v'));
+
+        // Get the latest date from the database
+        $lastDate = DB::table('pulse_requests')
+            ->where('resolution', 5)
+            ->max('date');
+
+        dump('lastDate: '.$lastDate);
+
+        if ($lastDate !== null) {
+            dump('lastDate found');
+            $from = CarbonImmutable::parse($lastDate, 'UTC')->addSeconds(5);
+        } else {
+            dump('No last date, starting 7 days ago from redisNow');
+            $from = $redisNow->subDays(7)->floorSeconds(5);
+        }
+
+        dump('from: '.$from->format('Y-m-d H:i:s v'));
+        $from = $from->getTimestampMs();
+
+        $requests = collect();
+        while (true) {
+
+            $newRequests = collect($redis->xrange('pulse_requests', $from, '+', 1000));
+            echo '.';
+            $requests = $requests->merge($newRequests);
+
+            if ($requests->count() > 0) {
+                $from = '(' . $requests->keys()->last();
+            }
+
+            while ($requests->count() > 0) {
+                $firstKey = $requests->keys()->first();
+                $endTime = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'))->floorSeconds(5)->addSeconds(4)->endOfSecond();
+                $lastKey = $endTime->getTimestampMs();
+                // dump($firstKey, $lastKey);
+
+                $bucket = $requests->takeWhile(function ($item, $key) use ($lastKey) {
+                    $time = Str::before($key, '-');
+                    return $time <= $lastKey;
+                });
+
+                if ($bucket->count() === $requests->count()) {
+                    // The bucket probably spans over to the next chunk
+                    // Ignore the bucket and consume from the stream again, merging onto whatever is left.
+                    break 1;
+                    // Once caught up to live data, we currently won't save until a request has happened in the next 5 second window.
+                }
+
+                $requests = $requests->skip($bucket->count());
+                dump("saving bucket of {$bucket->count()} requests");
+                // Save bucket to database
+
+            }
+
+            if ($newRequests->count() < 1000) {
+                sleep(5);
+            }
+        }
+    }
+
+    /**
+     * Handle the command.
+     *
+     * @return int
+     */
+    public function handlex(Redis $redis)
+    {
         // Database may have nothing or may have existing records.
         // Stream may have nothing or may have existing records.
         // Need to backfill database from stream.
