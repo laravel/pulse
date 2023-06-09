@@ -72,7 +72,7 @@ class WorkCommand extends Command
             $aggregates = collect();
             while ($requests->count() > 0) {
                 $firstKey = $requests->keys()->first();
-                $bucketStart = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'))->floorSeconds(5);
+                $bucketStart = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'), 'UTC')->floorSeconds(5);
                 $maxKey = $bucketStart->addSeconds(4)->endOfSecond()->getTimestampMs();
                 // dump($firstKey, $lastKey);
 
