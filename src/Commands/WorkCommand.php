@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Benchmark;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Redis;
@@ -100,6 +101,76 @@ class WorkCommand extends Command
             //
 
             if ($newRequests->count() < 1000) {
+                dump('agging 60...');
+                $latest60Date = DB::table('pulse_requests')->where('resolution', 60)->latest('date')->value('date');
+                dump('latest60Date: '.$latest60Date);
+                if ($latest60Date) {
+                    $latest60Date = CarbonImmutable::parse($latest60Date, 'UTC')->addMinute()->format('Y-m-d H:i:s');
+                }
+                $dateSql = $latest60Date ? "AND date >= '{$latest60Date}'" : '';
+                $dateSql .= " AND date < '{$redisNow->startOfMinute()->format('Y-m-d H:i:s')}'";
+                dump($dateSql);
+
+                dump(Benchmark::measure(fn () =>
+                DB::statement(<<<"SQL"
+                    INSERT INTO pulse_requests (date, resolution, user_id, route, volume, average, slowest)
+                    SELECT bucket, 60, user_id, route, volume, average, slowest
+                    FROM (
+                      SELECT
+                        bucket,
+                        user_id,
+                        route,
+                        SUM(`volume`) as `volume`,
+                        AVG(`average`) as `average`,
+                        MAX(`slowest`) as `slowest`
+                      FROM (
+                        SELECT
+                          *,
+                          DATE_FORMAT(`date`, '%Y-%m-%d %H:%i:00') as `bucket`
+                        FROM `pulse_requests`
+                        WHERE resolution = 5
+                        {$dateSql}
+                      ) as `sub`
+                      GROUP BY `bucket` ,`user_id` ,`route`
+                      ORDER BY `bucket` ASC
+                    ) AS agged
+                SQL)));
+
+                dump('agging 600...');
+                $latest600Date = DB::table('pulse_requests')->where('resolution', 600)->latest('date')->value('date');
+                dump('latest600Date: '.$latest600Date);
+                if ($latest600Date) {
+                    $latest600Date = CarbonImmutable::parse($latest600Date, 'UTC')->addMinute(10)->format('Y-m-d H:i:s');
+                }
+                $dateSql = $latest600Date ? "AND date >= '{$latest600Date}'" : '';
+                $dateSql .= " AND date < '{$redisNow->startOfMinute()->floorMinute(10)->format('Y-m-d H:i:s')}'";
+                dump($dateSql);
+
+                dump(Benchmark::measure(fn () =>
+                DB::statement(<<<"SQL"
+                    INSERT INTO pulse_requests (date, resolution, user_id, route, volume, average, slowest)
+                    SELECT bucket, 600, user_id, route, volume, average, slowest
+                    FROM (
+                      SELECT
+                        bucket,
+                        user_id,
+                        route,
+                        SUM(`volume`) as `volume`,
+                        AVG(`average`) as `average`,
+                        MAX(`slowest`) as `slowest`
+                      FROM (
+                        SELECT
+                          *,
+                          DATE_ADD(DATE_FORMAT(date, '%Y-%m-%d %H:00:00'), INTERVAL MINUTE(date) - MOD(MINUTE(date), 10) MINUTE) as `bucket`
+                        FROM `pulse_requests`
+                        WHERE resolution = 60
+                        {$dateSql}
+                      ) as `sub`
+                      GROUP BY `bucket` ,`user_id` ,`route`
+                      ORDER BY `bucket` ASC
+                    ) AS agged
+                SQL)));
+
                 sleep(5);
             }
         }
