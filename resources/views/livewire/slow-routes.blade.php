@@ -8,7 +8,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
-                Slow Endpoints
+                Slow Routes
                 <small class="ml-2 text-gray-400 text-xs font-medium">&gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms, past {{ match ($this->period) {
                     '6-hours' => '6 hours',
                     '24-hours' => '24 hours',
@@ -19,45 +19,37 @@
         </x-pulse::card-title>
     </x-slot:title>
 
-    @if (count($slowEndpoints) === 0)
+    @if (count($routes) === 0)
         <x-pulse::no-results />
     @else
         <div class="max-h-56 h-full relative overflow-y-auto">
             <x-pulse::table>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th class="w-full text-left">Location</x-pulse::th>
+                        <x-pulse::th class="w-full text-left">Route</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
-                        <x-pulse::th class="text-right">Average</x-pulse::th>
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
                 <tbody>
-                    @foreach ($slowEndpoints as $slowEndpoint)
+                    @foreach ($routes as $route)
                         <tr>
                             <x-pulse::td>
                                 <code class="block text-xs text-gray-900">
-                                    {{ $slowEndpoint['uri'] }}
+                                    {{ $route['uri'] }}
                                 </code>
                                 <p class="text-xs text-gray-500">
-                                    {{ $slowEndpoint['action'] }}
+                                    {{ $route['action'] }}
                                 </p>
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm">
-                                <strong>{{ $slowEndpoint['request_count'] }}</strong>
+                                <strong>{{ $route['request_count'] }}</strong>
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
-                                @if ($slowEndpoint['average_duration'] === null)
+                                @if ($route['slowest_duration'] === null)
                                     <strong>Unknown</strong>
                                 @else
-                                    <strong>{{ $slowEndpoint['average_duration'] ?: '<1' }}</strong> ms
-                                @endif
-                            </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
-                                @if ($slowEndpoint['slowest_duration'] === null)
-                                    <strong>Unknown</strong>
-                                @else
-                                    <strong>{{ $slowEndpoint['slowest_duration'] ?: '<1' }}</strong> ms
+                                    <strong>{{ $route['slowest_duration'] ?: '<1' }}</strong> ms
                                 @endif
                             </x-pulse::td>
                         </tr>

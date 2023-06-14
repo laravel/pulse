@@ -2,14 +2,12 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
-use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
-use Laravel\Pulse\Pulse;
 use Livewire\Component;
 
-class SlowEndpoints extends Component implements ShouldNotReportUsage
+class SlowRoutes extends Component implements ShouldNotReportUsage
 {
     public $period;
 
@@ -20,7 +18,7 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
         $this->period = request()->query('period') ?? '1-hour';
     }
 
-    public function render(Pulse $pulse)
+    public function render()
     {
         $from = now()->subHours(match ($this->period) {
             '6-hours' => 6,
@@ -31,8 +29,8 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
 
         $threshold = config('pulse.slow_endpoint_threshold');
 
-        $slowEndpoints = DB::table('pulse_requests')
-            ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest, AVG(duration) AS average')
+        $routes = DB::table('pulse_requests')
+            ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
             ->where('date', '>=', $from->toDateTimeString())
             ->where('duration', '>=', $threshold)
             ->groupBy('route')
@@ -49,12 +47,11 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
                     'action' => $route?->getActionName(),
                     'request_count' => (int) $row->count,
                     'slowest_duration' => (int) $row->slowest,
-                    'average_duration' => (int) $row->average,
                 ];
             });
 
-        return view('pulse::livewire.slow-endpoints', [
-            'slowEndpoints' => $slowEndpoints,
+        return view('pulse::livewire.slow-routes', [
+            'routes' => $routes,
         ]);
     }
 

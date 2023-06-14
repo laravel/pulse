@@ -26,7 +26,7 @@ use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
 use Laravel\Pulse\Http\Livewire\Queues;
 use Laravel\Pulse\Http\Livewire\Servers;
-use Laravel\Pulse\Http\Livewire\SlowEndpoints;
+use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\Usage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
@@ -191,7 +191,7 @@ class PulseServiceProvider extends ServiceProvider
         Livewire::component('servers', Servers::class);
         Livewire::component('usage', Usage::class);
         Livewire::component('exceptions', Exceptions::class);
-        Livewire::component('slow-endpoints', SlowEndpoints::class);
+        Livewire::component('slow-routes', SlowRoutes::class);
         Livewire::component('slow-queries', SlowQueries::class);
         Livewire::component('cache', Cache::class);
         Livewire::component('queues', Queues::class);

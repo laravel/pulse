@@ -2,7 +2,7 @@
     <livewire:servers />
     <livewire:usage />
     <livewire:exceptions />
-    <livewire:slow-endpoints />
+    <livewire:slow-routes />
     <livewire:slow-queries />
     <livewire:cache />
     <livewire:queues />
