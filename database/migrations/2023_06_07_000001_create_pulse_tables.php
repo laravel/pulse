@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('pulse_requests', function (Blueprint $table) {
             $table->timestamp('date');
-            $table->unsignedInteger('resolution')->index();
             $table->string('user_id')->nullable();
             $table->string('route');
-            $table->unsignedInteger('volume');
-            $table->unsignedInteger('average');
-            $table->unsignedInteger('slowest');
+            $table->unsignedInteger('duration');
+
+            $table->index(['date', 'user_id'], 'user_usage');
+            $table->index(['date', 'route', 'duration'], 'slow_endpoints');
         });
     }
 

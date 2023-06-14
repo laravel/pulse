@@ -5,6 +5,8 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Redis;
@@ -30,6 +32,19 @@ class HandleHttpRequest
         if ($this->pulse->doNotReportUsage) {
             return;
         }
+
+        DB::table('pulse_requests')->insert([
+            'date' => $startedAt->toDateString(),
+            'user_id' => $request->user()?->id,
+            'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
+            'duration' => $startedAt->diffInMilliseconds(now()),
+        ]);
+
+        // Lottery::odds(1, 100)->winner(fn () =>
+        //     DB::table('pulse_requests')->where('date', '<', now()->subDays(7)->toDateString())->delete()
+        // );
+
+        return;
 
         $id = $this->redis->xadd('pulse_requests', [
             // 'started_at' => $startedAt->toIso8601String(),
