@@ -53,7 +53,7 @@ class Pulse
         $top10 = DB::table('pulse_requests')
             ->selectRaw('user_id, COUNT(*) as count')
             ->whereNotNull('user_id')
-            ->where('date', '>=', $from->toDateString())
+            ->where('date', '>=', $from->toDateTimeString())
             ->groupBy('user_id')
             ->orderByDesc('count')
             ->limit(10)
@@ -108,7 +108,7 @@ class Pulse
 
         return DB::table('pulse_requests')
             ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest, AVG(duration) AS average')
-            ->where('date', '>=', $from->toDateString())
+            ->where('date', '>=', $from->toDateTimeString())
             ->where('duration', '>=', $threshold)
             ->groupBy('route')
             ->orderByDesc('slowest')

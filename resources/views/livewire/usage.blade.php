@@ -6,13 +6,18 @@
             </svg>
             <span>
                 Application Usage
-                <small class="ml-2 text-gray-400 text-xs font-medium">Past 7 days</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
+                    '6-hours' => '6 hours',
+                    '24-hours' => '24 hours',
+                    '7-days' => '7 days',
+                    default => 'hour',
+                } }}</small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">
             <div class="text-sm text-gray-700">Top 10 users</div>
             <select
-                wire:model="view"
+                wire:model="usage"
                 class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
             >
                 <option value="request-counts">
@@ -26,7 +31,7 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto">
-        @if ($view === 'request-counts')
+        @if ($usage === 'request-counts')
             @if (count($userRequestCounts) === 0)
                 <x-pulse::no-results />
             @else
@@ -50,7 +55,7 @@
                     @endforeach
                 </div>
             @endif
-        @elseif ($view === 'slow-endpoint-counts')
+        @elseif ($usage === 'slow-endpoint-counts')
             @if (count($usersExperiencingSlowEndpoints) === 0)
                 <x-pulse::no-results />
             @else

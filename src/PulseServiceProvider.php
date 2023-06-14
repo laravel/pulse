@@ -23,6 +23,7 @@ use Laravel\Pulse\Handlers\HandleLogMessage;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
+use Laravel\Pulse\Http\Livewire\PeriodSelector;
 use Laravel\Pulse\Http\Livewire\Queues;
 use Laravel\Pulse\Http\Livewire\Servers;
 use Laravel\Pulse\Http\Livewire\SlowEndpoints;
@@ -186,6 +187,7 @@ class PulseServiceProvider extends ServiceProvider
     {
         Blade::component('pulse', PulseComponent::class);
 
+        Livewire::component('period-selector', PeriodSelector::class);
         Livewire::component('servers', Servers::class);
         Livewire::component('usage', Usage::class);
         Livewire::component('exceptions', Exceptions::class);

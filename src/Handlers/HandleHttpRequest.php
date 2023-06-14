@@ -34,14 +34,14 @@ class HandleHttpRequest
         }
 
         DB::table('pulse_requests')->insert([
-            'date' => $startedAt->toDateString(),
+            'date' => $startedAt->toDateTimeString(),
             'user_id' => $request->user()?->id,
             'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
             'duration' => $startedAt->diffInMilliseconds(now()),
         ]);
 
         // Lottery::odds(1, 100)->winner(fn () =>
-        //     DB::table('pulse_requests')->where('date', '<', now()->subDays(7)->toDateString())->delete()
+        //     DB::table('pulse_requests')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
         // );
 
         return;

@@ -13,7 +13,12 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
 {
     public $period;
 
-    protected $queryString = ['period'];
+    protected $listeners = ['periodChanged'];
+
+    public function mount()
+    {
+        $this->period = request()->query('period') ?? '1-hour';
+    }
 
     public function render(Pulse $pulse)
     {
@@ -24,7 +29,7 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
             default => 1,
         });
 
-        $threshold = 1000;
+        $threshold = config('pulse.slow_endpoint_threshold');
 
         $slowEndpoints = DB::table('pulse_requests')
             ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest, AVG(duration) AS average')
@@ -51,5 +56,10 @@ class SlowEndpoints extends Component implements ShouldNotReportUsage
         return view('pulse::livewire.slow-endpoints', [
             'slowEndpoints' => $slowEndpoints,
         ]);
+    }
+
+    public function periodChanged(string $period)
+    {
+        $this->period = $period;
     }
 }
