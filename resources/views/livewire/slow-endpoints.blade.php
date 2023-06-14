@@ -9,7 +9,12 @@
             </svg>
             <span>
                 Slow Endpoints
-                <small class="ml-2 text-gray-400 text-xs font-medium">&gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms, past 7 days</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">&gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms, past {{ match ($this->period) {
+                    '6-hours' => '6 hours',
+                    '24-hours' => '24 hours',
+                    '7-days' => '7 days',
+                    default => 'hour',
+                } }}</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>
