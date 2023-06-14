@@ -1,6 +1,6 @@
 <x-pulse::card
     class="col-span-3"
-    wire:poll=""
+    wire:poll.5s=""
 >
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
@@ -14,7 +14,7 @@
                     '24-hours' => '24 hours',
                     '7-days' => '7 days',
                     default => 'hour',
-                } }}</small>
+                } }} ({{ (int) $time }}ms)</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>
