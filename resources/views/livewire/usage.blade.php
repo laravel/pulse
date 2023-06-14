@@ -31,52 +31,28 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto">
-        @if ($usage === 'request-counts')
-            @if (count($userRequestCounts) === 0)
-                <x-pulse::no-results />
-            @else
-                <div class="grid grid-cols-2 gap-2">
-                    @foreach ($userRequestCounts as $userRequestCount)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
-                            <div>
-                                <div class="text-sm text-gray-900 font-medium">
-                                    {{ $userRequestCount['user']['name'] }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    {{ $userRequestCount['user']['email'] }}
-                                </div>
+        @if (count($userRequestCounts) === 0)
+            <x-pulse::no-results />
+        @else
+            <div class="grid grid-cols-2 gap-2">
+                @foreach ($userRequestCounts as $userRequestCount)
+                    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
+                        <div>
+                            <div class="text-sm text-gray-900 font-medium">
+                                {{ $userRequestCount['user']['name'] }}
                             </div>
-                            <div>
-                                <b class="text-xl text-gray-900 font-bold">
-                                    {{ $userRequestCount['count'] }}
-                                </b>
+                            <div class="text-xs text-gray-500">
+                                {{ $userRequestCount['user']['email'] }}
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @endif
-        @elseif ($usage === 'slow-endpoint-counts')
-            @if (count($usersExperiencingSlowEndpoints) === 0)
-                <x-pulse::no-results />
-            @else
-                <div class="grid grid-cols-2 gap-2">
-                    @foreach ($usersExperiencingSlowEndpoints as $userExperiencingSlowEndpoints)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50">
-                            <div>
-                                <div class="text-sm text-gray-900 font-medium">
-                                    {{ $userExperiencingSlowEndpoints['user']['name'] }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    {{ $userExperiencingSlowEndpoints['user']['email'] }}
-                                </div>
-                            </div>
-                            <div>
-                                <b class="text-xl text-gray-900 font-bold">{{ $userExperiencingSlowEndpoints['count'] }}</b>
-                            </div>
+                        <div>
+                            <b class="text-xl text-gray-900 font-bold">
+                                {{ $userRequestCount['count'] }}
+                            </b>
                         </div>
-                    @endforeach
-                </div>
-            @endif
+                    </div>
+                @endforeach
+            </div>
         @endif
     </div>
 </x-pulse::card>

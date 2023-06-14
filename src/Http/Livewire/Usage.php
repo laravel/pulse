@@ -38,6 +38,9 @@ class Usage extends Component implements ShouldNotReportUsage
             ->selectRaw('user_id, COUNT(*) as count')
             ->whereNotNull('user_id')
             ->where('date', '>=', $from->toDateTimeString())
+            ->when($this->usage === 'slow-endpoint-counts', function ($builder) {
+                $builder->where('duration', '>=', config('pulse.slow_endpoint_threshold'));
+            })
             ->groupBy('user_id')
             ->orderByDesc('count')
             ->limit(10)
@@ -59,7 +62,6 @@ class Usage extends Component implements ShouldNotReportUsage
 
         return view('pulse::livewire.usage', [
             'userRequestCounts' => $userRequestCounts,
-            'usersExperiencingSlowEndpoints' => [],
         ]);
     }
 
