@@ -50,7 +50,7 @@ class WorkCommand extends Command
 
         if ($lastDate !== null) {
             dump('lastDate found');
-            $from = CarbonImmutable::parse($lastDate, 'UTC')->addSeconds(5);
+            $from = CarbonImmutable::parse($lastDate)->addSeconds(5);
         } else {
             dump('No last date, starting 7 days ago from redisNow');
             $from = $redisNow->subDays(7)->floorSeconds(5);
@@ -73,7 +73,7 @@ class WorkCommand extends Command
             $aggregates = collect();
             while ($requests->count() > 0) {
                 $firstKey = $requests->keys()->first();
-                $bucketStart = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'), 'UTC')->floorSeconds(5);
+                $bucketStart = CarbonImmutable::createFromTimestampMs(Str::before($firstKey, '-'))->floorSeconds(5);
                 $maxKey = $bucketStart->addSeconds(4)->endOfSecond()->getTimestampMs();
                 // dump($firstKey, $lastKey);
 
@@ -105,7 +105,7 @@ class WorkCommand extends Command
                 $latest60Date = DB::table('pulse_requests')->where('resolution', 60)->latest('date')->value('date');
                 dump('latest60Date: '.$latest60Date);
                 if ($latest60Date) {
-                    $latest60Date = CarbonImmutable::parse($latest60Date, 'UTC')->addMinute()->format('Y-m-d H:i:s');
+                    $latest60Date = CarbonImmutable::parse($latest60Date)->addMinute()->format('Y-m-d H:i:s');
                 }
                 $dateSql = $latest60Date ? "AND date >= '{$latest60Date}'" : '';
                 $dateSql .= " AND date < '{$redisNow->startOfMinute()->format('Y-m-d H:i:s')}'";
@@ -140,7 +140,7 @@ class WorkCommand extends Command
                 $latest600Date = DB::table('pulse_requests')->where('resolution', 600)->latest('date')->value('date');
                 dump('latest600Date: '.$latest600Date);
                 if ($latest600Date) {
-                    $latest600Date = CarbonImmutable::parse($latest600Date, 'UTC')->addMinute(10)->format('Y-m-d H:i:s');
+                    $latest600Date = CarbonImmutable::parse($latest600Date)->addMinute(10)->format('Y-m-d H:i:s');
                 }
                 $dateSql = $latest600Date ? "AND date >= '{$latest600Date}'" : '';
                 $dateSql .= " AND date < '{$redisNow->startOfMinute()->floorMinute(10)->format('Y-m-d H:i:s')}'";
@@ -219,7 +219,7 @@ class WorkCommand extends Command
             }
         } else {
             dump('lastDate found');
-            $from = CarbonImmutable::parse($lastDate, 'UTC')->addSeconds(5);
+            $from = CarbonImmutable::parse($lastDate)->addSeconds(5);
             dump('from: '.$from->format('Y-m-d H:i:s v'));
         }
 
