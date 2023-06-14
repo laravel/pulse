@@ -1,4 +1,4 @@
-<x-pulse::card class="col-span-3" wire:poll="">
+<x-pulse::card class="col-span-3">
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-400">
@@ -11,7 +11,7 @@
                     '24-hours' => '24 hours',
                     '7-days' => '7 days',
                     default => 'hour',
-                } }}</small>
+                } }} ({{ (int) $time }}ms)</small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">
@@ -30,29 +30,44 @@
         </div>
     </x-slot:title>
 
-    <div class="max-h-56 h-full relative overflow-y-auto">
-        @if (count($userRequestCounts) === 0)
-            <x-pulse::no-results />
-        @else
-            <div class="grid grid-cols-2 gap-2">
-                @foreach ($userRequestCounts as $userRequestCount)
-                    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
-                        <div>
-                            <div class="text-sm text-gray-900 font-medium">
-                                {{ $userRequestCount['user']['name'] }}
+    <div class="max-h-56 h-full relative overflow-y-auto" wire:init="loadData" wire:poll.5s="">
+        <div x-data="{
+            loading: true,
+            init() {
+                Livewire.on('periodChanged', () => {
+                    console.log('periodChanged', this.loading)
+                    this.loading = true
+                })
+            }
+        }" @loaded.window="loading = false">
+            <div x-show="loading">Loading (JS)...</div>
+            <div x-show="! loading">
+                @if ($userRequestCounts === null)
+                    Loading (HTML)...
+                @elseif (count($userRequestCounts) === 0)
+                    <x-pulse::no-results />
+                @else
+                    <div class="grid grid-cols-2 gap-2" id="foo">
+                        @foreach ($userRequestCounts as $userRequestCount)
+                            <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
+                                <div>
+                                    <div class="text-sm text-gray-900 font-medium">
+                                        {{ $userRequestCount['user']['name'] }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $userRequestCount['user']['email'] }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <b class="text-xl text-gray-900 font-bold">
+                                        {{ $userRequestCount['count'] }}
+                                    </b>
+                                </div>
                             </div>
-                            <div class="text-xs text-gray-500">
-                                {{ $userRequestCount['user']['email'] }}
-                            </div>
-                        </div>
-                        <div>
-                            <b class="text-xl text-gray-900 font-bold">
-                                {{ $userRequestCount['count'] }}
-                            </b>
-                        </div>
+                        @endforeach
                     </div>
-                @endforeach
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 </x-pulse::card>
