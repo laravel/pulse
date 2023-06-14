@@ -48,12 +48,14 @@ class Pulse
 
     public function userRequestCounts()
     {
+        $from = now()->subHours(1);
+
         $top10 = DB::table('pulse_requests')
-            ->selectRaw('user_id, SUM(volume) as volume')
-            ->where('resolution', 5)
+            ->selectRaw('user_id, COUNT(*) as count')
             ->whereNotNull('user_id')
+            ->where('date', '>=', $from->toDateString())
             ->groupBy('user_id')
-            ->orderByRaw('SUM(volume) DESC')
+            ->orderByDesc('count')
             ->limit(10)
             ->get();
 
@@ -64,7 +66,7 @@ class Pulse
                 $user = $users->firstWhere('id', $row->user_id);
 
                 return $user ? [
-                    'count' => $row->volume,
+                    'count' => $row->count,
                     'user' => $user->setVisible(['name', 'email']),
                 ] : null;
             })
@@ -101,11 +103,15 @@ class Pulse
 
     public function slowEndpoints()
     {
+        $from = now()->subHours(1);
+        $threshold = 1000;
+
         return DB::table('pulse_requests')
-            ->selectRaw('route, MAX(slowest) as slowest, AVG(average) as average, COUNT(*) as request_count')
-            ->where('resolution', 5)
+            ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest, AVG(duration) AS average')
+            ->where('date', '>=', $from->toDateString())
+            ->where('duration', '>=', $threshold)
             ->groupBy('route')
-            ->orderByRaw('MAX(slowest) DESC')
+            ->orderByDesc('slowest')
             ->limit(10)
             ->get()
             ->map(function ($row) {
@@ -116,7 +122,7 @@ class Pulse
                 return [
                     'uri' => $row->route,
                     'action' => $route?->getActionName(),
-                    'request_count' => (int) $row->request_count,
+                    'request_count' => (int) $row->count,
                     'slowest_duration' => (int) $row->slowest,
                     'average_duration' => (int) $row->average,
                 ];
