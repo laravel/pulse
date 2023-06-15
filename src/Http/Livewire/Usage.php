@@ -92,6 +92,7 @@ class Usage extends Component implements ShouldNotReportUsage
         if ($this->shouldLoadData) {
             $this->loadData();
 
+            // experiemental: lazily keep the cache warm
             dispatch(function () {
                 collect([
                     'request-counts',
