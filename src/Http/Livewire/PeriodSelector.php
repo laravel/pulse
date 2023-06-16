@@ -8,10 +8,10 @@ use Livewire\Component;
 
 class PeriodSelector extends Component implements ShouldNotReportUsage
 {
-    public $period = '1-hour';
+    public $period = '1_hour';
 
     protected $queryString = [
-        'period' => ['except' => '1-hour'],
+        'period' => ['except' => '1_hour'],
     ];
 
     public function render(Pulse $pulse)

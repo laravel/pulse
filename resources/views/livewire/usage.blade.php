@@ -7,11 +7,11 @@
             <span>
                 <span title="Time: {{ $time }}ms; Run At: {{ $runAt }};">Application Usage</span>
                 <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
-                    '6-hours' => '6 hours',
-                    '24-hours' => '24 hours',
-                    '7-days' => '7 days',
+                    '6_hours' => '6 hours',
+                    '24_hours' => '24 hours',
+                    '7_days' => '7 days',
                     default => 'hour',
-                } }}@if ($this->usage === 'slow-endpoint-counts'), &gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms @endif</small>
+                } }}@if ($this->usage === 'slow_endpoint_counts'), &gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms @endif</small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">
@@ -21,10 +21,10 @@
                 wire:change="$emit('usageChanged', $event.target.value)"
                 class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
             >
-                <option value="request-counts">
+                <option value="request_counts">
                     by request count
                 </option>
-                <option value="slow-endpoint-counts">
+                <option value="slow_endpoint_counts">
                     experiencing slow endpoints
                 </option>
             </select>

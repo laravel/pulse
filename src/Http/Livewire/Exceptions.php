@@ -19,7 +19,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The usage period.
      *
-     * @var '1-hour'|6-hours'|'24-hours'|'7-days'|null
+     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
      */
     public $period;
 
@@ -39,7 +39,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     public function mount()
     {
-        $this->period = request()->query('period') ?: '1-hour';
+        $this->period = request()->query('period') ?: '1_hour';
 
         $this->exception = $this->exception ?: 'count';
     }
@@ -94,9 +94,9 @@ class Exceptions extends Component implements ShouldNotReportUsage
     public function loadData()
     {
         Cache::remember("pulse:exceptions:{$this->exception}:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6-hours' => 30,
-            '24-hours' => 60,
-            '7-days' => 600,
+            '6_hours' => 30,
+            '24_hours' => 60,
+            '7_days' => 600,
             default => 5,
         }), function () {
             $now = now()->toImmutable();
@@ -106,9 +106,9 @@ class Exceptions extends Component implements ShouldNotReportUsage
             $exceptions = DB::table('pulse_exceptions')
                 ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6-hours' => 6,
-                    '24-hours' => 24,
-                    '7-days' => 168,
+                    '6_hours' => 6,
+                    '24_hours' => 24,
+                    '7_days' => 168,
                     default => 1,
                 })->toDateTimeString())
                 ->groupBy('class', 'location')

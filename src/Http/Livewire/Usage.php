@@ -13,14 +13,14 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The usage type.
      *
-     * @var 'request-counts'|'slow-endpoint-counts'|null
+     * @var 'request_counts'|'slow_endpoint_counts'|null
      */
     public $usage;
 
     /**
      * The usage period.
      *
-     * @var '1-hour'|6-hours'|'24-hours'|'7-days'|null
+     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
      */
     public $period;
 
@@ -39,7 +39,7 @@ class Usage extends Component implements ShouldNotReportUsage
      * @var array
      */
     protected $queryString = [
-        'usage' => ['except' => 'request-counts'],
+        'usage' => ['except' => 'request_counts'],
     ];
 
     /**
@@ -49,9 +49,9 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     public function mount()
     {
-        $this->period = request()->query('period') ?: '1-hour';
+        $this->period = request()->query('period') ?: '1_hour';
 
-        $this->usage = $this->usage ?: 'request-counts';
+        $this->usage = $this->usage ?: 'request_counts';
     }
 
     /**
@@ -104,9 +104,9 @@ class Usage extends Component implements ShouldNotReportUsage
     public function loadData()
     {
         Cache::remember("pulse:usage:{$this->usage}:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6-hours' => 30,
-            '24-hours' => 60,
-            '7-days' => 600,
+            '6_hours' => 30,
+            '24_hours' => 60,
+            '7_days' => 600,
             default => 5,
         }), function () {
             $now = now()->toImmutable();
@@ -117,12 +117,12 @@ class Usage extends Component implements ShouldNotReportUsage
                 ->selectRaw('user_id, COUNT(*) as count')
                 ->whereNotNull('user_id')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6-hours' => 6,
-                    '24-hours' => 24,
-                    '7-days' => 168,
+                    '6_hours' => 6,
+                    '24_hours' => 24,
+                    '7_days' => 168,
                     default => 1,
                 })->toDateTimeString())
-                ->when($this->usage === 'slow-endpoint-counts', fn ($query) => $query->where('duration', '>=', config('pulse.slow_endpoint_threshold')))
+                ->when($this->usage === 'slow_endpoint_counts', fn ($query) => $query->where('duration', '>=', config('pulse.slow_endpoint_threshold')))
                 ->groupBy('user_id')
                 ->orderByDesc('count')
                 ->limit(10)

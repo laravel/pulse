@@ -34,7 +34,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
      */
     public function mount()
     {
-        $this->period = request()->query('period') ?: '1-hour';
+        $this->period = request()->query('period') ?: '1_hour';
     }
 
     /**
@@ -87,9 +87,9 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
     public function loadData()
     {
         Cache::remember("pulse:slow-routes:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6-hours' => 30,
-            '24-hours' => 60,
-            '7-days' => 600,
+            '6_hours' => 30,
+            '24_hours' => 60,
+            '7_days' => 600,
             default => 5,
         }), function () {
             $now = now()->toImmutable();
@@ -99,9 +99,9 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             $slowRoutes = DB::table('pulse_requests')
                 ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6-hours' => 6,
-                    '24-hours' => 24,
-                    '7-days' => 168,
+                    '6_hours' => 6,
+                    '24_hours' => 24,
+                    '7_days' => 168,
                     default => 1,
                 })->toDateTimeString())
                 ->where('duration', '>=', config('pulse.slow_endpoint_threshold'))
