@@ -59,10 +59,11 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             $this->loadData();
         }
 
-        [$slowRoutes, $time] = $this->slowRoutes();
+        [$slowRoutes, $time, $runAt] = $this->slowRoutes();
 
         return view('pulse::livewire.slow-routes', [
             'time' => $time,
+            'runAt' => $runAt,
             'slowRoutes' => $slowRoutes,
             'initialDataLoaded' => $slowRoutes !== null,
         ]);
@@ -75,7 +76,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
      */
     protected function slowRoutes()
     {
-        return Cache::get("pulse:slow-routes:{$this->period}") ?? [null, 0];
+        return Cache::get("pulse:slow-routes:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -91,11 +92,15 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
+            $now = now();
+
+            $runAt = $now->toDateTimeString();
+
             $start = hrtime(true);
 
             $slowRoutes = DB::table('pulse_requests')
                 ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
-                ->where('date', '>=', now()->subHours(match ($this->period) {
+                ->where('date', '>=', $now->subHours(match ($this->period) {
                     '6-hours' => 6,
                     '24-hours' => 24,
                     '7-days' => 168,
@@ -121,7 +126,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return [$slowRoutes, $time];
+            return [$slowRoutes, $time, $runAt];
         });
 
         $this->dispatchBrowserEvent('slow-routes:dataLoaded');

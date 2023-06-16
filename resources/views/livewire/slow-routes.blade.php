@@ -8,7 +8,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
-                <span title="Time: {{ $time }}ms">Slow Routes</span>
+                <span title="Time: {{ $time }}ms; Run at: {{ $runAt }}">Slow Routes</span>
                 <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
                     '6-hours' => '6 hours',
                     '24-hours' => '24 hours',
