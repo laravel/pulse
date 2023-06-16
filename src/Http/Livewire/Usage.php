@@ -13,14 +13,14 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The usage type.
      *
-     * @var string
+     * @var 'request-counts'|'slow-endpoint-counts'|null
      */
     public $usage;
 
     /**
      * The usage period.
      *
-     * @var string
+     * @var '1-hour'|6-hours'|'24-hours'|'7-days'|null
      */
     public $period;
 
@@ -109,9 +109,7 @@ class Usage extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
-            $now = now();
-
-            $runAt = now()->toDateTimeString();
+            $now = now()->toImmutable();
 
             $start = hrtime(true);
 
@@ -148,7 +146,7 @@ class Usage extends Component implements ShouldNotReportUsage
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return [$userRequestCounts, $time, $runAt];
+            return [$userRequestCounts, $time, $now->toDateTimeString()];
         });
 
         $this->dispatchBrowserEvent('usage:dataLoaded');

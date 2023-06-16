@@ -12,14 +12,14 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The view type
      *
-     * @var 'count'|'last_occurrence'
+     * @var 'count'|'last_occurrence'|null
      */
     public $exception;
 
     /**
      * The usage period.
      *
-     * @var string
+     * @var '1-hour'|6-hours'|'24-hours'|'7-days'|null
      */
     public $period;
 
@@ -66,8 +66,12 @@ class Exceptions extends Component implements ShouldNotReportUsage
             $this->loadData();
         }
 
+        [$exceptions, $time, $runAt] = $this->exceptions();
+
         return view('pulse::livewire.exceptions', [
-            'exceptions' => $exceptions = $this->exceptions(),
+            'time' => $time,
+            'runAt' => $runAt,
+            'exceptions' => $exceptions,
             'initialDataLoaded' => $exceptions !== null
         ]);
     }
@@ -75,11 +79,11 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The exceptions.
      *
-     * @return array|null
+     * @return array
      */
     protected function exceptions()
     {
-        return Cache::get("pulse:exceptions:{$this->exception}:{$this->period}");
+        return Cache::get("pulse:exceptions:{$this->exception}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -95,12 +99,13 @@ class Exceptions extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
-            // TODO: here for debugging the loading indicators
+            $now = now()->toImmutable();
+
             $start = hrtime(true);
 
             $exceptions = DB::table('pulse_exceptions')
                 ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
-                ->where('date', '>=', now()->subHours(match ($this->period) {
+                ->where('date', '>=', $now->subHours(match ($this->period) {
                     '6-hours' => 6,
                     '24-hours' => 24,
                     '7-days' => 168,
@@ -111,12 +116,9 @@ class Exceptions extends Component implements ShouldNotReportUsage
                 ->limit(10)
                 ->get();
 
-            $this->dispatchBrowserEvent('exceptions:dataCached', [
-                'time' => (int) ((hrtime(true) - $start) / 1000000),
-                'key' => "pulse:exceptions:{$this->exception}:{$this->period}",
-            ]);
+            $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return $exceptions;
+            return [$exceptions, $time, $now->toDateTimeString()];
         });
 
         $this->dispatchBrowserEvent('exceptions:dataLoaded');

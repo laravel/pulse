@@ -92,9 +92,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
-            $now = now();
-
-            $runAt = $now->toDateTimeString();
+            $now = now()->toImmutable();
 
             $start = hrtime(true);
 
@@ -126,7 +124,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return [$slowRoutes, $time, $runAt];
+            return [$slowRoutes, $time, $now->toDateTimeString()];
         });
 
         $this->dispatchBrowserEvent('slow-routes:dataLoaded');
