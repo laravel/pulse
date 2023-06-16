@@ -30,7 +30,13 @@
         </div>
     </x-slot:title>
 
-    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s="">
+    <style>
+        [x-cloak] {
+            display: none;
+        }
+    </style>
+
+    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
             const initialUsageDataLoaded = @js($initialUsageDataLoaded)
         </script>
@@ -50,8 +56,6 @@
                         time: `${e.detail.time}ms`,
                         key: e.detail.key,
                     })
-
-                    this.initialUsageDataLoaded = true
                 })
 
                 if (! this.initialUsageDataLoaded) {
@@ -65,8 +69,9 @@
                 console.log('Component initialized')
             }
         }">
-            <div x-show="! initialUsageDataLoaded">Loading...</div>
-            <div x-show="initialUsageDataLoaded">
+            <div x-cloak x-show="! initialUsageDataLoaded">Loading...</div>
+            <div x-cloak x-show="initialUsageDataLoaded">
+                <div wire:loading.remove.delay.longest class="bg-green-500 inline-block rounded">Live</div>
                 <div wire:loading.delay.longest>Recalculating...</div>
                 {{-- <div wire:loading.remove.delay.longest> --}}
                 <div>
