@@ -29,6 +29,15 @@ return new class extends Migration
 
             $table->index(['date', 'class', 'location']);
         });
+
+        Schema::create('pulse_queries', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('user_id')->nullable();
+            $table->string('sql');
+            $table->unsignedInteger('duration');
+
+            $table->index(['date', 'sql', 'duration'], 'slow_queries');
+        });
     }
 
     /**

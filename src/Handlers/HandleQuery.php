@@ -3,34 +3,44 @@
 namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Database\Events\QueryExecuted;
-use Laravel\Pulse\RedisAdapter;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
+use Laravel\Pulse\Pulse;
 
 class HandleQuery
 {
+    /**
+     * Create a handler instance.
+     */
+    public function __construct(
+        protected Pulse $pulse,
+    ) {
+        //
+    }
+
     /**
      * Handle the execution of a database query.
      */
     public function __invoke(QueryExecuted $event): void
     {
+        if ($this->pulse->doNotReportUsage) {
+            return;
+        }
+
         if ($event->time < config('pulse.slow_query_threshold')) {
             return;
         }
 
-        // TODO: Capture where the query came from? Won't always be userland.
+        DB::table('pulse_queries')->insert([
+            'date' => now()->subMilliseconds(round($event->time))->toDateTimeString(),
+            'user_id' => Auth::id(),
+            'sql' => $event->sql,
+            'duration' => round($event->time),
+        ]);
 
-        $keyDate = now()->format('Y-m-d');
-        $keyExpiry = now()->startOfDay()->addDays(7)->timestamp;
-
-        $countKey = "pulse_slow_query_execution_counts:{$keyDate}";
-        RedisAdapter::zincrby($countKey, 1, $event->sql);
-        RedisAdapter::expireat($countKey, $keyExpiry, 'NX');
-
-        $durationKey = "pulse_slow_query_total_durations:{$keyDate}";
-        RedisAdapter::zincrby($durationKey, round($event->time), $event->sql);
-        RedisAdapter::expireat($durationKey, $keyExpiry, 'NX');
-
-        $slowestKey = "pulse_slow_query_slowest_durations:{$keyDate}";
-        RedisAdapter::zadd($slowestKey, round($event->time), $event->sql, 'GT');
-        RedisAdapter::expireat($slowestKey, $keyExpiry, 'NX');
+        // Lottery::odds(1, 100)->winner(fn () =>
+        //     DB::table('pulse_queries')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
+        // )->choose();
     }
 }
