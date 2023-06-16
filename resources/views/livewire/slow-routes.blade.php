@@ -14,48 +14,73 @@
                     '24-hours' => '24 hours',
                     '7-days' => '7 days',
                     default => 'hour',
-                } }} ({{ (int) $time }}ms)</small>
+                } }}</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>
 
-    @if (count($routes) === 0)
-        <x-pulse::no-results />
-    @else
-        <div class="max-h-56 h-full relative overflow-y-auto">
-            <x-pulse::table>
-                <x-pulse::thead>
-                    <tr>
-                        <x-pulse::th class="w-full text-left">Route</x-pulse::th>
-                        <x-pulse::th class="text-right">Count</x-pulse::th>
-                        <x-pulse::th class="text-right">Slowest</x-pulse::th>
-                    </tr>
-                </x-pulse::thead>
-                <tbody>
-                    @foreach ($routes as $route)
-                        <tr>
-                            <x-pulse::td>
-                                <code class="block text-xs text-gray-900">
-                                    {{ $route['uri'] }}
-                                </code>
-                                <p class="text-xs text-gray-500">
-                                    {{ $route['action'] }}
-                                </p>
-                            </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 text-sm">
-                                <strong>{{ $route['request_count'] }}</strong>
-                            </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
-                                @if ($route['slowest_duration'] === null)
-                                    <strong>Unknown</strong>
-                                @else
-                                    <strong>{{ $route['slowest_duration'] ?: '<1' }}</strong> ms
-                                @endif
-                            </x-pulse::td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </x-pulse::table>
+    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
+        <script>
+            const initialSlowRoutesDataLoaded = @js($initialDataLoaded)
+        </script>
+        <div x-data="{
+            initialDataLoaded: initialSlowRoutesDataLoaded,
+            loadingNewDataset: false,
+            init() {
+                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+
+                window.addEventListener('slow-routes:dataLoaded', () => {
+                    this.initialDataLoaded = true
+                    this.loadingNewDataset = false
+                })
+
+                if (! this.initialDataLoaded) {
+                    @this.loadData()
+                }
+            }
+        }">
+            <div x-cloak x-show="! initialDataLoaded">Loading...</div>
+            <div x-cloak x-show="initialDataLoaded">
+                <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                    @if ($initialDataLoaded && count($slowRoutes) === 0)
+                        <x-pulse::no-results />
+                    @elseif ($initialDataLoaded && count($slowRoutes) > 0)
+                        <x-pulse::table>
+                            <x-pulse::thead>
+                                <tr>
+                                    <x-pulse::th class="w-full text-left">Route</x-pulse::th>
+                                    <x-pulse::th class="text-right">Count</x-pulse::th>
+                                    <x-pulse::th class="text-right">Slowest</x-pulse::th>
+                                </tr>
+                            </x-pulse::thead>
+                            <tbody>
+                                @foreach ($slowRoutes as $route)
+                                    <tr>
+                                        <x-pulse::td>
+                                            <code class="block text-xs text-gray-900">
+                                                {{ $route['uri'] }}
+                                            </code>
+                                            <p class="text-xs text-gray-500">
+                                                {{ $route['action'] }}
+                                            </p>
+                                        </x-pulse::td>
+                                        <x-pulse::td class="text-right text-gray-700 text-sm">
+                                            <strong>{{ $route['request_count'] }}</strong>
+                                        </x-pulse::td>
+                                        <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                            @if ($route['slowest_duration'] === null)
+                                                <strong>Unknown</strong>
+                                            @else
+                                                <strong>{{ $route['slowest_duration'] ?: '<1' }}</strong> ms
+                                            @endif
+                                        </x-pulse::td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </x-pulse::table>
+                    @endif
+                </div>
+            </div>
         </div>
-    @endif
+    </div>
 </x-pulse::card>

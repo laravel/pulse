@@ -33,59 +33,30 @@
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
-            const initialUsageDataLoaded = @js($initialUsageDataLoaded)
+            const initialUsageDataLoaded = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialUsageDataLoaded: initialUsageDataLoaded,
+            initialDataLoaded: initialUsageDataLoaded,
             loadingNewDataset: false,
             init() {
-                console.log('Initializing Alpine component', { initialUsageDataLoaded: this.initialUsageDataLoaded })
-
-                Livewire.on('periodChanged', () => {
-                    console.log('Period changed')
-
-                    this.loadingNewDataset = true
-                })
-
-                Livewire.on('usageChanged', () => {
-                    console.log('Usage changed')
-
-                    this.loadingNewDataset = true
-                })
+                ['periodChanged', 'usageChanged'].forEach(event => Livewire.on(event, () => (this.loadingNewDataset = true)))
 
                 window.addEventListener('usage:dataLoaded', () => {
-                    console.log('Usage loaded')
-
-                    this.initialUsageDataLoaded = true
+                    this.initialDataLoaded = true
                     this.loadingNewDataset = false
                 })
 
-                window.addEventListener('usage:dataCached', (e) => {
-                    console.log('Usage cached', {
-                        time: `${e.detail.time}ms`,
-                        key: e.detail.key,
-                    })
-                })
-
-                if (! this.initialUsageDataLoaded) {
-                    console.log('Loading initial data')
-
+                if (! this.initialDataLoaded) {
                     @this.loadData()
-                } else {
-                    console.log('Initial data already loaded')
                 }
-
-                console.log('Component initialized')
             }
         }">
-            <div x-cloak x-show="! initialUsageDataLoaded">Loading...</div>
-            <div x-cloak x-show="initialUsageDataLoaded">
-                {{-- <div wire:loading.remove.delay.longest class="bg-green-500 inline-block rounded">Live</div> --}}
-                {{-- <div wire:loading.delay.longest>Recalculating...</div> --}}
-                <div :class="loadingNewDataset ? 'opacity-25' : ''">
-                    @if ($initialUsageDataLoaded && count($userRequestCounts) === 0)
+            <div x-cloak x-show="! initialDataLoaded">Loading...</div>
+            <div x-cloak x-show="initialDataLoaded">
+                <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                    @if ($initialDataLoaded && count($userRequestCounts) === 0)
                         <x-pulse::no-results />
-                    @elseif ($initialUsageDataLoaded && count($userRequestCounts) > 0)
+                    @elseif ($initialDataLoaded && count($userRequestCounts) > 0)
                         <div class="grid grid-cols-2 gap-2">
                             @foreach ($userRequestCounts ?? [] as $userRequestCount)
                                 <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">

@@ -78,7 +78,7 @@ class Usage extends Component implements ShouldNotReportUsage
 
         return view('pulse::livewire.usage', [
             'userRequestCounts' => $userRequestCounts = $this->userRequestCounts(),
-            'initialUsageDataLoaded' => $userRequestCounts !== null,
+            'initialDataLoaded' => $userRequestCounts !== null,
         ]);
     }
 
@@ -138,16 +138,6 @@ class Usage extends Component implements ShouldNotReportUsage
                 ->filter()
                 ->values()
                 ->all();
-
-            $this->dispatchBrowserEvent('usage:dataCached', [
-                'time' => (int) ((hrtime(true) - $start) / 1000000),
-                'key' => "pulse:usage:{$this->usage}:{$this->period}",
-            ]);
-
-            // TODO: here for debugging the no-results view
-            if ($this->period === '1-hour') {
-                return [];
-            }
 
             return $userRequestCounts;
         });
