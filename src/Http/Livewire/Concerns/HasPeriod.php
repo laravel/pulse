@@ -20,7 +20,7 @@ trait HasPeriod
     {
         $this->listeners[] = 'periodChanged';
 
-        $this->period = request()->query('period') ?: '1_hour';
+        $this->period = (request()->query('period') ?: $this->period) ?: '1_hour';
     }
 
     /**

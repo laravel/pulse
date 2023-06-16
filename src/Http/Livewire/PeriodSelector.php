@@ -10,7 +10,7 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
     /**
      * The selected period.
      *
-     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
+     * @var '1_hour'|'6_hours'|'24_hours'|'7_days'|null
      */
     public $period = '1_hour';
 
