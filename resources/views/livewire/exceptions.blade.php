@@ -1,6 +1,5 @@
 <x-pulse::card
     class="col-span-3"
-    wire:poll=""
 >
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
@@ -9,16 +8,22 @@
             </svg>
             <span>
                 Exceptions
-                <small class="ml-2 text-gray-400 text-xs font-medium">Past 7 days</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
+                    '6-hours' => '6 hours',
+                    '24-hours' => '24 hours',
+                    '7-days' => '7 days',
+                    default => 'hour',
+                } }}</small>
             </span>
         </x-pulse::card-title>
-        <select wire:model="sortBy" class="rounded-md border-gray-200 text-gray-700 py-1 text-sm">
+        <select wire:model="exception" class="rounded-md border-gray-200 text-gray-700 py-1 text-sm">
             <option value="count">Trending</option>
             <option value="last_occurrence">Recent</option>
         </select>
     </x-slot:title>
 
-    <div class="max-h-56 h-full relative overflow-y-auto">
+    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
+        @if ($exceptions !== null)
         @if (count($exceptions) === 0)
             <x-pulse::no-results />
         @else
@@ -35,22 +40,23 @@
                         <tr>
                             <x-pulse::td>
                                 <code class="block text-xs text-gray-900">
-                                    {{ $exception['class'] }}
+                                    {{ $exception->class }}
                                 </code>
                                 <p class="text-xs text-gray-500">
-                                    {{ $exception['location'] }}
+                                    {{ $exception->location }}
                                 </p>
                             </x-pulse::td>
                             <x-pulse::td class="text-center text-gray-700 text-sm font-bold whitespace-nowrap">
-                                {{ $exception['last_occurrence'] !== null ? Carbon\Carbon::parse($exception['last_occurrence'])->fromNow() : 'Unknown' }}
+                                {{ $exception->last_occurrence !== null ? Carbon\Carbon::parse($exception->last_occurrence)->fromNow() : 'Unknown' }}
                             </x-pulse::td>
                             <x-pulse::td class="text-right text-gray-700 text-sm font-bold">
-                                {{ $exception['count'] }}
+                                {{ $exception->count }}
                             </x-pulse::td>
                         </tr>
                     @endforeach
                 </tbody>
             </x-pulse::table>
+        @endif
         @endif
     </div>
 </x-pulse::card>

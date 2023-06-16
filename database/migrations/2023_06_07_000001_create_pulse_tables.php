@@ -20,6 +20,15 @@ return new class extends Migration
             $table->index(['date', 'user_id'], 'user_usage');
             $table->index(['date', 'route', 'duration'], 'slow_endpoints');
         });
+
+        Schema::create('pulse_exceptions', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('user_id')->nullable();
+            $table->string('class');
+            $table->string('location');
+
+            $table->index(['date', 'class', 'location']);
+        });
     }
 
     /**
