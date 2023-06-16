@@ -31,12 +31,12 @@
             const initialExceptionDataLoaded = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialDataLoaded: initialUsageDataLoaded,
+            initialDataLoaded: initialExceptionDataLoaded,
             loadingNewDataset: false,
             init() {
                 ['periodChanged', 'exceptionChanged'].forEach(event => Livewire.on(event, () => (this.loadingNewDataset = true)))
 
-                window.addEventListener('usage:dataLoaded', () => {
+                window.addEventListener('exceptions:dataLoaded', () => {
                     this.initialDataLoaded = true
                     this.loadingNewDataset = false
                 })
