@@ -6,32 +6,19 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 
 class Usage extends Component implements ShouldNotReportUsage
 {
+    use HasPeriod;
+
     /**
      * The usage type.
      *
      * @var 'request_counts'|'slow_endpoint_counts'|null
      */
     public $usage;
-
-    /**
-     * The usage period.
-     *
-     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
-     */
-    public $period;
-
-    /**
-     * The event listeners.
-     *
-     * @var array
-     */
-    protected $listeners = [
-        'periodChanged',
-    ];
 
     /**
      * The query string parameters.
@@ -49,20 +36,7 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     public function mount()
     {
-        $this->period = request()->query('period') ?: '1_hour';
-
         $this->usage = $this->usage ?: 'request_counts';
-    }
-
-    /**
-     * Handle the periodChanged event.
-     *
-     * @param  string  $period
-     * @return void
-     */
-    public function periodChanged($period)
-    {
-        $this->period = $period;
     }
 
     /**

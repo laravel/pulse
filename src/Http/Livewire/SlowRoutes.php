@@ -7,46 +7,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 
 class SlowRoutes extends Component implements ShouldNotReportUsage
 {
-    /**
-     * The usage period.
-     *
-     * @var string
-     */
-    public $period;
-
-    /**
-     * The event listeners.
-     *
-     * @var array
-     */
-    protected $listeners = [
-        'periodChanged',
-    ];
-
-    /**
-     * Handle the mount event.
-     *
-     * @return void
-     */
-    public function mount()
-    {
-        $this->period = request()->query('period') ?: '1_hour';
-    }
-
-    /**
-     * Handle the periodChanged event.
-     *
-     * @param  string  $period
-     * @return void
-     */
-    public function periodChanged(string $period)
-    {
-        $this->period = $period;
-    }
+    use HasPeriod;
 
     /**
      * Render the component.

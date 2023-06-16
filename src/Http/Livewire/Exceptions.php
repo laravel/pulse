@@ -5,32 +5,19 @@ namespace Laravel\Pulse\Http\Livewire;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 
 class Exceptions extends Component implements ShouldNotReportUsage
 {
+    use HasPeriod;
+
     /**
      * The view type
      *
      * @var 'count'|'last_occurrence'|null
      */
     public $orderBy;
-
-    /**
-     * The usage period.
-     *
-     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
-     */
-    public $period;
-
-    /**
-     * The event listeners.
-     *
-     * @var array
-     */
-    protected $listeners = [
-        'periodChanged',
-    ];
 
     /**
      * The query string parameters.
@@ -48,20 +35,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     public function mount()
     {
-        $this->period = request()->query('period') ?: '1_hour';
-
         $this->orderBy = $this->orderBy ?: 'count';
-    }
-
-    /**
-     * Handle the periodChanged event.
-     *
-     * @param  string  $period
-     * @return void
-     */
-    public function periodChanged($period)
-    {
-        $this->period = $period;
     }
 
     /**
