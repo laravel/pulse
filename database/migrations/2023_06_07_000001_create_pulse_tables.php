@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('route');
             $table->unsignedInteger('duration');
 
+            // TODO review these
             $table->index(['date', 'user_id'], 'user_usage');
             $table->index(['date', 'route', 'duration'], 'slow_endpoints');
         });
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->string('class');
             $table->string('location');
 
+            // TODO review these
             $table->index(['date', 'class', 'location']);
         });
 
