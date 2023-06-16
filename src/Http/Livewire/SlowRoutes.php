@@ -59,8 +59,11 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             $this->loadData();
         }
 
+        [$slowRoutes, $time] = $this->slowRoutes();
+
         return view('pulse::livewire.slow-routes', [
-            'slowRoutes' => $slowRoutes = $this->slowRoutes(),
+            'time' => $time,
+            'slowRoutes' => $slowRoutes,
             'initialDataLoaded' => $slowRoutes !== null,
         ]);
     }
@@ -68,11 +71,11 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
     /**
      * The slow routes.
      *
-     * @return array|null
+     * @return array
      */
     protected function slowRoutes()
     {
-        return Cache::get("pulse:slow-routes:{$this->period}");
+        return Cache::get("pulse:slow-routes:{$this->period}") ?? [null, 0];
     }
 
     /**
@@ -88,7 +91,6 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
-            // TODO: here for debugging the loading indicators
             $start = hrtime(true);
 
             $slowRoutes = DB::table('pulse_requests')
@@ -117,9 +119,9 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
                 })
                 ->all();
 
-            $time = (hrtime(true) - $start) / 1000000;
+            $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return $slowRoutes;
+            return [$slowRoutes, $time];
         });
 
         $this->dispatchBrowserEvent('slow-routes:dataLoaded');

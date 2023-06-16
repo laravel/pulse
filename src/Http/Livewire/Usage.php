@@ -76,8 +76,11 @@ class Usage extends Component implements ShouldNotReportUsage
             $this->loadData();
         }
 
+        [$userRequestCounts, $time] = $userRequestCounts = $this->userRequestCounts();
+
         return view('pulse::livewire.usage', [
-            'userRequestCounts' => $userRequestCounts = $this->userRequestCounts(),
+            'time' => $time,
+            'userRequestCounts' => $userRequestCounts,
             'initialDataLoaded' => $userRequestCounts !== null,
         ]);
     }
@@ -85,11 +88,11 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The user request counts.
      *
-     * @return array|null
+     * @return array
      */
     protected function userRequestCounts()
     {
-        return Cache::get("pulse:usage:{$this->usage}:{$this->period}");
+        return Cache::get("pulse:usage:{$this->usage}:{$this->period}") ?? [null, 0];
     }
 
     /**
@@ -105,7 +108,6 @@ class Usage extends Component implements ShouldNotReportUsage
             '7-days' => 600,
             default => 5,
         }), function () {
-            // TODO: here for debugging the loading indicators
             $start = hrtime(true);
 
             $top10 = DB::table('pulse_requests')
@@ -139,7 +141,9 @@ class Usage extends Component implements ShouldNotReportUsage
                 ->values()
                 ->all();
 
-            return $userRequestCounts;
+            $time = (int) ((hrtime(true) - $start) / 1000000);
+
+            return [$userRequestCounts, $time];
         });
 
         $this->dispatchBrowserEvent('usage:dataLoaded');
