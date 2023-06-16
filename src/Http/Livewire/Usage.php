@@ -85,7 +85,7 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The user request counts.
      *
-     * @return array
+     * @return array|null
      */
     protected function userRequestCounts()
     {

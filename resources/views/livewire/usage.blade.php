@@ -18,6 +18,7 @@
             <div class="text-sm text-gray-700">Top 10 users</div>
             <select
                 wire:model="usage"
+                wire:change="$emit('usageChanged', $event.target.value)"
                 class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
             >
                 <option value="request-counts">
@@ -42,13 +43,27 @@
         </script>
         <div x-data="{
             initialUsageDataLoaded: initialUsageDataLoaded,
+            loadingNewDataset: false,
             init() {
                 console.log('Initializing Alpine component', { initialUsageDataLoaded: this.initialUsageDataLoaded })
+
+                Livewire.on('periodChanged', () => {
+                    console.log('Period changed')
+
+                    this.loadingNewDataset = true
+                })
+
+                Livewire.on('usageChanged', () => {
+                    console.log('Usage changed')
+
+                    this.loadingNewDataset = true
+                })
 
                 window.addEventListener('usage:dataLoaded', () => {
                     console.log('Usage loaded')
 
                     this.initialUsageDataLoaded = true
+                    this.loadingNewDataset = false
                 })
 
                 window.addEventListener('usage:dataCached', (e) => {
@@ -71,10 +86,9 @@
         }">
             <div x-cloak x-show="! initialUsageDataLoaded">Loading...</div>
             <div x-cloak x-show="initialUsageDataLoaded">
-                <div wire:loading.remove.delay.longest class="bg-green-500 inline-block rounded">Live</div>
-                <div wire:loading.delay.longest>Recalculating...</div>
-                {{-- <div wire:loading.remove.delay.longest> --}}
-                <div>
+                {{-- <div wire:loading.remove.delay.longest class="bg-green-500 inline-block rounded">Live</div> --}}
+                {{-- <div wire:loading.delay.longest>Recalculating...</div> --}}
+                <div :class="loadingNewDataset ? 'opacity-25' : ''">
                     @if ($initialUsageDataLoaded && count($userRequestCounts) === 0)
                         <x-pulse::no-results />
                     @elseif ($initialUsageDataLoaded && count($userRequestCounts) > 0)
