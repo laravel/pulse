@@ -11,7 +11,7 @@
                     '24-hours' => '24 hours',
                     '7-days' => '7 days',
                     default => 'hour',
-                } }}</small>
+                } }}@if ($this->usage === 'slow-endpoint-counts'), &gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms @endif</small></small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">
