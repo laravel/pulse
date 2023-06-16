@@ -15,6 +15,16 @@ return new class extends Migration
         // - Review column types. Most of these likely need to be a text column, even "route".
         // - We may need to keep a hashed version of the text columns to index and group by.
         // - Do another pass at the indexes to ensure that they are optimized correctly.
+        Schema::create('pulse_servers', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('server');
+            $table->unsignedTinyInteger('cpu_percent');
+            $table->unsignedTinyInteger('memory_percent');
+            $table->json('storage');
+
+            $table->index(['date', 'server']);
+        });
+
         Schema::create('pulse_requests', function (Blueprint $table) {
             $table->timestamp('date');
             $table->string('user_id')->nullable();
@@ -49,6 +59,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('pulse_servers');
         Schema::dropIfExists('pulse_requests');
+        Schema::dropIfExists('pulse_exceptions');
+        Schema::dropIfExists('pulse_queries');
     }
 };
