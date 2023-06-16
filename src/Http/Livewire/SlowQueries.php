@@ -62,8 +62,8 @@ class SlowQueries extends Component implements ShouldNotReportUsage
 
             $start = hrtime(true);
 
-            $slowQueries = DB::table('pulse_requests')
-                ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
+            $slowQueries = DB::table('pulse_queries')
+                ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
                     '6_hours' => 6,
                     '24_hours' => 24,
@@ -71,21 +71,10 @@ class SlowQueries extends Component implements ShouldNotReportUsage
                     default => 1,
                 })->toDateTimeString())
                 ->where('duration', '>=', config('pulse.slow_query_threshold'))
-                ->groupBy('route')
+                ->groupBy('sql')
                 ->orderByDesc('slowest')
                 ->limit(10)
                 ->get()
-                ->map(function ($row) {
-                    [$method, $path] = explode(' ', $row->route, 2);
-                    $route = Route::getRoutes()->get($method)[$path] ?? null;
-
-                    return [
-                        'uri' => $row->route,
-                        'action' => $route?->getActionName(),
-                        'request_count' => (int) $row->count,
-                        'slowest_duration' => (int) $row->slowest,
-                    ];
-                })
                 ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);

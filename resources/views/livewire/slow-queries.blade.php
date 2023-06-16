@@ -47,7 +47,6 @@
                                 <tr>
                                     <x-pulse::th class="text-left">Query</x-pulse::th>
                                     <x-pulse::th class="text-right w-24">Count</x-pulse::th>
-                                    <x-pulse::th class="text-right w-24">Average</x-pulse::th>
                                     <x-pulse::th class="text-right w-24">Slowest</x-pulse::th>
                                 </tr>
                             </x-pulse::thead>
@@ -55,25 +54,18 @@
                                 @foreach ($slowQueries as $query)
                                     <tr>
                                         <x-pulse::td>
-                                            <code class="block text-xs text-gray-900 truncate" title="{{ $query['sql'] }}">
-                                                {{ $query['sql'] }}
+                                            <code class="block text-xs text-gray-900 truncate" title="{{ $query->sql }}">
+                                                {{ $query->sql }}
                                             </code>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm w-24">
-                                            <strong>{{ $query['execution_count'] }}</strong>
+                                            <strong>{{ $query->count }}</strong>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
-                                            @if ($query['average_duration'] === null)
+                                            @if ($query->slowest === null)
                                                 <strong>Unknown</strong>
                                             @else
-                                                <strong>{{ $query['average_duration'] ?: '<1' }}</strong> ms
-                                            @endif
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
-                                            @if ($query['slowest_duration'] === null)
-                                                <strong>Unknown</strong>
-                                            @else
-                                                <strong>{{ $query['slowest_duration'] ?: '<1' }}</strong> ms
+                                                <strong>{{ $query->slowest ?: '<1' }}</strong> ms
                                             @endif
                                         </x-pulse::td>
                                     </tr>
