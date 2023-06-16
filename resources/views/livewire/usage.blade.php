@@ -31,12 +31,6 @@
         </div>
     </x-slot:title>
 
-    <style>
-        [x-cloak] {
-            display: none;
-        }
-    </style>
-
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
             const initialUsageDataLoaded = @js($initialUsageDataLoaded)
