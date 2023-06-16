@@ -14,7 +14,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      *
      * @var 'count'|'last_occurrence'|null
      */
-    public $exception;
+    public $orderBy;
 
     /**
      * The usage period.
@@ -33,6 +33,15 @@ class Exceptions extends Component implements ShouldNotReportUsage
     ];
 
     /**
+     * The query string parameters.
+     *
+     * @var array
+     */
+    protected $queryString = [
+        'orderBy' => ['except' => 'count', 'as' => 'exceptions_by'],
+    ];
+
+    /**
      * Handle the mount event.
      *
      * @return void
@@ -41,7 +50,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
     {
         $this->period = request()->query('period') ?: '1_hour';
 
-        $this->exception = $this->exception ?: 'count';
+        $this->orderBy = $this->orderBy ?: 'count';
     }
 
     /**
@@ -83,7 +92,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     protected function exceptions()
     {
-        return Cache::get("pulse:exceptions:{$this->exception}:{$this->period}") ?? [null, 0, null];
+        return Cache::get("pulse:exceptions:{$this->orderBy}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -93,7 +102,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     public function loadData()
     {
-        Cache::remember("pulse:exceptions:{$this->exception}:{$this->period}", now()->addSeconds(match ($this->period) {
+        Cache::remember("pulse:exceptions:{$this->orderBy}:{$this->period}", now()->addSeconds(match ($this->period) {
             '6_hours' => 30,
             '24_hours' => 60,
             '7_days' => 600,
@@ -112,7 +121,10 @@ class Exceptions extends Component implements ShouldNotReportUsage
                     default => 1,
                 })->toDateTimeString())
                 ->groupBy('class', 'location')
-                ->orderByDesc('count')
+                ->orderByDesc(match ($this->orderBy) {
+                    'last_occurrence' => 'last_occurrence',
+                    default => 'count'
+                })
                 ->limit(10)
                 ->get();
 

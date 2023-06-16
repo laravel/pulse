@@ -16,14 +16,17 @@
                 } }}</small>
             </span>
         </x-pulse::card-title>
-        <select
-            wire:model="exception"
-            wire:change="$emit('exceptionChanged', $event.target.value)"
-            class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
-        >
-            <option value="count">Trending</option>
-            <option value="last_occurrence">Recent</option>
-        </select>
+        <div class="flex items-center gap-2">
+            <div class="text-sm text-gray-700">Sort by</div>
+            <select
+                wire:model="orderBy"
+                wire:change="$emit('exceptionChanged', $event.target.value)"
+                class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
+            >
+                <option value="count">count</option>
+                <option value="last_occurrence">recent</option>
+            </select>
+        </div>
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
