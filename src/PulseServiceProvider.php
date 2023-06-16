@@ -68,11 +68,11 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->make(Kernel::class)
             ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        DB::listen(fn ($e) => (new HandleQuery)($e));
+        DB::listen(fn ($e) => app(HandleQuery::class)($e));
 
         $this->app->make(ExceptionHandler::class)
             ->reportable(function (Throwable $e) {
-                (new HandleException)($e);
+                app(HandleException::class)($e);
             });
 
         //Event::listen(MessageLogged::class, HandleLogMessage::class);
