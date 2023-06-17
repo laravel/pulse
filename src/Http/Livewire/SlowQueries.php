@@ -73,7 +73,6 @@ class SlowQueries extends Component implements ShouldNotReportUsage
                 ->where('duration', '>=', config('pulse.slow_query_threshold'))
                 ->groupBy('sql')
                 ->orderByDesc('slowest')
-                ->limit(10)
                 ->get()
                 ->all();
 

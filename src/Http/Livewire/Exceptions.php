@@ -99,7 +99,6 @@ class Exceptions extends Component implements ShouldNotReportUsage
                     'last_occurrence' => 'last_occurrence',
                     default => 'count'
                 })
-                ->limit(10)
                 ->get();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);

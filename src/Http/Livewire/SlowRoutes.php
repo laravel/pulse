@@ -73,7 +73,6 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
                 ->where('duration', '>=', config('pulse.slow_endpoint_threshold'))
                 ->groupBy('route')
                 ->orderByDesc('slowest')
-                ->limit(10)
                 ->get()
                 ->map(function ($row) {
                     [$method, $path] = explode(' ', $row->route, 2);
