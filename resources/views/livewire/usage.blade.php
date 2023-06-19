@@ -51,7 +51,7 @@
                 }
             }
         }">
-            <div x-cloak x-show="! initialDataLoaded">Loading...</div>
+            <x-pulse::loading-indicator x-cloak x-show="! initialDataLoaded"/>
             <div x-cloak x-show="initialDataLoaded">
                 <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     @if ($initialDataLoaded && count($userRequestCounts) === 0)
