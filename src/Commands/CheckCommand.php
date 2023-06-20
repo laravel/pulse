@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Pulse\RedisAdapter;
 use RuntimeException;
 
 class CheckCommand extends Command
@@ -27,16 +26,26 @@ class CheckCommand extends Command
     /**
      * Handle the command.
      *
-     * @return int
+     * @return void
      */
     public function handle()
     {
-        $server = config('pulse.server_name');
+        $lastSnapshotAt = now()->floorSeconds(15);
 
         while (true) {
+            $now = now()->toImmutable();
+
+            if ($now->subSeconds(15)->lessThan($lastSnapshotAt)) {
+                sleep(1);
+
+                continue;
+            }
+
+            $lastSnapshotAt = $now->floorSeconds(15);
+
             $stats = [
-                'date' => now()->toDateTimeString(),
-                'server' => $server,
+                'date' => $lastSnapshotAt->toDateTimeString(),
+                'server' => config('pulse.server_name'),
                 ...$this->getStats(),
                 'storage' => collect(config('pulse.directories'))->map(fn ($directory) => [
                     'directory' => $directory,
@@ -47,32 +56,6 @@ class CheckCommand extends Command
             DB::table('pulse_servers')->insert($stats);
 
             $this->line(json_encode($stats));
-
-            sleep(15);
-        }
-
-        return;
-
-        $slug = Str::slug(config('pulse.server_name'));
-        RedisAdapter::hset('pulse_servers', $slug, config('pulse.server_name'));
-
-        while (true) {
-            $stats = [
-                'timestamp' => now()->timestamp,
-                ...$this->getStats(),
-                'storage' => collect(config('pulse.directories'))->map(fn ($directory) => [
-                    'directory' => $directory,
-                    'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
-                    'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
-                ])->toJson(),
-            ];
-
-            RedisAdapter::xadd("pulse_servers:{$slug}", $stats);
-            RedisAdapter::xtrim("pulse_servers:{$slug}", 'MAXLEN', 60);
-
-            $this->line(json_encode($stats));
-
-            sleep(2);
         }
     }
 
