@@ -19,10 +19,11 @@ return new class extends Migration
             $table->timestamp('date');
             $table->string('server');
             $table->unsignedTinyInteger('cpu_percent');
-            $table->unsignedTinyInteger('memory_percent');
+            $table->unsignedInteger('memory_used');
+            $table->unsignedInteger('memory_total');
             $table->json('storage');
 
-            $table->index(['date', 'server']);
+            $table->index(['server', 'date']);
         });
 
         Schema::create('pulse_requests', function (Blueprint $table) {

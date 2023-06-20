@@ -19,33 +19,6 @@ class Pulse
 
     public bool $doNotReportUsage = false;
 
-    public function servers()
-    {
-        // TODO: Exclude servers that haven't reported recently?
-        return collect(RedisAdapter::hgetall('pulse_servers'))
-            ->map(function ($name, $slug) {
-                $readings = collect(RedisAdapter::xrange("pulse_servers:{$slug}", '-', '+'))
-                    ->map(fn ($server) => [
-                        'timestamp' => (int) $server['timestamp'],
-                        'cpu' => (int) $server['cpu'],
-                        'memory_used' => (int) $server['memory_used'],
-                        'memory_total' => (int) $server['memory_total'],
-                        'storage' => json_decode($server['storage']),
-                    ])
-                    ->values();
-
-                if ($readings->isEmpty()) {
-                    return null;
-                }
-
-                return [
-                    'name' => $name,
-                    'readings' => $readings,
-                ];
-            })
-            ->filter();
-    }
-
     public function slowQueries()
     {
         // TODO: Do we want to rebuild this on every request?
