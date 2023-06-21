@@ -11,7 +11,7 @@
                     '24_hours' => '24 hours',
                     '7_days' => '7 days',
                     default => 'hour',
-                } }}, &gt;&equals;{{ config('pulse.slow_jobs_threshold') }}ms</small>
+                } }}, &gt;&equals;{{ config('pulse.slow_job_threshold') }}ms</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>
