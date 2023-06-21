@@ -23,6 +23,10 @@ class HandleCacheInteraction
             return;
         }
 
+        if ($event->key === 'illuminate:queue:restart') {
+            return;
+        }
+
         // TODO: tags?
 
         DB::table('pulse_cache_hits')->insert([

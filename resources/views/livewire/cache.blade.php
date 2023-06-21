@@ -59,7 +59,7 @@
                                 Hit Rate
                             </div>
                             <div class="text-xl uppercase font-bold text-gray-700">
-                                {{ $cacheInteractions->count > 0 ? ($cacheInteractions->hits / $cacheInteractions->count).'%' : '-' }}
+                                {{ $cacheInteractions->count > 0 ? round($cacheInteractions->hits / $cacheInteractions->count, 2).'%' : '-' }}
                             </div>
                         </div>
                     </div>
