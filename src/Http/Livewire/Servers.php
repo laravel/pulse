@@ -74,11 +74,11 @@ class Servers extends Component implements ShouldNotReportUsage
                 'memory_used' => $server->memory_used,
                 'memory_total' => $server->memory_total,
                 'storage' => json_decode($server->storage),
-                'readings' => $serverReadings[$server->server]?->map(fn ($reading) => (object) [
+                'readings' => $serverReadings->get($server->server)?->map(fn ($reading) => (object) [
                     'date' => $reading->date,
                     'cpu_percent' => $reading->cpu_percent,
                     'memory_used' => $reading->memory_used,
-                ]) ?? [],
+                ])->all() ?? [],
                 'updated_at' => Carbon::parse($server->date),
             ])
             ->keyBy('slug');
