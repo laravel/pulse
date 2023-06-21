@@ -14,29 +14,56 @@
         </x-pulse::card-title>
     </x-slot:title>
 
-    <div class="grid grid-cols-3">
-        <div>
-            <div class="text-xs uppercase font-bold text-gray-500">
-                Hits
-            </div>
-            <div class="text-xl uppercase font-bold text-gray-700">
-                {{ $cacheStats['hits'] }}
-            </div>
-        </div>
-        <div>
-            <div class="text-xs uppercase font-bold text-gray-500">
-                Misses
-            </div>
-            <div class="text-xl uppercase font-bold text-gray-700">
-                {{ $cacheStats['misses'] }}
-            </div>
-        </div>
-        <div>
-            <div class="text-xs uppercase font-bold text-gray-500">
-                Hit Rate
-            </div>
-            <div class="text-xl uppercase font-bold text-gray-700">
-                {{ $cacheStats['hit_rate'] }}%
+    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
+        <script>
+            const initialCacheDataLoaded = @js($initialDataLoaded)
+        </script>
+        <div x-data="{
+            initialDataLoaded: initialCacheDataLoaded,
+            loadingNewDataset: false,
+            init() {
+                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+
+                window.addEventListener('cache:dataLoaded', () => {
+                    this.initialDataLoaded = true
+                    this.loadingNewDataset = false
+                })
+
+                if (! this.initialDataLoaded) {
+                    @this.loadData()
+                }
+            }
+        }">
+            <x-pulse::loading-indicator x-cloak x-show="! initialDataLoaded" />
+            <div x-cloak x-show="initialDataLoaded" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                @if ($initialDataLoaded)
+                    <div class="grid grid-cols-3">
+                        <div>
+                            <div class="text-xs uppercase font-bold text-gray-500">
+                                Hits
+                            </div>
+                            <div class="text-xl uppercase font-bold text-gray-700">
+                                {{ $cacheInteractions->hits }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-xs uppercase font-bold text-gray-500">
+                                Misses
+                            </div>
+                            <div class="text-xl uppercase font-bold text-gray-700">
+                                {{ $cacheInteractions->count - $cacheInteractions->hits }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-xs uppercase font-bold text-gray-500">
+                                Hit Rate
+                            </div>
+                            <div class="text-xl uppercase font-bold text-gray-700">
+                                {{ $cacheInteractions->count > 0 ? ($cacheInteractions->hits / $cacheInteractions->count).'%' : '-' }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

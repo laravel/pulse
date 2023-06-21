@@ -19,7 +19,8 @@ use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheHit;
-use Laravel\Pulse\Handlers\HandleCacheMiss;
+use Laravel\Pulse\Handlers\HandleCacheEvent;
+use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Handlers\HandleLogMessage;
@@ -83,8 +84,7 @@ class PulseServiceProvider extends ServiceProvider
             });
 
         //Event::listen(MessageLogged::class, HandleLogMessage::class);
-        Event::listen(CacheHit::class, HandleCacheHit::class);
-        Event::listen(CacheMissed::class, HandleCacheMiss::class);
+        Event::listen([CacheHit::class, CacheMissed::class], HandleCacheInteraction::class);
 
         // TODO: handle other job events, such as failing.
         Event::listen(JobQueued::class, HandleQueuedJob::class);

@@ -67,6 +67,12 @@ return new class extends Migration
             $table->index(['date', 'job', 'duration'], 'slow_jobs');
             $table->index(['date', 'user_id'], 'user_usage');
         });
+
+        Schema::create('pulse_cache_hits', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('key');
+            $table->boolean('hit');
+        });
     }
 
     /**
