@@ -18,6 +18,9 @@ return [
     // in milliseconds
     'slow_query_threshold' => 1000,
 
+    // in milliseconds
+    'slow_job_threshold' => 1000,
+
     // queues to show stats for
     'queues' => [
         'default',

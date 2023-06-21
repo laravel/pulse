@@ -30,12 +30,16 @@ class HandleProcessedJob
             return;
         }
 
-        $now = now()->toDateTimeString();
+        // TODO: this should capture "now()", but using a random duration to improve
+        // the randomness without having to have long running jobs.
+        $now = now()->addMilliseconds(rand(100, 10000));
+
+        // TODO respect slow limit configuration
 
         DB::table('pulse_jobs')
-            ->where('job_id', $event->job->getJobId())
+            ->where('job_id', (string) $event->job->getJobId())
             ->update([
-                'duration' => DB::raw('TIMESTAMPDIFF(SECOND, `date`, "'.now()->toDateTimeString().'")'),
+                'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$now->toDateTimeString('millisecond').'") / 1000'),
             ]);
     }
 }

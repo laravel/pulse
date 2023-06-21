@@ -32,12 +32,13 @@ class HandleProcessingJob
         }
 
         DB::table('pulse_jobs')
-            ->where('job_id', $event->job->getJobId())
+            ->where('job_id', (string) $event->job->getJobId())
             ->update([
-                'date' => now()->toDateTimeString(),
+                'processing_started_at' => now()->toDateTimeString('millisecond'),
             ]);
+
+        // Lottery::odds(1, 100)->winner(fn () =>
+        //     DB::table('pulse_jobs')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
+        // )->choose();
     }
 }
-
-
-

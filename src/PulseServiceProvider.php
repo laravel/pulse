@@ -32,6 +32,7 @@ use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
 use Laravel\Pulse\Http\Livewire\Queues;
 use Laravel\Pulse\Http\Livewire\Servers;
+use Laravel\Pulse\Http\Livewire\SlowJobs;
 use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\Usage;
@@ -85,9 +86,10 @@ class PulseServiceProvider extends ServiceProvider
         Event::listen(CacheHit::class, HandleCacheHit::class);
         Event::listen(CacheMissed::class, HandleCacheMiss::class);
 
+        // TODO: handle other job events, such as failing.
         Event::listen(JobQueued::class, HandleQueuedJob::class);
-        // Event::listen(JobProcessing::class, HandleProcessingJob::class);
-        // Event::listen(JobProcessed::class, HandleProcessedJob::class);
+        Event::listen(JobProcessing::class, HandleProcessingJob::class);
+        Event::listen(JobProcessed::class, HandleProcessedJob::class);
     }
 
     /**
@@ -203,6 +205,7 @@ class PulseServiceProvider extends ServiceProvider
         Livewire::component('exceptions', Exceptions::class);
         Livewire::component('slow-routes', SlowRoutes::class);
         Livewire::component('slow-queries', SlowQueries::class);
+        Livewire::component('slow-jobs', SlowJobs::class);
         Livewire::component('cache', Cache::class);
         Livewire::component('queues', Queues::class);
     }

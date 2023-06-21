@@ -35,6 +35,10 @@ class HandleQueuedJob
         DB::table('pulse_jobs')->insert([
             'date' => now()->toDateTimeString(),
             'user_id' => Auth::id(),
+            'job' => is_string($event->job)
+                ? $event->job
+                : $event->job::class,
+            'job_id' => $event->id,
         ]);
 
         // Lottery::odds(1, 100)->winner(fn () =>

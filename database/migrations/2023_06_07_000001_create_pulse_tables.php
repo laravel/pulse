@@ -57,10 +57,14 @@ return new class extends Migration
         Schema::create('pulse_jobs', function (Blueprint $table) {
             $table->timestamp('date');
             $table->string('user_id')->nullable();
-            // $table->string('job');
-            // $table->string('job_id');
-            // $table->unsignedInteger('duration')->nullable();
+            $table->string('job');
+            $table->string('job_id');
+            $table->timestamp('processing_started_at', 3)->nullable();
+            $table->unsignedInteger('duration')->nullable();
 
+            // TODO: verify this update index. Needs to find job quickly.
+            $table->index(['job_id']);
+            $table->index(['date', 'job', 'duration'], 'slow_jobs');
             $table->index(['date', 'user_id'], 'user_usage');
         });
     }
