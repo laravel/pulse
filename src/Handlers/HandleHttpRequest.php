@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Redis;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleHttpRequest
@@ -18,7 +17,6 @@ class HandleHttpRequest
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Redis $redis,
     ) {
         //
     }

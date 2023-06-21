@@ -4,10 +4,8 @@ namespace Laravel\Pulse\Http\Livewire;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
-use Laravel\Pulse\Pulse;
 use Livewire\Component;
 
 class SlowQueries extends Component implements ShouldNotReportUsage
@@ -19,7 +17,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      *
      * @return \Illuminate\View\View
      */
-    public function render(Pulse $pulse)
+    public function render()
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
