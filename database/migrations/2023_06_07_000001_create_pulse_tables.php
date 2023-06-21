@@ -78,5 +78,6 @@ return new class extends Migration
         Schema::dropIfExists('pulse_requests');
         Schema::dropIfExists('pulse_exceptions');
         Schema::dropIfExists('pulse_queries');
+        Schema::dropIfExists('pulse_jobs');
     }
 };
