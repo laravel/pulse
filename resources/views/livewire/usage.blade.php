@@ -62,7 +62,7 @@
                     @elseif ($initialDataLoaded && count($userRequestCounts) > 0)
                         <div class="grid grid-cols-2 gap-2">
                             @foreach ($userRequestCounts ?? [] as $userRequestCount)
-                                <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
                                     <div>
                                         <div class="text-sm text-gray-900 font-medium">
                                             {{ $userRequestCount['user']['name'] }}

@@ -57,9 +57,11 @@
                                             <code class="block text-xs text-gray-900">
                                                 {{ $route['uri'] }}
                                             </code>
-                                            <p class="text-xs text-gray-500">
-                                                {{ $route['action'] }}
-                                            </p>
+                                            @if ($route['action'])
+                                                <p class="mt-1 text-xs text-gray-500">
+                                                    {{ $route['action'] }}
+                                                </p>
+                                            @endif
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm">
                                             <strong>{{ $route['request_count'] }}</strong>

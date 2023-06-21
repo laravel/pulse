@@ -68,7 +68,7 @@
                                             <code class="block text-xs text-gray-900">
                                                 {{ $exception->class }}
                                             </code>
-                                            <p class="text-xs text-gray-500">
+                                            <p class="mt-1 text-xs text-gray-500">
                                                 {{ $exception->location }}
                                             </p>
                                         </x-pulse::td>
