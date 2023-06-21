@@ -72,6 +72,7 @@ return new class extends Migration
             $table->timestamp('date');
             $table->string('key');
             $table->boolean('hit');
+            // TODO: indexes?
         });
     }
 
