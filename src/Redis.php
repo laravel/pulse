@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Str;
 use Predis\Client as Predis;
 use Redis as PhpRedis;
 
