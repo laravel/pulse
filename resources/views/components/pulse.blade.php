@@ -7,7 +7,8 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600" rel="stylesheet" />
 
         <style>
             {!! app(\Laravel\Pulse\Pulse::class)->css() !!}
@@ -43,7 +44,7 @@
             </header>
 
             <main class="p-5">
-                <div class="container mx-auto grid grid-cols-6 gap-10">
+                <div class="container mx-auto grid grid-cols-6 gap-6">
                     {{ $slot }}
                 </div>
             </main>
