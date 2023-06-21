@@ -22,10 +22,13 @@
                 class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
             >
                 <option value="request_counts">
-                    by request count
+                    making requests
                 </option>
                 <option value="slow_endpoint_counts">
                     experiencing slow endpoints
+                </option>
+                <option value="dispatched_job_count">
+                    dispatching jobs
                 </option>
             </select>
         </div>

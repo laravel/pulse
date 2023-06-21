@@ -7,6 +7,9 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -20,7 +23,10 @@ use Laravel\Pulse\Handlers\HandleCacheMiss;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Handlers\HandleLogMessage;
+use Laravel\Pulse\Handlers\HandleProcessedJob;
+use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
+use Laravel\Pulse\Handlers\HandleQueuedJob;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
@@ -78,6 +84,10 @@ class PulseServiceProvider extends ServiceProvider
         //Event::listen(MessageLogged::class, HandleLogMessage::class);
         Event::listen(CacheHit::class, HandleCacheHit::class);
         Event::listen(CacheMissed::class, HandleCacheMiss::class);
+
+        Event::listen(JobQueued::class, HandleQueuedJob::class);
+        // Event::listen(JobProcessing::class, HandleProcessingJob::class);
+        // Event::listen(JobProcessed::class, HandleProcessedJob::class);
     }
 
     /**

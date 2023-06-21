@@ -1,0 +1,41 @@
+<?php
+
+namespace Laravel\Pulse\Handlers;
+
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
+use Laravel\Pulse\Pulse;
+
+class HandleProcessedJob
+{
+    /**
+     * Create a handler instance.
+     */
+    public function __construct(
+        protected Pulse $pulse,
+    ) {
+        //
+    }
+
+    /**
+     * Handle the execution of a database query.
+     */
+    public function __invoke(JobProcessed $event): void
+    {
+        if ($this->pulse->doNotReportUsage) {
+            return;
+        }
+
+        $now = now()->toDateTimeString();
+
+        DB::table('pulse_jobs')
+            ->where('job_id', $event->job->getJobId())
+            ->update([
+                'duration' => DB::raw('TIMESTAMPDIFF(SECOND, `date`, "'.now()->toDateTimeString().'")'),
+            ]);
+    }
+}

@@ -53,6 +53,16 @@ return new class extends Migration
 
             $table->index(['date', 'sql', 'duration'], 'slow_queries');
         });
+
+        Schema::create('pulse_jobs', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('user_id')->nullable();
+            // $table->string('job');
+            // $table->string('job_id');
+            // $table->unsignedInteger('duration')->nullable();
+
+            $table->index(['date', 'user_id'], 'user_usage');
+        });
     }
 
     /**

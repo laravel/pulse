@@ -16,7 +16,7 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The usage type.
      *
-     * @var 'request_counts'|'slow_endpoint_counts'|null
+     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_count'|null
      */
     public $usage;
 
@@ -87,7 +87,12 @@ class Usage extends Component implements ShouldNotReportUsage
 
             $start = hrtime(true);
 
-            $top10 = DB::table('pulse_requests')
+            $top10 = DB::query()
+                ->when($this->usage === 'dispatched_job_count', function ($query) {
+                    $query->from('pulse_jobs');
+                }, function ($query) {
+                    $query->from('pulse_requests');
+                })
                 ->selectRaw('user_id, COUNT(*) as count')
                 ->whereNotNull('user_id')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
