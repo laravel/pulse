@@ -78,6 +78,3 @@
         </div>
     </div>
 </x-pulse::card>
-
-
-
