@@ -2,8 +2,10 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
-use Laravel\Pulse\RedisAdapter;
 use Throwable;
 
 class HandleException
@@ -25,21 +27,16 @@ class HandleException
      */
     protected function recordException(Throwable $e)
     {
-        $keyDate = now()->format('Y-m-d');
-        $keyExpiry = now()->toImmutable()->startOfDay()->addDays(7)->timestamp;
-
-        $exception = json_encode([
+        DB::table('pulse_exceptions')->insert([
+            'date' => now()->toDateTimeString(),
+            'user_id' => Auth::id(),
             'class' => get_class($e),
             'location' => $this->getLocation($e),
         ]);
 
-        $countKey = "pulse_exception_counts:{$keyDate}";
-        RedisAdapter::zincrby($countKey, 1, $exception);
-        RedisAdapter::expireat($countKey, $keyExpiry, 'NX');
-
-        $lastOccurrenceKey = "pulse_exception_last_occurrences:{$keyDate}";
-        RedisAdapter::zadd($lastOccurrenceKey, now()->timestamp, $exception);
-        RedisAdapter::expireat($lastOccurrenceKey, $keyExpiry, 'NX');
+        // Lottery::odds(1, 100)->winner(fn () =>
+        //     DB::table('pulse_exceptions')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
+        // )->choose();
     }
 
     /**

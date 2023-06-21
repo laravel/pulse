@@ -37,6 +37,7 @@
                             </svg>
                             <span class="ml-2 text-2xl text-gray-700 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
                         </div>
+                        <livewire:period-selector />
                     </div>
                 </div>
             </header>

@@ -4,11 +4,13 @@ namespace Laravel\Pulse\Http\Livewire;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Pulse;
 use Livewire\Component;
 
-class SlowQueries extends Component implements ShouldNotReportUsage
+class SlowJobs extends Component implements ShouldNotReportUsage
 {
     use HasPeriod;
 
@@ -17,30 +19,30 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      *
      * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(Pulse $pulse)
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
         }
 
-        [$slowQueries, $time, $runAt] = $this->slowQueries();
+        [$slowJobs, $time, $runAt] = $this->slowJobs();
 
-        return view('pulse::livewire.slow-queries', [
+        return view('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
-            'slowQueries' => $slowQueries,
-            'initialDataLoaded' => $slowQueries !== null,
+            'slowJobs' => $slowJobs,
+            'initialDataLoaded' => $slowJobs !== null,
         ]);
     }
 
     /**
-     * The slow queries.
+     * The slow jobs.
      *
      * @return array
      */
-    protected function slowQueries()
+    protected function slowJobs()
     {
-        return Cache::get("pulse:slow-queries:{$this->period}") ?? [null, 0, null];
+        return Cache::get("pulse:slow-jobs:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -50,7 +52,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      */
     public function loadData()
     {
-        Cache::remember("pulse:slow-queries:{$this->period}", now()->addSeconds(match ($this->period) {
+        Cache::remember("pulse:slow-jobs:{$this->period}", now()->addSeconds(match ($this->period) {
             '6_hours' => 30,
             '24_hours' => 60,
             '7_days' => 600,
@@ -60,25 +62,25 @@ class SlowQueries extends Component implements ShouldNotReportUsage
 
             $start = hrtime(true);
 
-            $slowQueries = DB::table('pulse_queries')
-                ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
+            $slowJobs = DB::table('pulse_jobs')
+                ->selectRaw('`job`, COUNT(*) as count, MAX(duration) AS slowest')
                 ->where('date', '>=', $now->subHours(match ($this->period) {
                     '6_hours' => 6,
                     '24_hours' => 24,
                     '7_days' => 168,
                     default => 1,
                 })->toDateTimeString())
-                ->where('duration', '>=', config('pulse.slow_query_threshold'))
-                ->groupBy('sql')
+                ->where('duration', '>=', config('pulse.slow_job_threshold'))
+                ->groupBy('job')
                 ->orderByDesc('slowest')
                 ->get()
                 ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
-            return [$slowQueries, $time, $now->toDateTimeString()];
+            return [$slowJobs, $time, $now->toDateTimeString()];
         });
 
-        $this->dispatchBrowserEvent('slow-queries:dataLoaded');
+        $this->dispatchBrowserEvent('slow-jobs:dataLoaded');
     }
 }

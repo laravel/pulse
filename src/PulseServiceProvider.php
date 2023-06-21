@@ -7,24 +7,33 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
+use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheHit;
 use Laravel\Pulse\Handlers\HandleCacheMiss;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Handlers\HandleLogMessage;
+use Laravel\Pulse\Handlers\HandleProcessedJob;
+use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
+use Laravel\Pulse\Handlers\HandleQueuedJob;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
+use Laravel\Pulse\Http\Livewire\PeriodSelector;
 use Laravel\Pulse\Http\Livewire\Queues;
 use Laravel\Pulse\Http\Livewire\Servers;
-use Laravel\Pulse\Http\Livewire\SlowEndpoints;
+use Laravel\Pulse\Http\Livewire\SlowJobs;
+use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\Usage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
@@ -40,11 +49,14 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->runningUnitTests()) {
-            return;
-        }
+        // TODO: will need to restore this one. Probably with a static.
+        // if ($this->app->runningUnitTests()) {
+        //     return;
+        // }
 
         $this->app->singleton(Pulse::class);
+
+        $this->app->singleton(Redis::class, fn ($app) => new Redis($app['redis']->connection()->client()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -61,20 +73,23 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents()
     {
         $this->app->make(Kernel::class)
-            ->whenRequestLifecycleIsLongerThan(0, function ($startedAt, $request, $response) {
-                (new HandleHttpRequest)($startedAt, $request, $response);
-            });
+            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        DB::listen(fn ($e) => (new HandleQuery)($e));
+        DB::listen(fn ($e) => app(HandleQuery::class)($e));
 
         $this->app->make(ExceptionHandler::class)
             ->reportable(function (Throwable $e) {
-                (new HandleException)($e);
+                app(HandleException::class)($e);
             });
 
         //Event::listen(MessageLogged::class, HandleLogMessage::class);
         Event::listen(CacheHit::class, HandleCacheHit::class);
         Event::listen(CacheMissed::class, HandleCacheMiss::class);
+
+        // TODO: handle other job events, such as failing.
+        Event::listen(JobQueued::class, HandleQueuedJob::class);
+        Event::listen(JobProcessing::class, HandleProcessingJob::class);
+        Event::listen(JobProcessed::class, HandleProcessedJob::class);
     }
 
     /**
@@ -129,9 +144,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations()
     {
-        // if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
-        //     $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // }
+        if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        }
     }
 
     /**
@@ -170,6 +185,7 @@ class PulseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 CheckCommand::class,
+                WorkCommand::class,
             ]);
         }
     }
@@ -183,11 +199,13 @@ class PulseServiceProvider extends ServiceProvider
     {
         Blade::component('pulse', PulseComponent::class);
 
+        Livewire::component('period-selector', PeriodSelector::class);
         Livewire::component('servers', Servers::class);
         Livewire::component('usage', Usage::class);
         Livewire::component('exceptions', Exceptions::class);
-        Livewire::component('slow-endpoints', SlowEndpoints::class);
+        Livewire::component('slow-routes', SlowRoutes::class);
         Livewire::component('slow-queries', SlowQueries::class);
+        Livewire::component('slow-jobs', SlowJobs::class);
         Livewire::component('cache', Cache::class);
         Livewire::component('queues', Queues::class);
     }

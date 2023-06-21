@@ -2,8 +2,9 @@
     <livewire:servers />
     <livewire:usage />
     <livewire:exceptions />
-    <livewire:slow-endpoints />
+    <livewire:slow-routes />
     <livewire:slow-queries />
+    <livewire:slow-jobs />
     <livewire:cache />
     <livewire:queues />
 </x-pulse>

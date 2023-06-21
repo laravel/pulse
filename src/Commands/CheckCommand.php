@@ -3,8 +3,7 @@
 namespace Laravel\Pulse\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
-use Laravel\Pulse\RedisAdapter;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class CheckCommand extends Command
@@ -26,16 +25,26 @@ class CheckCommand extends Command
     /**
      * Handle the command.
      *
-     * @return int
+     * @return void
      */
     public function handle()
     {
-        $slug = Str::slug(config('pulse.server_name'));
-        RedisAdapter::hset('pulse_servers', $slug, config('pulse.server_name'));
+        $lastSnapshotAt = now()->floorSeconds(15);
 
         while (true) {
+            $now = now()->toImmutable();
+
+            if ($now->subSeconds(15)->lessThan($lastSnapshotAt)) {
+                sleep(1);
+
+                continue;
+            }
+
+            $lastSnapshotAt = $now->floorSeconds(15);
+
             $stats = [
-                'timestamp' => now()->timestamp,
+                'date' => $lastSnapshotAt->toDateTimeString(),
+                'server' => config('pulse.server_name'),
                 ...$this->getStats(),
                 'storage' => collect(config('pulse.directories'))->map(fn ($directory) => [
                     'directory' => $directory,
@@ -44,12 +53,9 @@ class CheckCommand extends Command
                 ])->toJson(),
             ];
 
-            RedisAdapter::xadd("pulse_servers:{$slug}", $stats);
-            RedisAdapter::xtrim("pulse_servers:{$slug}", 60);
+            DB::table('pulse_servers')->insert($stats);
 
             $this->line(json_encode($stats));
-
-            sleep(2);
         }
     }
 
@@ -65,7 +71,7 @@ class CheckCommand extends Command
     protected function getDarwinStats()
     {
         return [
-            'cpu' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
+            'cpu_percent' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
             'memory_total' => $memoryTotal = intval(`sysctl hw.memsize | grep -Eo '[0-9]+'` / 1024 / 1024), // MB
             'memory_used' => $memoryTotal - intval(intval(`vm_stat | grep 'Pages free' | grep -Eo '[0-9]+'`) * intval(`pagesize`) / 1024 / 1024), // MB
         ];
@@ -74,9 +80,9 @@ class CheckCommand extends Command
     protected function getLinuxStats()
     {
         return [
-            'cpu' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
-            'memory_total' => $memTotal = intval(`cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'` / 1024), // MB
-            'memory_used' => $memTotal - intval(`cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'` / 1024), // MB
+            'cpu_percent' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,
+            'memory_total' => $memoryTotal = intval(`cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'` / 1024), // MB
+            'memory_used' => $memoryTotal - intval(`cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'` / 1024), // MB
         ];
     }
 }

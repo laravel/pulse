@@ -26,7 +26,7 @@
         "orchestra/testbench": "^8.0",
         "pestphp/pest": "^2.0",
         "phpstan/phpstan": "^1.10",
-        "predis/predis": "^2.1"
+        "predis/predis": "^2.2"
     },
     "autoload": {
         "psr-4": {
