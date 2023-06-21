@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -28,14 +29,12 @@ class Servers extends Component implements ShouldNotReportUsage
 
     protected function servers($maxDataPoints)
     {
-        return DB::table('pulse_servers')
+        $serverReadings = DB::table('pulse_servers')
             ->selectRaw('
                 MAX(date) AS date,
                 server,
                 ROUND(AVG(cpu_percent)) AS cpu_percent,
-                ROUND(AVG(memory_used)) AS memory_used,
-                MAX(memory_total) AS memory_total,
-                MAX(storage) AS storage
+                ROUND(AVG(memory_used)) AS memory_used
             ')
             ->orderByDesc('date')
             ->when(true, fn ($query) => match ($this->period) {
@@ -55,15 +54,33 @@ class Servers extends Component implements ShouldNotReportUsage
             ->limit($maxDataPoints)
             ->get()
             ->reverse()
-            ->groupBy('server')
-            ->mapWithKeys(function ($readings, $server) {
-                return [Str::slug($server) => [
-                    'name' => $server,
-                    'readings' => collect($readings)->map(fn ($reading) => (object) [
-                        ...((array) $reading),
-                        'storage' => json_decode($reading->storage),
-                    ]),
-                ]];
-            });
+            ->groupBy('server');
+
+        return DB::table('pulse_servers')
+            ->joinSub(
+                DB::table('pulse_servers')
+                    ->selectRaw('server, MAX(date) AS date')
+                    ->groupBy('server'),
+                'grouped',
+                fn ($join) => $join
+                    ->on('pulse_servers.server', '=', 'grouped.server')
+                    ->on('pulse_servers.date', '=', 'grouped.date')
+            )
+            ->get()
+            ->map(fn ($server) => (object) [
+                'name' => $server->server,
+                'slug' => Str::slug($server->server),
+                'cpu_percent' => $server->cpu_percent,
+                'memory_used' => $server->memory_used,
+                'memory_total' => $server->memory_total,
+                'storage' => json_decode($server->storage),
+                'readings' => $serverReadings[$server->server]?->map(fn ($reading) => (object) [
+                    'date' => $reading->date,
+                    'cpu_percent' => $reading->cpu_percent,
+                    'memory_used' => $reading->memory_used,
+                ]) ?? [],
+                'updated_at' => Carbon::parse($server->date),
+            ])
+            ->keyBy('slug');
     }
 }
