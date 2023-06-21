@@ -32,4 +32,10 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
     {
         return view('pulse::livewire.period-selector');
     }
+
+    public function setPeriod($period)
+    {
+        $this->period = $period;
+        $this->emit('periodChanged', $period);
+    }
 }

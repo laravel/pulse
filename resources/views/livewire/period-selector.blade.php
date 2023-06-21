@@ -1,10 +1,6 @@
-<select
-    wire:model="period"
-    wire:change="$emit('periodChanged', $event.target.value)"
-    class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
->
-    <option value="1_hour">1 hour</option>
-    <option value="6_hours">6 hours</option>
-    <option value="24_hours">24 hours</option>
-    <option value="7_days">7 days</option>
-</select>
+<div class="flex gap-2">
+    <button wire:click="setPeriod('1_hour')" class="font-semibold text-lg {{ $period === '1_hour' ? 'text-gray-700' : 'text-gray-300 hover:text-gray-400'}}">1h</button>
+    <button wire:click="setPeriod('6_hours')" class="font-semibold text-lg {{ $period === '6_hours' ? 'text-gray-700' : 'text-gray-300 hover:text-gray-400'}}">6h</button>
+    <button wire:click="setPeriod('24_hours')" class="font-semibold text-lg {{ $period === '24_hours' ? 'text-gray-700' : 'text-gray-300 hover:text-gray-400'}}">24h</button>
+    <button wire:click="setPeriod('7_days')" class="font-semibold text-lg {{ $period === '7_days' ? 'text-gray-700' : 'text-gray-300 hover:text-gray-400'}}">7d</button>
+</div>
