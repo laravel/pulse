@@ -59,13 +59,13 @@
                                             </code>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm w-24">
-                                            <strong>{{ $query->count }}</strong>
+                                            <strong>{{ number_format($query->count) }}</strong>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
                                             @if ($query->slowest === null)
                                                 <strong>Unknown</strong>
                                             @else
-                                                <strong>{{ $query->slowest ?: '<1' }}</strong> ms
+                                                <strong>{{ number_format($query->slowest) ?: '<1' }}</strong> ms
                                             @endif
                                         </x-pulse::td>
                                     </tr>

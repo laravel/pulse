@@ -64,13 +64,13 @@
                                             @endif
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm">
-                                            <strong>{{ $route['request_count'] }}</strong>
+                                            <strong>{{ number_format($route['request_count']) }}</strong>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
                                             @if ($route['slowest_duration'] === null)
                                                 <strong>Unknown</strong>
                                             @else
-                                                <strong>{{ $route['slowest_duration'] ?: '<1' }}</strong> ms
+                                                <strong>{{ number_format($route['slowest_duration']) ?: '<1' }}</strong> ms
                                             @endif
                                         </x-pulse::td>
                                     </tr>

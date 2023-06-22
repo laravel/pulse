@@ -43,7 +43,7 @@
                                 Hits
                             </div>
                             <div class="text-xl uppercase font-bold text-gray-700">
-                                {{ $cacheInteractions->hits }}
+                                {{ number_format($cacheInteractions->hits) }}
                             </div>
                         </div>
                         <div>
@@ -51,7 +51,7 @@
                                 Misses
                             </div>
                             <div class="text-xl uppercase font-bold text-gray-700">
-                                {{ $cacheInteractions->count - $cacheInteractions->hits }}
+                                {{ number_format($cacheInteractions->count - $cacheInteractions->hits) }}
                             </div>
                         </div>
                         <div>
@@ -59,7 +59,7 @@
                                 Hit Rate
                             </div>
                             <div class="text-xl uppercase font-bold text-gray-700">
-                                {{ $cacheInteractions->count > 0 ? round($cacheInteractions->hits / $cacheInteractions->count, 2).'%' : '-' }}
+                                {{ $cacheInteractions->count > 0 ? round(($cacheInteractions->hits / $cacheInteractions->count) * 100, 2).'%' : '-' }}
                             </div>
                         </div>
                     </div>

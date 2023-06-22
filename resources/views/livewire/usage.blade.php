@@ -73,7 +73,7 @@
                                     </div>
                                     <div>
                                         <b class="text-xl text-gray-900 font-bold">
-                                            {{ $userRequestCount['count'] }}
+                                            {{ number_format($userRequestCount['count']) }}
                                         </b>
                                     </div>
                                 </div>

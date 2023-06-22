@@ -35,12 +35,12 @@
                     </td>
                     <td class="bg-gray-50 px-3 py-2 text-right">
                         <div class="text-gray-700 text-sm font-bold">
-                            {{ $queue['size'] }}
+                            {{ number_format($queue['size']) }}
                         </div>
                     </td>
                     <td class="rounded-r-md bg-gray-50 px-3 py-2 text-right">
                         <div class="text-gray-700 text-sm font-bold">
-                            {{ $queue['failed'] }}
+                            {{ number_format($queue['failed']) }}
                         </div>
                     </td>
                 </tr>

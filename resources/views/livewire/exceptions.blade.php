@@ -76,7 +76,7 @@
                                             {{ $exception->last_occurrence !== null ? Carbon\Carbon::parse($exception->last_occurrence)->fromNow() : 'Unknown' }}
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm font-bold">
-                                            {{ $exception->count }}
+                                            {{ number_format($exception->count) }}
                                         </x-pulse::td>
                                     </tr>
                                 @endforeach
