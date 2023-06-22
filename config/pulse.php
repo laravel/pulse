@@ -31,4 +31,12 @@ return [
         '/',
     ],
 
+    // cache keys to monitor
+    // regex_pattern => name
+    'cache_keys' => [
+        '^post:139$' => 'Post 139',
+        '^server:1\d{2}$' => 'Servers 100 - 199',
+        '^flight:.*' => 'All flights',
+    ],
+
 ];
