@@ -79,7 +79,8 @@ class Servers extends Component implements ShouldNotReportUsage
                     'cpu_percent' => $reading->cpu_percent,
                     'memory_used' => $reading->memory_used,
                 ])->all() ?? [],
-                'updated_at' => Carbon::parse($server->date),
+                'updated_at' => $updatedAt = Carbon::parse($server->date),
+                'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
             ])
             ->keyBy('slug');
     }
