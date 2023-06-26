@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Http\Livewire;
 
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
@@ -33,7 +32,7 @@ class Cache extends Component implements ShouldNotReportUsage
             'runAt' => $runAt,
             'allCacheInteractions' => $allCacheInteractions,
             'monitoredCacheInteractions' => $monitoredCacheInteractions,
-            'initialDataLoaded' => $allCacheInteractions !== null
+            'initialDataLoaded' => $allCacheInteractions !== null,
         ]);
     }
 
@@ -72,10 +71,10 @@ class Cache extends Component implements ShouldNotReportUsage
     public function loadData()
     {
         $rememberUntil = now()->addSeconds(match ($this->period) {
-                '6_hours' => 30,
-                '24_hours' => 60,
-                '7_days' => 600,
-                default => 5,
+            '6_hours' => 30,
+            '24_hours' => 60,
+            '7_days' => 600,
+            default => 5,
         });
 
         CacheFacade::remember("pulse:cache-all:{$this->period}", $rememberUntil, function () {

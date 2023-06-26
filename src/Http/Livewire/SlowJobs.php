@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Http\Livewire;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Pulse;

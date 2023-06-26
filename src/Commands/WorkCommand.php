@@ -67,7 +67,7 @@ class WorkCommand extends Command
             $requests = $requests->merge($newRequests);
 
             if ($requests->count() > 0) {
-                $from = '(' . $requests->keys()->last();
+                $from = '('.$requests->keys()->last();
             }
 
             $aggregates = collect();
@@ -79,11 +79,12 @@ class WorkCommand extends Command
 
                 $bucket = $requests->takeWhile(function ($item, $key) use ($maxKey) {
                     $time = Str::before($key, '-');
+
                     return $time <= $maxKey;
                 });
 
                 if ($bucket->count() === $requests->count() && $redisNow->getTimestampMs() < $maxKey) {
-                    break 1;
+                    break;
                 }
 
                 $aggregates = $aggregates->merge($this->getAggregates($bucketStart, $bucket));
@@ -111,8 +112,7 @@ class WorkCommand extends Command
                 $dateSql .= " AND date < '{$redisNow->startOfMinute()->format('Y-m-d H:i:s')}'";
                 dump($dateSql);
 
-                dump(Benchmark::measure(fn () =>
-                DB::statement(<<<"SQL"
+                dump(Benchmark::measure(fn () => DB::statement(<<<"SQL"
                     INSERT INTO pulse_requests (date, resolution, user_id, route, volume, average, slowest)
                     SELECT bucket, 60, user_id, route, volume, average, slowest
                     FROM (
@@ -146,8 +146,7 @@ class WorkCommand extends Command
                 $dateSql .= " AND date < '{$redisNow->startOfMinute()->floorMinute(10)->format('Y-m-d H:i:s')}'";
                 dump($dateSql);
 
-                dump(Benchmark::measure(fn () =>
-                DB::statement(<<<"SQL"
+                dump(Benchmark::measure(fn () => DB::statement(<<<"SQL"
                     INSERT INTO pulse_requests (date, resolution, user_id, route, volume, average, slowest)
                     SELECT bucket, 600, user_id, route, volume, average, slowest
                     FROM (

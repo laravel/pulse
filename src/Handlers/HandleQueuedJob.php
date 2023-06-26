@@ -2,8 +2,6 @@
 
 namespace Laravel\Pulse\Handlers;
 
-use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

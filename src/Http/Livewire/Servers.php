@@ -40,16 +40,16 @@ class Servers extends Component implements ShouldNotReportUsage
             ->when(true, fn ($query) => match ($this->period) {
                 '7_days' => $query
                     ->where('date', '>=', now()->subDays(7))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [ 604800 / $maxDataPoints ]),
+                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [604800 / $maxDataPoints]),
                 '24_hours' => $query
                     ->where('date', '>=', now()->subHours(24))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [ 86400 / $maxDataPoints ]),
+                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [86400 / $maxDataPoints]),
                 '6_hours' => $query
                     ->where('date', '>=', now()->subHours(6))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [ 21600 / $maxDataPoints ]),
+                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [21600 / $maxDataPoints]),
                 default => $query
                     ->where('date', '>=', now()->subHour())
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [ 3600 / $maxDataPoints ])
+                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [3600 / $maxDataPoints])
             })
             ->limit($maxDataPoints)
             ->get()

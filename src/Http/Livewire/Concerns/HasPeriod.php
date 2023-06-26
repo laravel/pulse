@@ -33,5 +33,4 @@ trait HasPeriod
     {
         $this->period = $period;
     }
-
 }

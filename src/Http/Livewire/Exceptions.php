@@ -55,7 +55,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
             'time' => $time,
             'runAt' => $runAt,
             'exceptions' => $exceptions,
-            'initialDataLoaded' => $exceptions !== null
+            'initialDataLoaded' => $exceptions !== null,
         ]);
     }
 

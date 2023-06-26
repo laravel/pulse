@@ -15,7 +15,7 @@ class Queues extends Component implements ShouldNotReportUsage
                 'queue' => $queue,
                 'size' => Queue::size($queue),
                 'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === $queue)->count(),
-            ])
+            ]),
         ]);
     }
 }

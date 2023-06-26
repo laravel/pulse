@@ -140,4 +140,3 @@ class Redis
         return $this->client->{$method}(...$parameters);
     }
 }
-
