@@ -9,7 +9,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
     return round($mb, $precision) . 'MB';
 };
 @endphp
-@if ($servers)
+@if ($servers->count() > 0)
     <div
         wire:poll.15s
         class="col-span-6"
