@@ -42,15 +42,12 @@ class PulseServiceProvider extends ServiceProvider
 {
     /**
      * Register any package services.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
-        // TODO: will need to restore this one. Probably with a static.
-        // if ($this->app->runningUnitTests()) {
-        //     return;
-        // }
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
 
         $this->app->scoped(Pulse::class);
 
@@ -63,25 +60,22 @@ class PulseServiceProvider extends ServiceProvider
         $this->listenForEvents();
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
+        // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
         Pulse::listenForStorageOpportunities($this->app);
     }
 
     /**
      * Listen for the events that are relevant to the package.
-     *
-     * @return void
      */
-    protected function listenForEvents()
+    protected function listenForEvents(): void
     {
         $this->app->make(Kernel::class)
             ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => $this->app->make(HandleHttpRequest::class)(...$args));
 
-        DB::listen(fn ($e) => $this->app->make(HandleQuery::class)($e));
-
         $this->app->make(ExceptionHandler::class)
-            ->reportable(function (Throwable $e) {
-                $this->app->make(HandleException::class)($e);
-            });
+            ->reportable(fn (Throwable $e) => $this->app->make(HandleException::class)($e));
+
+        Event::listen(HandleQuery::class, HandleQuery::class);
 
         Event::listen([CacheHit::class, CacheMissed::class], HandleCacheInteraction::class);
 
@@ -93,11 +87,13 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any package services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
+
         Livewire::listen('component.boot', function ($instance) {
             if ($instance instanceof ShouldNotReportUsage) {
                 $this->app->make(Pulse::class)->shouldRecord = false;
@@ -114,10 +110,8 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Register the package routes.
-     *
-     * @return void
      */
-    protected function registerRoutes()
+    protected function registerRoutes(): void
     {
         Route::group([
             'domain' => config('pulse.domain', null),
@@ -135,20 +129,16 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Register the package resources.
-     *
-     * @return void
      */
-    protected function registerResources()
+    protected function registerResources(): void
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'pulse');
     }
 
     /**
      * Register the package's migrations.
-     *
-     * @return void
      */
-    protected function registerMigrations()
+    protected function registerMigrations(): void
     {
         if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -157,10 +147,8 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Register the package's publishable resources.
-     *
-     * @return void
      */
-    protected function registerPublishing()
+    protected function registerPublishing(): void
     {
         if ($this->app->runningInConsole()) {
             // $this->publishes([
@@ -183,10 +171,8 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Register the package's commands.
-     *
-     * @return void
      */
-    protected function registerCommands()
+    protected function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -198,10 +184,8 @@ class PulseServiceProvider extends ServiceProvider
 
     /**
      * Register the package's components.
-     *
-     * @return void
      */
-    protected function registerComponents()
+    protected function registerComponents(): void
     {
         Blade::component('pulse', PulseComponent::class);
 
