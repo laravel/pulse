@@ -6,6 +6,7 @@ use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
@@ -69,12 +70,12 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents(): void
     {
         $this->app->make(Kernel::class)
-            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => $this->app->make(HandleHttpRequest::class)(...$args));
+            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
         $this->app->make(ExceptionHandler::class)
-            ->reportable(fn (Throwable $e) => $this->app->make(HandleException::class)($e));
+            ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
-        Event::listen(HandleQuery::class, HandleQuery::class);
+        Event::listen(QueryExecuted::class, HandleQuery::class);
 
         Event::listen([CacheHit::class, CacheMissed::class], HandleCacheInteraction::class);
 
@@ -95,7 +96,7 @@ class PulseServiceProvider extends ServiceProvider
 
         Livewire::listen('component.boot', function ($instance) {
             if ($instance instanceof ShouldNotReportUsage) {
-                $this->app->make(Pulse::class)->shouldRecord = false;
+                app(Pulse::class)->shouldRecord = false;
             }
         });
 
