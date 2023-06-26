@@ -33,6 +33,7 @@ use Laravel\Pulse\Http\Livewire\SlowJobs;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\Usage;
+use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
 use Throwable;
@@ -118,11 +119,18 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes()
     {
-        Route::get(config('pulse.path'), function (Pulse $pulse) {
-            $pulse->shouldRecord = false;
+        Route::group([
+            'domain' => config('pulse.domain', null),
+            'middleware' => config('pulse.middleware', 'web'),
+            'namespace' => 'Laravel\Pulse\Http\Controllers',
+            'prefix' => config('pulse.path'),
+        ], function () {
+            Route::get('/', function (Pulse $pulse) {
+                $pulse->shouldRecord = false;
 
-            return view('pulse::dashboard');
-        })->middleware(config('pulse.middleware'));
+                return view('pulse::dashboard');
+            });
+        });
     }
 
     /**
@@ -196,6 +204,10 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerComponents()
     {
         Blade::component('pulse', PulseComponent::class);
+
+        Livewire::addPersistentMiddleware([
+            Authorize::class,
+        ]);
 
         Livewire::component('period-selector', PeriodSelector::class);
         Livewire::component('servers', Servers::class);

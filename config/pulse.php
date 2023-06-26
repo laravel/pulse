@@ -1,11 +1,14 @@
 <?php
 
+use Laravel\Pulse\Http\Middleware\Authorize;
+
 return [
 
     'path' => env('PULSE_PATH', 'pulse'),
 
     'middleware' => [
         'web',
+        Authorize::class,
     ],
 
     // The name that will appear in the dashboard after running the `pulse:check` command.
