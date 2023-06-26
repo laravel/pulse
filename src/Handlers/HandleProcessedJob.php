@@ -3,8 +3,8 @@
 namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Updates\RecordJobDuration;
 
 class HandleProcessedJob
 {
@@ -22,20 +22,17 @@ class HandleProcessedJob
      */
     public function __invoke(JobProcessed $event): void
     {
-        if ($this->pulse->doNotReportUsage) {
+        $now = now();
+
+        if (! $this->pulse->shouldRecord) {
             return;
         }
 
-        // TODO: this should capture "now()", but using a random duration to improve
-        // the randomness without having to have long running jobs.
-        $now = now()->addMilliseconds(rand(100, 10000));
-
         // TODO respect slow limit configuration
 
-        DB::table('pulse_jobs')
-            ->where('job_id', (string) $event->job->getJobId())
-            ->update([
-                'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$now->toDateTimeString('millisecond').'") / 1000'),
-            ]);
+        $this->pulse->recordUpdate(new RecordJobDuration(
+            $event->job->getJobId(),
+            $now->toDateTimeString('millisecond')
+        ));
     }
 }

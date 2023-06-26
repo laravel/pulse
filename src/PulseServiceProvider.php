@@ -6,7 +6,6 @@ use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
@@ -21,7 +20,6 @@ use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
-use Laravel\Pulse\Handlers\HandleLogMessage;
 use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
@@ -53,7 +51,7 @@ class PulseServiceProvider extends ServiceProvider
         //     return;
         // }
 
-        $this->app->singleton(Pulse::class);
+        $this->app->scoped(Pulse::class);
 
         $this->app->singleton(Redis::class, fn ($app) => new Redis($app['redis']->connection()->client()));
 
@@ -62,6 +60,9 @@ class PulseServiceProvider extends ServiceProvider
         );
 
         $this->listenForEvents();
+
+        // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
+        Pulse::listenForStorageOpportunities($this->app);
     }
 
     /**
@@ -72,16 +73,15 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents()
     {
         $this->app->make(Kernel::class)
-            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
+            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => $this->app->make(HandleHttpRequest::class)(...$args));
 
-        DB::listen(fn ($e) => app(HandleQuery::class)($e));
+        DB::listen(fn ($e) => $this->app->make(HandleQuery::class)($e));
 
         $this->app->make(ExceptionHandler::class)
             ->reportable(function (Throwable $e) {
-                app(HandleException::class)($e);
+                $this->app->make(HandleException::class)($e);
             });
 
-        //Event::listen(MessageLogged::class, HandleLogMessage::class);
         Event::listen([CacheHit::class, CacheMissed::class], HandleCacheInteraction::class);
 
         // TODO: handle other job events, such as failing.
@@ -99,7 +99,7 @@ class PulseServiceProvider extends ServiceProvider
     {
         Livewire::listen('component.boot', function ($instance) {
             if ($instance instanceof ShouldNotReportUsage) {
-                $this->app->make(Pulse::class)->doNotReportUsage = true;
+                $this->app->make(Pulse::class)->shouldRecord = false;
             }
         });
 
@@ -119,7 +119,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerRoutes()
     {
         Route::get(config('pulse.path'), function (Pulse $pulse) {
-            $pulse->doNotReportUsage = true;
+            $pulse->shouldRecord = false;
 
             return view('pulse::dashboard');
         })->middleware(config('pulse.middleware'));

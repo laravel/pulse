@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Pulse;
 
 class HandleCacheInteraction
@@ -19,7 +18,7 @@ class HandleCacheInteraction
      */
     public function __invoke(CacheHit|CacheMissed $event): void
     {
-        if ($this->pulse->doNotReportUsage) {
+        if (! $this->pulse->shouldRecord) {
             return;
         }
 
@@ -27,9 +26,7 @@ class HandleCacheInteraction
             return;
         }
 
-        // TODO: tags?
-
-        DB::table('pulse_cache_hits')->insert([
+        $this->pulse->record('pulse_cache_hits', [
             'date' => now()->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
             'key' => $event->key,

@@ -3,13 +3,21 @@
 namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Pulse;
 use Throwable;
 
 class HandleException
 {
+    /**
+     * Create a handler instance.
+     */
+    public function __construct(
+        protected Pulse $pulse,
+    ) {
+        //
+    }
+
     /**
      * Handle an exception.
      */
@@ -18,7 +26,7 @@ class HandleException
         try {
             $this->recordException($e);
         } catch (Throwable) {
-            // TODO: What should we do with the new exception?
+            // Do nothing.
         }
     }
 
@@ -27,16 +35,16 @@ class HandleException
      */
     protected function recordException(Throwable $e)
     {
-        DB::table('pulse_exceptions')->insert([
+        if (! $this->pulse->shouldRecord) {
+            return;
+        }
+
+        $this->pulse->record('pulse_exceptions', [
             'date' => now()->toDateTimeString(),
             'user_id' => Auth::id(),
             'class' => get_class($e),
             'location' => $this->getLocation($e),
         ]);
-
-        // Lottery::odds(1, 100)->winner(fn () =>
-        //     DB::table('pulse_exceptions')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
-        // )->choose();
     }
 
     /**

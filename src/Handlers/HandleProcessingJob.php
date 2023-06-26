@@ -3,9 +3,8 @@
 namespace Laravel\Pulse\Handlers;
 
 use Illuminate\Queue\Events\JobProcessing;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Lottery;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Updates\RecordJobStart;
 
 class HandleProcessingJob
 {
@@ -23,18 +22,15 @@ class HandleProcessingJob
      */
     public function __invoke(JobProcessing $event): void
     {
-        if ($this->pulse->doNotReportUsage) {
+        $now = now();
+
+        if (! $this->pulse->shouldRecord) {
             return;
         }
 
-        DB::table('pulse_jobs')
-            ->where('job_id', (string) $event->job->getJobId())
-            ->update([
-                'processing_started_at' => now()->toDateTimeString('millisecond'),
-            ]);
-
-        // Lottery::odds(1, 100)->winner(fn () =>
-        //     DB::table('pulse_jobs')->where('date', '<', now()->subDays(7)->toDateTimeString())->delete()
-        // )->choose();
+        $this->pulse->recordUpdate(new RecordJobStart(
+            $event->job->getJobId(),
+            $now->toDateTimeString('millisecond')
+        ));
     }
 }

@@ -2,8 +2,12 @@
 
 namespace Laravel\Pulse;
 
+use Illuminate\Support\Facades\DB;
+
 class Pulse
 {
+    use ListensForStorageOpportunities;
+
     /**
      * Indicates if Pulse migrations will be run.
      *
@@ -11,31 +15,72 @@ class Pulse
      */
     public static $runsMigrations = true;
 
-    public bool $doNotReportUsage = false;
+    /**
+     * The list of queued entries to be stored.
+     *
+     * @var array
+     */
+    public $entriesQueue = [];
 
-    public function cacheStats()
+    /**
+     * The list of queued entry updates.
+     *
+     * @var array
+     */
+    public $updatesQueue = [];
+
+    /**
+     * Indicates if Pulse should record entries.
+     *
+     * @var bool
+     */
+    public $shouldRecord = true;
+
+    /**
+     * Record the given entry.
+     *
+     * @param  string  $table
+     * @param  array  $attributes
+     * @return void
+     */
+    public function record($table, $attributes)
     {
-        $hits = collect(range(0, 6))
-            ->map(fn ($days) => RedisAdapter::get('pulse_cache_hits:'.now()->subDays($days)->format('Y-m-d')))
-            ->sum();
+        if ($this->shouldRecord) {
+            $this->entriesQueue[$table][] = $attributes;
+        }
+    }
 
-        $misses = collect(range(0, 6))
-            ->map(fn ($days) => RedisAdapter::get('pulse_cache_misses:'.now()->subDays($days)->format('Y-m-d')))
-            ->sum();
+    /**
+     * Record the given entry update.
+     *
+     * @param  mixed  $update
+     * @return void
+     */
+    public function recordUpdate($update)
+    {
+        if ($this->shouldRecord) {
+            $this->updatesQueue[] = $update;
+        }
+    }
 
-        $total = $hits + $misses;
-
-        if ($total === 0) {
-            $rate = 0;
-        } else {
-            $rate = (int) (($hits / $total) * 100);
+    /**
+     * Store the queued entries and flush the queue.
+     *
+     * @return void
+     */
+    public function store()
+    {
+        // TODO: Prevent these entries from being recorded?
+        foreach ($this->entriesQueue as $table => $rows) {
+            DB::table($table)->insert($rows);
         }
 
-        return [
-            'hits' => $hits,
-            'misses' => $misses,
-            'hit_rate' => $rate,
-        ];
+        foreach ($this->updatesQueue as $update) {
+            $update->perform();
+        }
+
+        $this->entriesQueue = [];
+        $this->updatesQueue = [];
     }
 
     public function css()
