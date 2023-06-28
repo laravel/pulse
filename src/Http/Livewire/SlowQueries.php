@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
     public function loadData(): void
     {
         Cache::remember("pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable;
 
             $start = hrtime(true);
 

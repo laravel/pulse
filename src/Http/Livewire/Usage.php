@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cache;
@@ -71,7 +72,7 @@ class Usage extends Component implements ShouldNotReportUsage
     public function loadData(): void
     {
         Cache::remember("pulse:usage:{$this->usage}:{$this->period}", $this->periodCacheDuration(), function () {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable;
 
             $start = hrtime(true);
 

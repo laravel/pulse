@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
     public function loadData(): void
     {
         Cache::remember("pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
@@ -60,6 +61,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
                 ->get()
                 ->map(function ($row) {
                     [$method, $path] = explode(' ', $row->route, 2);
+
                     $route = Route::getRoutes()->get($method)[$path] ?? null;
 
                     return [

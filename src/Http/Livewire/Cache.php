@@ -2,7 +2,9 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -22,13 +24,15 @@ class Cache extends Component implements ShouldNotReportUsage
             $this->loadData();
         }
 
-        [$allCacheInteractions, $time, $runAt] = $this->allCacheInteractions();
+        [$allCacheInteractions, $allTime, $allRunAt] = $this->allCacheInteractions();
 
-        [$monitoredCacheInteractions, $time, $runAt] = $this->monitoredCacheInteractions();
+        [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->monitoredCacheInteractions();
 
         return view('pulse::livewire.cache', [
-            'time' => $time,
-            'runAt' => $runAt,
+            'allTime' => $allTime,
+            'allRunAt' => $allRunAt,
+            'monitoredTime' => $allTime,
+            'monitoredRunAt' => $allRunAt,
             'allCacheInteractions' => $allCacheInteractions,
             'monitoredCacheInteractions' => $monitoredCacheInteractions,
             'initialDataLoaded' => $allCacheInteractions !== null,
@@ -48,14 +52,7 @@ class Cache extends Component implements ShouldNotReportUsage
      */
     protected function monitoredCacheInteractions(): array
     {
-        $monitoring = collect(config('pulse.cache_keys') ?? [])
-            ->mapWithKeys(fn ($value, $key) => is_string($key)
-            ? [$key => $value]
-            : [$value => $value]);
-
-        $hash = md5($monitoring->toJson());
-
-        return CacheFacade::get("pulse:cache-monitored:{$this->period}:{$hash}") ?? [[], 0, null];
+        return CacheFacade::get("pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}") ?? [[], 0, null];
     }
 
     /**
@@ -64,7 +61,7 @@ class Cache extends Component implements ShouldNotReportUsage
     public function loadData(): void
     {
         CacheFacade::remember("pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
@@ -80,25 +77,16 @@ class Cache extends Component implements ShouldNotReportUsage
             return [$cacheInteractions, $time, $now->toDateTimeString()];
         });
 
-        // TODO: bust cache if mointored keys change.
+        CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
+            $now = new CarbonImmutable;
 
-        $monitoring = collect(config('pulse.cache_keys') ?? [])
-            ->mapWithKeys(fn ($value, $key) => is_string($key)
-            ? [$key => $value]
-            : [$value => $value]);
-
-        $hash = md5($monitoring->toJson());
-
-        CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$hash}", $this->periodCacheDuration(), function () use ($monitoring) {
-            $now = now()->toImmutable();
-
-            if ($monitoring->isEmpty()) {
+            if ($this->monitoredKeys()->isEmpty()) {
                 return [[], 0, $now->toDateTimeString()];
             }
 
             $start = hrtime(true);
 
-            $interactions = $monitoring->mapWithKeys(fn ($name, $regex) => [
+            $interactions = $this->monitoredKeys()->mapWithKeys(fn ($name, $regex) => [
                 $name => (object) [
                     'regex' => $regex,
                     'key' => $name,
@@ -113,11 +101,11 @@ class Cache extends Component implements ShouldNotReportUsage
                 ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 // TODO: ensure PHP and MySQL regex is compatible
                 // TODO modifiers? is redis / memcached / etc case sensitive?
-                ->where(fn ($query) => $monitoring->keys()->each(fn ($key) => $query->orWhere('key', 'RLIKE', $key)))
+                ->where(fn ($query) => $this->monitoredKeys()->keys()->each(fn ($key) => $query->orWhere('key', 'RLIKE', $key)))
                 ->orderBy('key')
                 ->groupBy('key')
-                ->each(function ($result) use ($monitoring, $interactions) {
-                    $name = $monitoring->firstWhere(fn ($name, $regex) => preg_match('/'.$regex.'/', $result->key) > 0);
+                ->each(function ($result) use ($interactions) {
+                    $name = $this->monitoredKeys()->firstWhere(fn ($name, $regex) => preg_match('/'.$regex.'/', $result->key) > 0);
 
                     if ($name === null) {
                         return;
@@ -130,9 +118,11 @@ class Cache extends Component implements ShouldNotReportUsage
                     $interaction->count += $result->count;
                 });
 
-            $monitoringIndex = $monitoring->values()->flip();
+            $monitoringIndex = $this->monitoredKeys()->values()->flip();
 
-            $interactions = $interactions->sortBy(fn ($interaction) => $monitoringIndex[$interaction->key]);
+            $interactions = $interactions
+                ->sortBy(fn ($interaction) => $monitoringIndex[$interaction->key])
+                ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
@@ -140,5 +130,23 @@ class Cache extends Component implements ShouldNotReportUsage
         });
 
         $this->dispatchBrowserEvent('cache:dataLoaded');
+    }
+
+    /** The monitored keys.
+     */
+    protected function monitoredKeys(): Collection
+    {
+        return collect(config('pulse.cache_keys') ?? [])
+            ->mapWithKeys(fn ($value, $key) => is_string($key)
+                ? [$key => $value]
+                : [$value => $value]);
+    }
+
+    /**
+     * The monitored keys cache hash.
+     */
+    protected function monitoredKeysCacheHash(): string
+    {
+        return $this->monitoredKeys()->pipe(fn ($items) => md5($items->toJson()));
     }
 }

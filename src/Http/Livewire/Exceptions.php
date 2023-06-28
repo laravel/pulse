@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +71,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
     public function loadData(): void
     {
         Cache::remember("pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
@@ -82,7 +83,8 @@ class Exceptions extends Component implements ShouldNotReportUsage
                     'last_occurrence' => 'last_occurrence',
                     default => 'count'
                 })
-                ->get();
+                ->get()
+                ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

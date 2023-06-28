@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -30,7 +31,7 @@ class CheckCommand extends Command
         $lastSnapshotAt = now()->floorSeconds(15);
 
         while (true) {
-            $now = now()->toImmutable();
+            $now = new CarbonImmutable();
 
             if ($now->subSeconds(15)->lessThan($lastSnapshotAt)) {
                 sleep(1);

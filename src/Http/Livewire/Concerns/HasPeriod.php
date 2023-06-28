@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire\Concerns;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 
 trait HasPeriod
@@ -49,9 +50,9 @@ trait HasPeriod
     /**
      * The duration to to cache queries for.
      */
-    public function periodCacheDuration(): Carbon
+    public function periodCacheDuration(): CarbonImmutable
     {
-        return now()->addSeconds(match ($this->period) {
+        return (new CarbonImmutable)->addSeconds(match ($this->period) {
             '6_hours' => 30,
             '24_hours' => 60,
             '7_days' => 600,
