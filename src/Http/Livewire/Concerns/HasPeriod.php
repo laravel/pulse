@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Http\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Carbon;
 
 trait HasPeriod
 {
