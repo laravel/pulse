@@ -6,7 +6,10 @@ use Illuminate\View\Component;
 
 class Pulse extends Component
 {
-    public function render()
+    /**
+     * Render the component.
+     */
+    public function render(): Renderable
     {
         return view('pulse::components.pulse');
     }

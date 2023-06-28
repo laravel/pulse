@@ -28,7 +28,7 @@ class CheckCommand extends Command
      */
     public function handle(): void
     {
-        $lastSnapshotAt = now()->floorSeconds(15);
+        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds(15);
 
         while (true) {
             $now = new CarbonImmutable();
