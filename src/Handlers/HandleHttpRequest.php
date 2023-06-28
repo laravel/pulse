@@ -24,7 +24,7 @@ class HandleHttpRequest
      */
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
-        rescue(function () use ($startedAt, $request, $response) {
+        rescue(function () use ($startedAt, $request) {
             $now = now();
 
             $this->pulse->record('pulse_requests', [
