@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class HandleHttpRequest
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
         rescue(function () use ($startedAt, $request) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             $this->pulse->record('pulse_requests', [
                 'date' => $startedAt->toDateTimeString(),

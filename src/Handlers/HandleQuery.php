@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Pulse;
@@ -23,7 +24,7 @@ class HandleQuery
     public function __invoke(QueryExecuted $event): void
     {
         rescue(function () use ($event) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             if ($event->time < config('pulse.slow_query_threshold')) {
                 return;

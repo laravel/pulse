@@ -2,6 +2,8 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
+use DateTimeImmutable;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Pulse;
@@ -23,7 +25,7 @@ class HandleQueuedJob
     public function __invoke(JobQueued $event): void
     {
         rescue(function () use ($event) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             $this->pulse->record('pulse_jobs', [
                 'date' => $now->toDateTimeString(),

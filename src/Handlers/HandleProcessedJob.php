@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Queue\Events\JobProcessed;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Updates\RecordJobDuration;
@@ -23,7 +24,7 @@ class HandleProcessedJob
     public function __invoke(JobProcessed $event): void
     {
         rescue(function () use ($event) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             // TODO respect slow limit configuration
 

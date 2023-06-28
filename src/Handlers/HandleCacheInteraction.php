@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Laravel\Pulse\Pulse;
@@ -19,7 +20,7 @@ class HandleCacheInteraction
     public function __invoke(CacheHit|CacheMissed $event): void
     {
         rescue(function () use ($event) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             if (str_starts_with($event->key, 'illuminate:')) {
                 return;

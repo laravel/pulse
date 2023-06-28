@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
@@ -24,7 +25,7 @@ class HandleException
     public function __invoke(Throwable $e): void
     {
         rescue(function () use ($e) {
-            $now = new DateTimeImmutable();
+            $now = new CarbonImmutable();
 
             $this->pulse->record('pulse_exceptions', [
                 'date' => $now->toDateTimeString(),
