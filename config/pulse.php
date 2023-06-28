@@ -42,4 +42,7 @@ return [
         '^flight:.*' => 'All flights',
     ],
 
+    // Options: "avg", "max"
+    'graph_aggregation' => 'avg',
+
 ];

@@ -47,8 +47,14 @@ class Servers extends Component implements ShouldNotReportUsage
 
         $serverReadings = DB::query()
             ->select('bucket', 'server')
-            ->selectRaw('ROUND(AVG(`cpu_percent`)) AS `cpu_percent`')
-            ->selectRaw('ROUND(AVG(`memory_used`)) AS `memory_used`')
+            ->when(true, fn ($query) => match (config('pulse.graph_aggregation')) {
+                'max' => $query
+                    ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
+                    ->selectRaw('ROUND(MAX(`memory_used`)) AS `memory_used`'),
+                default => $query
+                    ->selectRaw('ROUND(AVG(`cpu_percent`)) AS `cpu_percent`')
+                    ->selectRaw('ROUND(AVG(`memory_used`)) AS `memory_used`')
+            })
             ->fromSub(
                 fn ($query) => $query
                     ->from('pulse_servers')
