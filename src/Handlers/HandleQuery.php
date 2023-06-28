@@ -22,19 +22,19 @@ class HandleQuery
      */
     public function __invoke(QueryExecuted $event): void
     {
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
+        rescue(function () use ($event) {
+            $now = now();
 
-        if ($event->time < config('pulse.slow_query_threshold')) {
-            return;
-        }
+            if ($event->time < config('pulse.slow_query_threshold')) {
+                return;
+            }
 
-        $this->pulse->record('pulse_queries', [
-            'date' => now()->subMilliseconds(round($event->time))->toDateTimeString(),
-            'user_id' => Auth::id(),
-            'sql' => $event->sql,
-            'duration' => round($event->time),
-        ]);
+            $this->pulse->record('pulse_queries', [
+                'date' => $now->subMilliseconds(round($event->time))->toDateTimeString(),
+                'user_id' => Auth::id(),
+                'sql' => $event->sql,
+                'duration' => round($event->time),
+            ]);
+        }, report: false);
     }
 }

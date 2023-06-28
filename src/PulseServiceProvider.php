@@ -51,7 +51,7 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->scoped(Pulse::class);
 
-        $this->app->singleton(Redis::class, fn ($app) => new Redis($app['redis']->connection()->client()));
+        $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()->client()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -77,7 +77,10 @@ class PulseServiceProvider extends ServiceProvider
 
         Event::listen(QueryExecuted::class, HandleQuery::class);
 
-        Event::listen([CacheHit::class, CacheMissed::class], HandleCacheInteraction::class);
+        Event::listen([
+            CacheHit::class,
+            CacheMissed::class,
+        ], HandleCacheInteraction::class);
 
         // TODO: handle other job events, such as failing.
         Event::listen(JobQueued::class, HandleQueuedJob::class);
@@ -95,6 +98,8 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         Livewire::listen('component.boot', function ($instance) {
+            // TODO do we need this anymore? We are manually setting this in
+            // the definition route below.
             if ($instance instanceof ShouldNotReportUsage) {
                 app(Pulse::class)->shouldRecord = false;
             }

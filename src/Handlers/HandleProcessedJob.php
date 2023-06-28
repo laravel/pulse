@@ -22,17 +22,15 @@ class HandleProcessedJob
      */
     public function __invoke(JobProcessed $event): void
     {
-        $now = now();
+        rescue(function () use ($event) {
+            $now = now();
 
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
+            // TODO respect slow limit configuration
 
-        // TODO respect slow limit configuration
-
-        $this->pulse->recordUpdate(new RecordJobDuration(
-            $event->job->getJobId(),
-            $now->toDateTimeString('millisecond')
-        ));
+            $this->pulse->recordUpdate(new RecordJobDuration(
+                $event->job->getJobId(),
+                $now->toDateTimeString('millisecond')
+            ));
+        }, report: false);
     }
 }

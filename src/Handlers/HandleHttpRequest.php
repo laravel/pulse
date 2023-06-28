@@ -24,17 +24,15 @@ class HandleHttpRequest
      */
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
-        $now = now();
+        rescue(function () use ($startedAt, $request, $response) {
+            $now = now();
 
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
-
-        $this->pulse->record('pulse_requests', [
-            'date' => $startedAt->toDateTimeString(),
-            'user_id' => $request->user()?->id,
-            'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
-            'duration' => $startedAt->diffInMilliseconds($now),
-        ]);
+            $this->pulse->record('pulse_requests', [
+                'date' => $startedAt->toDateTimeString(),
+                'user_id' => $request->user()?->id,
+                'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
+                'duration' => $startedAt->diffInMilliseconds($now),
+            ]);
+        }, report: false);
     }
 }

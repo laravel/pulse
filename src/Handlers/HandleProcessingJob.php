@@ -22,15 +22,13 @@ class HandleProcessingJob
      */
     public function __invoke(JobProcessing $event): void
     {
-        $now = now();
+        rescue(function () use ($event) {
+            $now = now();
 
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
-
-        $this->pulse->recordUpdate(new RecordJobStart(
-            $event->job->getJobId(),
-            $now->toDateTimeString('millisecond')
-        ));
+            $this->pulse->recordUpdate(new RecordJobStart(
+                $event->job->getJobId(),
+                $now->toDateTimeString('millisecond')
+            ));
+        }, report: false);
     }
 }

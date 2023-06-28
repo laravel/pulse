@@ -22,17 +22,17 @@ class HandleQueuedJob
      */
     public function __invoke(JobQueued $event): void
     {
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
+        rescue(function () use ($event) {
+            $now = now();
 
-        $this->pulse->record('pulse_jobs', [
-            'date' => now()->toDateTimeString(),
-            'user_id' => Auth::id(),
-            'job' => is_string($event->job)
-                ? $event->job
-                : $event->job::class,
-            'job_id' => $event->id,
-        ]);
+            $this->pulse->record('pulse_jobs', [
+                'date' => $now->toDateTimeString(),
+                'user_id' => Auth::id(),
+                'job' => is_string($event->job)
+                    ? $event->job
+                    : $event->job::class,
+                'job_id' => $event->id,
+            ]);
+        }, report: false);
     }
 }

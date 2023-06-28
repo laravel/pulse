@@ -18,18 +18,18 @@ class HandleCacheInteraction
      */
     public function __invoke(CacheHit|CacheMissed $event): void
     {
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
+        rescue(function () use ($event) {
+            $now = now();
 
-        if ($event->key === 'illuminate:queue:restart') {
-            return;
-        }
+            if (str_starts_with($event->key, 'illuminate:')) {
+                return;
+            }
 
-        $this->pulse->record('pulse_cache_hits', [
-            'date' => now()->toDateTimeString(),
-            'hit' => $event instanceof CacheHit,
-            'key' => $event->key,
-        ]);
+            $this->pulse->record('pulse_cache_hits', [
+                'date' => $now->toDateTimeString(),
+                'hit' => $event instanceof CacheHit,
+                'key' => $event->key,
+            ]);
+        }, report: false);
     }
 }

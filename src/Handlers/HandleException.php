@@ -23,28 +23,16 @@ class HandleException
      */
     public function __invoke(Throwable $e): void
     {
-        try {
-            $this->recordException($e);
-        } catch (Throwable) {
-            // Do nothing.
-        }
-    }
+        rescue(function () use ($e) {
+            $now = now();
 
-    /**
-     * Record the exception.
-     */
-    protected function recordException(Throwable $e)
-    {
-        if (! $this->pulse->shouldRecord) {
-            return;
-        }
-
-        $this->pulse->record('pulse_exceptions', [
-            'date' => now()->toDateTimeString(),
-            'user_id' => Auth::id(),
-            'class' => get_class($e),
-            'location' => $this->getLocation($e),
-        ]);
+            $this->pulse->record('pulse_exceptions', [
+                'date' => $now->toDateTimeString(),
+                'user_id' => Auth::id(),
+                'class' => $e::class,
+                'location' => $this->getLocation($e),
+            ]);
+        }, report: false);
     }
 
     /**
