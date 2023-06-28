@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use DateTimeImmutable;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Pulse;

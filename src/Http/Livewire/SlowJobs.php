@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
-use Laravel\Pulse\Pulse;
 use Livewire\Component;
 
 class SlowJobs extends Component implements ShouldNotReportUsage

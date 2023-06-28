@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use DateTimeImmutable;
 use Illuminate\Queue\Events\JobProcessing;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Updates\RecordJobStart;

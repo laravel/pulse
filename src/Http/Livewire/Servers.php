@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Http\Livewire;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
