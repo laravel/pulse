@@ -23,7 +23,7 @@ class HandleQuery
     public function __invoke(QueryExecuted $event): void
     {
         rescue(function () use ($event) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             if ($event->time < config('pulse.slow_query_threshold')) {
                 return;

@@ -24,7 +24,7 @@ class HandleException
     public function __invoke(Throwable $e): void
     {
         rescue(function () use ($e) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             $this->pulse->record('pulse_exceptions', [
                 'date' => $now->toDateTimeString(),

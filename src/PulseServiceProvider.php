@@ -98,8 +98,6 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         Livewire::listen('component.boot', function ($instance) {
-            // TODO do we need this anymore? We are manually setting this in
-            // the definition route below.
             if ($instance instanceof ShouldNotReportUsage) {
                 app(Pulse::class)->shouldRecord = false;
             }

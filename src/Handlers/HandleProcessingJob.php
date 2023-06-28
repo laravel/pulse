@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
+use DateTimeImmutable;
 use Illuminate\Queue\Events\JobProcessing;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Updates\RecordJobStart;
@@ -23,7 +24,7 @@ class HandleProcessingJob
     public function __invoke(JobProcessing $event): void
     {
         rescue(function () use ($event) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             $this->pulse->recordUpdate(new RecordJobStart(
                 $event->job->getJobId(),

@@ -25,7 +25,7 @@ class HandleHttpRequest
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
         rescue(function () use ($startedAt, $request) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             $this->pulse->record('pulse_requests', [
                 'date' => $startedAt->toDateTimeString(),

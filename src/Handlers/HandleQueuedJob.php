@@ -23,7 +23,7 @@ class HandleQueuedJob
     public function __invoke(JobQueued $event): void
     {
         rescue(function () use ($event) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             $this->pulse->record('pulse_jobs', [
                 'date' => $now->toDateTimeString(),

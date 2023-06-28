@@ -23,7 +23,7 @@ class HandleProcessedJob
     public function __invoke(JobProcessed $event): void
     {
         rescue(function () use ($event) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             // TODO respect slow limit configuration
 

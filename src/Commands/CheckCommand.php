@@ -24,10 +24,8 @@ class CheckCommand extends Command
 
     /**
      * Handle the command.
-     *
-     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $lastSnapshotAt = now()->floorSeconds(15);
 
@@ -59,7 +57,10 @@ class CheckCommand extends Command
         }
     }
 
-    protected function getStats()
+    /**
+     * Collect stats.
+     */
+    protected function getStats(): array
     {
         return match (PHP_OS_FAMILY) {
             'Darwin' => $this->getDarwinStats(),
@@ -68,7 +69,10 @@ class CheckCommand extends Command
         };
     }
 
-    protected function getDarwinStats()
+    /**
+     * Collect stats for "Darwin" based systems.
+     */
+    protected function getDarwinStats(): array
     {
         return [
             'cpu_percent' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
@@ -77,7 +81,10 @@ class CheckCommand extends Command
         ];
     }
 
-    protected function getLinuxStats()
+    /**
+     * Collect stats for "Linux" based systems.
+     */
+    protected function getLinuxStats(): array
     {
         return [
             'cpu_percent' => (int) `top -bn1 | grep '%Cpu(s)' | tail -1 | grep -Eo '[0-9]+\.[0-9]+' | head -n 4 | tail -1 | awk '{ print 100 - $1 }'`,

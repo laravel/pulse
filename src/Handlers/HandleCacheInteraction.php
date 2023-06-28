@@ -19,7 +19,7 @@ class HandleCacheInteraction
     public function __invoke(CacheHit|CacheMissed $event): void
     {
         rescue(function () use ($event) {
-            $now = now();
+            $now = new DateTimeImmutable();
 
             if (str_starts_with($event->key, 'illuminate:')) {
                 return;
