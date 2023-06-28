@@ -6,12 +6,7 @@
             </svg>
             <span>
                 <span title="Time: {{ $time }}ms; Run at: {{ $runAt }}">Slow Queries</span>
-                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
-                    '6_hours' => '6 hours',
-                    '24_hours' => '24 hours',
-                    '7_days' => '7 days',
-                    default => 'hour',
-                } }}, &gt;&equals;{{ config('pulse.slow_query_threshold') }}ms</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ $this->periodForHumans() }}, &gt;&equals;{{ config('pulse.slow_query_threshold') }}ms</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>

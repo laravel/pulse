@@ -6,7 +6,7 @@
             </svg>
             <span>
                 Cache
-                <small class="ml-2 text-gray-400 text-xs font-medium">Past 7 days</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ $this->periodForHumans() }}</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>

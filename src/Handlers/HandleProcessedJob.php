@@ -26,10 +26,10 @@ class HandleProcessedJob
         rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
-            // TODO respect slow limit configuration
+            // TODO respect slow limit configuration?
 
             $this->pulse->recordUpdate(new RecordJobDuration(
-                $event->job->getJobId(),
+                (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));
         }, report: false);

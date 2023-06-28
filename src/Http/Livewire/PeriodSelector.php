@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Livewire\Component;
 
@@ -10,9 +11,9 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
     /**
      * The selected period.
      *
-     * @var '1_hour'|'6_hours'|'24_hours'|'7_days'|null
+     * @var '1_hour'|'6_hours'|'24_hours'|'7_days'
      */
-    public $period = '1_hour';
+    public string $period = '1_hour';
 
     /**
      * The query string parameters.
@@ -25,17 +26,19 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         return view('pulse::livewire.period-selector');
     }
 
-    public function setPeriod($period)
+    /**
+     * Set the selected period.
+     */
+    public function setPeriod(string $period): void
     {
         $this->period = $period;
+
         $this->emit('periodChanged', $period);
     }
 }

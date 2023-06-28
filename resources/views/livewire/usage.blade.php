@@ -6,12 +6,7 @@
             </svg>
             <span>
                 <span title="Time: {{ $time }}ms; Run At: {{ $runAt }};">Application Usage</span>
-                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
-                    '6_hours' => '6 hours',
-                    '24_hours' => '24 hours',
-                    '7_days' => '7 days',
-                    default => 'hour',
-                } }}@if ($this->usage === 'slow_endpoint_counts'), &gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms @endif</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ $this->periodForHumans() }}@if ($this->usage === 'slow_endpoint_counts'), &gt;&equals;{{ config('pulse.slow_endpoint_threshold') }}ms @endif</small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">

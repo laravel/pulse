@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ class Usage extends Component implements ShouldNotReportUsage
      *
      * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_count'|null
      */
-    public $usage;
+    public ?string $usage = null;
 
     /**
      * The query string parameters.
@@ -31,20 +32,16 @@ class Usage extends Component implements ShouldNotReportUsage
 
     /**
      * Handle the mount event.
-     *
-     * @return void
      */
-    public function mount()
+    public function mount(): void
     {
         $this->usage = $this->usage ?: 'request_counts';
     }
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
@@ -62,27 +59,18 @@ class Usage extends Component implements ShouldNotReportUsage
 
     /**
      * The user request counts.
-     *
-     * @return array
      */
-    protected function userRequestCounts()
+    protected function userRequestCounts(): array
     {
         return Cache::get("pulse:usage:{$this->usage}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
      * Load the data for the component.
-     *
-     * @return void
      */
-    public function loadData()
+    public function loadData(): void
     {
-        Cache::remember("pulse:usage:{$this->usage}:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6_hours' => 30,
-            '24_hours' => 60,
-            '7_days' => 600,
-            default => 5,
-        }), function () {
+        Cache::remember("pulse:usage:{$this->usage}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = now()->toImmutable();
 
             $start = hrtime(true);
@@ -95,12 +83,7 @@ class Usage extends Component implements ShouldNotReportUsage
                 })
                 ->selectRaw('user_id, COUNT(*) as count')
                 ->whereNotNull('user_id')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 ->when($this->usage === 'slow_endpoint_counts', fn ($query) => $query->where('duration', '>=', config('pulse.slow_endpoint_threshold')))
                 ->groupBy('user_id')
                 ->orderByDesc('count')

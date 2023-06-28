@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -14,10 +15,8 @@ class Cache extends Component implements ShouldNotReportUsage
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
@@ -38,20 +37,16 @@ class Cache extends Component implements ShouldNotReportUsage
 
     /**
      * All the cache interactions.
-     *
-     * @return array
      */
-    protected function allCacheInteractions()
+    protected function allCacheInteractions(): array
     {
         return CacheFacade::get("pulse:cache-all:{$this->period}") ?? [null, 0, null];
     }
 
     /**
      * The monitored cache interactions.
-     *
-     * @return array
      */
-    protected function monitoredCacheInteractions()
+    protected function monitoredCacheInteractions(): array
     {
         $monitoring = collect(config('pulse.cache_keys') ?? [])
             ->mapWithKeys(fn ($value, $key) => is_string($key)
@@ -65,31 +60,17 @@ class Cache extends Component implements ShouldNotReportUsage
 
     /**
      * Load the data for the component.
-     *
-     * @return void
      */
-    public function loadData()
+    public function loadData(): void
     {
-        $rememberUntil = now()->addSeconds(match ($this->period) {
-            '6_hours' => 30,
-            '24_hours' => 60,
-            '7_days' => 600,
-            default => 5,
-        });
-
-        CacheFacade::remember("pulse:cache-all:{$this->period}", $rememberUntil, function () {
+        CacheFacade::remember("pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
             $now = now()->toImmutable();
 
             $start = hrtime(true);
 
             $cacheInteractions = DB::table('pulse_cache_hits')
                 ->selectRaw('COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 ->first();
 
             $cacheInteractions->hits = (int) $cacheInteractions->hits;
@@ -108,7 +89,7 @@ class Cache extends Component implements ShouldNotReportUsage
 
         $hash = md5($monitoring->toJson());
 
-        CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$hash}", $rememberUntil, function () use ($monitoring) {
+        CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$hash}", $this->periodCacheDuration(), function () use ($monitoring) {
             $now = now()->toImmutable();
 
             if ($monitoring->isEmpty()) {
@@ -129,12 +110,7 @@ class Cache extends Component implements ShouldNotReportUsage
 
             DB::table('pulse_cache_hits')
                 ->selectRaw('`key`, COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 // TODO: ensure PHP and MySQL regex is compatible
                 // TODO modifiers? is redis / memcached / etc case sensitive?
                 ->where(fn ($query) => $monitoring->keys()->each(fn ($key) => $query->orWhere('key', 'RLIKE', $key)))

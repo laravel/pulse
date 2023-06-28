@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -14,10 +15,8 @@ class SlowQueries extends Component implements ShouldNotReportUsage
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
@@ -35,39 +34,25 @@ class SlowQueries extends Component implements ShouldNotReportUsage
 
     /**
      * The slow queries.
-     *
-     * @return array
      */
-    protected function slowQueries()
+    protected function slowQueries(): array
     {
         return Cache::get("pulse:slow-queries:{$this->period}") ?? [null, 0, null];
     }
 
     /**
      * Load the data for the component.
-     *
-     * @return void
      */
-    public function loadData()
+    public function loadData(): void
     {
-        Cache::remember("pulse:slow-queries:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6_hours' => 30,
-            '24_hours' => 60,
-            '7_days' => 600,
-            default => 5,
-        }), function () {
+        Cache::remember("pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
             $now = now()->toImmutable();
 
             $start = hrtime(true);
 
             $slowQueries = DB::table('pulse_queries')
                 ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 ->where('duration', '>=', config('pulse.slow_query_threshold'))
                 ->groupBy('sql')
                 ->orderByDesc('slowest')

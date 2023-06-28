@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -15,10 +16,8 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
@@ -36,39 +35,25 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
 
     /**
      * The slow routes.
-     *
-     * @return array
      */
-    protected function slowRoutes()
+    protected function slowRoutes(): array
     {
         return Cache::get("pulse:slow-routes:{$this->period}") ?? [null, 0, null];
     }
 
     /**
      * Load the data for the component.
-     *
-     * @return void
      */
-    public function loadData()
+    public function loadData(): void
     {
-        Cache::remember("pulse:slow-routes:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6_hours' => 30,
-            '24_hours' => 60,
-            '7_days' => 600,
-            default => 5,
-        }), function () {
+        Cache::remember("pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () {
             $now = now()->toImmutable();
 
             $start = hrtime(true);
 
             $slowRoutes = DB::table('pulse_requests')
                 ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 ->where('duration', '>=', config('pulse.slow_endpoint_threshold'))
                 ->groupBy('route')
                 ->orderByDesc('slowest')

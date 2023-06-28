@@ -3,18 +3,16 @@
 namespace Laravel\Pulse\Updates;
 
 use Illuminate\Support\Facades\DB;
+use Laravel\Pulse\Contracts\Update;
 
-class RecordJobDuration
+class RecordJobDuration implements Update
 {
     /**
      * Create a new update instance.
-     *
-     * @param  string  $jobId
-     * @param  string  $timestamp
      */
     public function __construct(
-        public $jobId,
-        public $timestamp
+        public string $jobId,
+        public string $timestamp
     ) {
         //
     }
@@ -22,7 +20,7 @@ class RecordJobDuration
     /**
      * Perform the update.
      */
-    public function perform()
+    public function perform(): void
     {
         DB::table('pulse_jobs')
             ->where('job_id', $this->jobId)

@@ -2,13 +2,14 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Queue;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Livewire\Component;
 
 class Queues extends Component implements ShouldNotReportUsage
 {
-    public function render()
+    public function render(): Renderable
     {
         return view('pulse::livewire.queues', [
             'queues' => collect(config('pulse.queues'))->map(fn ($queue) => [

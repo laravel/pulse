@@ -6,12 +6,7 @@
             </svg>
             <span>
                 <span title="Time: {{ $time }}; Run at: {{ $runAt }};">Exceptions</span>
-                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ match ($this->period) {
-                    '6_hours' => '6 hours',
-                    '24_hours' => '24 hours',
-                    '7_days' => '7 days',
-                    default => 'hour',
-                } }}</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ $this->periodForHumans() }}</small>
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">

@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -17,7 +18,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      *
      * @var 'count'|'last_occurrence'|null
      */
-    public $orderBy;
+    public ?string $orderBy = null;
 
     /**
      * The query string parameters.
@@ -30,20 +31,16 @@ class Exceptions extends Component implements ShouldNotReportUsage
 
     /**
      * Handle the mount event.
-     *
-     * @return void
      */
-    public function mount()
+    public function mount(): void
     {
         $this->orderBy = $this->orderBy ?: 'count';
     }
 
     /**
      * Render the component.
-     *
-     * @return \Illuminate\View\View
      */
-    public function render()
+    public function render(): Renderable
     {
         if (request()->hasHeader('X-Livewire')) {
             $this->loadData();
@@ -61,39 +58,25 @@ class Exceptions extends Component implements ShouldNotReportUsage
 
     /**
      * The exceptions.
-     *
-     * @return array
      */
-    protected function exceptions()
+    protected function exceptions(): array
     {
         return Cache::get("pulse:exceptions:{$this->orderBy}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
      * Load the data for the component.
-     *
-     * @return void
      */
-    public function loadData()
+    public function loadData(): void
     {
-        Cache::remember("pulse:exceptions:{$this->orderBy}:{$this->period}", now()->addSeconds(match ($this->period) {
-            '6_hours' => 30,
-            '24_hours' => 60,
-            '7_days' => 600,
-            default => 5,
-        }), function () {
+        Cache::remember("pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = now()->toImmutable();
 
             $start = hrtime(true);
 
             $exceptions = DB::table('pulse_exceptions')
                 ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
-                ->where('date', '>=', $now->subHours(match ($this->period) {
-                    '6_hours' => 6,
-                    '24_hours' => 24,
-                    '7_days' => 168,
-                    default => 1,
-                })->toDateTimeString())
+                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 ->groupBy('class', 'location')
                 ->orderByDesc(match ($this->orderBy) {
                     'last_occurrence' => 'last_occurrence',

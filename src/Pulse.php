@@ -3,7 +3,9 @@
 namespace Laravel\Pulse;
 
 use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Laravel\Pulse\Contracts\Update;
 
 class Pulse
 {
@@ -25,33 +27,23 @@ class Pulse
 
     /**
      * The list of queued entries to be stored.
-     *
-     * @var array
      */
-    public $entriesQueue = [];
+    public array $entriesQueue = [];
 
     /**
      * The list of queued entry updates.
-     *
-     * @var array
      */
-    public $updatesQueue = [];
+    public array $updatesQueue = [];
 
     /**
      * Indicates if Pulse should record entries.
-     *
-     * @var bool
      */
-    public $shouldRecord = true;
+    public bool $shouldRecord = true;
 
     /**
      * Record the given entry.
-     *
-     * @param  string  $table
-     * @param  array  $attributes
-     * @return void
      */
-    public function record($table, $attributes)
+    public function record(string $table, array $attributes): void
     {
         if ($this->shouldRecord) {
             $this->entriesQueue[$table][] = $attributes;
@@ -60,11 +52,8 @@ class Pulse
 
     /**
      * Record the given entry update.
-     *
-     * @param  mixed  $update
-     * @return void
      */
-    public function recordUpdate($update)
+    public function recordUpdate(Update $update): void
     {
         if ($this->shouldRecord) {
             $this->updatesQueue[] = $update;
@@ -73,12 +62,9 @@ class Pulse
 
     /**
      * Store the queued entries and flush the queue.
-     *
-     * @return void
      */
-    public function store()
+    public function store(): void
     {
-        // TODO: Prevent these entries from being recorded?
         foreach ($this->entriesQueue as $table => $rows) {
             DB::table($table)->insert($rows);
         }
@@ -93,31 +79,24 @@ class Pulse
 
     /**
      * Return the compiled CSS from the vendor directory.
-     *
-     * @return string
      */
-    public function css()
+    public function css(): string
     {
         return file_get_contents(__DIR__.'/../dist/pulse.css');
     }
 
     /**
      * Return the compiled JavaScript from the vendor directory.
-     *
-     * @return string
      */
-    public function js()
+    public function js(): string
     {
         return file_get_contents(__DIR__.'/../dist/pulse.js');
     }
 
     /**
      * Determine if the given request can access the Pulse dashboard.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return bool
      */
-    public static function check($request)
+    public static function check(Request $request): bool
     {
         return (static::$authUsing ?: function () {
             return app()->environment('local');
@@ -126,10 +105,8 @@ class Pulse
 
     /**
      * Set the callback that should be used to authorize Pulse users.
-     *
-     * @return static
      */
-    public static function auth(Closure $callback)
+    public static function auth(Closure $callback): static
     {
         static::$authUsing = $callback;
 
@@ -138,10 +115,8 @@ class Pulse
 
     /**
      * Configure Pulse to not register its migrations.
-     *
-     * @return static
      */
-    public static function ignoreMigrations()
+    public static function ignoreMigrations(): static
     {
         static::$runsMigrations = false;
 

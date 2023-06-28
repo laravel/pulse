@@ -28,7 +28,7 @@ class HandleProcessingJob
             $now = new CarbonImmutable();
 
             $this->pulse->recordUpdate(new RecordJobStart(
-                $event->job->getJobId(),
+                (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));
         }, report: false);
