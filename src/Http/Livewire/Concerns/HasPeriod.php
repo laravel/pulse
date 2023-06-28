@@ -33,4 +33,19 @@ trait HasPeriod
     {
         $this->period = $period;
     }
+
+    /**
+     * Get the number of seconds in the period.
+     *
+     * @return int
+     */
+    public function periodSeconds()
+    {
+        return match ($this->period) {
+            '7_days' => 604800,
+            '24_hours' => 86400,
+            '6_hours' => 21600,
+            default => 3600,
+        };
+    }
 }

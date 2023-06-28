@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Http\Livewire;
 
-use Illuminate\Support\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -29,34 +29,49 @@ class Servers extends Component implements ShouldNotReportUsage
 
     protected function servers($maxDataPoints)
     {
-        $serverReadings = DB::table('pulse_servers')
-            ->selectRaw('
-                MAX(date) AS date,
-                server,
-                ROUND(AVG(cpu_percent)) AS cpu_percent,
-                ROUND(AVG(memory_used)) AS memory_used
-            ')
-            ->orderByDesc('date')
-            ->when(true, fn ($query) => match ($this->period) {
-                '7_days' => $query
-                    ->where('date', '>=', now()->subDays(7))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [604800 / $maxDataPoints]),
-                '24_hours' => $query
-                    ->where('date', '>=', now()->subHours(24))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [86400 / $maxDataPoints]),
-                '6_hours' => $query
-                    ->where('date', '>=', now()->subHours(6))
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [21600 / $maxDataPoints]),
-                default => $query
-                    ->where('date', '>=', now()->subHour())
-                    ->groupByRaw('server, ROUND(UNIX_TIMESTAMP(date) / ?)', [3600 / $maxDataPoints])
-            })
+        $currentBucket = CarbonImmutable::createFromTimestamp(
+            floor(now()->getTimestamp() / ($this->periodSeconds() / $maxDataPoints)) * ($this->periodSeconds() / $maxDataPoints)
+        );
+
+        $secondsPerPeriod = $this->periodSeconds() / $maxDataPoints;
+
+        $padding = collect()
+            ->pad(60, null)
+            ->map(fn ($value, $i) => (object) [
+                'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
+                'cpu_percent' => null,
+                'memory_used' => null,
+            ])
+            ->reverse()
+            ->keyBy('date');
+
+        $serverReadings = DB::query()
+            ->select('bucket', 'server')
+            ->selectRaw('ROUND(AVG(`cpu_percent`)) AS `cpu_percent`')
+            ->selectRaw('ROUND(AVG(`memory_used`)) AS `memory_used`')
+            ->fromSub(
+                fn ($query) => $query
+                    ->from('pulse_servers')
+                    ->select(['server', 'cpu_percent', 'memory_used', 'date'])
+                    // Divide the data into buckets.
+                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [now()->format('P'), $secondsPerPeriod])
+                    ->where('date', '>=', now()->subSeconds($this->periodSeconds())),
+                'grouped'
+            )
+            ->groupBy('server', 'bucket')
+            ->orderByDesc('bucket')
             ->limit($maxDataPoints)
             ->get()
             ->reverse()
-            ->groupBy('server');
+            ->groupBy('server')
+            ->map(function ($readings) use ($secondsPerPeriod, $padding) {
+                $readings = $readings->keyBy(fn ($reading) => CarbonImmutable::createFromTimestamp($reading->bucket * $secondsPerPeriod)->format('Y-m-d H:i'));
+
+                return $padding->merge($readings)->values();
+            });
 
         return DB::table('pulse_servers')
+            // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
                 DB::table('pulse_servers')
                     ->selectRaw('server, MAX(date) AS date')
@@ -75,11 +90,10 @@ class Servers extends Component implements ShouldNotReportUsage
                 'memory_total' => $server->memory_total,
                 'storage' => json_decode($server->storage),
                 'readings' => $serverReadings->get($server->server)?->map(fn ($reading) => (object) [
-                    'date' => $reading->date,
                     'cpu_percent' => $reading->cpu_percent,
                     'memory_used' => $reading->memory_used,
                 ])->all() ?? [],
-                'updated_at' => $updatedAt = Carbon::parse($server->date),
+                'updated_at' => $updatedAt = CarbonImmutable::parse($server->date),
                 'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
             ])
             ->keyBy('slug');
