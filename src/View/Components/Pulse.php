@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\View\Components;
 
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\View\Component;
 
 class Pulse extends Component
