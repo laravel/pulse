@@ -39,8 +39,8 @@ trait ListensForStorageOpportunities
      */
     protected static function storeEntriesBeforeTermination($app)
     {
-        $app->make(Kernel::class)->whenRequestLifecycleIsLongerThan(0, function () use ($app) {
-            $app->make(Pulse::class)->store();
+        $app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, function () use ($app) {
+            $app[Pulse::class]->store();
         });
     }
 
@@ -83,7 +83,7 @@ trait ListensForStorageOpportunities
         array_pop(static::$processingJobs);
 
         if (empty(static::$processingJobs) && $event->connectionName !== 'sync') {
-            $app->make(Pulse::class)->store();
+            $app[Pulse::class]->store();
         }
     }
 }

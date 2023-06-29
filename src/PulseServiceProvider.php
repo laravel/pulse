@@ -56,12 +56,24 @@ class PulseServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
         );
+    }
+
+    /**
+     * Bootstrap any package services.
+     */
+    public function boot(): void
+    {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
 
         $this->listenForEvents();
-
-        // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
-        // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
-        Pulse::listenForStorageOpportunities($this->app);
+        $this->registerRoutes();
+        $this->registerResources();
+        $this->registerMigrations();
+        $this->registerPublishing();
+        $this->registerCommands();
+        $this->registerComponents();
     }
 
     /**
@@ -69,10 +81,16 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
-        $this->app->make(Kernel::class)
+        Livewire::listen('component.boot', function ($instance) {
+            if ($instance instanceof ShouldNotReportUsage) {
+                app(Pulse::class)->shouldRecord = false;
+            }
+        });
+
+        $this->app[Kernel::class]
             ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        $this->app->make(ExceptionHandler::class)
+        $this->app[ExceptionHandler::class]
             ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
         Event::listen(QueryExecuted::class, HandleQuery::class);
@@ -86,29 +104,10 @@ class PulseServiceProvider extends ServiceProvider
         Event::listen(JobQueued::class, HandleQueuedJob::class);
         Event::listen(JobProcessing::class, HandleProcessingJob::class);
         Event::listen(JobProcessed::class, HandleProcessedJob::class);
-    }
 
-    /**
-     * Bootstrap any package services.
-     */
-    public function boot(): void
-    {
-        if ($this->app->runningUnitTests()) {
-            return;
-        }
-
-        Livewire::listen('component.boot', function ($instance) {
-            if ($instance instanceof ShouldNotReportUsage) {
-                app(Pulse::class)->shouldRecord = false;
-            }
-        });
-
-        $this->registerRoutes();
-        $this->registerResources();
-        $this->registerMigrations();
-        $this->registerPublishing();
-        $this->registerCommands();
-        $this->registerComponents();
+        // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
+        // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
+        Pulse::listenForStorageOpportunities($this->app);
     }
 
     /**
