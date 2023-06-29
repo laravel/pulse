@@ -72,6 +72,15 @@ return new class extends Migration
             $table->timestamp('date');
             $table->string('key');
             $table->boolean('hit');
+            $table->string('user_id')->nullable();
+            // TODO: indexes?
+        });
+
+        Schema::create('pulse_outgoing_requests', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('uri');
+            $table->unsignedInteger('duration');
+            $table->string('user_id')->nullable();
             // TODO: indexes?
         });
     }

@@ -7,11 +7,13 @@ use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
@@ -24,12 +26,14 @@ use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
+use Laravel\Pulse\Handlers\HttpRequestMiddleware;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
 use Laravel\Pulse\Http\Livewire\Queues;
 use Laravel\Pulse\Http\Livewire\Servers;
 use Laravel\Pulse\Http\Livewire\SlowJobs;
+use Laravel\Pulse\Http\Livewire\SlowOutgoingRequests;
 use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\Usage;
@@ -62,7 +66,6 @@ class PulseServiceProvider extends ServiceProvider
         // in our composer.json
         $this->app[ExceptionHandler::class]
             ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
-
     }
 
     /**
@@ -108,6 +111,10 @@ class PulseServiceProvider extends ServiceProvider
         Event::listen(JobQueued::class, HandleQueuedJob::class);
         Event::listen(JobProcessing::class, HandleProcessingJob::class);
         Event::listen(JobProcessed::class, HandleProcessedJob::class);
+
+        if (method_exists(Factory::class, 'globalMiddleware')) {
+            Http::globalMiddleware(fn ($handler) => app(HttpRequestMiddleware::class)($handler));
+        }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
         // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
@@ -206,6 +213,7 @@ class PulseServiceProvider extends ServiceProvider
         Livewire::component('slow-routes', SlowRoutes::class);
         Livewire::component('slow-queries', SlowQueries::class);
         Livewire::component('slow-jobs', SlowJobs::class);
+        Livewire::component('slow-outgoing-requests', SlowOutgoingRequests::class);
         Livewire::component('cache', Cache::class);
         Livewire::component('queues', Queues::class);
     }
