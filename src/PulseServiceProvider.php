@@ -56,6 +56,13 @@ class PulseServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
         );
+
+        // TODO: this should be moved to "boot" once / if https://github.com/nunomaduro/collision/pull/276/
+        // is merged and tagged. We should also set the minimum version of Collision
+        // in our composer.json
+        $this->app[ExceptionHandler::class]
+            ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
+
     }
 
     /**
@@ -89,9 +96,6 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app[Kernel::class]
             ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
-
-        $this->app[ExceptionHandler::class]
-            ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
         Event::listen(QueryExecuted::class, HandleQuery::class);
 
