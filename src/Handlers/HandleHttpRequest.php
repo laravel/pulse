@@ -32,7 +32,7 @@ class HandleHttpRequest
                 'date' => $startedAt->toDateTimeString(),
                 'user_id' => $request->user()?->id,
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
-                'duration' => $startedAt->diffInMilliseconds($now),
+                'duration' => $startedAt->diffInMilliseconds(),
             ]);
         }, report: false);
     }
