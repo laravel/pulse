@@ -24,13 +24,14 @@
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
-            const initialExceptionDataLoaded = @js($initialDataLoaded)
+            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialDataLoaded: initialExceptionDataLoaded,
+            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
-                ['periodChanged', 'exceptionChanged'].forEach(event => Livewire.on(event, () => (this.loadingNewDataset = true)))
+                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+                Livewire.on('exceptionChanged', () => (this.loadingNewDataset = true))
 
                 window.addEventListener('exceptions:dataLoaded', () => {
                     this.initialDataLoaded = true

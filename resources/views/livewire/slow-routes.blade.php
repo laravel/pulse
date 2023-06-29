@@ -13,10 +13,10 @@
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
-            const initialSlowRoutesDataLoaded = @js($initialDataLoaded)
+            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialDataLoaded: initialSlowRoutesDataLoaded,
+            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
                 Livewire.on('periodChanged', () => (this.loadingNewDataset = true))

@@ -16,27 +16,35 @@ class Usage extends Component implements ShouldNotReportUsage
     use HasPeriod;
 
     /**
-     * The usage type.
+     * The type of usage to show.
      *
-     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_count'|null
+     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'|null
      */
-    public ?string $usage = null;
+    public ?string $type = null;
 
     /**
-     * The query string parameters.
+     * The usage type.
      *
-     * @var array
+     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'|null
      */
-    protected $queryString = [
-        'usage' => ['except' => 'request_counts'],
-    ];
+    public ?string $usage = null;
 
     /**
      * Handle the mount event.
      */
     public function mount(): void
     {
-        $this->usage = $this->usage ?: 'request_counts';
+        $this->usage = $this->type ?? ($this->usage ?: 'request_counts');
+    }
+
+    /**
+     * Handle the hydrate event.
+     */
+    public function hydrate()
+    {
+        if (! $this->type) {
+            $this->queryString['usage'] = ['except' => 'request_counts'];
+        }
     }
 
     /**
@@ -77,7 +85,7 @@ class Usage extends Component implements ShouldNotReportUsage
             $start = hrtime(true);
 
             $top10 = DB::query()
-                ->when($this->usage === 'dispatched_job_count', function ($query) {
+                ->when($this->usage === 'dispatched_job_counts', function ($query) {
                     $query->from('pulse_jobs');
                 }, function ($query) {
                     $query->from('pulse_requests');
@@ -112,6 +120,6 @@ class Usage extends Component implements ShouldNotReportUsage
             return [$userRequestCounts, $time, $now->toDateTimeString()];
         });
 
-        $this->dispatchBrowserEvent('usage:dataLoaded');
+        $this->dispatchBrowserEvent('usage:'.($this->type ? "{$this->type}:" : '').'dataLoaded');
     }
 }

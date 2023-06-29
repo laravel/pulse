@@ -10,36 +10,47 @@
             </span>
         </x-pulse::card-title>
         <div class="flex items-center gap-2">
-            <div class="text-sm text-gray-700">Top 10 users</div>
-            <select
-                wire:model="usage"
-                wire:change="$emit('usageChanged', $event.target.value)"
-                class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
-            >
-                <option value="request_counts">
-                    making requests
-                </option>
-                <option value="slow_endpoint_counts">
-                    experiencing slow endpoints
-                </option>
-                <option value="dispatched_job_count">
-                    dispatching jobs
-                </option>
-            </select>
+            <div class="text-sm text-gray-700">Top 10 users @if ($this->type) <span class="font-semibold">{{ match ($this->type) {
+                'request_counts' => 'making requests',
+                    'slow_endpoint_counts' => 'experiencing slow endpoints',
+                    'dispatched_job_counts' => 'dispatching jobs',
+                } }}</span> @endif
+            </div>
+            @if (! $this->type)
+                <select
+                    wire:model="usage"
+                    wire:change="$emit('usageChanged', $event.target.value)"
+                    class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
+                >
+                    <option value="request_counts">
+                        making requests
+                    </option>
+                    <option value="slow_endpoint_counts">
+                        experiencing slow endpoints
+                    </option>
+                    <option value="dispatched_job_counts">
+                        dispatching jobs
+                    </option>
+                </select>
+            @endif
         </div>
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
-            const initialUsageDataLoaded = @js($initialDataLoaded)
+            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialDataLoaded: initialUsageDataLoaded,
+            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
-                ['periodChanged', 'usageChanged'].forEach(event => Livewire.on(event, () => (this.loadingNewDataset = true)))
+                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
 
-                window.addEventListener('usage:dataLoaded', () => {
+                @if (! $this->type)
+                    Livewire.on('usageChanged', () => (this.loadingNewDataset = true))
+                @endif
+
+                window.addEventListener('usage{{ $this->type ? ":{$this->type}" : '' }}:dataLoaded', () => {
                     this.initialDataLoaded = true
                     this.loadingNewDataset = false
                 })

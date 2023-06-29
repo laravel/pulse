@@ -1,6 +1,7 @@
 <x-pulse>
     <livewire:servers />
-    <livewire:usage />
+    <livewire:usage>
+    <livewire:usage type="dispatched_job_counts">
     <livewire:exceptions />
     <livewire:slow-routes />
     <livewire:slow-queries />

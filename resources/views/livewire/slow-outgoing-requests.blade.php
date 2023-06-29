@@ -16,10 +16,10 @@ $supported = method_exists(Illuminate\Http\Client\Factory::class, 'globalMiddlew
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
         <script>
-            const initialSlowOutgoingRequestsDataLoaded = @js($initialDataLoaded)
+            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
         </script>
         <div x-data="{
-            initialDataLoaded: initialSlowOutgoingRequestsDataLoaded,
+            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
                 Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
