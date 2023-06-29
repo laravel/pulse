@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Pulse;
 
 class HandleCacheInteraction
@@ -30,6 +31,7 @@ class HandleCacheInteraction
                 'date' => $now->toDateTimeString(),
                 'hit' => $event instanceof CacheHit,
                 'key' => $event->key,
+                'user_id' => Auth::id(),
             ]);
         }, report: false);
     }
