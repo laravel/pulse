@@ -4,6 +4,7 @@ namespace Laravel\Pulse;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\Update;
 
@@ -39,6 +40,43 @@ class Pulse
      * Indicates if Pulse should record entries.
      */
     public bool $shouldRecord = true;
+
+    /**
+     * Users resolver.
+     */
+    public ?Closure $usersResolver = null;
+
+    /**
+     * Resolve the user's details using the given closure.
+     */
+    public function resolveUsersUsing($callback): static
+    {
+        $this->usersResolver = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Resolve the user's details using the given closure.
+     */
+    public function resolveUsers(Collection $ids): Collection
+    {
+        if ($this->usersResolver) {
+            return collect(($this->usersResolver)($ids));
+        }
+
+        if (class_exists(\App\Models\User::class)) {
+            return \App\Models\User::findMany($ids);
+        }
+
+        if (class_exists(\App\User::class)) {
+            return \App\User::findMany($ids);
+        }
+
+        return $ids->map(fn ($id) => [
+            'id' => $id,
+        ]);
+    }
 
     /**
      * Record the given entry.
