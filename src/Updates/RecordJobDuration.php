@@ -12,7 +12,7 @@ class RecordJobDuration implements Update
      */
     public function __construct(
         public string $jobId,
-        public string $timestamp
+        public string $endedAt
     ) {
         //
     }
@@ -25,7 +25,7 @@ class RecordJobDuration implements Update
         DB::table('pulse_jobs')
             ->where('job_id', $this->jobId)
             ->update([
-                'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->timestamp.'") / 1000'),
+                'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),
             ]);
     }
 }

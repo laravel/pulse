@@ -12,7 +12,7 @@ class RecordJobStart implements Update
      */
     public function __construct(
         public string $jobId,
-        public string $timestamp
+        public string $startedAt
     ) {
         //
     }
@@ -25,7 +25,7 @@ class RecordJobStart implements Update
         DB::table('pulse_jobs')
             ->where('job_id', $this->jobId)
             ->update([
-                'processing_started_at' => $this->timestamp,
+                'processing_started_at' => $this->startedAt,
             ]);
     }
 }
