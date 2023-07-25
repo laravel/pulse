@@ -148,7 +148,7 @@ class Pulse
     {
         static::$authUsing = $callback;
 
-        return new static;
+        return new self;
     }
 
     /**
@@ -158,6 +158,6 @@ class Pulse
     {
         static::$runsMigrations = false;
 
-        return new static;
+        return new self;
     }
 }
