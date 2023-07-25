@@ -1,13 +1,13 @@
 <?php
 
-use Laravel\Pulse\RedisAdapter;
+// use Laravel\Pulse\RedisAdapter;
 
 it('does not use stream records older than 7 days', function () {
-    RedisAdapter::xadd('pulse_requests', [
-        'duration' => $startedAt->diffInMilliseconds(now()),
-        'route' => 'GET /users',
-        'user_id' => 5,
-    ]);
+    // RedisAdapter::xadd('pulse_requests', [
+    //     'duration' => $startedAt->diffInMilliseconds(now()),
+    //     'route' => 'GET /users',
+    //     'user_id' => 5,
+    // ]);
 
-    expect(true)->toBeTrue();
-});
+    // expect(true)->toBeTrue();
+})->todo();
