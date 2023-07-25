@@ -31,7 +31,7 @@ class HttpRequestMiddleware
                 rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable), report: false);
 
                 return $response;
-            }, function ($exception) {
+            }, function ($exception) use ($request, $startedAt) {
                 rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable), report: false);
 
                 return new RejectedPromise($exception);
