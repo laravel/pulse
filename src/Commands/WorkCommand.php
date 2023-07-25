@@ -255,6 +255,7 @@ class WorkCommand extends Command
         // $allRequests = collect($redis->xrange('pulse_requests', '-', '+'));
         // dump($allRequests->keys()->first(), $allRequests->keys()->last(), $allRequests->count());
 
+        return 0;
     }
 
     protected function getAggregates($from, $requests)
