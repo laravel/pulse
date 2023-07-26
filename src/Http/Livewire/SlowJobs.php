@@ -38,7 +38,7 @@ class SlowJobs extends Component implements ShouldNotReportUsage
      */
     protected function slowJobs(): array
     {
-        return Cache::get("pulse:slow-jobs:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:slow-jobs:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -46,7 +46,7 @@ class SlowJobs extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

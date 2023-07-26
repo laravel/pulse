@@ -38,7 +38,7 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
      */
     protected function slowOutgoingRequests(): array
     {
-        return Cache::get("pulse:slow-outgoing-requests:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:slow-outgoing-requests:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -46,7 +46,7 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

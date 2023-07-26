@@ -62,7 +62,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     protected function exceptions(): array
     {
-        return Cache::get("pulse:exceptions:{$this->orderBy}:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -70,7 +70,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

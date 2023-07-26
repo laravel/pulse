@@ -39,7 +39,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
      */
     protected function slowRoutes(): array
     {
-        return Cache::get("pulse:slow-routes:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:slow-routes:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -47,7 +47,7 @@ class SlowRoutes extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

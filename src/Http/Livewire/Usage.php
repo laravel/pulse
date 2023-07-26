@@ -71,7 +71,7 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     protected function userRequestCounts(): array
     {
-        return Cache::get("pulse:usage:{$this->usage}:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:usage:{$this->usage}:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -79,7 +79,7 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:usage:{$this->usage}:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:usage:{$this->usage}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

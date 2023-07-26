@@ -38,7 +38,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      */
     protected function slowQueries(): array
     {
-        return Cache::get("pulse:slow-queries:{$this->period}") ?? [null, 0, null];
+        return Cache::get("illuminate:pulse:slow-queries:{$this->period}") ?? [null, 0, null];
     }
 
     /**
@@ -46,7 +46,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      */
     public function loadData(): void
     {
-        Cache::remember("pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
+        Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
