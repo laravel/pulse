@@ -14,9 +14,6 @@ $friendlySize = function(int $mb, int $precision = 0) {
         wire:poll.15s
         class="col-span-6"
     >
-        <script wire:ignore>
-            window.charts = {}
-        </script>
         <div class="grid grid-cols-[max-content,_repeat(4,_auto)]">
             <div></div>
             <div></div>
@@ -56,7 +53,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 
                         @push('scripts')
                         <script>
-                            window.charts['memory-{{ $server->slug }}'] = new LineChart(
+                            window.pulse.charts['memory-{{ $server->slug }}'] = new LineChart(
                                 '#memory-{{ $server->slug }}',
                                 {
                                     series: [
@@ -93,7 +90,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                             )
 
                             window.livewire.on('chartUpdate', (servers) => {
-                                window.charts['memory-{{ $server->slug }}'].update({
+                                window.pulse.charts['memory-{{ $server->slug }}'].update({
                                     series: [
                                         {
                                             className: 'stroke-purple-600',
@@ -116,7 +113,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 
                         @push('scripts')
                         <script>
-                            window.charts['cpu-{{ $server->slug }}'] = new LineChart(
+                            window.pulse.charts['cpu-{{ $server->slug }}'] = new LineChart(
                                 '#cpu-{{ $server->slug }}',
                                 {
                                     series: [
@@ -154,7 +151,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 
                             // TODO: move this to a single occurrence at the bottom?
                             window.livewire.on('chartUpdate', (servers) => {
-                                window.charts['cpu-{{ $server->slug }}'].update({
+                                window.pulse.charts['cpu-{{ $server->slug }}'].update({
                                     series: [
                                         {
                                             className: 'stroke-purple-600',
@@ -186,7 +183,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 
                                 @push('scripts')
                                 <script>
-                                    window.charts['storage-{{ $server->slug }}'] = new PieChart(
+                                    window.pulse.charts['storage-{{ $server->slug }}'] = new PieChart(
                                         '#storage-{{ $server->slug }}',
                                         {
                                             series: [

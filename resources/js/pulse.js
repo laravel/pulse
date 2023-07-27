@@ -4,4 +4,4 @@ window.LineChart = LineChart;
 window.PieChart = PieChart;
 window.Interpolation = Interpolation;
 
-window.pulse = { initialDataLoaded: {} }
+window.pulse = { initialDataLoaded: {}, charts: {} }
