@@ -4,7 +4,9 @@ namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use RuntimeException;
 
 class CheckCommand extends Command
@@ -54,7 +56,23 @@ class CheckCommand extends Command
 
             DB::table('pulse_servers')->insert($stats);
 
-            $this->line(json_encode($stats));
+            $this->line('<fg=gray>[system stats]</> '.json_encode($stats));
+
+            if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", 15)->get()) {
+                $sizes = collect(config('pulse.queues'))
+                    ->map(fn ($queue) => [
+                        'date' => $lastSnapshotAt->toDateTimeString(),
+                        'queue' => $queue,
+                        'size' => Queue::size($queue),
+                        'failed' => collect(app('queue.failer')->all())
+                            ->filter(fn ($job) => $job->queue === $queue)
+                            ->count(),
+                    ]);
+
+                DB::table('pulse_queue_sizes')->insert($sizes->all());
+
+                $this->line('<fg=gray>[queue sizes]</> '.$sizes->toJson());
+            }
         }
     }
 

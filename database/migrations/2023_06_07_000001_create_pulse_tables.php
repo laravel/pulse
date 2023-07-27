@@ -83,6 +83,14 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             // TODO: indexes?
         });
+
+        Schema::create('pulse_queue_sizes', function (Blueprint $table) {
+            $table->timestamp('date');
+            $table->string('queue');
+            $table->unsignedInteger('size');
+            $table->unsignedInteger('failed');
+            // TODO: indexes?
+        });
     }
 
     /**
@@ -95,5 +103,8 @@ return new class extends Migration
         Schema::dropIfExists('pulse_exceptions');
         Schema::dropIfExists('pulse_queries');
         Schema::dropIfExists('pulse_jobs');
+        Schema::dropIfExists('pulse_cache_hits');
+        Schema::dropIfExists('pulse_outgoing_requests');
+        Schema::dropIfExists('pulse_queue_sizes');
     }
 };
