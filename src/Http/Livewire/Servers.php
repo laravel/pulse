@@ -3,6 +3,8 @@
 namespace Laravel\Pulse\Http\Livewire;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
@@ -13,10 +15,17 @@ class Servers extends Component implements ShouldNotReportUsage
 {
     use HasPeriod;
 
-    public function render()
+    /**
+     * The number of data points shown on the graph.
+     */
+    protected int $maxDataPoints = 60;
+
+    /**
+     * Render the component.
+     */
+    public function render(): Renderable
     {
-        $maxDataPoints = 60;
-        $servers = $this->servers($maxDataPoints);
+        $servers = $this->servers();
 
         if (request()->hasHeader('X-Livewire')) {
             $this->emit('chartUpdate', $servers);
@@ -27,15 +36,20 @@ class Servers extends Component implements ShouldNotReportUsage
         ]);
     }
 
-    protected function servers($maxDataPoints)
+    /**
+     * The server statistics.
+     */
+    protected function servers(): Collection
     {
+        $now = new CarbonImmutable();
+
         $currentBucket = CarbonImmutable::createFromTimestamp(
-            floor(now()->getTimestamp() / ($this->periodSeconds() / $maxDataPoints)) * ($this->periodSeconds() / $maxDataPoints)
+            floor($now->getTimestamp() / ($this->periodSeconds() / $this->maxDataPoints)) * ($this->periodSeconds() / $this->maxDataPoints)
         );
 
-        $secondsPerPeriod = $this->periodSeconds() / $maxDataPoints;
+        $secondsPerPeriod = $this->periodSeconds() / $this->maxDataPoints;
 
-        $padding = collect()
+        $padding = collect([])
             ->pad(60, null)
             ->map(fn ($value, $i) => (object) [
                 'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
@@ -60,13 +74,13 @@ class Servers extends Component implements ShouldNotReportUsage
                     ->from('pulse_servers')
                     ->select(['server', 'cpu_percent', 'memory_used', 'date'])
                     // Divide the data into buckets.
-                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [now()->format('P'), $secondsPerPeriod])
-                    ->where('date', '>=', now()->subSeconds($this->periodSeconds())),
+                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
+                    ->where('date', '>=', $now->subSeconds($this->periodSeconds())),
                 'grouped'
             )
             ->groupBy('server', 'bucket')
             ->orderByDesc('bucket')
-            ->limit($maxDataPoints)
+            ->limit($this->maxDataPoints)
             ->get()
             ->reverse()
             ->groupBy('server')
@@ -100,7 +114,7 @@ class Servers extends Component implements ShouldNotReportUsage
                     'memory_used' => $reading->memory_used,
                 ])->all() ?? [],
                 'updated_at' => $updatedAt = CarbonImmutable::parse($server->date),
-                'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
+                'recently_reported' => $updatedAt->isAfter($now->subSeconds(30)),
             ])
             ->keyBy('slug');
     }
