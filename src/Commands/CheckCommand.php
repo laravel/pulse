@@ -26,22 +26,27 @@ class CheckCommand extends Command
     public $description = 'Take a snapshot of the current server\'s pulse';
 
     /**
+     * The interval, in seconds, to check for new stats.
+     */
+    protected int $interval = 15;
+
+    /**
      * Handle the command.
      */
     public function handle(): void
     {
-        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds(15);
+        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);
 
         while (true) {
             $now = new CarbonImmutable();
 
-            if ($now->subSeconds(15)->lessThan($lastSnapshotAt)) {
+            if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
                 sleep(1);
 
                 continue;
             }
 
-            $lastSnapshotAt = $now->floorSeconds(15);
+            $lastSnapshotAt = $now->floorSeconds($this->interval);
 
             $stats = [
                 'date' => $lastSnapshotAt->toDateTimeString(),
@@ -58,7 +63,7 @@ class CheckCommand extends Command
 
             $this->line('<fg=gray>[system stats]</> '.json_encode($stats));
 
-            if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", 15)->get()) {
+            if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
                 $sizes = collect(config('pulse.queues'))
                     ->map(fn ($queue) => [
                         'date' => $lastSnapshotAt->toDateTimeString(),
