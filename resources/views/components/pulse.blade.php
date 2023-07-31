@@ -11,14 +11,14 @@
         <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600" rel="stylesheet" />
 
         <style>
-            {!! app(\Laravel\Pulse\Pulse::class)->css() !!}
+            {!! Laravel\Pulse\Facades\Pulse::css() !!}
         </style>
 
         <!-- Scripts -->
         @livewireStyles
         <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <script>
-            {!! app(\Laravel\Pulse\Pulse::class)->js() !!}
+            {!! Laravel\Pulse\Facades\Pulse::js() !!}
         </script>
     </head>
     <body class="font-sans antialiased">

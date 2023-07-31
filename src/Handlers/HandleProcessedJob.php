@@ -4,20 +4,11 @@ namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Queue\Events\JobProcessed;
-use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Updates\RecordJobDuration;
+use Laravel\Pulse\Entries\JobFinished;
+use Laravel\Pulse\Facades\Pulse;
 
 class HandleProcessedJob
 {
-    /**
-     * Create a handler instance.
-     */
-    public function __construct(
-        protected Pulse $pulse,
-    ) {
-        //
-    }
-
     /**
      * Handle the execution of a database query.
      */
@@ -28,7 +19,7 @@ class HandleProcessedJob
 
             // TODO respect slow limit configuration?
 
-            $this->pulse->recordUpdate(new RecordJobDuration(
+            Pulse::recordUpdate(new JobFinished(
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));

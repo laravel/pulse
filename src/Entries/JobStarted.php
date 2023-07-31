@@ -1,11 +1,10 @@
 <?php
 
-namespace Laravel\Pulse\Updates;
+namespace Laravel\Pulse\Entries;
 
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\Update;
 
-class RecordJobStart implements Update
+class JobStarted extends Update
 {
     /**
      * Create a new update instance.
@@ -22,10 +21,18 @@ class RecordJobStart implements Update
      */
     public function perform(): void
     {
-        DB::table('pulse_jobs')
+        DB::table($this->table())
             ->where('job_id', $this->jobId)
             ->update([
                 'processing_started_at' => $this->startedAt,
             ]);
+    }
+
+    /**
+     * The update's table.
+     */
+    public function table(): string
+    {
+        return 'pulse_jobs';
     }
 }

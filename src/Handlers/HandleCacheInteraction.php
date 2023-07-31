@@ -6,15 +6,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Facades\Pulse;
 
 class HandleCacheInteraction
 {
-    public function __construct(protected Pulse $pulse)
-    {
-        //
-    }
-
     /**
      * Handle a cache miss.
      */
@@ -27,12 +23,12 @@ class HandleCacheInteraction
                 return;
             }
 
-            $this->pulse->record('pulse_cache_hits', [
+            Pulse::record(new Entry('pulse_cache_hits', [
                 'date' => $now->toDateTimeString(),
                 'hit' => $event instanceof CacheHit,
                 'key' => $event->key,
                 'user_id' => Auth::id(),
-            ]);
+            ]));
         }, report: false);
     }
 }

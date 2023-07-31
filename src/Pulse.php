@@ -6,7 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\Update;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\Update;
 
 class Pulse
 {
@@ -47,6 +48,39 @@ class Pulse
     public ?Closure $usersResolver = null;
 
     /**
+     * The entry filters.
+     */
+    public Collection $filters;
+
+    /**
+     * Create a Pulse instance.
+     */
+    public function __construct()
+    {
+        $this->filters = new Collection([]);
+    }
+
+    /**
+     * Stop recording entries.
+     */
+    public function shouldNotRecord(): self
+    {
+        $this->shouldRecord = false;
+
+        return $this;
+    }
+
+    /**
+     * Filter incoming entries using the provided filter.
+     */
+    public function filter(callable $filter)
+    {
+        $this->filters[] = $filter;
+
+        return $this;
+    }
+
+    /**
      * Resolve the user's details using the given closure.
      */
     public function resolveUsersUsing($callback): static
@@ -81,10 +115,10 @@ class Pulse
     /**
      * Record the given entry.
      */
-    public function record(string $table, array $attributes): void
+    public function record(Entry $entry): void
     {
-        if ($this->shouldRecord) {
-            $this->entriesQueue[$table][] = $attributes;
+        if ($this->shouldRecord($entry)) {
+            $this->entriesQueue[$entry->table][] = $entry->attributes;
         }
     }
 
@@ -93,7 +127,7 @@ class Pulse
      */
     public function recordUpdate(Update $update): void
     {
-        if ($this->shouldRecord) {
+        if ($this->shouldRecord($update)) {
             $this->updatesQueue[] = $update;
         }
     }
@@ -134,7 +168,7 @@ class Pulse
     /**
      * Determine if the given request can access the Pulse dashboard.
      */
-    public static function check(Request $request): bool
+    public function check(Request $request): bool
     {
         return (static::$authUsing ?: function () {
             return app()->environment('local');
@@ -159,5 +193,13 @@ class Pulse
         static::$runsMigrations = false;
 
         return new self;
+    }
+
+    /**
+     * Determine if the entry should be recorded.
+     */
+    protected function shouldRecord(Entry|Update $entry): bool
+    {
+        return $this->shouldRecord && $this->filters->every(fn (callable $filter) => $filter($entry));
     }
 }

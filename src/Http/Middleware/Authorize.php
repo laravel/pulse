@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Http\Middleware;
 
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Facades\Pulse;
 
 class Authorize
 {

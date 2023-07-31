@@ -49,7 +49,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if ($this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
             return;
         }
 
@@ -67,7 +67,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
             return;
         }
 
@@ -87,15 +87,13 @@ class PulseServiceProvider extends ServiceProvider
     {
         Livewire::listen('component.boot', function ($instance) {
             if ($instance instanceof ShouldNotReportUsage) {
-                app(Pulse::class)->shouldRecord = false;
+                app(Pulse::class)->shouldNotRecord();
             }
         });
 
-        $this->app[Kernel::class]
-            ->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
+        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, new HandleHttpRequest);
 
-        $this->app[ExceptionHandler::class]
-            ->reportable(fn (Throwable $e) => app(HandleException::class)($e));
+        $this->app[ExceptionHandler::class]->reportable(new HandleException);
 
         Event::listen(QueryExecuted::class, HandleQuery::class);
 
@@ -110,7 +108,7 @@ class PulseServiceProvider extends ServiceProvider
         Event::listen(JobProcessed::class, HandleProcessedJob::class);
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
-            Http::globalMiddleware(fn ($handler) => app(HttpRequestMiddleware::class)($handler));
+            Http::globalMiddleware(new HttpRequestMiddleware);
         }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.

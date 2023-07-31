@@ -5,19 +5,11 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Facades\Pulse;
 
 class HandleQuery
 {
-    /**
-     * Create a handler instance.
-     */
-    public function __construct(
-        protected Pulse $pulse,
-    ) {
-        //
-    }
-
     /**
      * Handle the execution of a database query.
      */
@@ -30,12 +22,12 @@ class HandleQuery
                 return;
             }
 
-            $this->pulse->record('pulse_queries', [
+            Pulse::record(new Entry('pulse_queries', [
                 'date' => $now->subMilliseconds(round($event->time))->toDateTimeString(),
                 'user_id' => Auth::id(),
                 'sql' => $event->sql,
                 'duration' => round($event->time),
-            ]);
+            ]));
         }, report: false);
     }
 }

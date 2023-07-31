@@ -5,20 +5,12 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Facades\Pulse;
 use Throwable;
 
 class HandleException
 {
-    /**
-     * Create a handler instance.
-     */
-    public function __construct(
-        protected Pulse $pulse,
-    ) {
-        //
-    }
-
     /**
      * Handle an exception.
      */
@@ -27,12 +19,12 @@ class HandleException
         rescue(function () use ($e) {
             $now = new CarbonImmutable();
 
-            $this->pulse->record('pulse_exceptions', [
+            Pulse::record(new Entry('pulse_exceptions', [
                 'date' => $now->toDateTimeString(),
                 'user_id' => Auth::id(),
                 'class' => $e::class,
                 'location' => $this->getLocation($e),
-            ]);
+            ]));
         }, report: false);
     }
 

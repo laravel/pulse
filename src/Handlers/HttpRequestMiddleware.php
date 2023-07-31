@@ -6,19 +6,12 @@ use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Facades\Pulse;
 use Psr\Http\Message\RequestInterface;
 
 class HttpRequestMiddleware
 {
-    /**
-     * Create a middleware instance.
-     */
-    public function __construct(protected Pulse $pulse)
-    {
-        //
-    }
-
     /**
      * Invoke the middleware.
      */
@@ -44,11 +37,11 @@ class HttpRequestMiddleware
      */
     protected function record(RequestInterface $request, CarbonImmutable $startedAt, CarbonImmutable $endedAt): void
     {
-        $this->pulse->record('pulse_outgoing_requests', [
+        Pulse::record(new Entry('pulse_outgoing_requests', [
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => Auth::id(),
-        ]);
+        ]));
     }
 }

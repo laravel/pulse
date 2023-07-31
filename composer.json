@@ -51,7 +51,10 @@
         "laravel": {
             "providers": [
                 "Laravel\\Pulse\\PulseServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Debugbar": "Laravel\\Pulse\\Facades\\Pulse"
+            }
         }
     },
     "config": {

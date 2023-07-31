@@ -7,8 +7,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
-use Laravel\Pulse\Pulse;
 use Livewire\Component;
 
 class Usage extends Component implements ShouldNotReportUsage
@@ -99,7 +99,7 @@ class Usage extends Component implements ShouldNotReportUsage
                 ->limit(10)
                 ->get();
 
-            $users = app(Pulse::class)->resolveUsers($top10->pluck('user_id'));
+            $users = Pulse::resolveUsers($top10->pluck('user_id'));
 
             $userRequestCounts = $top10
                 ->map(function ($row) use ($users) {

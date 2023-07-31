@@ -4,20 +4,11 @@ namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Queue\Events\JobProcessing;
-use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Updates\RecordJobStart;
+use Laravel\Pulse\Entries\JobStarted;
+use Laravel\Pulse\Facades\Pulse;
 
 class HandleProcessingJob
 {
-    /**
-     * Create a handler instance.
-     */
-    public function __construct(
-        protected Pulse $pulse,
-    ) {
-        //
-    }
-
     /**
      * Handle the execution of a database query.
      */
@@ -26,7 +17,7 @@ class HandleProcessingJob
         rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
-            $this->pulse->recordUpdate(new RecordJobStart(
+            Pulse::recordUpdate(new JobStarted(
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));

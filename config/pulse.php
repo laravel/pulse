@@ -4,6 +4,8 @@ use Laravel\Pulse\Http\Middleware\Authorize;
 
 return [
 
+    'enabled' => env('PULSE_ENABLED', true),
+
     'path' => env('PULSE_PATH', 'pulse'),
 
     'middleware' => [
