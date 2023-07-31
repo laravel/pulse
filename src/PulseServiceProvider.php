@@ -40,7 +40,6 @@ use Laravel\Pulse\Http\Livewire\Usage;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
-use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
 {
