@@ -16,4 +16,20 @@ class Entry
     {
         return $this->table;
     }
+
+    /**
+     * Determine if the update is the given type.
+     */
+    public function is(Type $type): bool
+    {
+        return $this->type() === $type;
+    }
+
+    /**
+     * The type of update.
+     */
+    public function type(): Type
+    {
+        return Type::from($this->table());
+    }
 }
