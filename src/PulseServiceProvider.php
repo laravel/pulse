@@ -8,6 +8,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
@@ -52,7 +53,7 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->scoped(Pulse::class);
+        $this->app->singleton(Pulse::class);
 
         $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()->client()));
 
@@ -101,10 +102,16 @@ class PulseServiceProvider extends ServiceProvider
             CacheMissed::class,
         ], HandleCacheInteraction::class);
 
-        // TODO: handle other job events, such as failing.
+        // TODO: currently if a job fails, we have no way of tracking it through properly.
+        // When a job fails it gets a new "jobId", so we can't track the one job.
+        // If we can get the job's UUID in the `JobQueued` event, then we can
+        // follow the job through successfully.
         Event::listen(JobQueued::class, HandleQueuedJob::class);
         Event::listen(JobProcessing::class, HandleProcessingJob::class);
-        Event::listen(JobProcessed::class, HandleProcessedJob::class);
+        Event::listen([
+            JobProcessed::class,
+            JobFailed::class,
+        ], HandleProcessedJob::class);
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
             Http::globalMiddleware(new HttpRequestMiddleware);

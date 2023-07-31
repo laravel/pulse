@@ -5,6 +5,7 @@ namespace Laravel\Pulse;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
@@ -171,7 +172,7 @@ class Pulse
     public function check(Request $request): bool
     {
         return (static::$authUsing ?: function () {
-            return app()->environment('local');
+            return App::environment('local');
         })($request);
     }
 
