@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
 
@@ -16,17 +16,13 @@ class Pulse
 
     /**
      * The callback that should be used to authenticate Pulse users.
-     *
-     * @var \Closure
      */
-    public static $authUsing;
+    public ?Closure $authUsing = null;
 
     /**
      * Indicates if Pulse migrations will be run.
-     *
-     * @var bool
      */
-    public static $runsMigrations = true;
+    public bool $runsMigrations = true;
 
     /**
      * The list of queued entries to be stored.
@@ -54,11 +50,11 @@ class Pulse
     public Collection $filters;
 
     /**
-     * Create a Pulse instance.
+     * Create a new Pulse instance.
      */
-    public function __construct()
+    public function __construct(protected Ingest $ingest)
     {
-        $this->filters = new Collection([]);
+        $this->filters = collect([]);
     }
 
     /**
@@ -84,7 +80,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      */
-    public function resolveUsersUsing($callback): static
+    public function resolveUsersUsing($callback): self
     {
         $this->usersResolver = $callback;
 
@@ -138,16 +134,11 @@ class Pulse
      */
     public function store(): void
     {
-        foreach ($this->entriesQueue as $table => $rows) {
-            DB::table($table)->insert($rows);
-        }
+        $this->ingest->ingestSilently(
+            $this->entriesQueue, $this->updatesQueue,
+        );
 
-        foreach ($this->updatesQueue as $update) {
-            $update->perform();
-        }
-
-        $this->entriesQueue = [];
-        $this->updatesQueue = [];
+        $this->entriesQueue = $this->updatesQueue = [];
     }
 
     /**
@@ -171,7 +162,7 @@ class Pulse
      */
     public function check(Request $request): bool
     {
-        return (static::$authUsing ?: function () {
+        return ($this->authUsing ?: function () {
             return App::environment('local');
         })($request);
     }
@@ -179,21 +170,29 @@ class Pulse
     /**
      * Set the callback that should be used to authorize Pulse users.
      */
-    public static function auth(Closure $callback): static
+    public function auth(Closure $callback): self
     {
-        static::$authUsing = $callback;
+        $this->authUsing = $callback;
 
-        return new self;
+        return $this;
     }
 
     /**
      * Configure Pulse to not register its migrations.
      */
-    public static function ignoreMigrations(): static
+    public function ignoreMigrations(): self
     {
-        static::$runsMigrations = false;
+        $this->runsMigrations = false;
 
-        return new self;
+        return $this;
+    }
+
+    /**
+     * Determine if Pulse may run migrations.
+     */
+    public function runsMigrations(): bool
+    {
+        return $this->runsMigrations;
     }
 
     /**

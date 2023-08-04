@@ -17,6 +17,9 @@ return [
     // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
+    // 'ingest' => Laravel\Pulse\Ingests\DatabaseIngest::class,
+    'ingest' => Laravel\Pulse\Ingests\Redis::class,
+
     // in milliseconds
     'slow_endpoint_threshold' => 1000,
 

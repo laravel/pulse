@@ -4,6 +4,9 @@ namespace Laravel\Pulse\Entries;
 
 class Entry
 {
+    /**
+     * Create a new Entry instance.
+     */
     public function __construct(public string $table, public array $attributes)
     {
         //

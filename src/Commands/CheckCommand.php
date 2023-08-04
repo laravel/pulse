@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Sleep;
 use RuntimeException;
 
 class CheckCommand extends Command
@@ -41,12 +42,18 @@ class CheckCommand extends Command
             $now = new CarbonImmutable();
 
             if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
-                sleep(1);
+                $this->comment('Sleeping for a second at '.now()->toDateTimeString());
+
+                Sleep::for(1)->second();
 
                 continue;
             }
 
             $lastSnapshotAt = $now->floorSeconds($this->interval);
+
+            /*
+             * Check system stats.
+             */
 
             $stats = [
                 'date' => $lastSnapshotAt->toDateTimeString(),
@@ -63,6 +70,10 @@ class CheckCommand extends Command
 
             $this->line('<fg=gray>[system stats]</> '.json_encode($stats));
 
+            /*
+             * Check queue sizes.
+             */
+
             if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
                 $sizes = collect(config('pulse.queues'))
                     ->map(fn ($queue) => [
@@ -78,6 +89,10 @@ class CheckCommand extends Command
 
                 $this->line('<fg=gray>[queue sizes]</> '.$sizes->toJson());
             }
+
+            $this->comment('Stats and queue sizes checked at: '.now()->toDateTimeString());
+
+            $this->locks = [];
         }
     }
 

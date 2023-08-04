@@ -2,6 +2,9 @@
 
 namespace Laravel\Pulse\Entries;
 
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+
 abstract class Update
 {
     /**
@@ -28,5 +31,13 @@ abstract class Update
     public function type(): Type
     {
         return Type::from($this->table());
+    }
+
+    /**
+     * The table query.
+     */
+    protected function query(): Builder
+    {
+        return DB::table($this->table());
     }
 }

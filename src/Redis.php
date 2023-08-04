@@ -2,10 +2,10 @@
 
 namespace Laravel\Pulse;
 
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Str;
+use Illuminate\Redis\Connections\Connection;
 use Predis\Client as Predis;
 use Redis as PhpRedis;
+use RuntimeException;
 
 /**
  * @mixin \Redis
@@ -16,104 +16,59 @@ class Redis
     /**
      * Create a new Redis instance.
      *
-     * @param  \Redis|\Predis\Client  $client
+     * @param  \PhpRedis|\Predis\Client|null  $client
      */
-    public function __construct(protected $client)
+    public function __construct(protected ?Connection $connection = null, protected $client = null)
     {
-        //
-    }
-
-    public function expireat(string $key, int $timestamp, string $options)
-    {
-        $prefix = config('database.redis.options.prefix');
-
-        if ($this->isPhpRedis()) {
-            return $this->client->rawCommand('EXPIREAT', $prefix.$key, $timestamp, $options);
+        if (array_filter(func_get_args()) === []) {
+            throw new RuntimeException('Must provider a connection or client.');
         }
-
-        return $this->client->expireat($key, $timestamp, $options);
     }
 
+    /**
+     * Add an entry to the stream.
+     */
     public function xadd($key, $dictionary)
     {
         if ($this->isPhpRedis()) {
-            return $this->client->xAdd($key, '*', $dictionary);
+            return $this->client()->xAdd($key, '*', $dictionary);
         }
 
-        return $this->client->xAdd($key, $dictionary);
+        return $this->client()->xAdd($key, $dictionary);
     }
 
+    /**
+     * Read a range of entries from the stream.
+     */
     public function xrange($key, $start, $end, $count = null)
     {
-        if ($count) {
-            return $this->client->xrange($key, $start, $end, $count);
-        }
-
-        return $this->client->xrange($key, $start, $end);
+        return $this->client()->xrange(...array_filter(func_get_args()));
     }
 
-    public function xrevrange($key, $end, $start, $count = null)
-    {
-        if ($count) {
-            return $this->client->xrevrange($key, $end, $start, $count);
-        }
-
-        return $this->client->xrevrange($key, $end, $start);
-    }
-
+    /**
+     * Trim the stream.
+     */
     public function xtrim($key, $strategy, $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 
         if ($this->isPhpRedis()) {
             // PHP Redis does not support the minid strategy.
-            return $this->client->rawCommand('XTRIM', $prefix.$key, $strategy, $threshold);
+            return $this->client()->rawCommand('XTRIM', $prefix.$key, $strategy, $threshold);
         }
 
-        return $this->client->xtrim($key, $strategy, $threshold);
-    }
-
-    public function zadd($key, $score, $member, $options = null)
-    {
-        $prefix = config('database.redis.options.prefix');
-
-        return match (true) {
-            $this->isPhpRedis() && $options === null => $this->client->zAdd($key, $score, $member),
-            $this->isPhpRedis() && $options !== null => $this->client->rawCommand('ZADD', $prefix.$key, $options, $score, $member),
-            $this->isPredis() && $options === null => $this->client->zadd($key, [$member => $score]),
-            $this->isPredis() && $options !== null => $this->client->executeRaw(['ZADD', $prefix.$key, $options, $score, $member]),
-        };
-    }
-
-    public function zunionstore($destination, $keys, $aggregate = 'SUM')
-    {
-        if ($this->isPhpRedis()) {
-            return $this->client->zUnionStore($destination, $keys, ['aggregate' => strtoupper($aggregate)]);
-        }
-
-        return $this->client->zunionstore($destination, $keys, [], strtolower($aggregate));
+        return $this->client()->xtrim($key, $strategy, $threshold);
     }
 
     /**
-     * Retrieve the time of the Redis server.
+     * Run commands in a pipeline.
      */
-    public function now(): CarbonImmutable
+    public function pipeline(callable $closure): array
     {
-        return CarbonImmutable::createFromTimestamp($this->time()[0], 'UTC');
-    }
-
-    /**
-     * Retrieve the oldest entry date for the given stream.
-     */
-    public function oldestStreamEntryDate(string $stream): ?CarbonImmutable
-    {
-        $key = array_key_first($this->xrange($stream, '-', '+', 1));
-
-        if ($key === null) {
-            return null;
-        }
-
-        return CarbonImmutable::createFromTimestampMs(Str::before($key, '-'), 'UTC')->startOfSecond();
+        // ensure we run against a connection...
+        return $this->connection->pipeline(function ($redis) use ($closure) {
+            $closure(new self(client: $redis));
+        });
     }
 
     /**
@@ -121,7 +76,7 @@ class Redis
      */
     protected function isPhpRedis(): bool
     {
-        return $this->client instanceof PhpRedis;
+        return $this->client() instanceof PhpRedis;
     }
 
     /**
@@ -129,14 +84,22 @@ class Redis
      */
     protected function isPredis(): bool
     {
-        return $this->client instanceof Predis;
+        return $this->client() instanceof Predis;
     }
 
     /**
-     * Proxies all method calls to the client.
+     * The connections client.
+     */
+    protected function client(): PhpRedis|Predis
+    {
+        return $this->connection?->client() ?? $this->client;
+    }
+
+    /**
+     * Proxies method calls to the connection or client.
      */
     public function __call(string $method, array $parameters): mixed
     {
-        return $this->client->{$method}(...$parameters);
+        return ($this->connection ?? $this->client)->{$method}(...$parameters);
     }
 }

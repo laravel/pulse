@@ -109,6 +109,8 @@ class Usage extends Component implements ShouldNotReportUsage
                         'count' => $row->count,
                         'user' => [
                             'name' => $user['name'] ?? 'User: '.$user['id'],
+                            // "extra" rather than 'email'
+                            // avatar for pretty-ness?
                             'email' => $user['email'] ?? null,
                         ],
                     ] : null;

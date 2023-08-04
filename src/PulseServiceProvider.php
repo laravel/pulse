@@ -53,9 +53,9 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(Pulse::class);
+        $this->app->singleton(Pulse::class, fn ($app) => new Pulse($app[config('pulse.ingest')]));
 
-        $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()->client()));
+        $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -154,7 +154,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations(): void
     {
-        if ($this->app->runningInConsole() && Pulse::$runsMigrations) {
+        if ($this->app->runningInConsole() && app(Pulse::class)->runsMigrations()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
     }

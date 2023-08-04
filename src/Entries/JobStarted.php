@@ -2,12 +2,10 @@
 
 namespace Laravel\Pulse\Entries;
 
-use Illuminate\Support\Facades\DB;
-
 class JobStarted extends Update
 {
     /**
-     * Create a new update instance.
+     * Create a new JobStarted instance.
      */
     public function __construct(
         public string $jobId,
@@ -21,7 +19,7 @@ class JobStarted extends Update
      */
     public function perform(): void
     {
-        DB::table($this->table())
+        $this->query()
             ->where('job_id', $this->jobId)
             ->update([
                 'processing_started_at' => $this->startedAt,

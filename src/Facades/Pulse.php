@@ -25,10 +25,8 @@ class Pulse extends Facade
 {
     /**
      * Get the registered name of the component.
-     *
-     * @return string
      */
-    public static function getFacadeAccessor()
+    public static function getFacadeAccessor(): string
     {
         return \Laravel\Pulse\Pulse::class;
     }

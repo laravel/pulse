@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 class JobFinished extends Update
 {
     /**
-     * Create a new update instance.
+     * Create a new JobFinished instance.
      */
     public function __construct(
         public string $jobId,
@@ -21,7 +21,7 @@ class JobFinished extends Update
      */
     public function perform(): void
     {
-        DB::table($this->table())
+        $this->query()
             ->where('job_id', $this->jobId)
             ->update([
                 'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),
