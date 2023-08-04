@@ -4,6 +4,7 @@ namespace Laravel\Pulse;
 
 use Illuminate\Redis\Connections\Connection;
 use Predis\Client as Predis;
+use Predis\Pipeline\Pipeline;
 use Redis as PhpRedis;
 use RuntimeException;
 
@@ -16,7 +17,7 @@ class Redis
     /**
      * Create a new Redis instance.
      *
-     * @param  \PhpRedis|\Predis\Client|null  $client
+     * @param  \Redis|\Predis\Client|\Predis\Pipeline\Pipeline|null  $client
      */
     public function __construct(protected ?Connection $connection = null, protected $client = null)
     {
@@ -90,7 +91,7 @@ class Redis
     /**
      * The connections client.
      */
-    protected function client(): PhpRedis|Predis
+    protected function client(): PhpRedis|Predis|Pipeline
     {
         return $this->connection?->client() ?? $this->client;
     }
