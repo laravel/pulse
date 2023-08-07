@@ -2,10 +2,12 @@
 
 namespace Laravel\Pulse;
 
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
@@ -139,6 +141,11 @@ class Pulse
         );
 
         $this->entriesQueue = $this->updatesQueue = [];
+
+        // TODO: lottery configuration?
+        Lottery::odds(1, 100)
+            ->winner(fn () => $this->ingest->trimSilently((new CarbonImmutable)->subWeek()))
+            ->choose();
     }
 
     /**

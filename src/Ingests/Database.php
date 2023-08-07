@@ -2,8 +2,10 @@
 
 namespace Laravel\Pulse\Ingests;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Entries\Type;
 
 class Database implements Ingest
 {
@@ -20,6 +22,10 @@ class Database implements Ingest
      */
     public function ingest(array $entries, array $updates): void
     {
+        if ($entries === [] && $updates === []) {
+            return;
+        }
+
         DB::transaction(function () use ($entries, $updates) {
             collect($entries)->each(fn ($rows, $table) => collect($rows)
                 ->chunk(1000)
@@ -28,5 +34,23 @@ class Database implements Ingest
 
             collect($updates)->each(fn ($update) => $update->perform());
         });
+    }
+
+    /**
+     * Trim the ingest without throwing exceptions.
+     */
+    public function trimSilently(CarbonImmutable $oldest): void
+    {
+        rescue(fn () => $this->trim($oldest), report: false);
+    }
+
+    /**
+     * Trim the ingest.
+     */
+    public function trim(CarbonImmutable $oldest): void
+    {
+        Type::all()->each(fn (Type $type) => DB::table($type->value)
+            ->where('date', '<', $oldest->toDateTimeString())
+            ->delete());
     }
 }

@@ -17,8 +17,12 @@ return [
     // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
-    // 'ingest' => Laravel\Pulse\Ingests\DatabaseIngest::class,
+    // 'ingest' => Laravel\Pulse\Ingests\Database::class,
     'ingest' => Laravel\Pulse\Ingests\Redis::class,
+
+    // TODO: filter configuration?
+    // TODO: trim lottery configuration
+    // TODO: configure days of data to store? default: 7
 
     // in milliseconds
     'slow_endpoint_threshold' => 1000,

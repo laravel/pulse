@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Ingests;
 
+use Carbon\CarbonImmutable;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Redis as RedisConnection;
@@ -26,7 +27,7 @@ class Redis implements Ingest
      */
     public function ingestSilently(array $entries, array $updates): void
     {
-        rescue(fn () => $this->ingestSilently($entries, $updates));
+        rescue(fn () => $this->ingest($entries, $updates), report: false);
     }
 
     /**
@@ -34,6 +35,10 @@ class Redis implements Ingest
      */
     public function ingest(array $entries, array $updates): void
     {
+        if ($entries === [] && $updates === []) {
+            return;
+        }
+
         $this->connection->pipeline(function (RedisConnection $pipeline) use ($entries, $updates) {
             collect($entries)->each(fn ($rows, $table) => collect($rows)
                 ->each(fn ($data) => $pipeline->xadd($this->stream, [
@@ -46,6 +51,22 @@ class Redis implements Ingest
                 'data' => serialize($update),
             ]));
         });
+    }
+
+    /**
+     * Trim the ingest without throwing exceptions.
+     */
+    public function trimSilently(CarbonImmutable $oldest): void
+    {
+        rescue(fn () => $this->trim($oldest), report: false);
+    }
+
+    /**
+     * Trim the ingest.
+     */
+    public function trim(CarbonImmutable $oldest): void
+    {
+        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($oldest));
     }
 
     /**

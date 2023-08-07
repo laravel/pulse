@@ -2,8 +2,10 @@
 
 namespace Laravel\Pulse\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
+use Laravel\Pulse\Ingests\Database;
 use Laravel\Pulse\Ingests\Redis;
 
 class WorkCommand extends Command
@@ -25,18 +27,30 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Redis $ingest): void
+    public function handle(Redis $redisIngest, Database $databaseIngest): void
     {
-        while (true) {
-            $persisted = $ingest->processEntries(1000);
+        $lastTrimmedDatabaseAt = (new CarbonImmutable)->startOfMinute();
 
-            if ($persisted === 0) {
-                $this->comment('Queue finished processing. Sleeping at '.now()->toDateTimeString());
+        while (true) {
+            $now = new CarbonImmutable;
+
+            if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {
+                $this->comment('Trimming the database at '.$now->toDateTimeString());
+
+                $databaseIngest->trim($now->subWeek());
+
+                $lastTrimmedDatabaseAt = $now;
+            }
+
+            $processed = $redisIngest->processEntries(1000);
+
+            if ($processed === 0) {
+                $this->comment('Queue finished processing. Sleeping at '.$now->toDateTimeString());
 
                 Sleep::for(1)->second();
             }
 
-            $this->comment('Processed ['.$persisted.'] entries at '.now()->toDateTimeString());
+            $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());
         }
     }
 }

@@ -42,7 +42,7 @@ class CheckCommand extends Command
             $now = new CarbonImmutable();
 
             if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
-                $this->comment('Sleeping for a second at '.now()->toDateTimeString());
+                $this->comment('Sleeping for a second at '.$now->toDateTimeString());
 
                 Sleep::for(1)->second();
 
@@ -90,9 +90,7 @@ class CheckCommand extends Command
                 $this->line('<fg=gray>[queue sizes]</> '.$sizes->toJson());
             }
 
-            $this->comment('Stats and queue sizes checked at: '.now()->toDateTimeString());
-
-            $this->locks = [];
+            $this->comment('Stats and queue sizes checked at: '.$now->toDateTimeString());
         }
     }
 

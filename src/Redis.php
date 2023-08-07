@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Redis\Connections\Connection;
 use Predis\Client as Predis;
 use Predis\Pipeline\Pipeline;
@@ -49,16 +50,16 @@ class Redis
     /**
      * Trim the stream.
      */
-    public function xtrim($key, $strategy, $threshold)
+    public function xtrim($key, $strategy, $stratgyModifier = '=', $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 
         if ($this->isPhpRedis()) {
             // PHP Redis does not support the minid strategy.
-            return $this->client()->rawCommand('XTRIM', $prefix.$key, $strategy, $threshold);
+            return $this->client()->rawCommand('XTRIM', $prefix.$key, $strategy, $stratgyModifier, $threshold);
         }
 
-        return $this->client()->xtrim($key, $strategy, $threshold);
+        return $this->client()->xtrim($key, [$strategy, $stratgyModifier], $threshold);
     }
 
     /**
@@ -70,6 +71,20 @@ class Redis
         return $this->connection->pipeline(function ($redis) use ($closure) {
             $closure(new self(client: $redis));
         });
+    }
+
+    /**
+     * Get the ID of the stream at a given time.
+     */
+    public function streamIdAt(CarbonImmutable $timestamp): string
+    {
+        $diff = (new CarbonImmutable)->diffInMilliseconds($timestamp);
+
+        $redisTime = $this->client()->time();
+
+        $redisTimestamp = $redisTime[0].substr($redisTime[1], 0, 3);
+
+        return (string) ($redisTimestamp - $diff);
     }
 
     /**

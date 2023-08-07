@@ -2,6 +2,8 @@
 
 namespace Laravel\Pulse\Entries;
 
+use Illuminate\Support\Collection;
+
 enum Type: string
 {
     case CacheHit = 'pulse_cache_hits';
@@ -12,4 +14,12 @@ enum Type: string
     case QueueSize = 'pulse_queue_sizes';
     case Request = 'pulse_requests';
     case Server = 'pulse_servers';
+
+    /**
+     * Get all cases as a Collection.
+     */
+    public static function all(): Collection
+    {
+        return collect(self::cases());
+    }
 }
