@@ -2,11 +2,9 @@
 
 namespace Laravel\Pulse\Commands;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\InteractsWithTime;
-use Illuminate\Support\Sleep;
 use Laravel\Pulse\Ingests\Database;
 use Laravel\Pulse\Ingests\Redis;
 use Symfony\Component\Console\Attribute\AsCommand;
