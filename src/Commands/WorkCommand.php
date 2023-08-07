@@ -4,10 +4,13 @@ namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Ingests\Database;
 use Laravel\Pulse\Ingests\Redis;
+use Symfony\Component\Console\Attribute\AsCommand;
 
+#[AsCommand(name: 'pulse:work')]
 class WorkCommand extends Command
 {
     /**
@@ -27,11 +30,19 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Redis $redisIngest, Database $databaseIngest): void
+    public function handle(Redis $redisIngest, Database $databaseIngest): int
     {
+        $lastRestart = Cache::get('illuminate:pulse:restart');
+
         $lastTrimmedDatabaseAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
+            if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
+                $this->comment('Pulse restart requested. Exiting at '.$now->toDateTimeString());
+
+                return self::SUCCESS;
+            }
+
             $now = new CarbonImmutable;
 
             if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {

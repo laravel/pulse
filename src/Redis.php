@@ -50,7 +50,7 @@ class Redis
     /**
      * Trim the stream.
      */
-    public function xtrim($key, $strategy, $stratgyModifier = '=', $threshold)
+    public function xtrim($key, $strategy, $stratgyModifier, $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 

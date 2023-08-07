@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
+use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
@@ -191,6 +192,7 @@ class PulseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 CheckCommand::class,
+                RestartCommand::class,
                 WorkCommand::class,
             ]);
         }

@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use RuntimeException;
+use Symfony\Component\Console\Attribute\AsCommand;
 
+#[AsCommand(name: 'pulse:check')]
 class CheckCommand extends Command
 {
     /**
@@ -34,11 +36,19 @@ class CheckCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(): void
+    public function handle(): int
     {
+        $lastRestart = Cache::get('illuminate:pulse:restart');
+
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);
 
         while (true) {
+            if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
+                $this->comment('Pulse restart requested. Exiting at '.$now->toDateTimeString());
+
+                return self::SUCCESS;
+            }
+
             $now = new CarbonImmutable();
 
             if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
