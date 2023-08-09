@@ -20,23 +20,28 @@ class Cache extends Component implements ShouldNotReportUsage
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$allCacheInteractions, $allTime, $allRunAt] = $this->allCacheInteractions();
 
         [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->monitoredCacheInteractions();
 
+        $this->dispatch('cache:dataLoaded');
+
         return view('pulse::livewire.cache', [
             'allTime' => $allTime,
             'allRunAt' => $allRunAt,
-            'monitoredTime' => $allTime,
-            'monitoredRunAt' => $allRunAt,
+            'monitoredTime' => $monitoredTime,
+            'monitoredRunAt' => $monitoredRunAt,
             'allCacheInteractions' => $allCacheInteractions,
             'monitoredCacheInteractions' => $monitoredCacheInteractions,
-            'initialDataLoaded' => $allCacheInteractions !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -44,23 +49,7 @@ class Cache extends Component implements ShouldNotReportUsage
      */
     protected function allCacheInteractions(): array
     {
-        return CacheFacade::get("pulse:cache-all:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * The monitored cache interactions.
-     */
-    protected function monitoredCacheInteractions(): array
-    {
-        return CacheFacade::get("pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}") ?? [[], 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        CacheFacade::remember("pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
+        return CacheFacade::remember("pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -76,8 +65,14 @@ class Cache extends Component implements ShouldNotReportUsage
 
             return [$cacheInteractions, $time, $now->toDateTimeString()];
         });
+    }
 
-        CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
+    /**
+     * The monitored cache interactions.
+     */
+    protected function monitoredCacheInteractions(): array
+    {
+        return CacheFacade::remember("pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             if ($this->monitoredKeys()->isEmpty()) {
@@ -128,8 +123,6 @@ class Cache extends Component implements ShouldNotReportUsage
 
             return [$interactions, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('cache:dataLoaded');
     }
 
     /** The monitored keys.

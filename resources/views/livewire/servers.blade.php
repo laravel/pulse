@@ -9,11 +9,8 @@ $friendlySize = function(int $mb, int $precision = 0) {
     return round($mb, $precision) . 'MB';
 };
 @endphp
-@if ($servers->count() > 0)
-    <div
-        wire:poll.15s
-        class="col-span-6"
-    >
+<div wire:poll.15s class="col-span-6">
+    @if ($servers->count() > 0)
         <div class="grid grid-cols-[max-content,_repeat(4,_auto)]">
             <div></div>
             <div></div>
@@ -49,58 +46,58 @@ $friendlySize = function(int $mb, int $precision = 0) {
                     </div>
 
                     <div wire:ignore>
-                        <div id="memory-{{ $server->slug }}" class="h-9 w-48"></div>
-
-                        @push('scripts')
-                        <script>
-                            window.pulse.charts['memory-{{ $server->slug }}'] = new LineChart(
-                                '#memory-{{ $server->slug }}',
-                                {
-                                    series: [
+                        <div
+                            id="memory-{{ $server->slug }}" class="h-9 w-48"
+                            x-data="{
+                                init() {
+                                    window.pulse.charts['memory-{{ $server->slug }}'] = new LineChart(
+                                        '#memory-{{ $server->slug }}',
                                         {
-                                            className: 'stroke-purple-600',
-                                            // TODO: paddedvalues
-                                            data: @json(collect($server->readings)->map(fn ($reading) => $reading->memory_used)),
+                                            series: [
+                                                {
+                                                    className: 'stroke-purple-600',
+                                                    data: @json(collect($server->readings)->map(fn ($reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
+                                                },
+                                            ],
                                         },
-                                    ],
-                                },
-                                {
-                                    lineSmooth: Interpolation.simple({
-                                        divisor: 2
-                                    }),
-                                    classNames: {
-                                        line: 'stroke-2 fill-none',
-                                    },
-                                    fullWidth: true,
-                                    showPoint: false,
-                                    chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
-                                    axisX: {
-                                        offset: 0,
-                                        showGrid: false,
-                                        showLabel: false,
-                                    },
-                                    axisY: {
-                                        offset: 0,
-                                        low: 0,
-                                        high: {{ $server->memory_total }},
-                                        showGrid: false,
-                                        showLabel: false,
-                                    },
-                                }
-                            )
-
-                            window.livewire.on('chartUpdate', (servers) => {
-                                window.pulse.charts['memory-{{ $server->slug }}'].update({
-                                    series: [
                                         {
-                                            className: 'stroke-purple-600',
-                                            data: servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used),
+                                            lineSmooth: Interpolation.simple({
+                                                divisor: 2
+                                            }),
+                                            classNames: {
+                                                line: 'stroke-2 fill-none',
+                                            },
+                                            fullWidth: true,
+                                            showPoint: false,
+                                            chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
+                                            axisX: {
+                                                offset: 0,
+                                                showGrid: false,
+                                                showLabel: false,
+                                            },
+                                            axisY: {
+                                                offset: 0,
+                                                low: 0,
+                                                high: {{ $server->memory_total }},
+                                                showGrid: false,
+                                                showLabel: false,
+                                            },
                                         }
-                                    ],
-                                })
-                            })
-                        </script>
-                        @endpush
+                                    )
+
+                                    Livewire.on('chartUpdate', ({ servers }) => {
+                                        window.pulse.charts['memory-{{ $server->slug }}'].update({
+                                            series: [
+                                                {
+                                                    className: 'stroke-purple-600',
+                                                    data: servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used),
+                                                }
+                                            ],
+                                        })
+                                    })
+                                }
+                            }"
+                        ></div>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
@@ -109,59 +106,58 @@ $friendlySize = function(int $mb, int $precision = 0) {
                     </div>
 
                     <div wire:ignore>
-                        <div id="cpu-{{ $server->slug }}" class="h-9 w-48"></div>
-
-                        @push('scripts')
-                        <script>
-                            window.pulse.charts['cpu-{{ $server->slug }}'] = new LineChart(
-                                '#cpu-{{ $server->slug }}',
-                                {
-                                    series: [
+                        <div
+                            id="cpu-{{ $server->slug }}" class="h-9 w-48"
+                            x-data="{
+                                init() {
+                                    window.pulse.charts['cpu-{{ $server->slug }}'] = new LineChart(
+                                        '#cpu-{{ $server->slug }}',
                                         {
-                                            className: 'stroke-purple-600',
-                                            // TODO: paddedvalues
-                                            data: @json(collect($server->readings)->map(fn ($reading) => $reading->cpu_percent)),
+                                            series: [
+                                                {
+                                                    className: 'stroke-purple-600',
+                                                    data: @json(collect($server->readings)->map(fn ($reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
+                                                },
+                                            ],
                                         },
-                                    ],
-                                },
-                                {
-                                    lineSmooth: Interpolation.simple({
-                                        divisor: 2
-                                    }),
-                                    classNames: {
-                                        line: 'stroke-2 fill-none',
-                                    },
-                                    fullWidth: true,
-                                    showPoint: false,
-                                    chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
-                                    axisX: {
-                                        offset: 0,
-                                        showGrid: false,
-                                        showLabel: false,
-                                    },
-                                    axisY: {
-                                        offset: 0,
-                                        low: 0,
-                                        high: 100,
-                                        showGrid: false,
-                                        showLabel: false,
-                                    },
-                                }
-                            )
-
-                            // TODO: move this to a single occurrence at the bottom?
-                            window.livewire.on('chartUpdate', (servers) => {
-                                window.pulse.charts['cpu-{{ $server->slug }}'].update({
-                                    series: [
                                         {
-                                            className: 'stroke-purple-600',
-                                            data: servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent),
+                                            lineSmooth: Interpolation.simple({
+                                                divisor: 2
+                                            }),
+                                            classNames: {
+                                                line: 'stroke-2 fill-none',
+                                            },
+                                            fullWidth: true,
+                                            showPoint: false,
+                                            chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
+                                            axisX: {
+                                                offset: 0,
+                                                showGrid: false,
+                                                showLabel: false,
+                                            },
+                                            axisY: {
+                                                offset: 0,
+                                                low: 0,
+                                                high: 100,
+                                                showGrid: false,
+                                                showLabel: false,
+                                            },
                                         }
-                                    ],
-                                })
-                            })
-                        </script>
-                        @endpush
+                                    )
+
+                                    Livewire.on('chartUpdate', ({ servers }) => {
+                                        window.pulse.charts['cpu-{{ $server->slug }}'].update({
+                                            series: [
+                                                {
+                                                    className: 'stroke-purple-600',
+                                                    data: servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent),
+                                                }
+                                            ],
+                                        })
+                                    })
+                                }
+                            }"
+                        ></div>
                     </div>
                 </div>
                 <div class="flex items-center gap-10 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
@@ -179,33 +175,32 @@ $friendlySize = function(int $mb, int $precision = 0) {
 
                             <div wire:ignore>
                                 {{-- TODO: Make this work with multiple storage devices --}}
-                                <div id="storage-{{ $server->slug }}" class="flex-shrink-0 w-8 h-8"></div>
-
-                                @push('scripts')
-                                <script>
-                                    window.pulse.charts['storage-{{ $server->slug }}'] = new PieChart(
-                                        '#storage-{{ $server->slug }}',
-                                        {
-                                            series: [
-                                                { value: {{ $storage->total - $storage->used }}, className: 'stroke-purple-100', },
-                                                { value: {{ $storage->used }}, className: 'stroke-purple-600' },
-                                            ],
-                                        },
-                                        {
-                                            donut: true,
-                                            donutWidth: 4,
-                                            showLabel: false,
+                                <div
+                                    id="storage-{{ $server->slug }}" class="flex-shrink-0 w-8 h-8"
+                                    x-data="{
+                                        init() {
+                                            window.pulse.charts['storage-{{ $server->slug }}'] = new PieChart(
+                                                '#storage-{{ $server->slug }}',
+                                                {
+                                                    series: [
+                                                        { value: {{ $storage->total - $storage->used }}, className: 'stroke-purple-100', },
+                                                        { value: {{ $storage->used }}, className: 'stroke-purple-600' },
+                                                    ],
+                                                },
+                                                {
+                                                    donut: true,
+                                                    donutWidth: 4,
+                                                    showLabel: false,
+                                                }
+                                            )
                                         }
-                                    )
-
-                                    // TODO: Live update the chart
-                                </script>
-                                @endpush
+                                    }"
+                                ></div>
                             </div>
                         </div>
                     @endforeach
                 </div>
             @endforeach
         </div>
-    </div>
-@endif
+    @endif
+</div>

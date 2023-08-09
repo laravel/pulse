@@ -3,6 +3,8 @@
 namespace Laravel\Pulse\Http\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 
 trait HasPeriod
 {
@@ -11,24 +13,16 @@ trait HasPeriod
      *
      * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
      */
-    public ?string $period = null;
-
-    /**
-     * Initialize the trait.
-     */
-    public function initializeHasPeriod(): void
-    {
-        $this->listeners[] = 'periodChanged';
-
-        $this->period = (request()->query('period') ?: $this->period) ?: '1_hour';
-    }
+    #[Url]
+    public ?string $period = '1_hour';
 
     /**
      * Handle the periodChanged event.
      *
      * @param  '1_hour'|6_hours'|'24_hours'|'7_days'  $period
      */
-    public function periodChanged(string $period): void
+    #[On('period-changed')]
+    public function updatePeriod(string $period): void
     {
         $this->period = $period;
     }

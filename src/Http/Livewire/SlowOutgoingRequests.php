@@ -19,18 +19,23 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$slowOutgoingRequests, $time, $runAt] = $this->slowOutgoingRequests();
+
+        $this->dispatch('slow-outgoing-requests:dataLoaded');
 
         return view('pulse::livewire.slow-outgoing-requests', [
             'time' => $time,
             'runAt' => $runAt,
             'slowOutgoingRequests' => $slowOutgoingRequests,
-            'initialDataLoaded' => $slowOutgoingRequests !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -38,15 +43,7 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
      */
     protected function slowOutgoingRequests(): array
     {
-        return Cache::get("illuminate:pulse:slow-outgoing-requests:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -64,7 +61,5 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
 
             return [$slowOutgoingRequests, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('slow-outgoing-requests:dataLoaded');
     }
 }

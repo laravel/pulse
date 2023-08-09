@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Exceptions extends Component implements ShouldNotReportUsage
@@ -17,44 +18,33 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The view type
      *
-     * @var 'count'|'last_occurrence'|null
+     * @var 'count'|'last_occurrence'
      */
-    public ?string $orderBy = null;
-
-    /**
-     * The query string parameters.
-     *
-     * @var array
-     */
-    protected $queryString = [
-        'orderBy' => ['except' => 'count', 'as' => 'exceptions_by'],
-    ];
-
-    /**
-     * Handle the mount event.
-     */
-    public function mount(): void
-    {
-        $this->orderBy = $this->orderBy ?: 'count';
-    }
+    #[Url(as: 'exceptions_by')]
+    public string $orderBy = 'count';
 
     /**
      * Render the component.
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$exceptions, $time, $runAt] = $this->exceptions();
+
+        $this->dispatch('exceptions:dataLoaded');
 
         return view('pulse::livewire.exceptions', [
             'time' => $time,
             'runAt' => $runAt,
             'exceptions' => $exceptions,
-            'initialDataLoaded' => $exceptions !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -62,15 +52,7 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     protected function exceptions(): array
     {
-        return Cache::get("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -90,7 +72,5 @@ class Exceptions extends Component implements ShouldNotReportUsage
 
             return [$exceptions, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('exceptions:dataLoaded');
     }
 }

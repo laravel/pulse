@@ -12,31 +12,21 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
-        <script>
-            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
-        </script>
         <div x-data="{
-            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
                 Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
 
                 window.addEventListener('slow-routes:dataLoaded', () => {
-                    this.initialDataLoaded = true
                     this.loadingNewDataset = false
                 })
-
-                if (! this.initialDataLoaded) {
-                    @this.loadData()
-                }
             }
         }">
-            <x-pulse::loading-indicator x-cloak x-show="! initialDataLoaded" />
-            <div x-cloak x-show="initialDataLoaded">
+            <div>
                 <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    @if ($initialDataLoaded && count($slowRoutes) === 0)
+                    @if (count($slowRoutes) === 0)
                         <x-pulse::no-results />
-                    @elseif ($initialDataLoaded && count($slowRoutes) > 0)
+                    @else
                         <x-pulse::table>
                             <x-pulse::thead>
                                 <tr>

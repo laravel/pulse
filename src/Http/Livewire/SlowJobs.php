@@ -19,18 +19,23 @@ class SlowJobs extends Component implements ShouldNotReportUsage
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$slowJobs, $time, $runAt] = $this->slowJobs();
+
+        $this->dispatch('slow-jobs:dataLoaded');
 
         return view('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
             'slowJobs' => $slowJobs,
-            'initialDataLoaded' => $slowJobs !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -38,15 +43,7 @@ class SlowJobs extends Component implements ShouldNotReportUsage
      */
     protected function slowJobs(): array
     {
-        return Cache::get("illuminate:pulse:slow-jobs:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -64,7 +61,5 @@ class SlowJobs extends Component implements ShouldNotReportUsage
 
             return [$slowJobs, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('slow-jobs:dataLoaded');
     }
 }

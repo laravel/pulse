@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Usage extends Component implements ShouldNotReportUsage
@@ -25,26 +26,19 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * The usage type.
      *
-     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'|null
+     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'
      */
-    public ?string $usage = null;
+    #[Url]
+    public string $usage = 'request_counts';
 
     /**
-     * Handle the mount event.
+     * Get the type of usage to display.
+     *
+     * @return 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'
      */
-    public function mount(): void
+    public function getType(): string
     {
-        $this->usage = $this->type ?? ($this->usage ?: 'request_counts');
-    }
-
-    /**
-     * Handle the hydrate event.
-     */
-    public function hydrate()
-    {
-        if (! $this->type) {
-            $this->queryString['usage'] = ['except' => 'request_counts'];
-        }
+        return $this->type ?? $this->usage;
     }
 
     /**
@@ -52,18 +46,23 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$userRequestCounts, $time, $runAt] = $this->userRequestCounts();
+
+        $this->dispatch('usage:'.($this->type ? "{$this->type}:" : '').'dataLoaded');
 
         return view('pulse::livewire.usage', [
             'time' => $time,
             'runAt' => $runAt,
             'userRequestCounts' => $userRequestCounts,
-            'initialDataLoaded' => $userRequestCounts !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -71,21 +70,13 @@ class Usage extends Component implements ShouldNotReportUsage
      */
     protected function userRequestCounts(): array
     {
-        return Cache::get("illuminate:pulse:usage:{$this->usage}:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        Cache::remember("illuminate:pulse:usage:{$this->usage}:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:usage:{$this->getType()}:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
             $top10 = DB::query()
-                ->when($this->usage === 'dispatched_job_counts', function ($query) {
+                ->when($this->getType() === 'dispatched_job_counts', function ($query) {
                     $query->from('pulse_jobs');
                 }, function ($query) {
                     $query->from('pulse_requests');
@@ -93,7 +84,7 @@ class Usage extends Component implements ShouldNotReportUsage
                 ->selectRaw('user_id, COUNT(*) as count')
                 ->whereNotNull('user_id')
                 ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->when($this->usage === 'slow_endpoint_counts', fn ($query) => $query->where('duration', '>=', config('pulse.slow_endpoint_threshold')))
+                ->when($this->getType() === 'slow_endpoint_counts', fn ($query) => $query->where('duration', '>=', config('pulse.slow_endpoint_threshold')))
                 ->groupBy('user_id')
                 ->orderByDesc('count')
                 ->limit(10)
@@ -123,7 +114,5 @@ class Usage extends Component implements ShouldNotReportUsage
 
             return [$userRequestCounts, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('usage:'.($this->type ? "{$this->type}:" : '').'dataLoaded');
     }
 }
