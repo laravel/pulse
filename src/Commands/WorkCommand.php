@@ -37,13 +37,13 @@ class WorkCommand extends Command
         $lastTrimmedDatabaseAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
+            $now = new CarbonImmutable;
+
             if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
                 $this->comment('Pulse restart requested. Exiting at '.$now->toDateTimeString());
 
                 return self::SUCCESS;
             }
-
-            $now = new CarbonImmutable;
 
             if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {
                 $this->comment('Trimming the database at '.$now->toDateTimeString());
@@ -59,9 +59,9 @@ class WorkCommand extends Command
                 $this->comment('Queue finished processing. Sleeping at '.$now->toDateTimeString());
 
                 Sleep::for(1)->second();
+            } else {
+                $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());
             }
-
-            $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());
         }
     }
 }

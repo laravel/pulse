@@ -31,7 +31,7 @@ class RestartCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Redis $redisIngest, Database $databaseIngest): void
+    public function handle(): void
     {
         Cache::forever('illuminate:pulse:restart', $this->currentTime());
 

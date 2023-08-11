@@ -50,16 +50,16 @@ class Redis
     /**
      * Trim the stream.
      */
-    public function xtrim($key, $strategy, $stratgyModifier, $threshold)
+    public function xtrim($key, $strategy, $strategyModifier, $threshold)
     {
         $prefix = config('database.redis.options.prefix');
 
         if ($this->isPhpRedis()) {
             // PHP Redis does not support the minid strategy.
-            return $this->client()->rawCommand('XTRIM', $prefix.$key, $strategy, $stratgyModifier, $threshold);
+            return $this->client()->rawCommand('XTRIM', $prefix.$key, $strategy, $strategyModifier, $threshold);
         }
 
-        return $this->client()->xtrim($key, [$strategy, $stratgyModifier], $threshold);
+        return $this->client()->xtrim($key, [$strategy, $strategyModifier], $threshold);
     }
 
     /**
@@ -67,6 +67,7 @@ class Redis
      */
     public function pipeline(callable $closure): array
     {
+        // TODO explain this code - lol
         // ensure we run against a connection...
         return $this->connection->pipeline(function ($redis) use ($closure) {
             $closure(new self(client: $redis));
@@ -78,6 +79,7 @@ class Redis
      */
     public function streamIdAt(CarbonImmutable $timestamp): string
     {
+        // TODO: pass through intervals rather than date instances everywhere
         $diff = (new CarbonImmutable)->diffInMilliseconds($timestamp);
 
         $redisTime = $this->client()->time();

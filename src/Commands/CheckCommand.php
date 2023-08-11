@@ -76,6 +76,7 @@ class CheckCommand extends Command
                 ])->toJson(),
             ];
 
+            // TODO: do this via the injest
             DB::table('pulse_servers')->insert($stats);
 
             $this->line('<fg=gray>[system stats]</> '.json_encode($stats));
