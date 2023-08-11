@@ -2,6 +2,8 @@
 
 namespace Laravel\Pulse\Entries;
 
+use Illuminate\Database\Connection;
+
 class JobStarted extends Update
 {
     /**
@@ -17,9 +19,9 @@ class JobStarted extends Update
     /**
      * Perform the update.
      */
-    public function perform(): void
+    public function perform(Connection $db): void
     {
-        $this->query()
+        $db->table($this->table())
             ->where('job_id', $this->jobId)
             ->update([
                 'processing_started_at' => $this->startedAt,

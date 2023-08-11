@@ -6,7 +6,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
-use Laravel\Pulse\Ingests\Database;
+use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Ingests\Redis;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -30,7 +31,7 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Redis $redisIngest, Database $databaseIngest): int
+    public function handle(Ingest $ingest, Storage $storage): int
     {
         $lastRestart = Cache::get('illuminate:pulse:restart');
 
@@ -48,12 +49,12 @@ class WorkCommand extends Command
             if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {
                 $this->comment('Trimming the database at '.$now->toDateTimeString());
 
-                $databaseIngest->trim($now->subWeek());
+                $storage->trim($now->subWeek());
 
                 $lastTrimmedDatabaseAt = $now;
             }
 
-            $processed = $redisIngest->processEntries(1000);
+            $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {
                 $this->comment('Queue finished processing. Sleeping at '.$now->toDateTimeString());

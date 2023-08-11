@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Entries;
 
+use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,7 @@ abstract class Update
     /**
      * Perform the update.
      */
-    abstract public function perform(): void;
+    abstract public function perform(Connection $db): void;
 
     /**
      * Determine if the update is the given type.
@@ -31,13 +32,5 @@ abstract class Update
     public function type(): Type
     {
         return Type::from($this->table());
-    }
-
-    /**
-     * The table query.
-     */
-    protected function query(): Builder
-    {
-        return DB::table($this->table());
     }
 }

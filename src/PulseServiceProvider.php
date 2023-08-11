@@ -20,7 +20,9 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
@@ -40,6 +42,9 @@ use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\Usage;
 use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Ingests\Redis as RedisIngest;
+use Laravel\Pulse\Ingests\Storage as StorageIngest;
+use Laravel\Pulse\Storage\Database;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
 
@@ -54,9 +59,29 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(Pulse::class, fn ($app) => new Pulse($app[config('pulse.ingest')]));
+        $this->app->singleton(Pulse::class);
 
-        $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()));
+        $this->app->bind(Storage::class, function ($app) {
+            $driver = config('pulse.storage.driver');
+
+            $config = config("pulse.storage.{$driver}");
+
+            return new Database($config, $app['db']->connection($config['connection']));
+        });
+
+        $this->app->bind(Ingest::class, function ($app) {
+            $driver = config('pulse.ingest.driver');
+
+            if ($driver === 'storage') {
+                return $app[StorageIngest::class];
+            }
+
+            $config = config("pulse.ingest.{$driver}");
+
+            return new RedisIngest($config, $app['redis']->connection($config['connection']));
+        });
+
+        // $this->app->scoped(RedisIngest::class, fn () => new RedisIngest(app('redis')->connection()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'

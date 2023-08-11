@@ -136,16 +136,17 @@ class Pulse
      */
     public function store(): void
     {
-        $this->ingest->ingestSilently(
+        // TODO: logging? report?
+        rescue(fn () => $this->ingest->ingest(
             $this->entriesQueue, $this->updatesQueue,
-        );
-
-        $this->entriesQueue = $this->updatesQueue = [];
+        ), report: false);
 
         // TODO: lottery configuration?
-        Lottery::odds(1, 100)
-            ->winner(fn () => $this->ingest->trimSilently((new CarbonImmutable)->subWeek()))
-            ->choose();
+        rescue(fn () => Lottery::odds(1, 100)
+            ->winner(fn () => $this->ingest->trim((new CarbonImmutable)->subWeek()))
+            ->choose(), report: false);
+
+        $this->entriesQueue = $this->updatesQueue = [];
     }
 
     /**

@@ -7,12 +7,17 @@ use Carbon\CarbonImmutable;
 interface Ingest
 {
     /**
-     * Ingest the entries and updates without throwing exceptions.
+     * Ingest the entries and updates.
      */
-    public function ingestSilently(array $entries, array $updates): void;
+    public function ingest(array $entries, array $updates): void;
 
     /**
-     * Trim the ingest without throwing exceptions.
+     * Trim the ingested entries.
      */
-    public function trimSilently(CarbonImmutable $oldest): void;
+    public function trim(CarbonImmutable $oldest): void;
+
+    /**
+     * Store the ingested entries.
+     */
+    public function store(Storage $storage, int $count): int;
 }

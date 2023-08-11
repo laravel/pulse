@@ -17,8 +17,23 @@ return [
     // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
-    // 'ingest' => Laravel\Pulse\Ingests\Database::class,
-    'ingest' => Laravel\Pulse\Ingests\Redis::class,
+    'storage' => [
+        'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
+
+        'database' => [
+            'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+        ],
+    ],
+
+    'ingest' => [
+        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
+
+        'storage' => [],
+
+        'redis' => [
+            'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
+        ],
+    ],
 
     // TODO: filter configuration?
     // TODO: trim lottery configuration

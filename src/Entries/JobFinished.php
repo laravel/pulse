@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Entries;
 
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 
 class JobFinished extends Update
@@ -19,9 +20,9 @@ class JobFinished extends Update
     /**
      * Perform the update.
      */
-    public function perform(): void
+    public function perform(Connection $db): void
     {
-        $this->query()
+        $db->table($this->table())
             ->where('job_id', $this->jobId)
             ->update([
                 'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),

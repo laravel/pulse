@@ -4,8 +4,10 @@ namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Redis as RedisConnection;
+use Laravel\Pulse\Storage\Database;
 
 class Redis implements Ingest
 {
@@ -17,17 +19,9 @@ class Redis implements Ingest
     /**
      * Create a new Redis ingest instance.
      */
-    public function __construct(protected RedisConnection $connection, protected Database $db)
+    public function __construct(protected RedisConnection $connection)
     {
         //
-    }
-
-    /**
-     * Ingest the entries and updates without throwing exceptions.
-     */
-    public function ingestSilently(array $entries, array $updates): void
-    {
-        rescue(fn () => $this->ingest($entries, $updates), report: false);
     }
 
     /**
@@ -54,15 +48,7 @@ class Redis implements Ingest
     }
 
     /**
-     * Trim the ingest without throwing exceptions.
-     */
-    public function trimSilently(CarbonImmutable $oldest): void
-    {
-        rescue(fn () => $this->trim($oldest), report: false);
-    }
-
-    /**
-     * Trim the ingest.
+     * Trim the ingested entries.
      */
     public function trim(CarbonImmutable $oldest): void
     {
@@ -70,9 +56,9 @@ class Redis implements Ingest
     }
 
     /**
-     * Process the items on the Redis stream and persist in the database.
+     * Store the ingested entries.
      */
-    public function processEntries(int $count): int
+    public function store(Storage $storage, int $count): int
     {
         $entries = collect($this->connection->xrange($this->stream, '-', '+', $count));
 
@@ -93,7 +79,7 @@ class Redis implements Ingest
         $updates = $updates
             ->map(fn ($data): Update => unserialize($data['data']));
 
-        $this->db->ingest($inserts->all(), $updates->all());
+        $storage->store($inserts->all(), $updates->all());
 
         $this->connection->xdel($this->stream, $keys->all());
 
