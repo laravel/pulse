@@ -18,7 +18,7 @@ $supported = method_exists(Illuminate\Http\Client\Factory::class, 'globalMiddlew
         <div x-data="{
             loadingNewDataset: false,
             init() {
-                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+                Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
                 window.addEventListener('slow-outgoing-requests:dataLoaded', () => {
                     this.loadingNewDataset = false

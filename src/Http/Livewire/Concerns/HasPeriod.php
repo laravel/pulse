@@ -17,7 +17,7 @@ trait HasPeriod
     public ?string $period = '1_hour';
 
     /**
-     * Handle the periodChanged event.
+     * Handle the period-changed event.
      *
      * @param  '1_hour'|6_hours'|'24_hours'|'7_days'  $period
      */

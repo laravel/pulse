@@ -15,7 +15,7 @@
         <div x-data="{
             loadingNewDataset: false,
             init() {
-                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+                Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
                 window.addEventListener('slow-jobs:dataLoaded', () => {
                     this.loadingNewDataset = false
