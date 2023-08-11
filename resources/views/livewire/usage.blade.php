@@ -19,7 +19,7 @@
             @if (! $this->type)
                 <select
                     wire:model="usage"
-                    wire:change="$emit('usageChanged', $event.target.value)"
+                    wire:change="$dispatch('usage-changed', { usage: $event.target.value })"
                     class="rounded-md border-gray-200 text-gray-700 py-1 text-sm"
                 >
                     <option value="request_counts">
@@ -37,37 +37,29 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
-        <script>
-            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
-        </script>
-        <div x-data="{
-            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
-            loadingNewDataset: false,
-            init() {
-                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+        <div
+            x-data="{
+                loadingNewDataset: false,
+                init() {
+                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
-                @if (! $this->type)
-                    Livewire.on('usageChanged', () => (this.loadingNewDataset = true))
-                @endif
+                    @if (! $this->type)
+                        Livewire.on('usage-changed', () => (this.loadingNewDataset = true))
+                    @endif
 
-                window.addEventListener('usage{{ $this->type ? ":{$this->type}" : '' }}:dataLoaded', () => {
-                    this.initialDataLoaded = true
-                    this.loadingNewDataset = false
-                })
-
-                if (! this.initialDataLoaded) {
-                    @this.loadData()
+                    Livewire.on('usage{{ $this->type ? ":{$this->type}" : '' }}:dataLoaded', () => {
+                        this.loadingNewDataset = false
+                    })
                 }
-            }
-        }">
-            <x-pulse::loading-indicator x-cloak x-show="! initialDataLoaded"/>
-            <div x-cloak x-show="initialDataLoaded">
+            }"
+        >
+            <div>
                 <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    @if ($initialDataLoaded && count($userRequestCounts) === 0)
+                    @if (count($userRequestCounts) === 0)
                         <x-pulse::no-results />
-                    @elseif ($initialDataLoaded && count($userRequestCounts) > 0)
+                    @else
                         <div class="grid grid-cols-2 gap-2">
-                            @foreach ($userRequestCounts ?? [] as $userRequestCount)
+                            @foreach ($userRequestCounts as $userRequestCount)
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
                                     <div>
                                         <div class="text-sm text-gray-900 font-medium">

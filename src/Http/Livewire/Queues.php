@@ -9,6 +9,9 @@ use Livewire\Component;
 
 class Queues extends Component implements ShouldNotReportUsage
 {
+    /**
+     * Render the component.
+     */
     public function render(): Renderable
     {
         return view('pulse::livewire.queues', [
@@ -18,5 +21,13 @@ class Queues extends Component implements ShouldNotReportUsage
                 'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === $queue)->count(),
             ]),
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 }

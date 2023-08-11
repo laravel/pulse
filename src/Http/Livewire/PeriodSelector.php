@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Http\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class PeriodSelector extends Component implements ShouldNotReportUsage
@@ -13,16 +14,8 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
      *
      * @var '1_hour'|'6_hours'|'24_hours'|'7_days'
      */
+    #[Url]
     public string $period = '1_hour';
-
-    /**
-     * The query string parameters.
-     *
-     * @var array
-     */
-    protected $queryString = [
-        'period' => ['except' => '1_hour'],
-    ];
 
     /**
      * Render the component.
@@ -39,6 +32,6 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
     {
         $this->period = $period;
 
-        $this->emit('periodChanged', $period);
+        $this->dispatch('period-changed', period: $period);
     }
 }

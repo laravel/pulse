@@ -28,12 +28,20 @@ class Servers extends Component implements ShouldNotReportUsage
         $servers = $this->servers();
 
         if (request()->hasHeader('X-Livewire')) {
-            $this->emit('chartUpdate', $servers);
+            $this->dispatch('chartUpdate', servers: $servers);
         }
 
         return view('pulse::livewire.servers', [
             'servers' => $servers,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-6']);
     }
 
     /**

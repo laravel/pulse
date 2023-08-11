@@ -19,18 +19,23 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      */
     public function render(): Renderable
     {
-        if (request()->hasHeader('X-Livewire')) {
-            $this->loadData();
-        }
-
         [$slowQueries, $time, $runAt] = $this->slowQueries();
+
+        $this->dispatch('slow-queries:dataLoaded');
 
         return view('pulse::livewire.slow-queries', [
             'time' => $time,
             'runAt' => $runAt,
             'slowQueries' => $slowQueries,
-            'initialDataLoaded' => $slowQueries !== null,
         ]);
+    }
+
+    /**
+     * Render the placeholder.
+     */
+    public function placeholder()
+    {
+        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -38,15 +43,7 @@ class SlowQueries extends Component implements ShouldNotReportUsage
      */
     protected function slowQueries(): array
     {
-        return Cache::get("illuminate:pulse:slow-queries:{$this->period}") ?? [null, 0, null];
-    }
-
-    /**
-     * Load the data for the component.
-     */
-    public function loadData(): void
-    {
-        Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -64,7 +61,5 @@ class SlowQueries extends Component implements ShouldNotReportUsage
 
             return [$slowQueries, $time, $now->toDateTimeString()];
         });
-
-        $this->dispatchBrowserEvent('slow-queries:dataLoaded');
     }
 }

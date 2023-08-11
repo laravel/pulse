@@ -12,94 +12,82 @@
     </x-slot:title>
 
     <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
-        <script>
-            window.pulse.initialDataLoaded[@js($this->id)] = @js($initialDataLoaded)
-        </script>
         <div x-data="{
-            initialDataLoaded: window.pulse.initialDataLoaded[@js($this->id)],
             loadingNewDataset: false,
             init() {
-                Livewire.on('periodChanged', () => (this.loadingNewDataset = true))
+                Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
                 window.addEventListener('cache:dataLoaded', () => {
-                    this.initialDataLoaded = true
                     this.loadingNewDataset = false
                 })
-
-                if (! this.initialDataLoaded) {
-                    @this.loadData()
-                }
             }
         }">
-            <x-pulse::loading-indicator x-cloak x-show="! initialDataLoaded" />
-            <div x-cloak x-show="initialDataLoaded" :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']">
-                @if ($initialDataLoaded)
-                    <div class="grid grid-cols-3 text-center">
-                        <div>
-                            <span class="text-xl uppercase font-bold text-gray-700">
-                                {{ number_format($allCacheInteractions->hits) }}
-                            </span>
-                            <span class="text-xs uppercase font-bold text-gray-500">
-                                Hits
-                            </span>
-                        </div>
-                        <div>
-                            <span class="text-xl uppercase font-bold text-gray-700">
-                                {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
-                            </span>
-                            <span class="text-xs uppercase font-bold text-gray-500">
-                                Misses
-                            </span>
-                        </div>
-                        <div>
-                            <span class="text-xl uppercase font-bold text-gray-700">
-                                {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
-                            </span>
-                            <span class="text-xs uppercase font-bold text-gray-500">
-                                Hit Rate
-                            </span>
+            <div :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']">
+                <div class="grid grid-cols-3 text-center">
+                    <div>
+                        <span class="text-xl uppercase font-bold text-gray-700">
+                            {{ number_format($allCacheInteractions->hits) }}
+                        </span>
+                        <span class="text-xs uppercase font-bold text-gray-500">
+                            Hits
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-xl uppercase font-bold text-gray-700">
+                            {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
+                        </span>
+                        <span class="text-xs uppercase font-bold text-gray-500">
+                            Misses
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-xl uppercase font-bold text-gray-700">
+                            {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
+                        </span>
+                        <span class="text-xs uppercase font-bold text-gray-500">
+                            Hit Rate
+                        </span>
+                    </div>
+                </div>
+                @if ($monitoredCacheInteractions === [])
+                    <div class="flex flex-col items-center justify-center p-4 py-6">
+                        <div class="bg-gray-50 rounded-full text-xs leading-none px-2 py-1 text-gray-500">
+                            No keys configured to monitor
                         </div>
                     </div>
-                    @if ($monitoredCacheInteractions === [])
-                        <div class="flex flex-col items-center justify-center p-4 py-6">
-                            <div class="bg-gray-50 rounded-full text-xs leading-none px-2 py-1 text-gray-500">
-                                No keys configured to monitor
-                            </div>
-                        </div>
 
-                        <div class="flex h-32 items-center text-center text-"></div>
-                    @else
-                        <x-pulse::table>
-                            <x-pulse::thead>
+                    <div class="flex h-32 items-center text-center text-"></div>
+                @else
+                    <x-pulse::table>
+                        <x-pulse::thead>
+                            <tr>
+                                <x-pulse::th class="w-full text-left">Name</x-pulse::th>
+                                <x-pulse::th class="text-right">Hits</x-pulse::th>
+                                <x-pulse::th class="text-right">Misses</x-pulse::th>
+                                <x-pulse::th class="text-right whitespace-nowrap">Hit Rate</x-pulse::th>
+                            </tr>
+                        </x-pulse::thead>
+                        <tbody>
+                            @foreach ($monitoredCacheInteractions as $interaction)
                                 <tr>
-                                    <x-pulse::th class="w-full text-left">Name</x-pulse::th>
-                                    <x-pulse::th class="text-right">Hits</x-pulse::th>
-                                    <x-pulse::th class="text-right">Misses</x-pulse::th>
-                                    <x-pulse::th class="text-right whitespace-nowrap">Hit Rate</x-pulse::th>
+                                    <x-pulse::td>
+                                        <code class="block text-xs text-gray-900">
+                                            {{ $interaction->key }}
+                                        </code>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 text-sm">
+                                        <strong>{{ number_format($interaction->hits) }}</strong>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                        <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                        <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
+                                    </x-pulse::td>
                                 </tr>
-                            </x-pulse::thead>
-                            <tbody>
-                                @foreach ($monitoredCacheInteractions as $interaction)
-                                    <tr>
-                                        <x-pulse::td>
-                                            <code class="block text-xs text-gray-900">
-                                                {{ $interaction->key }}
-                                            </code>
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm">
-                                            <strong>{{ number_format($interaction->hits) }}</strong>
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
-                                            <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
-                                            <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
-                                        </x-pulse::td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </x-pulse::table>
-                    @endif
+                            @endforeach
+                        </tbody>
+                    </x-pulse::table>
                 @endif
             </div>
         </div>
