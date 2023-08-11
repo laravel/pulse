@@ -7,7 +7,6 @@ use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Redis as RedisConnection;
-use Laravel\Pulse\Storage\Database;
 
 class Redis implements Ingest
 {

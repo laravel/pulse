@@ -3,10 +3,8 @@
 namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage as StorageContract;
-use Laravel\Pulse\Entries\Type;
 use RuntimeException;
 
 class Storage implements Ingest

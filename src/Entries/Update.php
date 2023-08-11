@@ -3,8 +3,6 @@
 namespace Laravel\Pulse\Entries;
 
 use Illuminate\Database\Connection;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
 
 abstract class Update
 {

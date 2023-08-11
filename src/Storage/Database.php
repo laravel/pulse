@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Connection;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Type;
