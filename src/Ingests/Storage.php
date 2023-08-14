@@ -10,6 +10,9 @@ use RuntimeException;
 
 class Storage implements Ingest
 {
+    /**
+     * Create a new Storage Ingest instance.
+     */
     public function __construct(protected StorageContract $storage)
     {
         //
@@ -17,6 +20,9 @@ class Storage implements Ingest
 
     /**
      * Ingest the entries and updates.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
      */
     public function ingest(Collection $entries, Collection $updates): void
     {

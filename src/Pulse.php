@@ -46,7 +46,7 @@ class Pulse
     /**
      * Users resolver.
      *
-     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string}>)|null
+     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string|null}>)|null
      */
     protected $usersResolver;
 

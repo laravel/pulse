@@ -17,6 +17,8 @@ enum Type: string
 
     /**
      * Get all cases as a Collection.
+     *
+     * @return \Illuminate\Support\Collection<int, self>
      */
     public static function all(): Collection
     {

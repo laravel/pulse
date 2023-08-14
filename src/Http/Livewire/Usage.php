@@ -102,7 +102,7 @@ class Usage extends Component implements ShouldNotReportUsage
                             'name' => $user['name'],
                             // "extra" rather than 'email'
                             // avatar for pretty-ness?
-                            'email' => $user['email'],
+                            'email' => $user['email'] ?? null,
                         ],
                     ] : null;
                 })

@@ -6,6 +6,8 @@ class Entry
 {
     /**
      * Create a new Entry instance.
+     *
+     * @param  array<string, mixed>  $attributes
      */
     public function __construct(public string $table, public array $attributes)
     {

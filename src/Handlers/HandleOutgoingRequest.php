@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -14,6 +15,8 @@ class HandleOutgoingRequest
 {
     /**
      * Invoke the middleware.
+     *
+     * @param  (callable(\Psr\Http\Message\RequestInterface, array): PromiseInterface)  $handler
      */
     public function __invoke(callable $handler)
     {

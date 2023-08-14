@@ -19,6 +19,8 @@ class Redis implements Ingest
 
     /**
      * Create a new Redis Ingest instance.
+     *
+     * @param  array<string, mixed>  $config
      */
     public function __construct(protected array $config, protected RedisConnection $connection)
     {
@@ -27,6 +29,9 @@ class Redis implements Ingest
 
     /**
      * Ingest the entries and updates.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
      */
     public function ingest(Collection $entries, Collection $updates): void
     {

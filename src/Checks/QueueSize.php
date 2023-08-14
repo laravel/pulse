@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Queue;
 
 class QueueSize
 {
+    /**
+     * Resolve the queue size.
+     */
     public function __invoke(): Collection
     {
         return collect(Config::get('pulse.queues'))->map(fn ($queue) => [

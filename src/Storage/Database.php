@@ -12,6 +12,11 @@ use Laravel\Pulse\Entries\Type;
 
 class Database implements Storage
 {
+    /**
+     * Create a new Database Storage instance.
+     *
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(protected array $config, protected DatabaseManager $manager)
     {
         //
@@ -19,6 +24,9 @@ class Database implements Storage
 
     /**
      * Store the entries and updates.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
      */
     public function store(Collection $entries, Collection $updates): void
     {
@@ -31,7 +39,7 @@ class Database implements Storage
                 ->map(fn ($inserts) => $inserts->pluck('attributes')->all())
                 ->each($this->connection()->table($table)->insert(...)));
 
-            $updates->each(fn ($update) => $update->perform($db));
+            $updates->each(fn ($update) => $update->perform($this->connection()));
         });
     }
 
@@ -45,6 +53,9 @@ class Database implements Storage
             ->delete());
     }
 
+    /**
+     * Get the database connection.
+     */
     protected function connection(): Connection
     {
         return $this->manager->connection($this->config['connection']);

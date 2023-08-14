@@ -7,6 +7,9 @@ use RuntimeException;
 
 class SystemStats
 {
+    /**
+     * Resolve the systems stats.
+     */
     public function __invoke(): array
     {
         return [
