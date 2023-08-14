@@ -11,8 +11,6 @@ use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Handlers\HandleSystemStats;
-use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:check')]
@@ -43,8 +41,7 @@ class CheckCommand extends Command
     public function handle(
         SystemStats $systemStats,
         QueueSize $queueSize,
-    ): int
-    {
+    ): int {
         $lastRestart = Cache::get('illuminate:pulse:restart');
 
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);

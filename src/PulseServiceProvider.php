@@ -80,7 +80,7 @@ class PulseServiceProvider extends ServiceProvider
             $ingestConfig = Config::get("pulse.ingest.{$driver}");
 
             $redisConfig = [
-                ...Config::get("database.redis.options"),
+                ...Config::get('database.redis.options'),
                 ...Config::get("database.redis.{$ingestConfig['connection']}"),
                 ...$ingestConfig,
             ];

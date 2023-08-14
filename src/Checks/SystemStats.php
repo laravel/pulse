@@ -2,9 +2,7 @@
 
 namespace Laravel\Pulse\Checks;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Config;
-use Laravel\Pulse\Facades\Pulse;
 use RuntimeException;
 
 class SystemStats
