@@ -25,7 +25,6 @@
         "nesbot/carbon": "^2.67"
     },
     "require-dev": {
-        "laravel/facade-documenter": "dev-main",
         "mockery/mockery": "^1.0",
         "orchestra/testbench": "^8.0",
         "pestphp/pest": "^2.0",
@@ -65,11 +64,5 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "repositories": {
-        "facade-documenter": {
-            "type": "vcs",
-            "url": "git@github.com:laravel-labs/facade-documenter.git"
-        }
-    }
+    "prefer-stable": true
 }
