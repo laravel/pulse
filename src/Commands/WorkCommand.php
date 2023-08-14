@@ -35,30 +35,26 @@ class WorkCommand extends Command
     {
         $lastRestart = Cache::get('illuminate:pulse:restart');
 
-        $lastTrimmedDatabaseAt = (new CarbonImmutable)->startOfMinute();
+        $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
             $now = new CarbonImmutable;
 
             if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
-                $this->comment('Pulse restart requested. Exiting at '.$now->toDateTimeString());
-
                 return self::SUCCESS;
             }
 
-            if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {
-                $this->comment('Trimming the database at '.$now->toDateTimeString());
-
+            if ($now->subMinute()->greaterThan($lastTrimmedStorageAt)) {
                 $storage->retain(Interval::week());
 
-                $lastTrimmedDatabaseAt = $now;
+                $lastTrimmedStorageAt = $now;
+
+                $this->comment('Storage trimmed');
             }
 
             $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {
-                $this->comment('Queue finished processing. Sleeping at '.$now->toDateTimeString());
-
                 Sleep::for(1)->second();
             } else {
                 $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());

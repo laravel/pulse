@@ -50,11 +50,11 @@ class CheckCommand extends Command
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);
 
         while (true) {
+            $now = new CarbonImmutable();
+
             if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
                 return self::SUCCESS;
             }
-
-            $now = new CarbonImmutable();
 
             if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
                 Sleep::for(1)->second();
@@ -64,18 +64,19 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds($this->interval);
 
-            // TODO option to allow only server size stats to be collected.
-            // Needed for Vapor.
+            /*
+             * Collect server stats.
+             */
 
             Pulse::record(new Entry('pulse_servers', [
                 'date' => $lastSnapshotAt->toDateTimeString(),
                 ...$stats = $systemStats(),
             ]));
 
-            $this->line('<fg=gray>[system stats]</> '.json_encode($stats));
+            $this->line('<fg=gray>[system stats]</> '.json_encode($stats, flags: JSON_THROW_ON_ERROR));
 
             /*
-             * Check queue sizes.
+             * Collect queue sizes.
              */
 
             if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
@@ -90,5 +91,4 @@ class CheckCommand extends Command
             Pulse::store();
         }
     }
-
 }
