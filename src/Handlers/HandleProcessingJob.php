@@ -14,13 +14,13 @@ class HandleProcessingJob
      */
     public function __invoke(JobProcessing $event): void
     {
-        rescue(function () use ($event) {
+        Pulse::rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
             Pulse::recordUpdate(new JobStarted(
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));
-        }, report: false);
+        });
     }
 }

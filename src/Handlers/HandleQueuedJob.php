@@ -15,7 +15,7 @@ class HandleQueuedJob
      */
     public function __invoke(JobQueued $event): void
     {
-        rescue(function () use ($event) {
+        Pulse::rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
             Pulse::record(new Entry('pulse_jobs', [
@@ -26,6 +26,6 @@ class HandleQueuedJob
                     : $event->job::class,
                 'job_id' => $event->id,
             ]));
-        }, report: false);
+        });
     }
 }

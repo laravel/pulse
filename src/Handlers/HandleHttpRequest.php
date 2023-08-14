@@ -17,7 +17,7 @@ class HandleHttpRequest
      */
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
-        rescue(function () use ($startedAt, $request) {
+        Pulse::rescue(function () use ($startedAt, $request) {
             $now = new CarbonImmutable();
 
             Pulse::record(new Entry('pulse_requests', [
@@ -26,6 +26,6 @@ class HandleHttpRequest
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),
             ]));
-        }, report: false);
+        });
     }
 }

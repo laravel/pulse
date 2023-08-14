@@ -16,7 +16,7 @@ class HandleCacheInteraction
      */
     public function __invoke(CacheHit|CacheMissed $event): void
     {
-        rescue(function () use ($event) {
+        Pulse::rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
             if (str_starts_with($event->key, 'illuminate:')) {
@@ -29,6 +29,6 @@ class HandleCacheInteraction
                 'key' => $event->key,
                 'user_id' => Auth::id(),
             ]));
-        }, report: false);
+        });
     }
 }

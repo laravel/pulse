@@ -2,9 +2,11 @@
 
 namespace Laravel\Pulse\Ingests;
 
-use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval as Interval;
+use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Redis as RedisConnection;
 
@@ -16,9 +18,9 @@ class Redis implements Ingest
     protected string $stream = 'illuminate:pulse:entries';
 
     /**
-     * Create a new Redis ingest instance.
+     * Create a new Redis Ingest instance.
      */
-    public function __construct(protected RedisConnection $connection)
+    public function __construct(protected array $config, protected RedisConnection $connection)
     {
         //
     }
@@ -26,20 +28,20 @@ class Redis implements Ingest
     /**
      * Ingest the entries and updates.
      */
-    public function ingest(array $entries, array $updates): void
+    public function ingest(Collection $entries, Collection $updates): void
     {
-        if ($entries === [] && $updates === []) {
+        if ($entries->isEmpty() && $updates->isEmpty()) {
             return;
         }
 
         $this->connection->pipeline(function (RedisConnection $pipeline) use ($entries, $updates) {
-            collect($entries)->each(fn ($rows, $table) => collect($rows)
-                ->each(fn ($data) => $pipeline->xadd($this->stream, [
+            $entries->groupBy('table')
+                ->each(fn ($rows, $table) => $rows->each(fn ($data) => $pipeline->xadd($this->stream, [
                     'type' => $table,
                     'data' => json_encode($data),
                 ])));
 
-            collect($updates)->each(fn ($update) => $pipeline->xadd($this->stream, [
+            $updates->each(fn ($update) => $pipeline->xadd($this->stream, [
                 'type' => 'pulse_update',
                 'data' => serialize($update),
             ]));
@@ -49,9 +51,9 @@ class Redis implements Ingest
     /**
      * Trim the ingested entries.
      */
-    public function trim(CarbonImmutable $oldest): void
+    public function retain(Interval $interval): void
     {
-        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($oldest));
+        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($interval->copy()->invert()));
     }
 
     /**
@@ -71,14 +73,11 @@ class Redis implements Ingest
             ->values()
             ->partition(fn ($entry) => $entry['type'] !== 'pulse_update');
 
-        $inserts = $inserts
-            ->groupBy('type')
-            ->map->map(fn ($data): array => json_decode($data['data'], true));
+        $inserts = $inserts->map(fn ($data): Entry => new Entry($data['type'], json_decode($data['data'], true)));
 
-        $updates = $updates
-            ->map(fn ($data): Update => unserialize($data['data']));
+        $updates = $updates->map(fn ($data): Update => unserialize($data['data']));
 
-        $storage->store($inserts->all(), $updates->all());
+        $storage->store($inserts, $updates);
 
         $this->connection->xdel($this->stream, $keys->all());
 

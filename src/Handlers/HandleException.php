@@ -16,7 +16,7 @@ class HandleException
      */
     public function __invoke(Throwable $e): void
     {
-        rescue(function () use ($e) {
+        Pulse::rescue(function () use ($e) {
             $now = new CarbonImmutable();
 
             Pulse::record(new Entry('pulse_exceptions', [
@@ -25,7 +25,7 @@ class HandleException
                 'class' => $e::class,
                 'location' => $this->getLocation($e),
             ]));
-        }, report: false);
+        });
     }
 
     /**

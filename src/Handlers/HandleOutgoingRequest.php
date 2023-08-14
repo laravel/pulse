@@ -10,7 +10,7 @@ use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Facades\Pulse;
 use Psr\Http\Message\RequestInterface;
 
-class HttpRequestMiddleware
+class HandleOutgoingRequest
 {
     /**
      * Invoke the middleware.
@@ -21,11 +21,11 @@ class HttpRequestMiddleware
             $startedAt = new CarbonImmutable;
 
             return $handler($request, $options)->then(function ($response) use ($request, $startedAt) {
-                rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable), report: false);
+                Pulse::rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
 
                 return $response;
             }, function ($exception) use ($request, $startedAt) {
-                rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable), report: false);
+                Pulse::rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
 
                 return new RejectedPromise($exception);
             });

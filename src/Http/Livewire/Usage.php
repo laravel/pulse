@@ -99,10 +99,10 @@ class Usage extends Component implements ShouldNotReportUsage
                     return $user ? [
                         'count' => $row->count,
                         'user' => [
-                            'name' => $user['name'] ?? 'User: '.$user['id'],
+                            'name' => $user['name'],
                             // "extra" rather than 'email'
                             // avatar for pretty-ness?
-                            'email' => $user['email'] ?? null,
+                            'email' => $user['email'],
                         ],
                     ] : null;
                 })

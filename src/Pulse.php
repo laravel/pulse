@@ -11,45 +11,63 @@ use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
+use Throwable;
 
 class Pulse
 {
     use ListensForStorageOpportunities;
 
     /**
-     * The callback that should be used to authenticate Pulse users.
-     */
-    public ?Closure $authUsing = null;
-
-    /**
-     * Indicates if Pulse migrations will be run.
-     */
-    public bool $runsMigrations = true;
-
-    /**
      * The list of queued entries to be stored.
+     *
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>
      */
-    public array $entriesQueue = [];
+    protected Collection $entriesQueue;
 
     /**
      * The list of queued entry updates.
+     *
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>
      */
-    public array $updatesQueue = [];
+    protected Collection $updatesQueue;
 
     /**
      * Indicates if Pulse should record entries.
      */
-    public bool $shouldRecord = true;
-
-    /**
-     * Users resolver.
-     */
-    public ?Closure $usersResolver = null;
+    protected bool $shouldRecord = true;
 
     /**
      * The entry filters.
+     *
+     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update): bool)>
      */
-    public Collection $filters;
+    protected Collection $filters;
+
+    /**
+     * Users resolver.
+     *
+     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string}>)|null
+     */
+    protected $usersResolver;
+
+    /**
+     * The callback that should be used to authenticate Pulse users.
+     *
+     * @var (callable(\Illuminate\Http\Request): bool)|null
+     */
+    protected $authUsing = null;
+
+    /**
+     * Indicates if Pulse migrations will be run.
+     */
+    protected bool $runsMigrations = true;
+
+    /**
+     * Handle exceptions using the given callback.
+     *
+     * @var (callable(\Throwable): mixed)|null
+     */
+    protected $handleExceptionsUsing = null;
 
     /**
      * Create a new Pulse instance.
@@ -57,6 +75,8 @@ class Pulse
     public function __construct(protected Ingest $ingest)
     {
         $this->filters = collect([]);
+
+        $this->clearQueue();
     }
 
     /**
@@ -71,8 +91,10 @@ class Pulse
 
     /**
      * Filter incoming entries using the provided filter.
+     *
+     * @param  (callable(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update): bool)  $filter
      */
-    public function filter(callable $filter)
+    public function filter(callable $filter): self
     {
         $this->filters[] = $filter;
 
@@ -80,9 +102,65 @@ class Pulse
     }
 
     /**
+     * Record the given entry.
+     */
+    public function record(Entry $entry): self
+    {
+        if ($this->shouldRecord) {
+            $this->entriesQueue[] = $entry;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Record the given entry update.
+     */
+    public function recordUpdate(Update $update): self
+    {
+        if ($this->shouldRecord) {
+            $this->updatesQueue[] = $update;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Store the queued entries and flush the queue.
+     */
+    public function store(): self
+    {
+        if (! $this->shouldRecord) {
+            return $this->clearQueue();
+        }
+
+        // TODO: logging? report? We should have a "handlePulseExceptionsUsing"
+        // and allow user-land control, but by default we just ignore.
+        $this->rescue(fn () => $this->ingest->ingest(
+            $this->entriesQueue->filter($this->shouldRecord(...)),
+            $this->updatesQueue->filter($this->shouldRecord(...)),
+        ));
+
+        // TODO: lottery configuration?
+        $this->rescue(fn () => Lottery::odds(1, 100)
+            ->winner(fn () => $this->ingest->retain((new CarbonImmutable)->subWeek()))
+            ->choose());
+
+        return $this->clearQueue();
+    }
+
+    /**
+     * Determine if the entry should be recorded.
+     */
+    protected function shouldRecord(Entry|Update $entry): bool
+    {
+        return $this->filters->every(fn (callable $filter) => $filter($entry));
+    }
+
+    /**
      * Resolve the user's details using the given closure.
      */
-    public function resolveUsersUsing($callback): self
+    public function resolveUsersUsing(callable $callback): self
     {
         $this->usersResolver = $callback;
 
@@ -99,54 +177,14 @@ class Pulse
         }
 
         if (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::findMany($ids);
+            return \App\Models\User::whereKey($ids)->get(['name', 'email']);
         }
 
         if (class_exists(\App\User::class)) {
-            return \App\User::findMany($ids);
+            return \App\User::whereKey($ids)->get(['name', 'email']);
         }
 
-        return $ids->map(fn ($id) => [
-            'id' => $id,
-        ]);
-    }
-
-    /**
-     * Record the given entry.
-     */
-    public function record(Entry $entry): void
-    {
-        if ($this->shouldRecord($entry)) {
-            $this->entriesQueue[$entry->table][] = $entry->attributes;
-        }
-    }
-
-    /**
-     * Record the given entry update.
-     */
-    public function recordUpdate(Update $update): void
-    {
-        if ($this->shouldRecord($update)) {
-            $this->updatesQueue[] = $update;
-        }
-    }
-
-    /**
-     * Store the queued entries and flush the queue.
-     */
-    public function store(): void
-    {
-        // TODO: logging? report?
-        rescue(fn () => $this->ingest->ingest(
-            $this->entriesQueue, $this->updatesQueue,
-        ), report: false);
-
-        // TODO: lottery configuration?
-        rescue(fn () => Lottery::odds(1, 100)
-            ->winner(fn () => $this->ingest->trim((new CarbonImmutable)->subWeek()))
-            ->choose(), report: false);
-
-        $this->entriesQueue = $this->updatesQueue = [];
+        return $ids->map(fn ($id) => ['name' => "User ID: {$id}"]);
     }
 
     /**
@@ -170,15 +208,15 @@ class Pulse
      */
     public function check(Request $request): bool
     {
-        return ($this->authUsing ?: function () {
-            return App::environment('local');
-        })($request);
+        return ($this->authUsing ?: fn () => App::environment('local'))($request);
     }
 
     /**
      * Set the callback that should be used to authorize Pulse users.
+     *
+     * @param  (callable(\Illuminate\Http\Request): bool)  $callback
      */
-    public function auth(Closure $callback): self
+    public function auth(callable $callback): self
     {
         $this->authUsing = $callback;
 
@@ -204,10 +242,40 @@ class Pulse
     }
 
     /**
-     * Determine if the entry should be recorded.
+     * Handle exceptions using the given callback.
+     *
+     * @param  (callable(\Throwable): mixed)  $callback
      */
-    protected function shouldRecord(Entry|Update $entry): bool
+    public function handleExceptionsUsing(callable $callback): self
     {
-        return $this->shouldRecord && $this->filters->every(fn (callable $filter) => $filter($entry));
+        $this->handleExceptionsUsing = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Execute the given callback handling any exceptions.
+     *
+     * @param  (callable(): mixed)  $callback
+     */
+    public function rescue(callable $callback): void
+    {
+        try {
+            $callback();
+        } catch (Throwable $e) {
+            ($this->handleExceptionsUsing)($e);
+        }
+    }
+
+    /**
+     * Clear any pending entries on the queue.
+     */
+    protected function clearQueue(): self
+    {
+        $this->entriesQueue = collect([]);
+
+        $this->updatesQueue = collect([]);
+
+        return $this;
     }
 }

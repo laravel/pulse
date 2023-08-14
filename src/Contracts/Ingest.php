@@ -2,19 +2,23 @@
 
 namespace Laravel\Pulse\Contracts;
 
-use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval as Interval;
+use Illuminate\Support\Collection;
 
 interface Ingest
 {
     /**
      * Ingest the entries and updates.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
      */
-    public function ingest(array $entries, array $updates): void;
+    public function ingest(Collection $entries, Collection $updates): void;
 
     /**
-     * Trim the ingested entries.
+     * Retain the ingested entries only for the given interval.
      */
-    public function trim(CarbonImmutable $oldest): void;
+    public function retain(Interval $interval): void;
 
     /**
      * Store the ingested entries.

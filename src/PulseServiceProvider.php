@@ -13,6 +13,7 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -26,11 +27,11 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
+use Laravel\Pulse\Handlers\HandleOutgoingRequest;
 use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
-use Laravel\Pulse\Handlers\HttpRequestMiddleware;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
@@ -61,27 +62,31 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->singleton(Pulse::class);
 
-        $this->app->bind(Storage::class, function ($app) {
-            $driver = config('pulse.storage.driver');
+        $this->app->singleton(Storage::class, function ($app) {
+            $driver = Config::get('pulse.storage.driver');
 
-            $config = config("pulse.storage.{$driver}");
+            $config = Config::get("pulse.storage.{$driver}");
 
-            return new Database($config, $app['db']->connection($config['connection']));
+            return new Database($config, $app['db']);
         });
 
-        $this->app->bind(Ingest::class, function ($app) {
-            $driver = config('pulse.ingest.driver');
+        $this->app->singleton(Ingest::class, function ($app) {
+            $driver = Config::get('pulse.ingest.driver');
 
             if ($driver === 'storage') {
                 return $app[StorageIngest::class];
             }
 
-            $config = config("pulse.ingest.{$driver}");
+            $ingestConfig = Config::get("pulse.ingest.{$driver}");
 
-            return new RedisIngest($config, $app['redis']->connection($config['connection']));
+            $redisConfig = [
+                ...Config::get("database.redis.options"),
+                ...Config::get("database.redis.{$ingestConfig['connection']}"),
+                ...$ingestConfig,
+            ];
+
+            return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
         });
-
-        // $this->app->scoped(RedisIngest::class, fn () => new RedisIngest(app('redis')->connection()));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -140,7 +145,7 @@ class PulseServiceProvider extends ServiceProvider
         ], HandleProcessedJob::class);
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
-            Http::globalMiddleware(new HttpRequestMiddleware);
+            Http::globalMiddleware(new HandleOutgoingRequest);
         }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
@@ -154,17 +159,14 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerRoutes(): void
     {
         Route::group([
-            'domain' => config('pulse.domain', null),
-            'middleware' => config('pulse.middleware', 'web'),
-            'namespace' => 'Laravel\Pulse\Http\Controllers',
-            'prefix' => config('pulse.path'),
-        ], function () {
-            Route::get('/', function (Pulse $pulse) {
-                $pulse->shouldRecord = false;
+            'domain' => Config::get('pulse.domain', null),
+            'middleware' => Config::get('pulse.middleware', 'web'),
+            'prefix' => Config::get('pulse.path'),
+        ], fn () => Route::get('/', function (Pulse $pulse) {
+            $pulse->shouldNotRecord();
 
-                return view('pulse::dashboard');
-            });
-        });
+            return view('pulse::dashboard');
+        }));
     }
 
     /**

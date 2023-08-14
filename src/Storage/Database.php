@@ -3,14 +3,16 @@
 namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval as Interval;
 use Illuminate\Database\Connection;
-use Laravel\Pulse\Contracts\Ingest;
+use Illuminate\Database\DatabaseManager;
+use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Type;
 
 class Database implements Storage
 {
-    public function __construct(protected array $config, protected Connection $db)
+    public function __construct(protected array $config, protected DatabaseManager $manager)
     {
         //
     }
@@ -18,29 +20,33 @@ class Database implements Storage
     /**
      * Store the entries and updates.
      */
-    public function store(array $entries, array $updates): void
+    public function store(Collection $entries, Collection $updates): void
     {
-        if ($entries === [] && $updates === []) {
+        if ($entries->isEmpty() && $updates->isEmpty()) {
             return;
         }
 
-        $this->db->transaction(function () use ($entries, $updates) {
-            collect($entries)->each(fn ($rows, $table) => collect($rows)
-                ->chunk(1000)
-                ->map->all()
-                ->each($this->db->table($table)->insert(...)));
+        $this->connection()->transaction(function () use ($entries, $updates) {
+            $entries->groupBy('table')->each(fn ($rows, $table) => $rows->chunk(1000)
+                ->map(fn ($inserts) => $inserts->pluck('attributes')->all())
+                ->each($this->connection()->table($table)->insert(...)));
 
-            collect($updates)->each(fn ($update) => $update->perform($db));
+            $updates->each(fn ($update) => $update->perform($db));
         });
     }
 
     /**
-     * Trim the ingest.
+     * Retain the ingested entries only for the given interval.
      */
-    public function trim(CarbonImmutable $oldest): void
+    public function retain(Interval $interval): void
     {
-        Type::all()->each(fn (Type $type) => $this->db->table($type->value)
-            ->where('date', '<', $oldest->toDateTimeString())
+        Type::all()->each(fn (Type $type) => $this->connection()->table($type->value)
+            ->where('date', '<', (new CarbonImmutable)->subSeconds($interval->seconds)->toDateTimeString())
             ->delete());
+    }
+
+    protected function connection(): Connection
+    {
+        return $this->manager->connection($this->config['connection']);
     }
 }
