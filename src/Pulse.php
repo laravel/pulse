@@ -178,14 +178,14 @@ class Pulse
         }
 
         if (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['name', 'email']);
+            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
         if (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['name', 'email']);
+            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
-        return $ids->map(fn ($id) => ['name' => "User ID: {$id}"]);
+        return $ids->map(fn ($id) => ['id' => $id, 'name' => "User ID: {$id}"]);
     }
 
     /**
