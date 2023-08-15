@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse;
 
-use Carbon\CarbonInterval as Interval;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\RedisManager;
 use Predis\Client as Predis;
