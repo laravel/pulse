@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Sleep;
 use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
 use Laravel\Pulse\Facades\Pulse;
@@ -53,7 +52,7 @@ class CheckCommand extends Command
             }
 
             if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
-                Sleep::for(1)->second();
+                sleep(1);
 
                 continue;
             }

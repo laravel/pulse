@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Commands;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -54,7 +53,7 @@ class WorkCommand extends Command
             $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {
-                Sleep::for(1)->second();
+                sleep(1);
             } else {
                 $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());
             }
