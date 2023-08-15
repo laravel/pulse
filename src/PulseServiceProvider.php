@@ -123,6 +123,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
+        // TODO: this does not seem to be working
         Livewire::listen('component.boot', function ($instance) {
             if ($instance instanceof ShouldNotReportUsage) {
                 app(Pulse::class)->shouldNotRecord();
