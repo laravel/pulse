@@ -21,7 +21,7 @@ class Redis implements Ingest
     /**
      * Create a new Redis Ingest instance.
      *
-     * @param  array<string, mixed>  $config
+     * @param  array{retain: string}  $config
      */
     public function __construct(protected array $config, protected RedisConnection $connection)
     {

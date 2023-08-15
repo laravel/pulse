@@ -15,7 +15,7 @@ class Database implements Storage
     /**
      * Create a new Database Storage instance.
      *
-     * @param  array<string, mixed>  $config
+     * @param  array{connection: string, retain: \DateInterval}  $config
      */
     public function __construct(protected array $config, protected DatabaseManager $manager)
     {
