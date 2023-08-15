@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Entries;
 
 use Illuminate\Database\Connection;
-use Illuminate\Support\Facades\DB;
 
 class JobFinished extends Update
 {
