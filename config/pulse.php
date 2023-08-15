@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\CarbonInterval as Interval;
 use Laravel\Pulse\Http\Middleware\Authorize;
 
 return [
@@ -17,12 +18,31 @@ return [
     // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
 
-    // 'ingest' => Laravel\Pulse\Ingests\Database::class,
-    'ingest' => Laravel\Pulse\Ingests\Redis::class,
+    'storage' => [
+        'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
+
+        'retain' => Interval::days(7),
+
+        'database' => [
+            'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+        ],
+    ],
+
+    'ingest' => [
+        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
+
+        // TODO how does this play with "storage" and the conflicting key above.
+        'retain' => Interval::days(7),
+
+        // TODO this might conflict with sampling lottery / whatevers
+        'lottery' => [1, 100],
+
+        'redis' => [
+            'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
+        ],
+    ],
 
     // TODO: filter configuration?
-    // TODO: trim lottery configuration
-    // TODO: configure days of data to store? default: 7
 
     // in milliseconds
     'slow_endpoint_threshold' => 1000,

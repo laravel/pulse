@@ -15,7 +15,7 @@ class HandleProcessedJob
      */
     public function __invoke(JobProcessed|JobFailed $event): void
     {
-        rescue(function () use ($event) {
+        Pulse::rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
             // TODO respect slow limit configuration? I don't think we should
@@ -26,6 +26,6 @@ class HandleProcessedJob
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));
-        }, report: false);
+        });
     }
 }

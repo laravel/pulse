@@ -60,7 +60,7 @@ class Usage extends Component implements ShouldNotReportUsage
     /**
      * Render the placeholder.
      */
-    public function placeholder()
+    public function placeholder(): Renderable
     {
         return view('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
@@ -99,7 +99,7 @@ class Usage extends Component implements ShouldNotReportUsage
                     return $user ? [
                         'count' => $row->count,
                         'user' => [
-                            'name' => $user['name'] ?? 'User: '.$user['id'],
+                            'name' => $user['name'],
                             // "extra" rather than 'email'
                             // avatar for pretty-ness?
                             'email' => $user['email'] ?? null,

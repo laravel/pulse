@@ -13,9 +13,9 @@ trait ListensForStorageOpportunities
     /**
      * An array indicating how many jobs are processing.
      *
-     * @var array
+     * @var array<int, bool>
      */
-    protected static $processingJobs = [];
+    protected static array $processingJobs = [];
 
     /**
      * Register listeners that store the recorded Telescope entries.

@@ -6,8 +6,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;
-use Laravel\Pulse\Ingests\Database;
-use Laravel\Pulse\Ingests\Redis;
+use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:work')]
@@ -30,34 +30,30 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Redis $redisIngest, Database $databaseIngest): int
+    public function handle(Ingest $ingest, Storage $storage): int
     {
         $lastRestart = Cache::get('illuminate:pulse:restart');
 
-        $lastTrimmedDatabaseAt = (new CarbonImmutable)->startOfMinute();
+        $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
             $now = new CarbonImmutable;
 
             if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
-                $this->comment('Pulse restart requested. Exiting at '.$now->toDateTimeString());
-
                 return self::SUCCESS;
             }
 
-            if ($now->subMinute()->greaterThan($lastTrimmedDatabaseAt)) {
-                $this->comment('Trimming the database at '.$now->toDateTimeString());
+            if ($now->subMinute()->greaterThan($lastTrimmedStorageAt)) {
+                $storage->trim();
 
-                $databaseIngest->trim($now->subWeek());
+                $lastTrimmedStorageAt = $now;
 
-                $lastTrimmedDatabaseAt = $now;
+                $this->comment('Storage trimmed');
             }
 
-            $processed = $redisIngest->processEntries(1000);
+            $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {
-                $this->comment('Queue finished processing. Sleeping at '.$now->toDateTimeString());
-
                 Sleep::for(1)->second();
             } else {
                 $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());

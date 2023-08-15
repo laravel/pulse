@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Facades\Pulse;
 use Throwable;
 
@@ -16,16 +17,16 @@ class HandleException
      */
     public function __invoke(Throwable $e): void
     {
-        rescue(function () use ($e) {
+        Pulse::rescue(function () use ($e) {
             $now = new CarbonImmutable();
 
-            Pulse::record(new Entry('pulse_exceptions', [
+            Pulse::record(new Entry(Table::Exception, [
                 'date' => $now->toDateTimeString(),
                 'user_id' => Auth::id(),
                 'class' => $e::class,
                 'location' => $this->getLocation($e),
             ]));
-        }, report: false);
+        });
     }
 
     /**

@@ -12,7 +12,9 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -20,15 +22,17 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Handlers\HandleHttpRequest;
+use Laravel\Pulse\Handlers\HandleOutgoingRequest;
 use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
-use Laravel\Pulse\Handlers\HttpRequestMiddleware;
 use Laravel\Pulse\Http\Livewire\Cache;
 use Laravel\Pulse\Http\Livewire\Exceptions;
 use Laravel\Pulse\Http\Livewire\PeriodSelector;
@@ -40,6 +44,9 @@ use Laravel\Pulse\Http\Livewire\SlowQueries;
 use Laravel\Pulse\Http\Livewire\SlowRoutes;
 use Laravel\Pulse\Http\Livewire\Usage;
 use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Ingests\Redis as RedisIngest;
+use Laravel\Pulse\Ingests\Storage as StorageIngest;
+use Laravel\Pulse\Storage\Database;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
 
@@ -54,9 +61,39 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(Pulse::class, fn ($app) => new Pulse($app[config('pulse.ingest')]));
+        $this->app->singleton(Pulse::class, fn ($app) => new Pulse(Config::get('pulse'), $app[Ingest::class]));
 
-        $this->app->scoped(Redis::class, fn () => new Redis(app('redis')->connection()));
+        $this->app->singleton(Storage::class, function ($app) {
+            $driver = Config::get('pulse.storage.driver');
+
+            $config = [
+                ...Arr::only(Config::get('pulse.storage'), ['retain']),
+                ...Config::get("pulse.storage.{$driver}"),
+            ];
+
+            return new Database($config, $app['db']);
+        });
+
+        $this->app->singleton(Ingest::class, function ($app) {
+            $driver = Config::get('pulse.ingest.driver');
+
+            if ($driver === 'storage') {
+                return $app[StorageIngest::class];
+            }
+
+            $ingestConfig = [
+                ...Arr::only(Config::get('pulse.ingest'), ['retain', 'lottery']),
+                ...Config::get("pulse.ingest.{$driver}"),
+            ];
+
+            $redisConfig = [
+                ...Config::get('database.redis.options'),
+                ...Config::get("database.redis.{$ingestConfig['connection']}"),
+                ...$ingestConfig,
+            ];
+
+            return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
+        });
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -115,7 +152,7 @@ class PulseServiceProvider extends ServiceProvider
         ], HandleProcessedJob::class);
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
-            Http::globalMiddleware(new HttpRequestMiddleware);
+            Http::globalMiddleware(new HandleOutgoingRequest);
         }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
@@ -129,17 +166,14 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerRoutes(): void
     {
         Route::group([
-            'domain' => config('pulse.domain', null),
-            'middleware' => config('pulse.middleware', 'web'),
-            'namespace' => 'Laravel\Pulse\Http\Controllers',
-            'prefix' => config('pulse.path'),
-        ], function () {
-            Route::get('/', function (Pulse $pulse) {
-                $pulse->shouldRecord = false;
+            'domain' => Config::get('pulse.domain', null),
+            'middleware' => Config::get('pulse.middleware', 'web'),
+            'prefix' => Config::get('pulse.path'),
+        ], fn () => Route::get('/', function (Pulse $pulse) {
+            $pulse->shouldNotRecord();
 
-                return view('pulse::dashboard');
-            });
-        });
+            return view('pulse::dashboard');
+        }));
     }
 
     /**

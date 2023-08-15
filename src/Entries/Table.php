@@ -4,7 +4,7 @@ namespace Laravel\Pulse\Entries;
 
 use Illuminate\Support\Collection;
 
-enum Type: string
+enum Table: string
 {
     case CacheHit = 'pulse_cache_hits';
     case Exception = 'pulse_exceptions';
@@ -17,6 +17,8 @@ enum Type: string
 
     /**
      * Get all cases as a Collection.
+     *
+     * @return \Illuminate\Support\Collection<int, self>
      */
     public static function all(): Collection
     {

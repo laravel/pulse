@@ -39,7 +39,7 @@ class Servers extends Component implements ShouldNotReportUsage
     /**
      * Render the placeholder.
      */
-    public function placeholder()
+    public function placeholder(): Renderable
     {
         return view('pulse::components.placeholder', ['class' => 'col-span-6']);
     }
@@ -116,7 +116,7 @@ class Servers extends Component implements ShouldNotReportUsage
                 'cpu_percent' => $server->cpu_percent,
                 'memory_used' => $server->memory_used,
                 'memory_total' => $server->memory_total,
-                'storage' => json_decode($server->storage),
+                'storage' => json_decode($server->storage, flags: JSON_THROW_ON_ERROR),
                 'readings' => $serverReadings->get($server->server)?->map(fn ($reading) => (object) [
                     'cpu_percent' => $reading->cpu_percent,
                     'memory_used' => $reading->memory_used,
