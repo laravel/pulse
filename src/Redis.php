@@ -21,6 +21,7 @@ class Redis
     /**
      * Create a new Redis instance.
      *
+     * @param  array{connection: string, prefix: string}  $config
      * @param  \Redis|\Predis\Client|\Predis\Pipeline\Pipeline|null  $client
      */
     public function __construct(protected array $config, protected ?RedisManager $manager = null, protected $client = null)
@@ -82,7 +83,7 @@ class Redis
     {
         $redisTime = $this->client()->time();
 
-        $redisTimestamp = $redisTime[0].substr($redisTime[1], 0, 3);
+        $redisTimestamp = (int) ($redisTime[0].substr($redisTime[1], 0, 3));
 
         return (string) ($redisTimestamp + $interval->totalMilliseconds);
     }

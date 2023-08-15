@@ -262,7 +262,7 @@ class Pulse
         try {
             $callback();
         } catch (Throwable $e) {
-            ($this->handleExceptionsUsing)($e);
+            ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
     }
 
