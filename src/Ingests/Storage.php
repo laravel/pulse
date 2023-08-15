@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Ingests;
 
-use Carbon\CarbonInterval as Interval;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage as StorageContract;

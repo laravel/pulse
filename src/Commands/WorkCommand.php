@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Sleep;

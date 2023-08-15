@@ -2,8 +2,6 @@
 
 namespace Laravel\Pulse;
 
-use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
