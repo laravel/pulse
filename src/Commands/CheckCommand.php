@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Facades\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
