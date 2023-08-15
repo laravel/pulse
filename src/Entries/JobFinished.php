@@ -25,7 +25,7 @@ class JobFinished extends Update
         $db->table($this->table()->value)
             ->where('job_id', $this->jobId)
             ->update([
-                'duration' => DB::raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),
+                'duration' => $db->raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),
             ]);
     }
 
