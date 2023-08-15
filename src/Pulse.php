@@ -71,7 +71,7 @@ class Pulse
     /**
      * Create a new Pulse instance.
      */
-    public function __construct(protected Ingest $ingest)
+    public function __construct(protected array $config, protected Ingest $ingest)
     {
         $this->filters = collect([]);
 
@@ -133,15 +133,12 @@ class Pulse
             return $this->clearQueue();
         }
 
-        // TODO: logging? report? We should have a "handlePulseExceptionsUsing"
-        // and allow user-land control, but by default we just ignore.
         $this->rescue(fn () => $this->ingest->ingest(
             $this->entriesQueue->filter($this->shouldRecord(...)),
             $this->updatesQueue->filter($this->shouldRecord(...)),
         ));
 
-        // TODO: lottery configuration?
-        $this->rescue(fn () => Lottery::odds(1, 100)
+        $this->rescue(fn () => Lottery::odds(...$this->config['ingest']['lottery'])
             ->winner(fn () => $this->ingest->trim())
             ->choose());
 

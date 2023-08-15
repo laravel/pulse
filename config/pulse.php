@@ -23,17 +23,14 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
-            // TODO can we just use this instead of caring about Redis time?
-            // Then we can just use our time and this can be tweaked if needed
-            // to adjust for out of time sync issues.
             'retain' => Interval::days(7),
         ],
     ],
 
     'ingest' => [
-        'driver' => env('PULSE_INGEST_DRIVER', 'redis'),
+        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
 
-        'storage' => [],
+        'lottery' => [1, 100],
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
@@ -42,8 +39,6 @@ return [
     ],
 
     // TODO: filter configuration?
-    // TODO: trim lottery configuration
-    // TODO: configure days of data to store? default: 7
 
     // in milliseconds
     'slow_endpoint_threshold' => 1000,

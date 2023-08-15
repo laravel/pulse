@@ -60,7 +60,7 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(Pulse::class);
+        $this->app->singleton(Pulse::class, fn ($app) => new Pulse(Config::get('pulse'), $app[Ingest::class]));
 
         $this->app->singleton(Storage::class, function ($app) {
             $driver = Config::get('pulse.storage.driver');
