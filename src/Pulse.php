@@ -264,6 +264,7 @@ class Pulse
         try {
             $callback();
         } catch (Throwable $e) {
+            // TODO is this a good default?
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
     }

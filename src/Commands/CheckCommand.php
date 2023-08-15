@@ -66,24 +66,18 @@ class CheckCommand extends Command
              * Collect server stats.
              */
 
-            Pulse::record(new Entry(Table::Server, [
-                'date' => $lastSnapshotAt->toDateTimeString(),
-                ...$stats = $systemStats(),
-            ]));
+            Pulse::record($entry = $systemStats($lastSnapshotAt));
 
-            $this->line('<fg=gray>[system stats]</> '.$stats->toJson());
+            $this->line('<fg=gray>[system stats]</> '.json_encode($entry->attributes));
 
             /*
              * Collect queue sizes.
              */
 
             if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
-                $sizes = $queueSize()->each(fn ($queue) => Pulse::record(new Entry(Table::QueueSize, [
-                    'date' => $lastSnapshotAt->toDateTimeString(),
-                    ...$queue,
-                ])));
+                $entries = $queueSize($lastSnapshotAt)->each(fn ($entry) => Pulse::record($entry));
 
-                $this->line('<fg=gray>[queue sizes]</> '.$sizes->toJson());
+                $this->line('<fg=gray>[queue sizes]</> '.$entries->pluck('attributes')->toJson());
             }
 
             Pulse::store();

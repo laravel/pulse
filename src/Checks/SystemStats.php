@@ -2,20 +2,21 @@
 
 namespace Laravel\Pulse\Checks;
 
-use Illuminate\Support\Collection;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Config;
+use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\Table;
 use RuntimeException;
 
 class SystemStats
 {
     /**
      * Resolve the systems stats.
-     *
-     * @return \Illuminate\Support\Collection<string, mixed>
      */
-    public function __invoke(): Collection
+    public function __invoke(CarbonImmutable $now): Entry
     {
-        return collect([
+        return new Entry(Table::Server, [
+            'date' => $now->toDateTimeString(),
             'server' => Config::get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {
                 'Darwin' => [
