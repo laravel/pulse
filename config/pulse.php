@@ -29,10 +29,12 @@ return [
     ],
 
     'ingest' => [
-        'driver' => env('PULSE_INGEST_DRIVER', 'redis'),
+        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
 
+        // TODO how does this play with "storage" and the conflicting key above.
         'retain' => Interval::days(7),
 
+        // TODO this might conflict with sampling lottery / whatevers
         'lottery' => [1, 100],
 
         'redis' => [
