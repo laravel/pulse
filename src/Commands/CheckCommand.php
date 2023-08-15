@@ -70,7 +70,7 @@ class CheckCommand extends Command
                 ...$stats = $systemStats(),
             ]));
 
-            $this->line('<fg=gray>[system stats]</> '.json_encode($stats, flags: JSON_THROW_ON_ERROR));
+            $this->line('<fg=gray>[system stats]</> '.$stats->toJson());
 
             /*
              * Collect queue sizes.

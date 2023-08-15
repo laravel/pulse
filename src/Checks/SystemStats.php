@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Checks;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use RuntimeException;
 
@@ -9,10 +10,12 @@ class SystemStats
 {
     /**
      * Resolve the systems stats.
+     *
+     * @return \Illuminate\Support\Collection<string, mixed>
      */
-    public function __invoke(): array
+    public function __invoke(): Collection
     {
-        return [
+        return collect([
             'server' => Config::get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {
                 'Darwin' => [
@@ -32,6 +35,6 @@ class SystemStats
                 'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
                 'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
             ])->toJson(),
-        ];
+        ]);
     }
 }

@@ -10,6 +10,8 @@ class QueueSize
 {
     /**
      * Resolve the queue size.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
      */
     public function __invoke(): Collection
     {
