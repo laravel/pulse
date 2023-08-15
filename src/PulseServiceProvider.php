@@ -12,6 +12,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -65,7 +66,10 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->singleton(Storage::class, function ($app) {
             $driver = Config::get('pulse.storage.driver');
 
-            $config = Config::get("pulse.storage.{$driver}");
+            $config = [
+                ...Arr::only(Config::get('pulse.storage'), ['retain']),
+                ...Config::get("pulse.storage.{$driver}"),
+            ];
 
             return new Database($config, $app['db']);
         });
@@ -77,7 +81,10 @@ class PulseServiceProvider extends ServiceProvider
                 return $app[StorageIngest::class];
             }
 
-            $ingestConfig = Config::get("pulse.ingest.{$driver}");
+            $ingestConfig = [
+                ...Arr::only(Config::get('pulse.ingest'), ['retain', 'lottery']),
+                ...Config::get("pulse.ingest.{$driver}"),
+            ];
 
             $redisConfig = [
                 ...Config::get('database.redis.options'),

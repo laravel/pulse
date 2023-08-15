@@ -21,20 +21,22 @@ return [
     'storage' => [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
+        'retain' => Interval::days(7),
+
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
-            'retain' => Interval::days(7),
         ],
     ],
 
     'ingest' => [
-        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
+        'driver' => env('PULSE_INGEST_DRIVER', 'redis'),
+
+        'retain' => Interval::days(7),
 
         'lottery' => [1, 100],
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
-            'retain' => Interval::days(7),
         ],
     ],
 
