@@ -58,7 +58,7 @@ class Database implements Storage
      */
     protected function trimAfter(): Interval
     {
-        return new Interval($this->config['trim_after'] ?? 'P7D');
+        return new Interval($this->config['retain'] ?? 'P7D');
     }
 
     /**

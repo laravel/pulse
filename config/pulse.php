@@ -26,7 +26,7 @@ return [
             // TODO can we just use this instead of caring about Redis time?
             // Then we can just use our time and this can be tweaked if needed
             // to adjust for out of time sync issues.
-            'trim_after' => Interval::days(7),
+            'retain' => Interval::days(7),
         ],
     ],
 
@@ -37,7 +37,7 @@ return [
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
-            'trim_after' => Interval::days(7),
+            'retain' => Interval::days(7),
         ],
     ],
 
