@@ -16,9 +16,9 @@ interface Ingest
     public function ingest(Collection $entries, Collection $updates): void;
 
     /**
-     * Retain the ingested entries only for the given interval.
+     * Trim the ingested entries.
      */
-    public function retain(Interval $interval): void;
+    public function trim(): void;
 
     /**
      * Store the ingested entries.

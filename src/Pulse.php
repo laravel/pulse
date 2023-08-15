@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval as Interval;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -143,7 +144,7 @@ class Pulse
 
         // TODO: lottery configuration?
         $this->rescue(fn () => Lottery::odds(1, 100)
-            ->winner(fn () => $this->ingest->retain((new CarbonImmutable)->subWeek()))
+            ->winner(fn () => $this->ingest->trim())
             ->choose());
 
         return $this->clearQueue();

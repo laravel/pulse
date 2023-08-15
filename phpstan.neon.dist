@@ -1,6 +1,7 @@
 parameters:
   paths:
-    - config
     - src
 
-  level: 0
+  level: 6
+includes:
+    - phpstan-baseline.neon

@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\CarbonInterval as Interval;
 use Laravel\Pulse\Http\Middleware\Authorize;
 
 return [
@@ -22,6 +23,7 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+            'trim_after' => Interval::days(7),
         ],
     ],
 
@@ -32,6 +34,7 @@ return [
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
+            'trim_after' => Interval::days(7),
         ],
     ],
 

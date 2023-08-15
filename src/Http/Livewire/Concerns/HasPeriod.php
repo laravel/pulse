@@ -11,7 +11,7 @@ trait HasPeriod
     /**
      * The usage period.
      *
-     * @var '1_hour'|6_hours'|'24_hours'|'7_days'|null
+     * @var '1_hour'|'6_hours'|'24_hours'|'7_days'|null
      */
     #[Url]
     public ?string $period = '1_hour';
@@ -19,7 +19,7 @@ trait HasPeriod
     /**
      * Handle the period-changed event.
      *
-     * @param  '1_hour'|6_hours'|'24_hours'|'7_days'  $period
+     * @param  '1_hour'|'6_hours'|'24_hours'|'7_days'  $period
      */
     #[On('period-changed')]
     public function updatePeriod(string $period): void

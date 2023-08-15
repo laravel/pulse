@@ -24,10 +24,10 @@ class HandleQuery
             }
 
             Pulse::record(new Entry('pulse_queries', [
-                'date' => $now->subMilliseconds(round($event->time))->toDateTimeString(),
+                'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
                 'user_id' => Auth::id(),
                 'sql' => $event->sql,
-                'duration' => round($event->time),
+                'duration' => (int) $event->time,
             ]));
         });
     }

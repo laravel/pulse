@@ -45,7 +45,7 @@ class WorkCommand extends Command
             }
 
             if ($now->subMinute()->greaterThan($lastTrimmedStorageAt)) {
-                $storage->retain(Interval::week());
+                $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
 

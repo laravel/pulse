@@ -30,11 +30,11 @@ class Storage implements Ingest
     }
 
     /**
-     * Retain the ingested entries only for the given interval.
+     * Trim the ingested entries.
      */
-    public function retain(Interval $interval): void
+    public function trim(): void
     {
-        $this->storage->retain($interval);
+        $this->storage->trim();
     }
 
     /**

@@ -1,0 +1,11 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Call to an undefined static method Livewire\\\\Livewire\\:\\:addPersistentMiddleware\\(\\)\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method Livewire\\\\Livewire\\:\\:listen\\(\\)\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php

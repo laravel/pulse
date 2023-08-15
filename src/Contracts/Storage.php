@@ -16,7 +16,7 @@ interface Storage
     public function store(Collection $entries, Collection $updates): void;
 
     /**
-     * Retain the stored entries only for the given interval.
+     * Trim the stored entries.
      */
-    public function retain(Interval $interval): void;
+    public function trim(): void;
 }

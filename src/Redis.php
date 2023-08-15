@@ -35,7 +35,7 @@ class Redis
      */
     public function xadd($key, $dictionary)
     {
-        if ($this->isPhpRedis()) {
+        if ($this->client() instanceof PhpRedis) {
             return $this->client()->xAdd($key, '*', $dictionary);
         }
 
@@ -55,7 +55,7 @@ class Redis
      */
     public function xtrim($key, $strategy, $strategyModifier, $threshold)
     {
-        if ($this->isPhpRedis()) {
+        if ($this->client() instanceof PhpRedis) {
             // PHP Redis does not support the minid strategy.
             return $this->client()->rawCommand('XTRIM', $this->config['prefix'].$key, $strategy, $strategyModifier, $threshold);
         }
@@ -85,22 +85,6 @@ class Redis
         $redisTimestamp = $redisTime[0].substr($redisTime[1], 0, 3);
 
         return (string) ($redisTimestamp + $interval->totalMilliseconds);
-    }
-
-    /**
-     * Determine if the client is PhpRedis.
-     */
-    protected function isPhpRedis(): bool
-    {
-        return $this->client() instanceof PhpRedis;
-    }
-
-    /**
-     * Determine if the client is Predis.
-     */
-    protected function isPredis(): bool
-    {
-        return $this->client() instanceof Predis;
     }
 
     /**

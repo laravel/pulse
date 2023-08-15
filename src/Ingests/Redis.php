@@ -56,9 +56,17 @@ class Redis implements Ingest
     /**
      * Trim the ingested entries.
      */
-    public function retain(Interval $interval): void
+    public function trim(): void
     {
-        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($interval->copy()->invert()));
+        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($this->trimAfter()->invert()));
+    }
+
+    /**
+     * The interval to trim the storage to.
+     */
+    protected function trimAfter(): Interval
+    {
+        return new Interval($this->config['trim_after'] ?? 'P7D');
     }
 
     /**

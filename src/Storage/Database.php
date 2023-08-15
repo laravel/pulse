@@ -44,13 +44,21 @@ class Database implements Storage
     }
 
     /**
-     * Retain the ingested entries only for the given interval.
+     * Trim the stored entries.
      */
-    public function retain(Interval $interval): void
+    public function trim(): void
     {
         Type::all()->each(fn (Type $type) => $this->connection()->table($type->value)
-            ->where('date', '<', (new CarbonImmutable)->subSeconds($interval->seconds)->toDateTimeString())
+            ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
             ->delete());
+    }
+
+    /**
+     * The interval to trim the storage to.
+     */
+    protected function trimAfter(): Interval
+    {
+        return new Interval($this->config['trim_after'] ?? 'P7D');
     }
 
     /**
