@@ -23,6 +23,9 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+            // TODO can we just use this instead of caring about Redis time?
+            // Then we can just use our time and this can be tweaked if needed
+            // to adjust for out of time sync issues.
             'trim_after' => Interval::days(7),
         ],
     ],

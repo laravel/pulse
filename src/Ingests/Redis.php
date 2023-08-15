@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Ingests;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
@@ -58,7 +59,7 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->connection->xtrim($this->stream, 'MINID', '~', $this->connection->streamIdAt($this->trimAfter()->invert()));
+        $this->connection->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds($this->trimAfter()->totalSeconds)->getTimestampMs());
     }
 
     /**

@@ -77,18 +77,6 @@ class Redis
     }
 
     /**
-     * Get the ID of the stream at a given time.
-     */
-    public function streamIdAt(Interval $interval): string
-    {
-        $redisTime = $this->client()->time();
-
-        $redisTimestamp = (int) ($redisTime[0].substr($redisTime[1], 0, 3));
-
-        return (string) ($redisTimestamp + $interval->totalMilliseconds);
-    }
-
-    /**
      * The connections client.
      */
     protected function client(): PhpRedis|Predis|Pipeline
