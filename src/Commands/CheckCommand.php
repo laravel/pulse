@@ -10,6 +10,7 @@ use Illuminate\Support\Sleep;
 use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Facades\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -65,7 +66,7 @@ class CheckCommand extends Command
              * Collect server stats.
              */
 
-            Pulse::record(new Entry('pulse_servers', [
+            Pulse::record(new Entry(Table::Server, [
                 'date' => $lastSnapshotAt->toDateTimeString(),
                 ...$stats = $systemStats(),
             ]));
@@ -77,7 +78,7 @@ class CheckCommand extends Command
              */
 
             if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
-                $sizes = $queueSize()->each(fn ($queue) => Pulse::record(new Entry('pulse_queue_sizes', [
+                $sizes = $queueSize()->each(fn ($queue) => Pulse::record(new Entry(Table::QueueSize, [
                     'date' => $lastSnapshotAt->toDateTimeString(),
                     ...$queue,
                 ])));

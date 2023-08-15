@@ -9,7 +9,7 @@ class Entry
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function __construct(public string $table, public array $attributes)
+    public function __construct(public Table $table, public array $attributes)
     {
         //
     }
@@ -17,24 +17,8 @@ class Entry
     /**
      * The entries table.
      */
-    public function table(): string
+    public function table(): Table
     {
         return $this->table;
-    }
-
-    /**
-     * Determine if the update is the given type.
-     */
-    public function is(Type $type): bool
-    {
-        return $this->type() === $type;
-    }
-
-    /**
-     * The type of update.
-     */
-    public function type(): Type
-    {
-        return Type::from($this->table());
     }
 }

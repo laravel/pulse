@@ -27,6 +27,8 @@ class PeriodSelector extends Component implements ShouldNotReportUsage
 
     /**
      * Set the selected period.
+     *
+     * @param  '1_hour'|'6_hours'|'24_hours'|'7_days'  $period
      */
     public function setPeriod(string $period): void
     {

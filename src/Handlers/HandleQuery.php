@@ -7,6 +7,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Facades\Pulse;
 
 class HandleQuery
@@ -23,7 +24,7 @@ class HandleQuery
                 return;
             }
 
-            Pulse::record(new Entry('pulse_queries', [
+            Pulse::record(new Entry(Table::Query, [
                 'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
                 'user_id' => Auth::id(),
                 'sql' => $event->sql,

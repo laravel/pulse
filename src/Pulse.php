@@ -153,11 +153,13 @@ class Pulse
      */
     protected function shouldRecord(Entry|Update $entry): bool
     {
-        return $this->filters->every(fn (callable $filter) => $filter($entry));
+        return $this->filters->every(fn ($filter) => $filter($entry));
     }
 
     /**
      * Resolve the user's details using the given closure.
+     *
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string|null}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {
@@ -168,6 +170,9 @@ class Pulse
 
     /**
      * Resolve the user's details using the given closure.
+     *
+     * @param  \Illuminate\Support\Collection<int, string|int>  $ids
+     * @return  \Illuminate\Support\Collection<int, string|int>
      */
     public function resolveUsers(Collection $ids): Collection
     {

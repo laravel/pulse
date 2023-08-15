@@ -40,8 +40,8 @@ class Redis implements Ingest
             return;
         }
 
-        $this->connection->pipeline(function (RedisConnection $pipeline) use ($entries, $updates) {
-            $entries->groupBy('table')
+        $this->connection->pipeline(function ($pipeline) use ($entries, $updates) {
+            $entries->groupBy('table.value')
                 ->each(fn ($rows, $table) => $rows->each(fn ($data) => $pipeline->xadd($this->stream, [
                     'type' => $table,
                     'data' => json_encode($data, flags: JSON_THROW_ON_ERROR),
@@ -59,7 +59,7 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->connection->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds($this->trimAfter()->totalSeconds)->getTimestampMs());
+        $this->connection->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs());
     }
 
     /**
