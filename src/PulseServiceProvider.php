@@ -6,6 +6,7 @@ use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Queue\Events\JobFailed;
@@ -97,6 +98,14 @@ class PulseServiceProvider extends ServiceProvider
             ];
 
             return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
+        });
+
+        $this->app->bind(Queries\MySql\Usage::class, function () {
+            $driver = Config::get('pulse.storage.driver');
+
+            $connection = Config::get("pulse.storage.{$driver}.connection");
+
+            return new Queries\MySql\Usage($this->app['db']->connection($connection));
         });
 
         $this->app->bindMethod([Usage::class, 'render'], fn ($usage, $app) => $usage->render($app[Queries\MySql\Usage::class]));

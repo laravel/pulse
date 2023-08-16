@@ -24,7 +24,7 @@ return [
         'retain' => Interval::days(7),
 
         'database' => [
-            'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+            'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'postgres',
         ],
     ],
 
