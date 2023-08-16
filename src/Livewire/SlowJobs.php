@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowJobs;
-use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 use RuntimeException;
 
@@ -22,6 +22,11 @@ class SlowJobs extends Component implements ShouldNotReportUsage
      */
     public function render(Storage $storage): Renderable
     {
+        if (! $storage instanceof SupportsSlowJobs) {
+            // TODO return an "unsupported" card.
+            throw new RuntimeException('Storage driver does not support slow jobs.');
+        }
+
         [$slowJobs, $time, $runAt] = $this->slowJobs($storage);
 
         $this->dispatch('slow-jobs:dataLoaded');
@@ -44,28 +49,23 @@ class SlowJobs extends Component implements ShouldNotReportUsage
     /**
      * The slow jobs.
      */
-    protected function slowJobs(Storage $storage): array
+    protected function slowJobs(Storage&SupportsSlowJobs $storage): array
     {
-        if (! $storage instanceof SupportsSlowJobs) {
-            throw new RuntimeException('Storage driver does not support slow jobs.');
-        }
-
         return Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-
             $slowJobs = $storage->slowJobs($this->periodAsInterval());
 
-            $slowJobs = DB::table('pulse_jobs')
-                ->selectRaw('`job`, COUNT(*) as count, MAX(duration) AS slowest')
-                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->where('duration', '>=', config('pulse.slow_job_threshold'))
-                ->groupBy('job')
-                ->orderByDesc('slowest')
-                ->get()
-                ->all();
+            // $slowJobs = DB::table('pulse_jobs')
+            //     ->selectRaw('`job`, COUNT(*) as count, MAX(duration) AS slowest')
+            //     ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
+            //     ->where('duration', '>=', config('pulse.slow_job_threshold'))
+            //     ->groupBy('job')
+            //     ->orderByDesc('slowest')
+            //     ->get()
+            //     ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowOutgoingRequests;
-use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 use RuntimeException;
 
@@ -22,6 +22,11 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
      */
     public function render(Storage $storage): Renderable
     {
+        if (! $storage instanceof SupportsSlowOutgoingRequests) {
+            // TODO return an "unsupported" card.
+            throw new RuntimeException('Storage driver does not support slow outgoing requests.');
+        }
+
         [$slowOutgoingRequests, $time, $runAt] = $this->slowOutgoingRequests($storage);
 
         $this->dispatch('slow-outgoing-requests:dataLoaded');
@@ -44,12 +49,8 @@ class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
     /**
      * The slow outgoing requests.
      */
-    protected function slowOutgoingRequests(Storage $storage): array
+    protected function slowOutgoingRequests(Storage&SupportsSlowOutgoingRequests $storage): array
     {
-        if (! $storage instanceof SupportsSlowOutgoingRequests) {
-            throw new RuntimeException('Storage driver does not support slow outgoing requests.');
-        }
-
         return Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
-use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
 
 class Cache extends Component implements ShouldNotReportUsage

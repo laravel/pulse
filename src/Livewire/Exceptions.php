@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsExceptions;
-use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use RuntimeException;
@@ -31,6 +31,11 @@ class Exceptions extends Component implements ShouldNotReportUsage
      */
     public function render(Storage $storage): Renderable
     {
+        if (! $storage instanceof SupportsExceptions) {
+            // TODO return an "unsupported" card.
+            throw new RuntimeException('Storage driver does not support exceptions.');
+        }
+
         [$exceptions, $time, $runAt] = $this->exceptions($storage);
 
         $this->dispatch('exceptions:dataLoaded');
@@ -53,12 +58,8 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The exceptions.
      */
-    protected function exceptions(Storage $storage): array
+    protected function exceptions(Storage&SupportsExceptions $storage): array
     {
-        if (! $storage instanceof SupportsExceptions) {
-            throw new RuntimeException('Storage driver does not support exceptions.');
-        }
-
         return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 

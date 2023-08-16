@@ -1,14 +1,18 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
-use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Contracts\SupportsSlowQueries;
+use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Livewire\Component;
+use RuntimeException;
 
 class SlowQueries extends Component implements ShouldNotReportUsage
 {
@@ -41,21 +45,20 @@ class SlowQueries extends Component implements ShouldNotReportUsage
     /**
      * The slow queries.
      */
-    protected function slowQueries(): array
+    protected function slowQueries(): Collection
     {
-        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () {
+        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $slowQueries = DB::table('pulse_queries')
-                ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
-                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->where('duration', '>=', config('pulse.slow_query_threshold'))
-                ->groupBy('sql')
-                ->orderByDesc('slowest')
-                ->get()
-                ->all();
+            if (app()->bound(SlowQueriesThing::class)) {
+                $query = app(SlowQueriesThing::class);
+            } else {
+                match (config('pulse.'))
+            }
+
+            $slowQueries = $storage->slowQueries($this->periodAsInterval());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

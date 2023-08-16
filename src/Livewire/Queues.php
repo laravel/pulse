@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire;
+namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Queue;

@@ -33,22 +33,23 @@ use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
-use Laravel\Pulse\Http\Livewire\Cache;
-use Laravel\Pulse\Http\Livewire\Exceptions;
-use Laravel\Pulse\Http\Livewire\PeriodSelector;
-use Laravel\Pulse\Http\Livewire\Queues;
-use Laravel\Pulse\Http\Livewire\Servers;
-use Laravel\Pulse\Http\Livewire\SlowJobs;
-use Laravel\Pulse\Http\Livewire\SlowOutgoingRequests;
-use Laravel\Pulse\Http\Livewire\SlowQueries;
-use Laravel\Pulse\Http\Livewire\SlowRoutes;
-use Laravel\Pulse\Http\Livewire\Usage;
+use Laravel\Pulse\Livewire\Cache;
+use Laravel\Pulse\Livewire\Exceptions;
+use Laravel\Pulse\Livewire\PeriodSelector;
+use Laravel\Pulse\Livewire\Queues;
+use Laravel\Pulse\Livewire\Servers;
+use Laravel\Pulse\Livewire\SlowJobs;
+use Laravel\Pulse\Livewire\SlowOutgoingRequests;
+use Laravel\Pulse\Livewire\SlowQueries;
+use Laravel\Pulse\Livewire\SlowRoutes;
+use Laravel\Pulse\Livewire\Usage;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Storage\Database;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
+use Laravel\Pulse\Queries;
 
 class PulseServiceProvider extends ServiceProvider
 {
@@ -100,6 +101,10 @@ class PulseServiceProvider extends ServiceProvider
             return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
         });
 
+        $this->app->when(Usage::class)
+            ->needs('$query')
+            ->give(fn ($app) => $app[Queries\MySql\Usage::class]);
+
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
         );
@@ -113,6 +118,8 @@ class PulseServiceProvider extends ServiceProvider
         if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
             return;
         }
+
+
 
         $this->listenForEvents();
         $this->registerRoutes();

@@ -7,19 +7,26 @@ use Carbon\CarbonInterval as Interval;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsExceptions;
 use Laravel\Pulse\Contracts\SupportsServers;
 use Laravel\Pulse\Contracts\SupportsSlowJobs;
 use Laravel\Pulse\Contracts\SupportsSlowOutgoingRequests;
+use Laravel\Pulse\Contracts\SupportsSlowQueries;
+use Laravel\Pulse\Contracts\SupportsSlowRoutes;
+use Laravel\Pulse\Contracts\SupportsUsage;
 use Laravel\Pulse\Entries\Table;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Queries\MySql;
 
-class Database implements
-    Storage,
+class Database implements Storage,
+    SupportsUsage,
     SupportsServers,
     SupportsSlowJobs,
     SupportsExceptions,
+    SupportsSlowRoutes,
+    SupportsSlowQueries,
     SupportsSlowOutgoingRequests
 {
     /**
@@ -66,35 +73,17 @@ class Database implements
                 ->delete());
     }
 
-    /**
-     * Retrieve the slow outgoing requests.
-     *
-     * @return \Illuminate\Support\Collection<int, array{uri: string, count: int, slowest: int}>
-     */
-    public function slowOutgoingRequests(Interval $interval): Collection
+    public function usage(Interval $interval, string $type): Collection
     {
         $query = match ($this->config['driver']) {
-            'mysql' => new MySql\SlowQueries(),
-            'postgres' => null, // TODO,
+            'mysql' => new MySql\Usage(),
+            'postgres' => new Postgres\Usage(),
         };
 
-        return $query($this->connection(), $interval, $this->config['pulse']['slow_query_threshold']);
-    }
-
-    /**
-     * Retrieve the exceptions.
-     *
-     * @param  'last_occurrence'|'count'  $orderBy
-     * @return \Illuminate\Support\Collection<int, array{class: string, location: string, count: int, last_occurrence: string}>
-     */
-    public function exceptions(Interval $interval, string $orderBy): Collection
-    {
-        $query = match ($this->config['driver']) {
-            'mysql' => new MySql\Exceptions(),
-            'postgres' => null, // TODO,
-        };
-
-        return $query($this->connection(), $interval, $orderBy);
+        return $query(
+            $this->connection(), $interval, $type,
+            Pulse::resolveUsers(...), $this->config['pulse']['slow_endpoint_threshold']
+        );
     }
 
     /**
@@ -123,6 +112,61 @@ class Database implements
         };
 
         return $query($this->connection(), $interval, $this->config['pulse']['slow_job_threshold']);
+    }
+
+    /**
+     * Retrieve the exceptions.
+     *
+     * @param  'last_occurrence'|'count'  $orderBy
+     * @return \Illuminate\Support\Collection<int, array{class: string, location: string, count: int, last_occurrence: string}>
+     */
+    public function exceptions(Interval $interval, string $orderBy): Collection
+    {
+        $query = match ($this->config['driver']) {
+            'mysql' => new MySql\Exceptions(),
+            'postgres' => null, // TODO,
+        };
+
+        return $query($this->connection(), $interval, $orderBy);
+    }
+
+    public function slowRoutes(Interval $interval): Collection
+    {
+        $query = match ($this->config['driver']) {
+            'mysql' => new MySql\SlowRoutes(),
+            'postgres' => null, // TODO,
+        };
+
+        return $query(
+            $this->connection(), $interval,
+            fn ($method, $path) => Route::getRoutes()->get($method)[$path] ?? null,
+            $this->config['pulse']['slow_endpoint_threshold']
+        );
+    }
+
+    public function slowQueries(Interval $interval): Collection
+    {
+        $query = match ($this->config['driver']) {
+            'mysql' => new MySql\SlowQueries(),
+            'postgres' => null, // TODO,
+        };
+
+        return $query($this->connection(), $interval, $this->config['pulse']['slow_query_threshold']);
+    }
+
+    /**
+     * Retrieve the slow outgoing requests.
+     *
+     * @return \Illuminate\Support\Collection<int, array{uri: string, count: int, slowest: int}>
+     */
+    public function slowOutgoingRequests(Interval $interval): Collection
+    {
+        $query = match ($this->config['driver']) {
+            'mysql' => new MySql\SlowQueries(),
+            'postgres' => null, // TODO,
+        };
+
+        return $query($this->connection(), $interval, $this->config['pulse']['slow_query_threshold']);
     }
 
     /**

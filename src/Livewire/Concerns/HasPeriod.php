@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Http\Livewire\Concerns;
+namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;

@@ -8,6 +8,9 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
 
+/**
+ * @interval
+ */
 class SlowJobs
 {
     /**
