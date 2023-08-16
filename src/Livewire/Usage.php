@@ -11,7 +11,7 @@ use Laravel\Pulse\Contracts\SupportsUsage;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
-use Laravel\Pulse\Queries\MySql\Usage as MySqlUsage;
+use Laravel\Pulse\Queries\MySql\Usage as UsageQuery;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -19,11 +19,6 @@ class Usage extends Component
 {
     use HasPeriod;
     use ShouldNotReportUsage;
-
-    public function __construct(protected callable $query)
-    {
-        //
-    }
 
     /**
      * The type of usage to show.
@@ -43,7 +38,7 @@ class Usage extends Component
     /**
      * Render the component.
      */
-    public function render(): Renderable
+    public function render(callable $query): Renderable
     {
         [$userRequestCounts, $time, $runAt] = $this->userRequestCounts($query);
 

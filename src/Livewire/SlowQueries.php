@@ -22,9 +22,9 @@ class SlowQueries extends Component
     /**
      * Render the component.
      */
-    public function render(): Renderable
+    public function render(Storage $storage): Renderable
     {
-        [$slowQueries, $time, $runAt] = $this->slowQueries();
+        [$slowQueries, $time, $runAt] = $this->slowQueries($storage);
 
         $this->dispatch('slow-queries:dataLoaded');
 
@@ -46,18 +46,12 @@ class SlowQueries extends Component
     /**
      * The slow queries.
      */
-    protected function slowQueries(): Collection
+    protected function slowQueries($storage): array
     {
         return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
-
-            if (app()->bound(SlowQueriesThing::class)) {
-                $query = app(SlowQueriesThing::class);
-            } else {
-                match (config('pulse.'))
-            }
 
             $slowQueries = $storage->slowQueries($this->periodAsInterval());
 

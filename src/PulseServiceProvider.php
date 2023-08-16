@@ -100,9 +100,7 @@ class PulseServiceProvider extends ServiceProvider
             return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
         });
 
-        $this->app->when(Usage::class)
-            ->needs('$query')
-            ->give(fn ($app) => $app[Queries\MySql\Usage::class]);
+        $this->app->bindMethod([Usage::class, 'render'], fn ($usage, $app) => $usage->render($app[Queries\MySql\Usage::class]));
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -117,8 +115,6 @@ class PulseServiceProvider extends ServiceProvider
         if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
             return;
         }
-
-
 
         $this->listenForEvents();
         $this->registerRoutes();
