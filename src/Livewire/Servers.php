@@ -2,11 +2,7 @@
 
 namespace Laravel\Pulse\Livewire;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsServers;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;

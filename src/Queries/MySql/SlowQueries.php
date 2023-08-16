@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Entries\Table;
 
 /**

@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Packages\Deployments;
 
-use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;

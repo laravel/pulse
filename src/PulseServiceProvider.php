@@ -32,6 +32,9 @@ use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
+use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Ingests\Redis as RedisIngest;
+use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Livewire\Cache;
 use Laravel\Pulse\Livewire\Exceptions;
 use Laravel\Pulse\Livewire\PeriodSelector;
@@ -42,13 +45,9 @@ use Laravel\Pulse\Livewire\SlowOutgoingRequests;
 use Laravel\Pulse\Livewire\SlowQueries;
 use Laravel\Pulse\Livewire\SlowRoutes;
 use Laravel\Pulse\Livewire\Usage;
-use Laravel\Pulse\Http\Middleware\Authorize;
-use Laravel\Pulse\Ingests\Redis as RedisIngest;
-use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Storage\Database;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Livewire;
-use Laravel\Pulse\Queries;
 
 class PulseServiceProvider extends ServiceProvider
 {

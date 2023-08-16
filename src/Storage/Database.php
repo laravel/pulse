@@ -20,14 +20,7 @@ use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Queries\MySql;
 
-class Database implements Storage,
-    SupportsUsage,
-    SupportsServers,
-    SupportsSlowJobs,
-    SupportsExceptions,
-    SupportsSlowRoutes,
-    SupportsSlowQueries,
-    SupportsSlowOutgoingRequests
+class Database implements Storage, SupportsUsage, SupportsServers, SupportsSlowJobs, SupportsExceptions, SupportsSlowRoutes, SupportsSlowQueries, SupportsSlowOutgoingRequests
 {
     /**
      * Create a new Database Storage instance.

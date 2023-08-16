@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Queries\MySql;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
-use Carbon\CarbonInterval;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
 

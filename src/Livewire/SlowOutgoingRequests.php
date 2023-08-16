@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Laravel\Pulse\Contracts\Storage;

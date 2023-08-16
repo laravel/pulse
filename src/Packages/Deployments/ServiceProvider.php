@@ -2,10 +2,6 @@
 
 namespace Laravel\Pulse\Packages\Deployments;
 
-use Illuminate\Database\MySqlConnection;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Storage\Database;
-
 class ServiceProvider
 {
     public function boot()
@@ -23,51 +19,7 @@ class ServiceProvider
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // My application
-
 
 class Provider
 {

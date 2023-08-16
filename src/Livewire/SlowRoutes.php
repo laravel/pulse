@@ -5,8 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowRoutes;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
