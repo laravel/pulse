@@ -45,7 +45,7 @@ class Pulse
     /**
      * Users resolver.
      *
-     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string|null}>)|null
+     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: string|null}>)|null
      */
     protected $usersResolver;
 
@@ -156,7 +156,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{name: string, email?: string|null}>)  $callback
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: string|null}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {
@@ -185,7 +185,10 @@ class Pulse
             return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
-        return $ids->map(fn ($id) => ['id' => $id, 'name' => "User ID: {$id}"]);
+        return $ids->map(fn ($id) => [
+            'id' => $id,
+            'name' => "User ID: {$id}",
+        ]);
     }
 
     /**
