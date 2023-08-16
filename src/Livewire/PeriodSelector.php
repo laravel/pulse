@@ -3,12 +3,14 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-class PeriodSelector extends Component implements ShouldNotReportUsage
+class PeriodSelector extends Component
 {
+    use ShouldNotReportUsage;
+
     /**
      * The selected period.
      *

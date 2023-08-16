@@ -6,16 +6,17 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowOutgoingRequests;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 use RuntimeException;
 
-class SlowOutgoingRequests extends Component implements ShouldNotReportUsage
+class SlowOutgoingRequests extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     /**
      * Render the component.

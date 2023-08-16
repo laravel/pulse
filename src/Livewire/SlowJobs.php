@@ -6,16 +6,17 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowJobs;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 use RuntimeException;
 
-class SlowJobs extends Component implements ShouldNotReportUsage
+class SlowJobs extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     /**
      * Render the component.

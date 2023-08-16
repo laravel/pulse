@@ -7,15 +7,16 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsServers;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
-class Servers extends Component implements ShouldNotReportUsage
+class Servers extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     /**
      * The number of data points shown on the graph.

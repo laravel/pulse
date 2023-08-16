@@ -6,18 +6,19 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsUsage;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Laravel\Pulse\Queries\MySql\Usage as MySqlUsage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-class Usage extends Component implements ShouldNotReportUsage
+class Usage extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     public function __construct(protected callable $query)
     {

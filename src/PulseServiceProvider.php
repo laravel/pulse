@@ -23,7 +23,6 @@ use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\Ingest;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Handlers\HandleException;
@@ -135,13 +134,6 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
-        // TODO: this does not seem to be working
-        Livewire::listen('component.boot', function ($instance) {
-            if ($instance instanceof ShouldNotReportUsage) {
-                app(Pulse::class)->shouldNotRecord();
-            }
-        });
-
         $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, new HandleHttpRequest);
 
         $this->app[ExceptionHandler::class]->reportable(new HandleException);

@@ -4,11 +4,13 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Queue;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
-class Queues extends Component implements ShouldNotReportUsage
+class Queues extends Component
 {
+    use ShouldNotReportUsage;
+
     /**
      * Render the component.
      */

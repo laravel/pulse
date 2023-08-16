@@ -7,16 +7,17 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Contracts\SupportsSlowRoutes;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 use RuntimeException;
 
-class SlowRoutes extends Component implements ShouldNotReportUsage
+class SlowRoutes extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     /**
      * Render the component.

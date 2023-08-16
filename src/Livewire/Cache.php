@@ -7,13 +7,14 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\ShouldNotReportUsage;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
-class Cache extends Component implements ShouldNotReportUsage
+class Cache extends Component
 {
     use HasPeriod;
+    use ShouldNotReportUsage;
 
     /**
      * Render the component.
