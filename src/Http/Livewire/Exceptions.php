@@ -7,9 +7,12 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Contracts\ShouldNotReportUsage;
+use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Contracts\SupportsExceptions;
 use Laravel\Pulse\Http\Livewire\Concerns\HasPeriod;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use RuntimeException;
 
 class Exceptions extends Component implements ShouldNotReportUsage
 {
@@ -26,9 +29,9 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * Render the component.
      */
-    public function render(): Renderable
+    public function render(Storage $storage): Renderable
     {
-        [$exceptions, $time, $runAt] = $this->exceptions();
+        [$exceptions, $time, $runAt] = $this->exceptions($storage);
 
         $this->dispatch('exceptions:dataLoaded');
 
@@ -50,23 +53,21 @@ class Exceptions extends Component implements ShouldNotReportUsage
     /**
      * The exceptions.
      */
-    protected function exceptions(): array
+    protected function exceptions(Storage $storage): array
     {
-        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () {
+        if (! $storage instanceof SupportsExceptions) {
+            throw new RuntimeException('Storage driver does not support exceptions.');
+        }
+
+        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $exceptions = DB::table('pulse_exceptions')
-                ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
-                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->groupBy('class', 'location')
-                ->orderByDesc(match ($this->orderBy) {
-                    'last_occurrence' => 'last_occurrence',
-                    default => 'count'
-                })
-                ->get()
-                ->all();
+            $exceptions = $storage->exceptions($this->periodAsInterval(), match ($this->orderBy) {
+                'last_occurrence' => 'last_occurrence',
+                default => 'count'
+            });
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

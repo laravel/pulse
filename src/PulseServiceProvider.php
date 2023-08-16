@@ -66,9 +66,13 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->singleton(Storage::class, function ($app) {
             $driver = Config::get('pulse.storage.driver');
 
+            $storageConfig = Config::get("pulse.storage.{$driver}");
+
             $config = [
+                'pulse' => Config::get('pulse'),
+                ...Config::get("database.connections.{$storageConfig['connection']}"),
                 ...Arr::only(Config::get('pulse.storage'), ['retain']),
-                ...Config::get("pulse.storage.{$driver}"),
+                ...$storageConfig,
             ];
 
             return new Database($config, $app['db']);
@@ -82,6 +86,7 @@ class PulseServiceProvider extends ServiceProvider
             }
 
             $ingestConfig = [
+                'pulse' => Config::get('pulse'),
                 ...Arr::only(Config::get('pulse.ingest'), ['retain', 'lottery']),
                 ...Config::get("pulse.ingest.{$driver}"),
             ];
