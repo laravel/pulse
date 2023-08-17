@@ -170,7 +170,7 @@ class Pulse
      * Resolve the user's details using the given closure.
      *
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, string|int>
+     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, email?: string}>
      */
     public function resolveUsers(Collection $ids): Collection
     {
@@ -268,7 +268,6 @@ class Pulse
         try {
             $callback();
         } catch (Throwable $e) {
-            // TODO is this a good default?
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
     }

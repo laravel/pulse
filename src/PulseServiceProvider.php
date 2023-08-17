@@ -55,7 +55,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled') || $this->app->runningUnitTests()) {
             return;
         }
 
@@ -105,7 +105,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app['config']->get('pulse.enabled', true) || $this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled') || $this->app->runningUnitTests()) {
             return;
         }
 
@@ -195,14 +195,6 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerPublishing(): void
     {
         if ($this->app->runningInConsole()) {
-            // $this->publishes([
-            //     __DIR__.'/../database/migrations' => database_path('migrations'),
-            // ], 'pulse-migrations');
-
-            // $this->publishes([
-            //     __DIR__.'/../public' => public_path('vendor/pulse'),
-            // ], ['pulse-assets', 'laravel-assets']);
-
             $this->publishes([
                 __DIR__.'/../config/pulse.php' => config_path('pulse.php'),
             ], 'pulse-config');

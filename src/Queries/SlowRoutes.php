@@ -14,6 +14,9 @@ use Illuminate\Support\Collection;
  */
 class SlowRoutes
 {
+    /**
+     * Create a new query instance.
+     */
     public function __construct(
         protected Connection $connection,
         protected Router $router,
@@ -23,6 +26,8 @@ class SlowRoutes
     }
 
     /**
+     * Run the query.
+     *
      * @return \Illuminate\Support\Collection<int, array{url: string, action: string, request_count: int, slowest_duration: int}>
      */
     public function __invoke(Interval $interval): Collection

@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Connection;
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;

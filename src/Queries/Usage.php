@@ -14,6 +14,9 @@ use Laravel\Pulse\Pulse;
  */
 class Usage
 {
+    /**
+     * Create a new query instance.
+     */
     public function __construct(
         protected Connection $connection,
         protected Repository $config,
@@ -22,6 +25,9 @@ class Usage
         //
     }
 
+    /**
+     * Run the query.
+     */
     public function __invoke(Interval $interval, string $type): Collection
     {
         $now = new CarbonImmutable;
@@ -55,7 +61,7 @@ class Usage
                 ],
             ] : null;
         })
-            ->filter()
-            ->values();
+        ->filter()
+        ->values();
     }
 }

@@ -4,12 +4,10 @@ namespace Laravel\Pulse;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
-use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
 use Predis\Client as Predis;
 use Predis\Pipeline\Pipeline;
 use Redis as PhpRedis;
-use RuntimeException;
 
 /**
  * @internal
@@ -41,7 +39,7 @@ class Redis
     /**
      * Read a range of entries from the stream.
      */
-    public function xrange(string $key, string $start, string $end, ?int $count = null): array
+    public function xrange(string $key, string $start, string $end, int $count = null): array
     {
         return $this->client()->xrange(...array_filter(func_get_args()));
     }
