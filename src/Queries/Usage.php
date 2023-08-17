@@ -61,7 +61,7 @@ class Usage
                 ],
             ] : null;
         })
-        ->filter()
-        ->values();
+            ->filter()
+            ->values();
     }
 }
