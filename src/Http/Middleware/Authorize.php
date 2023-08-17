@@ -13,6 +13,6 @@ class Authorize
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        return Pulse::check($request) ? $next($request) : abort(403);
+        return Pulse::authorize($request) ? $next($request) : abort(403);
     }
 }

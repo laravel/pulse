@@ -1,13 +1,13 @@
 <?php
 
-namespace Laravel\Pulse\Queries\MySql;
+namespace Laravel\Pulse\Queries;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entries\Table;
 
 /**
  * @interval
@@ -15,15 +15,23 @@ use Laravel\Pulse\Entries\Table;
 class Servers
 {
     /**
-     * Run the query.
-     *
-     * @param  'max'|'average'  $aggregation
+     * Create a new query instance.
      */
-    public function __invoke(Connection $connection, Interval $interval, string $aggregation): Collection
-    {
-        $maxDataPoints = 60;
+    public function __construct(
+        protected Connection $connection,
+        protected Repository $config,
+    ) {
+        //
+    }
 
+    /**
+     * Run the query.
+     */
+    public function __invoke(Interval $interval): Collection
+    {
         $now = new CarbonImmutable;
+
+        $maxDataPoints = 60;
 
         $currentBucket = CarbonImmutable::createFromTimestamp(
             floor($now->getTimestamp() / ($interval->totalSeconds / $maxDataPoints)) * ($interval->totalSeconds / $maxDataPoints)
@@ -41,9 +49,9 @@ class Servers
             ->reverse()
             ->keyBy('date');
 
-        $serverReadings = $connection->query()
+        $serverReadings = $this->connection->query()
             ->select('bucket', 'server')
-            ->when(true, fn ($query) => match ($aggregation) {
+            ->when(true, fn ($query) => match ($this->config->get('pulse.graph_aggregation')) {
                 'max' => $query
                     ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
                     ->selectRaw('ROUND(MAX(`memory_used`)) AS `memory_used`'),
@@ -53,11 +61,11 @@ class Servers
             })
             ->fromSub(
                 fn ($query) => $query
-                    ->from(Table::Server->value)
+                    ->from('pulse_servers')
                     ->select(['server', 'cpu_percent', 'memory_used', 'date'])
                     // Divide the data into buckets.
                     ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
-                    ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)),
+                    ->where('date', '>=', $now->subSeconds($interval->totalSeconds)),
                 'grouped'
             )
             ->groupBy('server', 'bucket')
@@ -72,16 +80,16 @@ class Servers
                 return $padding->merge($readings)->values();
             });
 
-        return $connection->table(Table::Server->value)
+        return $this->connection->table('pulse_servers')
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
-                $connection->table(Table::Server->value)
+                $this->connection->table('pulse_servers')
                     ->selectRaw('server, MAX(date) AS date')
                     ->groupBy('server'),
                 'grouped',
                 fn ($join) => $join
-                    ->on(Table::Server->value.'.server', '=', 'grouped.server')
-                    ->on(Table::Server->value.'.date', '=', 'grouped.date')
+                    ->on('pulse_servers'.'.server', '=', 'grouped.server')
+                    ->on('pulse_servers'.'.date', '=', 'grouped.date')
             )
             ->get()
             ->map(fn ($server) => (object) [

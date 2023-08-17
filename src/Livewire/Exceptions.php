@@ -5,18 +5,14 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Contracts\SupportsExceptions;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use RuntimeException;
 
 class Exceptions extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * The view type
@@ -29,14 +25,9 @@ class Exceptions extends Component
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        if (! $storage instanceof SupportsExceptions) {
-            // TODO return an "unsupported" card.
-            throw new RuntimeException('Storage driver does not support exceptions.');
-        }
-
-        [$exceptions, $time, $runAt] = $this->exceptions($storage);
+        [$exceptions, $time, $runAt] = $this->exceptions($query);
 
         $this->dispatch('exceptions:dataLoaded');
 
@@ -58,14 +49,14 @@ class Exceptions extends Component
     /**
      * The exceptions.
      */
-    protected function exceptions(Storage&SupportsExceptions $storage): array
+    protected function exceptions(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
+        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $exceptions = $storage->exceptions($this->periodAsInterval(), match ($this->orderBy) {
+            $exceptions = $query($this->periodAsInterval(), match ($this->orderBy) {
                 'last_occurrence' => 'last_occurrence',
                 default => 'count'
             });

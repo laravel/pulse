@@ -12,8 +12,7 @@ use Livewire\Component;
 
 class Usage extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * The type of usage to show.

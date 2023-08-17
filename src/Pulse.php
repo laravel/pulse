@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Closure;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -71,7 +72,7 @@ class Pulse
     /**
      * Create a new Pulse instance.
      */
-    public function __construct(protected array $config, protected Ingest $ingest)
+    public function __construct(protected Repository $config, protected Ingest $ingest)
     {
         $this->filters = collect([]);
 
@@ -210,7 +211,7 @@ class Pulse
     /**
      * Determine if the given request can access the Pulse dashboard.
      */
-    public function check(Request $request): bool
+    public function authorize(Request $request): bool
     {
         return ($this->authUsing ?: fn () => App::environment('local'))($request);
     }

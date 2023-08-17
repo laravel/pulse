@@ -6,29 +6,20 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Contracts\SupportsSlowJobs;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
-use RuntimeException;
 
 class SlowJobs extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        if (! $storage instanceof SupportsSlowJobs) {
-            // TODO return an "unsupported" card.
-            throw new RuntimeException('Storage driver does not support slow jobs.');
-        }
-
-        [$slowJobs, $time, $runAt] = $this->slowJobs($storage);
+        [$slowJobs, $time, $runAt] = $this->slowJobs($query);
 
         $this->dispatch('slow-jobs:dataLoaded');
 
@@ -50,14 +41,14 @@ class SlowJobs extends Component
     /**
      * The slow jobs.
      */
-    protected function slowJobs(Storage&SupportsSlowJobs $storage): array
+    protected function slowJobs(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
+        return Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $slowJobs = $storage->slowJobs($this->periodAsInterval());
+            $slowJobs = $query($this->periodAsInterval());
 
             // $slowJobs = DB::table('pulse_jobs')
             //     ->selectRaw('`job`, COUNT(*) as count, MAX(duration) AS slowest')

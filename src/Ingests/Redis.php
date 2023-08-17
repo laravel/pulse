@@ -4,6 +4,9 @@ namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Redis\Connections\Connection;
+use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
@@ -15,17 +18,17 @@ use Laravel\Pulse\Redis as RedisConnection;
 class Redis implements Ingest
 {
     /**
-     * The redis stream name.
+     * The redis stream.
      */
     protected string $stream = 'illuminate:pulse:entries';
 
     /**
      * Create a new Redis Ingest instance.
-     *
-     * @param  array{retain: string}  $config
      */
-    public function __construct(protected array $config, protected RedisConnection $connection)
-    {
+    public function __construct(
+        protected Repository $config,
+        protected RedisManager $manager,
+    ) {
         //
     }
 
@@ -41,7 +44,7 @@ class Redis implements Ingest
             return;
         }
 
-        $this->connection->pipeline(function ($pipeline) use ($entries, $updates) {
+        $this->connection()->pipeline(function ($pipeline) use ($entries, $updates) {
             $entries->groupBy('table.value')
                 ->each(fn ($rows, $table) => $rows->each(fn ($data) => $pipeline->xadd($this->stream, [
                     'type' => $table,
@@ -60,15 +63,7 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->connection->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs());
-    }
-
-    /**
-     * The interval to trim the storage to.
-     */
-    protected function trimAfter(): Interval
-    {
-        return new Interval($this->config['retain'] ?? 'P7D');
+        $this->connection()->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs());
     }
 
     /**
@@ -76,7 +71,7 @@ class Redis implements Ingest
      */
     public function store(Storage $storage, int $count): int
     {
-        $entries = collect($this->connection->xrange($this->stream, '-', '+', $count));
+        $entries = collect($this->connection()->xrange($this->stream, '-', '+', $count));
 
         if ($entries->isEmpty()) {
             return 0;
@@ -96,8 +91,26 @@ class Redis implements Ingest
 
         $storage->store($inserts, $updates);
 
-        $this->connection->xdel($this->stream, $keys->all());
+        $this->connection()->xdel($this->stream, $keys->all());
 
         return $entries->count();
+    }
+
+    /**
+     * The interval to trim the storage to.
+     */
+    protected function trimAfter(): Interval
+    {
+        return new Interval($this->config->get('pulse.retain' ?? 'P7D'));
+    }
+
+    /**
+     * Get the redis connection.
+     */
+    protected function connection(): Connection
+    {
+        return $this->manager->connection($this->config->get(
+            "pulse.ingest.{$this->config->get('pulse.ingest.driver')}.connection"
+        ));
     }
 }

@@ -3,16 +3,13 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Contracts\SupportsServers;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
 class Servers extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * The number of data points shown on the graph.
@@ -22,14 +19,9 @@ class Servers extends Component
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        if (! $storage instanceof SupportsServers) {
-            // TODO return an "unsupported" card.
-            throw new RuntimeException('Storage driver does not support servers.');
-        }
-
-        $servers = $storage->servers($this->periodAsInterval());
+        $servers = $query($this->periodAsInterval());
 
         if (request()->hasHeader('X-Livewire')) {
             $this->dispatch('chartUpdate', servers: $servers);

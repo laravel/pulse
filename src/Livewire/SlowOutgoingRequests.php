@@ -5,29 +5,20 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Contracts\SupportsSlowOutgoingRequests;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
-use RuntimeException;
 
 class SlowOutgoingRequests extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        if (! $storage instanceof SupportsSlowOutgoingRequests) {
-            // TODO return an "unsupported" card.
-            throw new RuntimeException('Storage driver does not support slow outgoing requests.');
-        }
-
-        [$slowOutgoingRequests, $time, $runAt] = $this->slowOutgoingRequests($storage);
+        [$slowOutgoingRequests, $time, $runAt] = $this->slowOutgoingRequests($query);
 
         $this->dispatch('slow-outgoing-requests:dataLoaded');
 
@@ -49,14 +40,14 @@ class SlowOutgoingRequests extends Component
     /**
      * The slow outgoing requests.
      */
-    protected function slowOutgoingRequests(Storage&SupportsSlowOutgoingRequests $storage): array
+    protected function slowOutgoingRequests(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
+        return Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $slowOutgoingRequests = $storage->slowOutgoingRequests($this->periodAsInterval());
+            $slowOutgoingRequests = $query($this->periodAsInterval());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

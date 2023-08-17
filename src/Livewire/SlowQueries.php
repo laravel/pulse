@@ -5,22 +5,20 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
 class SlowQueries extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        [$slowQueries, $time, $runAt] = $this->slowQueries($storage);
+        [$slowQueries, $time, $runAt] = $this->slowQueries($query);
 
         $this->dispatch('slow-queries:dataLoaded');
 
@@ -42,14 +40,14 @@ class SlowQueries extends Component
     /**
      * The slow queries.
      */
-    protected function slowQueries($storage): array
+    protected function slowQueries(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
+        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $slowQueries = $storage->slowQueries($this->periodAsInterval());
+            $slowQueries = $query($this->periodAsInterval());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

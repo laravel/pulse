@@ -5,29 +5,20 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Contracts\SupportsSlowRoutes;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
-use RuntimeException;
 
 class SlowRoutes extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.
      */
-    public function render(Storage $storage): Renderable
+    public function render(callable $query): Renderable
     {
-        if (! $storage instanceof SupportsSlowRoutes) {
-            // TODO return an "unsupported" card.
-            throw new RuntimeException('Storage driver does not support slow routes.');
-        }
-
-        [$slowRoutes, $time, $runAt] = $this->slowRoutes($storage);
+        [$slowRoutes, $time, $runAt] = $this->slowRoutes($query);
 
         $this->dispatch('slow-routes:dataLoaded');
 
@@ -49,14 +40,14 @@ class SlowRoutes extends Component
     /**
      * The slow routes.
      */
-    protected function slowRoutes(Storage|SupportsSlowRoutes $storage): array
+    protected function slowRoutes(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () use ($storage) {
+        return Cache::remember("illuminate:pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $slowRoutes = $storage->slowRoutes($this->periodAsInterval());
+            $slowRoutes = $query($this->periodAsInterval());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

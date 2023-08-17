@@ -13,8 +13,7 @@ use Livewire\Component;
 
 class Cache extends Component
 {
-    use HasPeriod;
-    use ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.

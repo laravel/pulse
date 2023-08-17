@@ -21,8 +21,6 @@ return [
     'storage' => [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
-        'retain' => Interval::days(7),
-
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'postgres',
         ],
@@ -31,16 +29,16 @@ return [
     'ingest' => [
         'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
 
-        // TODO how does this play with "storage" and the conflicting key above.
-        'retain' => Interval::days(7),
-
         // TODO this might conflict with sampling lottery / whatevers
-        'lottery' => [1, 100],
+        'lottery' => [1, 1000],
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
         ],
     ],
+
+    // TODO how does this play with "storage" and the conflicting key above.
+    'retain' => Interval::days(7),
 
     // TODO: filter configuration?
 

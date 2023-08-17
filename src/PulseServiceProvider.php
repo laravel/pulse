@@ -13,9 +13,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -61,54 +59,41 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(Pulse::class, fn ($app) => new Pulse(Config::get('pulse'), $app[Ingest::class]));
+        $this->app->singleton(Pulse::class);
 
-        $this->app->singleton(Storage::class, function ($app) {
-            $driver = Config::get('pulse.storage.driver');
+        $this->app->bind(Storage::class, Database::class);
 
-            $storageConfig = Config::get("pulse.storage.{$driver}");
+        $this->app->bind(Ingest::class, fn ($app) => $app['config']->get('pulse.ingest.driver') === 'storage'
+            ? $app[StorageIngest::class]
+            : $app[RedisIngest::class]);
 
-            $config = [
-                'pulse' => Config::get('pulse'),
-                ...Config::get("database.connections.{$storageConfig['connection']}"),
-                ...Arr::only(Config::get('pulse.storage'), ['retain']),
-                ...$storageConfig,
-            ];
+        foreach ([
+            Queries\Servers::class,
+            Queries\Usage::class,
+            Queries\Exceptions::class,
+            Queries\SlowRoutes::class,
+            Queries\SlowQueries::class,
+            Queries\SlowJobs::class,
+            Queries\SlowOutgoingRequests::class,
+        ] as $class) {
+            $this->app->when($class)
+                ->needs(Connection::class)
+                ->give(fn ($app) => $app['db']->connection($app['config']->get(
+                    "pulse.storage.{$app['config']->get('pulse.storage.driver')}.connection"
+                )));
+        }
 
-            return new Database($config, $app['db']);
-        });
-
-        $this->app->singleton(Ingest::class, function ($app) {
-            $driver = Config::get('pulse.ingest.driver');
-
-            if ($driver === 'storage') {
-                return $app[StorageIngest::class];
-            }
-
-            $ingestConfig = [
-                'pulse' => Config::get('pulse'),
-                ...Arr::only(Config::get('pulse.ingest'), ['retain', 'lottery']),
-                ...Config::get("pulse.ingest.{$driver}"),
-            ];
-
-            $redisConfig = [
-                ...Config::get('database.redis.options'),
-                ...Config::get("database.redis.{$ingestConfig['connection']}"),
-                ...$ingestConfig,
-            ];
-
-            return new RedisIngest($ingestConfig, new Redis($redisConfig, $app['redis']));
-        });
-
-        $this->app->bind(Queries\MySql\Usage::class, function () {
-            $driver = Config::get('pulse.storage.driver');
-
-            $connection = Config::get("pulse.storage.{$driver}.connection");
-
-            return new Queries\MySql\Usage($this->app['db']->connection($connection));
-        });
-
-        $this->app->bindMethod([Usage::class, 'render'], fn ($usage, $app) => $usage->render($app[Queries\MySql\Usage::class]));
+        foreach ([
+            Servers::class => Queries\Servers::class,
+            Usage::class => Queries\Usage::class,
+            Exceptions::class => Queries\Exceptions::class,
+            SlowRoutes::class => Queries\SlowRoutes::class,
+            SlowQueries::class => Queries\SlowQueries::class,
+            SlowJobs::class => Queries\SlowJobs::class,
+            SlowOutgoingRequests::class => Queries\SlowOutgoingRequests::class,
+        ] as $card => $query) {
+            $this->app->bindMethod([$card, 'render'], fn ($instance, $app) => $instance->render($app[$query]));
+        }
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/pulse.php', 'pulse'
@@ -175,9 +160,9 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerRoutes(): void
     {
         Route::group([
-            'domain' => Config::get('pulse.domain', null),
-            'middleware' => Config::get('pulse.middleware', 'web'),
-            'prefix' => Config::get('pulse.path'),
+            'domain' => $this->app['config']->get('pulse.domain', null),
+            'middleware' => $this->app['config']->get('pulse.middleware', 'web'),
+            'prefix' => $this->app['config']->get('pulse.path'),
         ], fn () => Route::get('/', function (Pulse $pulse) {
             $pulse->shouldNotRecord();
 
@@ -198,6 +183,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations(): void
     {
+        // TODO: don't resolve Pulse here
         if ($this->app->runningInConsole() && app(Pulse::class)->runsMigrations()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
