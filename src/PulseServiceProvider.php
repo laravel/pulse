@@ -55,6 +55,10 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/pulse.php', 'pulse'
+        );
+
         if (! $this->app['config']->get('pulse.enabled') || $this->app->runningUnitTests()) {
             return;
         }
@@ -95,9 +99,6 @@ class PulseServiceProvider extends ServiceProvider
             $this->app->bindMethod([$card, 'render'], fn ($instance, $app) => $instance->render($app[$query]));
         }
 
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/pulse.php', 'pulse'
-        );
     }
 
     /**
