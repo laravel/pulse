@@ -46,7 +46,7 @@ class HandleOutgoingRequest
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
-            'user_id' => Auth::id(),
+            'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
         ]));
     }
 }

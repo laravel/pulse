@@ -28,7 +28,7 @@ class HandleCacheInteraction
                 'date' => $now->toDateTimeString(),
                 'hit' => $event instanceof CacheHit,
                 'key' => $event->key,
-                'user_id' => Auth::id(),
+                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
             ]));
         });
     }

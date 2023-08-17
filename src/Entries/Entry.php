@@ -21,4 +21,12 @@ class Entry
     {
         return $this->table;
     }
+
+    /**
+     * Resolve the entry's attributes.
+     */
+    public function resolve(): self
+    {
+        return new self($this->table, array_map(value(...), $this->attributes));
+    }
 }

@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Table;
@@ -23,9 +24,9 @@ class HandleHttpRequest
 
             Pulse::record(new Entry(Table::Request, [
                 'date' => $startedAt->toDateTimeString(),
-                'user_id' => $request->user()?->id,
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),
+                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
             ]));
         });
     }

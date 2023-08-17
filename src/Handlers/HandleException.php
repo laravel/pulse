@@ -22,9 +22,9 @@ class HandleException
 
             Pulse::record(new Entry(Table::Exception, [
                 'date' => $now->toDateTimeString(),
-                'user_id' => Auth::id(),
                 'class' => $e::class,
                 'location' => $this->getLocation($e),
+                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
             ]));
         });
     }

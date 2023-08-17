@@ -26,9 +26,9 @@ class HandleQuery
 
             Pulse::record(new Entry(Table::Query, [
                 'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
-                'user_id' => Auth::id(),
                 'sql' => $event->sql,
                 'duration' => (int) $event->time,
+                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
             ]));
         });
     }

@@ -21,11 +21,11 @@ class HandleQueuedJob
 
             Pulse::record(new Entry(Table::Job, [
                 'date' => $now->toDateTimeString(),
-                'user_id' => Auth::id(),
                 'job' => is_string($event->job)
                     ? $event->job
                     : $event->job::class,
                 'job_id' => $event->id,
+                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
             ]));
         });
     }
