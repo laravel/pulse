@@ -43,16 +43,16 @@ return [
     // TODO: filter configuration?
 
     // in milliseconds
-    'slow_endpoint_threshold' => 1000,
+    'slow_endpoint_threshold' => 0,
 
     // in milliseconds
-    'slow_query_threshold' => 1000,
+    'slow_query_threshold' => 0,
 
     // in milliseconds
-    'slow_job_threshold' => 1000,
+    'slow_job_threshold' => 0,
 
     // in milliseconds
-    'slow_outgoing_request_threshold' => 1000,
+    'slow_outgoing_request_threshold' => 0,
 
     // queues to show stats for
     'queues' => [

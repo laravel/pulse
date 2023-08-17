@@ -13,7 +13,7 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Entries\Update;
-use Laravel\Pulse\Redis as RedisConnection;
+use Laravel\Pulse\Redis as RedisAdapter;
 
 class Redis implements Ingest
 {
@@ -91,7 +91,7 @@ class Redis implements Ingest
 
         $storage->store($inserts, $updates);
 
-        $this->connection()->xdel($this->stream, $keys->all());
+        $this->connection()->xdel($this->stream, $keys);
 
         return $entries->count();
     }
@@ -107,10 +107,10 @@ class Redis implements Ingest
     /**
      * Get the redis connection.
      */
-    protected function connection(): Connection
+    protected function connection(): RedisAdapter
     {
-        return $this->manager->connection($this->config->get(
+        return new RedisAdapter($this->config, $this->manager->connection($this->config->get(
             "pulse.ingest.{$this->config->get('pulse.ingest.driver')}.connection"
-        ));
+        )));
     }
 }

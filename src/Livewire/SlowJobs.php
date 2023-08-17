@@ -50,15 +50,6 @@ class SlowJobs extends Component
 
             $slowJobs = $query($this->periodAsInterval());
 
-            // $slowJobs = DB::table('pulse_jobs')
-            //     ->selectRaw('`job`, COUNT(*) as count, MAX(duration) AS slowest')
-            //     ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-            //     ->where('duration', '>=', config('pulse.slow_job_threshold'))
-            //     ->groupBy('job')
-            //     ->orderByDesc('slowest')
-            //     ->get()
-            //     ->all();
-
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
             return [$slowJobs, $time, $now->toDateTimeString()];

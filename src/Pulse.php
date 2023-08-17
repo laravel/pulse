@@ -139,7 +139,7 @@ class Pulse
             $this->updatesQueue->filter($this->shouldRecord(...)),
         ));
 
-        $this->rescue(fn () => Lottery::odds(...$this->config['ingest']['lottery'])
+        $this->rescue(fn () => Lottery::odds(...$this->config->get('ingest.lottery'))
             ->winner(fn () => $this->ingest->trim())
             ->choose());
 

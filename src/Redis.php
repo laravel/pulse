@@ -2,50 +2,46 @@
 
 namespace Laravel\Pulse;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\RedisManager;
+use Illuminate\Support\Collection;
 use Predis\Client as Predis;
 use Predis\Pipeline\Pipeline;
 use Redis as PhpRedis;
 use RuntimeException;
 
 /**
- * @mixin \Redis
- * @mixin \Predis\Client
- *
  * @internal
  */
 class Redis
 {
     /**
      * Create a new Redis instance.
-     *
-     * @param  array{connection: string, prefix: string}  $config
-     * @param  \Redis|\Predis\Client|\Predis\Pipeline\Pipeline|null  $client
      */
-    public function __construct(protected array $config, protected ?RedisManager $manager = null, protected $client = null)
-    {
-        if ($manager === null && $client === null) {
-            throw new RuntimeException('Must provider a manager or client.');
-        }
+    public function __construct(
+        protected Repository $config,
+        protected Connection $connection,
+        protected ?Pipeline $client = null,
+    ) {
+        //
     }
 
     /**
      * Add an entry to the stream.
      */
-    public function xadd($key, $dictionary)
+    public function xadd(string $key, array $dictionary)
     {
-        if ($this->client() instanceof PhpRedis) {
-            return $this->client()->xAdd($key, '*', $dictionary);
-        }
-
-        return $this->client()->xAdd($key, $dictionary);
+        return match (true) {
+            $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
+            $this->client() instanceof Predis => $this->client()->xadd($key, $dictionary),
+        };
     }
 
     /**
      * Read a range of entries from the stream.
      */
-    public function xrange($key, $start, $end, $count = null)
+    public function xrange(string $key, string $start, string $end, ?int $count = null): array
     {
         return $this->client()->xrange(...array_filter(func_get_args()));
     }
@@ -53,46 +49,42 @@ class Redis
     /**
      * Trim the stream.
      */
-    public function xtrim($key, $strategy, $strategyModifier, $threshold)
+    public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold)
     {
-        if ($this->client() instanceof PhpRedis) {
-            // PHP Redis does not support the minid strategy.
-            return $this->client()->rawCommand('XTRIM', $this->config['prefix'].$key, $strategy, $strategyModifier, $threshold);
-        }
+        $threshold = (string) $threshold;
 
-        return $this->client()->xtrim($key, [$strategy, $strategyModifier], $threshold);
+        return match (true) {
+            // PHP Redis does not support the minid strategy.
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('redis.options.prefix').$key, $strategy, $strategyModifier, $threshold),
+            $this->client() instanceof Predis => $this->client()->xtrim($key, [$strategy, $strategyModifier], $threshold),
+        };
     }
 
     /**
-     * Run commands in a pipeline.
+     * Delete the entries from the stream.
+     */
+    public function xdel(string $stream, Collection|array $keys): int
+    {
+        return $this->client()->xdel($stream, Collection::unwrap($keys));
+    }
+
+    /**
+     * Run commands within a pipeline.
+     *
+     * @param  (callable(self): void)  $closure
      */
     public function pipeline(callable $closure): array
     {
-        // TODO explain this code - lol
-        // ensure we run against a connection...
-        return $this->connection()->pipeline(function ($redis) use ($closure) {
-            $closure(new self($this->config, client: $redis));
-        });
+        // Create a pipeline and wrap the Redis client in an instance of this
+        // class to ensure our wrapper methods are used within the pipeline.
+        return $this->connection->pipeline(fn ($client) => $closure(new self($this->config, $this, $client)));
     }
 
     /**
-     * The connections client.
+     * Retrieve the redis client.
      */
     protected function client(): PhpRedis|Predis|Pipeline
     {
-        return $this->connection()?->client() ?? $this->client;
-    }
-
-    protected function connection(): ?Connection
-    {
-        return $this->manager?->connection($this->config['connection']);
-    }
-
-    /**
-     * Proxies method calls to the connection or client.
-     */
-    public function __call(string $method, array $parameters): mixed
-    {
-        return ($this->connection() ?? $this->client)->{$method}(...$parameters);
+        return $this->client ?? $this->connection->client();
     }
 }

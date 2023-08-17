@@ -23,7 +23,7 @@ class SlowRoutes
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array{route: string, count: int, slowest: int}>
+     * @return \Illuminate\Support\Collection<int, array{url: string, action: string, request_count: int, slowest_duration: int}>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -41,7 +41,7 @@ class SlowRoutes
                 'action' => with(explode(' ', $row->route, 2), function ($parts) {
                     [$method, $path] = $parts;
 
-                    return $this->router->getRoutes()->get($method)[$path] ?? null;
+                    return ($this->router->getRoutes()->get($method)[$path] ?? null)?->getActionName();
                 }),
                 'request_count' => (int) $row->count,
                 'slowest_duration' => (int) $row->slowest,
