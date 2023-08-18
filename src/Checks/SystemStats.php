@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Checks;
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use RuntimeException;
 
 class SystemStats
@@ -21,7 +20,7 @@ class SystemStats
      */
     public function __invoke(CarbonImmutable $now): Entry
     {
-        return new Entry(Table::Server, [
+        return new Entry('pulse_servers', [
             'date' => $now->toDateTimeString(),
             'server' => $this->config->get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {

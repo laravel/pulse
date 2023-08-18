@@ -7,7 +7,6 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Pulse;
 
 class HandleCacheInteraction
@@ -34,7 +33,7 @@ class HandleCacheInteraction
                 return;
             }
 
-            $this->pulse->record(new Entry(Table::CacheHit, [
+            $this->pulse->record(new Entry('pulse_cache_hits', [
                 'date' => $now->toDateTimeString(),
                 'hit' => $event instanceof CacheHit,
                 'key' => $event->key,

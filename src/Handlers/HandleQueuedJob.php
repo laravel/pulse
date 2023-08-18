@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Pulse;
 
 class HandleQueuedJob
@@ -29,7 +28,7 @@ class HandleQueuedJob
         $this->pulse->rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry(Table::Job, [
+            $this->pulse->record(new Entry('pulse_jobs', [
                 'date' => $now->toDateTimeString(),
                 'job' => is_string($event->job)
                     ? $event->job

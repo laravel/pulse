@@ -8,7 +8,6 @@ use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
 
@@ -52,7 +51,7 @@ class HandleOutgoingRequest
      */
     protected function record(RequestInterface $request, CarbonImmutable $startedAt, CarbonImmutable $endedAt): void
     {
-        $this->pulse->record(new Entry(Table::OutgoingRequest, [
+        $this->pulse->record(new Entry('pulse_outgoing_requests', [
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),

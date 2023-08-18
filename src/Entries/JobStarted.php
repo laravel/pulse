@@ -21,7 +21,7 @@ class JobStarted extends Update
      */
     public function perform(Connection $db): void
     {
-        $db->table($this->table()->value)
+        $db->table($this->table())
             ->where('job_id', $this->jobId)
             ->update([
                 'processing_started_at' => $this->startedAt,
@@ -31,8 +31,8 @@ class JobStarted extends Update
     /**
      * The update's table.
      */
-    public function table(): Table
+    public function table(): string
     {
-        return Table::Job;
+        return 'pulse_jobs';
     }
 }

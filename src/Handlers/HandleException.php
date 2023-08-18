@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Pulse;
 use Throwable;
 
@@ -30,7 +29,7 @@ class HandleException
         $this->pulse->rescue(function () use ($e) {
             $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry(Table::Exception, [
+            $this->pulse->record(new Entry('pulse_exceptions', [
                 'date' => $now->toDateTimeString(),
                 'class' => $e::class,
                 'location' => $this->getLocation($e),

@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -32,7 +31,7 @@ class HandleHttpRequest
         $this->pulse->rescue(function () use ($startedAt, $request) {
             $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry(Table::Request, [
+            $this->pulse->record(new Entry('pulse_outgoing_requests', [
                 'date' => $startedAt->toDateTimeString(),
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),

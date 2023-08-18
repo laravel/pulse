@@ -9,7 +9,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Entries\Table;
 
 class Database implements Storage
 {
@@ -50,12 +49,29 @@ class Database implements Storage
      */
     public function trim(): void
     {
-        // TODO need a way to configure additional tables to trim
-        Table::all()
+        $this->tables()
             ->each(fn ($table) => $this->connection()
-                ->table($table->value)
+                ->table($table)
                 ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
                 ->delete());
+    }
+
+    /**
+     *  Pulse's database tables.
+     */
+    protected function tables(): Collection
+    {
+        return collect([
+            'pulse_cache_hits',
+            'pulse_exceptions',
+            'pulse_jobs',
+            'pulse_outgoing_requests',
+            'pulse_queries',
+            'pulse_queue_sizes',
+            'pulse_requests',
+            'pulse_servers',
+            ...($this->config->get('pulse.storage.additional_tables') ?? [])
+        ]);
     }
 
     /**

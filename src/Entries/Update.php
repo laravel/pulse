@@ -9,7 +9,7 @@ abstract class Update
     /**
      * The update's table.
      */
-    abstract public function table(): Table;
+    abstract public function table(): string;
 
     /**
      * Perform the update.

@@ -9,7 +9,7 @@ class Entry
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function __construct(public Table $table, public array $attributes)
+    public function __construct(public string $table, public array $attributes)
     {
         //
     }
@@ -17,7 +17,7 @@ class Entry
     /**
      * The entries table.
      */
-    public function table(): Table
+    public function table(): string
     {
         return $this->table;
     }

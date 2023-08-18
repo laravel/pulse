@@ -7,7 +7,6 @@ use Illuminate\Config\Repository;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Table;
 
 class QueueSize
 {
@@ -25,7 +24,7 @@ class QueueSize
      */
     public function __invoke(CarbonImmutable $now): Collection
     {
-        return collect($this->config->get('pulse.queues'))->map(fn ($queue) => new Entry(Table::QueueSize, [
+        return collect($this->config->get('pulse.queues'))->map(fn ($queue) => new Entry('pulse_queue_sizes', [
             'date' => $now->toDateTimeString(),
             'queue' => $queue,
             'size' => $this->queue->size($queue),
