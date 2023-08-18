@@ -21,17 +21,6 @@ return [
     'storage' => [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
-        'tables' => [
-            'pulse_cache_hits',
-            'pulse_exceptions',
-            'pulse_jobs',
-            'pulse_outgoing_requests',
-            'pulse_queries',
-            'pulse_queue_sizes',
-            'pulse_requests',
-            'pulse_servers',
-        ],
-
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
         ],

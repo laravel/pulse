@@ -31,7 +31,7 @@ class HandleHttpRequest
         $this->pulse->rescue(function () use ($startedAt, $request) {
             $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry('pulse_outgoing_requests', [
+            $this->pulse->record(new Entry('pulse_requests', [
                 'date' => $startedAt->toDateTimeString(),
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),
