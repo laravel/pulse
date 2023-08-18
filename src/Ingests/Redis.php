@@ -83,7 +83,7 @@ class Redis implements Ingest
             ->partition(fn ($entry) => $entry['type'] !== 'pulse_update');
 
         $inserts = $inserts->map(fn ($data) => with(json_decode($data['data'], true, flags: JSON_THROW_ON_ERROR), function ($data) {
-            return new Entry($data['table'], $data['attributes']);
+            return new Entry($data['type'], $data['attributes']);
         }));
 
         $updates = $updates->map(fn ($data): Update => unserialize($data['data']));
