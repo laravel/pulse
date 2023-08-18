@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Predis\Client as Predis;
 use Predis\Pipeline\Pipeline;
 use Redis as PhpRedis;
+use RuntimeException;
 
 /**
  * @internal
@@ -75,6 +76,10 @@ class Redis
      */
     public function pipeline(callable $closure): array
     {
+        if ($this->client() instanceof Pipeline) {
+            throw new RuntimeException('Pipelines are not able to be nested.');
+        }
+
         // Create a pipeline and wrap the Redis client in an instance of this
         // class to ensure our wrapper methods are used within the pipeline.
         return $this->connection->pipeline(fn ($client) => $closure(new self($this->config, $this->connection, $client)));

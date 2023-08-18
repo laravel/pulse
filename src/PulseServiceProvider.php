@@ -8,16 +8,17 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\Compilers\BladeCompiler;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
@@ -34,19 +35,11 @@ use Laravel\Pulse\Handlers\HandleQueuedJob;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
-use Laravel\Pulse\Livewire\Cache;
-use Laravel\Pulse\Livewire\Exceptions;
-use Laravel\Pulse\Livewire\PeriodSelector;
-use Laravel\Pulse\Livewire\Queues;
-use Laravel\Pulse\Livewire\Servers;
-use Laravel\Pulse\Livewire\SlowJobs;
-use Laravel\Pulse\Livewire\SlowOutgoingRequests;
-use Laravel\Pulse\Livewire\SlowQueries;
-use Laravel\Pulse\Livewire\SlowRoutes;
-use Laravel\Pulse\Livewire\Usage;
-use Laravel\Pulse\Storage\Database;
+use Laravel\Pulse\Livewire;
+use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
-use Livewire\Livewire;
+use Livewire\Component;
+use Livewire\LivewireManager;
 
 class PulseServiceProvider extends ServiceProvider
 {
@@ -65,9 +58,9 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->singleton(Pulse::class);
 
-        $this->app->bind(Storage::class, Database::class);
+        $this->app->bind(Storage::class, DatabaseStorage::class);
 
-        $this->app->bind(Ingest::class, fn ($app) => $app['config']->get('pulse.ingest.driver') === 'storage'
+        $this->app->bind(Ingest::class, fn (Application $app) => $app['config']->get('pulse.ingest.driver') === 'storage'
             ? $app[StorageIngest::class]
             : $app[RedisIngest::class]);
 
@@ -82,23 +75,22 @@ class PulseServiceProvider extends ServiceProvider
         ] as $class) {
             $this->app->when($class)
                 ->needs(Connection::class)
-                ->give(fn ($app) => $app['db']->connection($app['config']->get(
+                ->give(fn (Application $app) => $app['db']->connection($app['config']->get(
                     "pulse.storage.{$app['config']->get('pulse.storage.driver')}.connection"
                 )));
         }
 
         foreach ([
-            Servers::class => Queries\Servers::class,
-            Usage::class => Queries\Usage::class,
-            Exceptions::class => Queries\Exceptions::class,
-            SlowRoutes::class => Queries\SlowRoutes::class,
-            SlowQueries::class => Queries\SlowQueries::class,
-            SlowJobs::class => Queries\SlowJobs::class,
-            SlowOutgoingRequests::class => Queries\SlowOutgoingRequests::class,
+            Livewire\Servers::class => Queries\Servers::class,
+            Livewire\Usage::class => Queries\Usage::class,
+            Livewire\Exceptions::class => Queries\Exceptions::class,
+            Livewire\SlowRoutes::class => Queries\SlowRoutes::class,
+            Livewire\SlowQueries::class => Queries\SlowQueries::class,
+            Livewire\SlowJobs::class => Queries\SlowJobs::class,
+            Livewire\SlowOutgoingRequests::class => Queries\SlowOutgoingRequests::class,
         ] as $card => $query) {
             $this->app->bindMethod([$card, 'render'], fn ($instance, $app) => $instance->render($app[$query]));
         }
-
     }
 
     /**
@@ -124,30 +116,34 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
+        $this->callAfterResolving('events', function (Dispatcher $event) {
+            $event->listen(QueryExecuted::class, HandleQuery::class);
+
+            $event->listen([
+                CacheHit::class,
+                CacheMissed::class,
+            ], HandleCacheInteraction::class);
+
+            // TODO: currently if a job fails, we have no way of tracking it through properly.
+            // When a job fails it gets a new "jobId", so we can't track the one job.
+            // If we can get the job's UUID in the `JobQueued` event, then we can
+            // follow the job through successfully.
+            $event->listen(JobQueued::class, HandleQueuedJob::class);
+            $event->listen(JobProcessing::class, HandleProcessingJob::class);
+            $event->listen([
+                JobProcessed::class,
+                JobFailed::class,
+            ], HandleProcessedJob::class);
+        });
+
         $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
         $this->app[ExceptionHandler::class]->reportable(fn (...$args) => app(HandleException::class)(...$args));
 
-        Event::listen(QueryExecuted::class, HandleQuery::class);
-
-        Event::listen([
-            CacheHit::class,
-            CacheMissed::class,
-        ], HandleCacheInteraction::class);
-
-        // TODO: currently if a job fails, we have no way of tracking it through properly.
-        // When a job fails it gets a new "jobId", so we can't track the one job.
-        // If we can get the job's UUID in the `JobQueued` event, then we can
-        // follow the job through successfully.
-        Event::listen(JobQueued::class, HandleQueuedJob::class);
-        Event::listen(JobProcessing::class, HandleProcessingJob::class);
-        Event::listen([
-            JobProcessed::class,
-            JobFailed::class,
-        ], HandleProcessedJob::class);
-
         if (method_exists(Factory::class, 'globalMiddleware')) {
-            Http::globalMiddleware(fn (...$args) => app(HandleOutgoingRequest::class)(...$args));
+            $this->callAfterResolving(Factory::class, function (Factory $factory) {
+                $factory->globalMiddleware(fn (...$args) => app(HandleOutgoingRequest::class)(...$args));
+            });
         }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
@@ -160,15 +156,17 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        Route::group([
-            'domain' => $this->app['config']->get('pulse.domain', null),
-            'middleware' => $this->app['config']->get('pulse.middleware', 'web'),
-            'prefix' => $this->app['config']->get('pulse.path'),
-        ], fn () => Route::get('/', function (Pulse $pulse) {
-            $pulse->shouldNotRecord();
+        $this->callAfterResolving('router', function (Router $router, Application $app) {
+            $router->group([
+                'domain' => $app['config']->get('pulse.domain', null),
+                'middleware' => $app['config']->get('pulse.middleware', 'web'),
+                'prefix' => $app['config']->get('pulse.path'),
+            ], fn (Router $router) => $router->get('/', function (Pulse $pulse) {
+                $pulse->shouldNotRecord();
 
-            return view('pulse::dashboard');
-        }));
+                return view('pulse::dashboard');
+            }));
+        });
     }
 
     /**
@@ -184,10 +182,11 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations(): void
     {
-        // TODO: don't resolve Pulse here
-        if ($this->app->runningInConsole() && app(Pulse::class)->runsMigrations()) {
-            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        }
+        $this->callAfterResolving('migrator', function (Migrator $migrator) {
+            if (app(Pulse::class)->runsMigrations()) {
+                $migrator->path(__DIR__.'/../database/migrations');
+            }
+        });
     }
 
     /**
@@ -198,11 +197,11 @@ class PulseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/pulse.php' => config_path('pulse.php'),
-            ], 'pulse-config');
+            ], ['pulse', 'pulse-config']);
 
             $this->publishes([
                 __DIR__.'/../resources/views/dashboard.blade.php' => resource_path('views/vendor/pulse/dashboard.blade.php'),
-            ], 'pulse-dashboard');
+            ], ['pulse', 'pulse-dashboard']);
         }
     }
 
@@ -225,21 +224,23 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerComponents(): void
     {
-        Blade::component('pulse', PulseComponent::class);
+        $this->callAfterResolving('blade.compiler', function (BladeCompiler $blade) {
+            $blade->component('pulse', PulseComponent::class);
+        });
 
-        Livewire::addPersistentMiddleware([
-            Authorize::class,
-        ]);
+        $this->callAfterResolving('livewire', function (LivewireManager $livewire) {
+            $livewire->addPersistentMiddleware([Authorize::class]);
 
-        Livewire::component('period-selector', PeriodSelector::class);
-        Livewire::component('servers', Servers::class);
-        Livewire::component('usage', Usage::class);
-        Livewire::component('exceptions', Exceptions::class);
-        Livewire::component('slow-routes', SlowRoutes::class);
-        Livewire::component('slow-queries', SlowQueries::class);
-        Livewire::component('slow-jobs', SlowJobs::class);
-        Livewire::component('slow-outgoing-requests', SlowOutgoingRequests::class);
-        Livewire::component('cache', Cache::class);
-        Livewire::component('queues', Queues::class);
+            $livewire->component('period-selector', Livewire\PeriodSelector::class);
+            $livewire->component('servers', Livewire\Servers::class);
+            $livewire->component('usage', Livewire\Usage::class);
+            $livewire->component('exceptions', Livewire\Exceptions::class);
+            $livewire->component('slow-routes', Livewire\SlowRoutes::class);
+            $livewire->component('slow-queries', Livewire\SlowQueries::class);
+            $livewire->component('slow-jobs', Livewire\SlowJobs::class);
+            $livewire->component('slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
+            $livewire->component('cache', Livewire\Cache::class);
+            $livewire->component('queues', Livewire\Queues::class);
+        });
     }
 }

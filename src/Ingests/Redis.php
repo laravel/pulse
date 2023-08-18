@@ -100,7 +100,7 @@ class Redis implements Ingest
      */
     protected function trimAfter(): Interval
     {
-        return new Interval($this->config->get('pulse.retain' ?? 'P7D'));
+        return new Interval($this->config->get('pulse.retain') ?? 'P7D');
     }
 
     /**
