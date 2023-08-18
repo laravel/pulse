@@ -44,7 +44,7 @@ class Redis implements Ingest
         }
 
         $this->connection()->pipeline(function ($pipeline) use ($entries, $updates) {
-            $entries->groupBy('table.value')
+            $entries->groupBy('table')
                 ->each(fn ($rows, $table) => $rows->each(fn ($data) => $pipeline->xadd($this->stream, [
                     'type' => $table,
                     'data' => json_encode($data, flags: JSON_THROW_ON_ERROR),
@@ -83,7 +83,7 @@ class Redis implements Ingest
             ->partition(fn ($entry) => $entry['type'] !== 'pulse_update');
 
         $inserts = $inserts->map(fn ($data) => with(json_decode($data['data'], true, flags: JSON_THROW_ON_ERROR), function ($data) {
-            return new Entry($data['type'], $data['attributes']);
+            return new Entry($data['table'], $data['attributes']);
         }));
 
         $updates = $updates->map(fn ($data): Update => unserialize($data['data']));

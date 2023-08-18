@@ -35,7 +35,7 @@ class Database implements Storage
         }
 
         $this->connection()->transaction(function () use ($entries, $updates) {
-            $entries->groupBy('table.value')
+            $entries->groupBy('table')
                 ->each(fn ($rows, $table) => $rows->chunk(1000)
                     ->map(fn ($inserts) => $inserts->pluck('attributes')->all())
                     ->each($this->connection()->table($table)->insert(...)));
