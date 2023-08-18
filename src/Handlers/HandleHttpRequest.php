@@ -3,30 +3,42 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Table;
-use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleHttpRequest
 {
     /**
+     * Create a new handler instance.
+     */
+    public function __construct(
+        protected Pulse $pulse,
+        protected AuthManager $auth,
+    ) {
+        //
+    }
+
+    /**
      * Handle the completion of an HTTP request.
      */
     public function __invoke(Carbon $startedAt, Request $request, Response $response): void
     {
-        Pulse::rescue(function () use ($startedAt, $request) {
+        $this->pulse->rescue(function () use ($startedAt, $request) {
             $now = new CarbonImmutable();
 
-            Pulse::record(new Entry(Table::Request, [
+            $this->pulse->record(new Entry(Table::Request, [
                 'date' => $startedAt->toDateTimeString(),
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),
-                'user_id' => Auth::hasUser() ? Auth::id() : fn () => Auth::id(),
+                'user_id' => $this->auth->hasUser()
+                    ? $this->auth->id()
+                    : fn () => $this->auth->id(),
             ]));
         });
     }

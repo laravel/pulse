@@ -3,8 +3,8 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -29,16 +29,19 @@ class WorkCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Ingest $ingest, Storage $storage): int
-    {
-        $lastRestart = Cache::get('illuminate:pulse:restart');
+    public function handle(
+        Ingest $ingest,
+        Storage $storage,
+        CacheManager $cache,
+    ): int {
+        $lastRestart = $cache->get('illuminate:pulse:restart');
 
         $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
             $now = new CarbonImmutable;
 
-            if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
+            if ($cache->get('illuminate:pulse:restart') !== $lastRestart) {
                 return self::SUCCESS;
             }
 

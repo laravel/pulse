@@ -4,7 +4,7 @@ namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
-use Illuminate\Contracts\Config\Repository;
+use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;

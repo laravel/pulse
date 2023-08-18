@@ -53,7 +53,7 @@
                 "Laravel\\Pulse\\PulseServiceProvider"
             ],
             "aliases": {
-                "Debugbar": "Laravel\\Pulse\\Facades\\Pulse"
+                "Pulse": "Laravel\\Pulse\\Facades\\Pulse"
             }
         }
     },

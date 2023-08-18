@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse;
 
-use Illuminate\Contracts\Config\Repository;
+use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;
 use Predis\Client as Predis;

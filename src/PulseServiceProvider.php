@@ -124,9 +124,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
-        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, new HandleHttpRequest);
+        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        $this->app[ExceptionHandler::class]->reportable(new HandleException);
+        $this->app[ExceptionHandler::class]->reportable(fn (...$args) => app(HandleException::class)(...$args));
 
         Event::listen(QueryExecuted::class, HandleQuery::class);
 
@@ -147,7 +147,7 @@ class PulseServiceProvider extends ServiceProvider
         ], HandleProcessedJob::class);
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
-            Http::globalMiddleware(new HandleOutgoingRequest);
+            Http::globalMiddleware(fn (...$args) => app(HandleOutgoingRequest::class)(...$args));
         }
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.

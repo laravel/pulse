@@ -3,13 +3,19 @@
 namespace Laravel\Pulse\Checks;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Config\Repository;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Table;
 use RuntimeException;
 
 class SystemStats
 {
+    public function __construct(
+        protected Repository $config,
+    ) {
+        //
+    }
+
     /**
      * Resolve the systems stats.
      */
@@ -17,7 +23,7 @@ class SystemStats
     {
         return new Entry(Table::Server, [
             'date' => $now->toDateTimeString(),
-            'server' => Config::get('pulse.server_name'),
+            'server' => $this->config->get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {
                 'Darwin' => [
                     'cpu_percent' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
@@ -31,7 +37,7 @@ class SystemStats
                 ],
                 default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
             },
-            'storage' => collect(Config::get('pulse.directories'))->map(fn ($directory) => [
+            'storage' => collect($this->config->get('pulse.directories'))->map(fn ($directory) => [
                 'directory' => $directory,
                 'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
                 'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB

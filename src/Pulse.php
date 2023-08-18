@@ -3,7 +3,7 @@
 namespace Laravel\Pulse;
 
 use Closure;
-use Illuminate\Contracts\Config\Repository;
+use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;

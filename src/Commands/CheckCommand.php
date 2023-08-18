@@ -3,12 +3,11 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Queue;
 use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
-use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:check')]
@@ -37,17 +36,19 @@ class CheckCommand extends Command
      * Handle the command.
      */
     public function handle(
+        Pulse $pulse,
         SystemStats $systemStats,
         QueueSize $queueSize,
+        CacheManager $cache,
     ): int {
-        $lastRestart = Cache::get('illuminate:pulse:restart');
+        $lastRestart = $cache->get('illuminate:pulse:restart');
 
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);
 
         while (true) {
             $now = new CarbonImmutable();
 
-            if (Cache::get('illuminate:pulse:restart') !== $lastRestart) {
+            if ($cache->get('illuminate:pulse:restart') !== $lastRestart) {
                 return self::SUCCESS;
             }
 
@@ -63,7 +64,7 @@ class CheckCommand extends Command
              * Collect server stats.
              */
 
-            Pulse::record($entry = $systemStats($lastSnapshotAt));
+            $pulse->record($entry = $systemStats($lastSnapshotAt));
 
             $this->line('<fg=gray>[system stats]</> '.json_encode($entry->attributes));
 
@@ -71,13 +72,13 @@ class CheckCommand extends Command
              * Collect queue sizes.
              */
 
-            if (Cache::lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
-                $entries = $queueSize($lastSnapshotAt)->each(fn ($entry) => Pulse::record($entry));
+            if ($cache->lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
+                $entries = $queueSize($lastSnapshotAt)->each(fn ($entry) => $pulse->record($entry));
 
                 $this->line('<fg=gray>[queue sizes]</> '.$entries->pluck('attributes')->toJson());
             }
 
-            Pulse::store();
+            $pulse->store();
         }
     }
 }
