@@ -66,16 +66,12 @@ class CheckCommand extends Command
 
             $pulse->record($entry = $systemStats($lastSnapshotAt));
 
-            $this->line('<fg=gray>[system stats]</> '.json_encode($entry->attributes));
-
             /*
              * Collect queue sizes.
              */
 
             if ($cache->lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
                 $entries = $queueSize($lastSnapshotAt)->each(fn ($entry) => $pulse->record($entry));
-
-                $this->line('<fg=gray>[queue sizes]</> '.$entries->pluck('attributes')->toJson());
             }
 
             $pulse->store();
