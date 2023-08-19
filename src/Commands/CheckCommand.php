@@ -3,11 +3,10 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
-use Laravel\Pulse\Checks\QueueSize;
-use Laravel\Pulse\Checks\SystemStats;
-use Laravel\Pulse\Entries\Entry;
+use Illuminate\Support\Collection;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -29,22 +28,20 @@ class CheckCommand extends Command
     public $description = 'Take a snapshot of the current server\'s pulse';
 
     /**
-     * The interval, in seconds, to check for new stats.
-     */
-    protected int $interval = 15;
-
-    /**
      * Handle the command.
+     *
+     * @param  \Illuminate\Support\Collection<int, (callable(): (\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update|iterable<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update))>  $checks
      */
     public function handle(
         Pulse $pulse,
-        SystemStats $systemStats,
-        QueueSize $queueSize,
         CacheManager $cache,
+        Collection $checks,
     ): int {
         $lastRestart = $cache->get('illuminate:pulse:restart');
 
-        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds($this->interval);
+        $interval = CarbonInterval::seconds(15);
+
+        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);
 
         while (true) {
             $now = new CarbonImmutable();
@@ -53,27 +50,16 @@ class CheckCommand extends Command
                 return self::SUCCESS;
             }
 
-            if ($now->subSeconds($this->interval)->lessThan($lastSnapshotAt)) {
+            if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
                 sleep(1);
 
                 continue;
             }
 
-            $lastSnapshotAt = $now->floorSeconds($this->interval);
+            $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            /*
-             * Collect server stats.
-             */
-
-            $pulse->record($entry = $systemStats($lastSnapshotAt));
-
-            /*
-             * Collect queue sizes.
-             */
-
-            if ($cache->lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
-                $entries = $queueSize($lastSnapshotAt)->each(fn (Entry $entry) => $pulse->record($entry));
-            }
+            $checks->flatMap(fn (callable $check) => $check($lastSnapshotAt, $interval))
+                ->each($pulse->record(...));
 
             $pulse->store();
         }

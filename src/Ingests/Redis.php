@@ -34,17 +34,16 @@ class Redis implements Ingest
     /**
      * Ingest the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>  $items
      */
-    public function ingest(Collection $entries, Collection $updates): void
+    public function ingest(Collection $items): void
     {
-        if ($entries->isEmpty() && $updates->isEmpty()) {
+        if ($items->isEmpty()) {
             return;
         }
 
-        $this->connection()->pipeline(function (RedisAdapter $pipeline) use ($entries, $updates) {
-            $entries->merge($updates)->each(fn (Entry|Update $entry) => $pipeline->xadd($this->stream, [
+        $this->connection()->pipeline(function (RedisAdapter $pipeline) use ($items) {
+            $items->each(fn (Entry|Update $entry) => $pipeline->xadd($this->stream, [
                 'data' => serialize($entry),
             ]));
         });
@@ -71,11 +70,9 @@ class Redis implements Ingest
 
         $keys = $entries->keys();
 
-        [$inserts, $updates] = $entries->values()
-            ->map(fn (array $payload) => unserialize($payload['data']))
-            ->partition(fn (Entry|Update $entry) => $entry instanceof Entry);
-
-        $storage->store($inserts, $updates);
+        $storage->store(
+            $entries->map(fn (array $payload): Entry|Update => unserialize($payload['data']))->values()
+        );
 
         $this->connection()->xdel($this->stream, $keys);
 

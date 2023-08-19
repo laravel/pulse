@@ -26,7 +26,7 @@ class HandleProcessingJob
         $this->pulse->rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
-            $this->pulse->recordUpdate(new JobStarted(
+            $this->pulse->record(new JobStarted(
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));

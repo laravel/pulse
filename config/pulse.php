@@ -64,6 +64,11 @@ return [
         '/',
     ],
 
+    'checks' => [
+        \Laravel\Pulse\Checks\QueueSize::class,
+        \Laravel\Pulse\Checks\SystemStats::class,
+    ],
+
     // cache keys to monitor
     // regex_pattern => name
     'cache_keys' => [

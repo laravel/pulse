@@ -31,7 +31,7 @@ class HandleProcessedJob
             // here, and instead we should have our "clear data" command do this
             // for us.
 
-            $this->pulse->recordUpdate(new JobFinished(
+            $this->pulse->record(new JobFinished(
                 (string) $event->job->getJobId(),
                 $now->toDateTimeString('millisecond')
             ));

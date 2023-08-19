@@ -53,7 +53,7 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app['config']->get('pulse.enabled') || $this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled')) {
             return;
         }
 
@@ -64,6 +64,12 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->bind(Ingest::class, fn (Application $app) => $app['config']->get('pulse.ingest.driver') === 'storage'
             ? $app[StorageIngest::class]
             : $app[RedisIngest::class]);
+
+        $this->app->bindMethod([CheckCommand::class, 'handle'], function (CheckCommand $instance, Application $app) {
+            $checks = collect($app['config']->get('pulse.checks'))->map(fn (string $check) => $app->make($check));
+
+            return $instance->handle($app[Pulse::class], $app['cache'], $checks);
+        });
 
         foreach ([
             Queries\Usage::class,
@@ -99,7 +105,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app['config']->get('pulse.enabled') || $this->app->runningUnitTests()) {
+        if (! $this->app['config']->get('pulse.enabled')) {
             return;
         }
 

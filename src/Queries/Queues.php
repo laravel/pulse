@@ -2,10 +2,8 @@
 
 namespace Laravel\Pulse\Queries;
 
-use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
@@ -44,4 +42,3 @@ class Queues
             ]);
     }
 }
-

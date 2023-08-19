@@ -20,12 +20,11 @@ class Storage implements Ingest
     /**
      * Ingest the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>  $entries
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>  $updates
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>  $items
      */
-    public function ingest(Collection $entries, Collection $updates): void
+    public function ingest(Collection $items): void
     {
-        $this->storage->store($entries, $updates);
+        $this->storage->store($items);
     }
 
     /**

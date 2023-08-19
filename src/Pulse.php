@@ -19,18 +19,11 @@ class Pulse
     use ListensForStorageOpportunities;
 
     /**
-     * The list of queued entries to be stored.
+     * The list of queued entries or updates.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
      */
-    protected Collection $entriesQueue;
-
-    /**
-     * The list of queued entry updates.
-     *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Update>
-     */
-    protected Collection $updatesQueue;
+    protected Collection $queue;
 
     /**
      * Indicates if Pulse should record entries.
@@ -73,11 +66,13 @@ class Pulse
     /**
      * Create a new Pulse instance.
      */
-    public function __construct(protected Repository $config, protected Ingest $ingest)
-    {
+    public function __construct(
+        protected Repository $config,
+        protected Ingest $ingest,
+    ) {
         $this->filters = collect([]);
 
-        $this->clearQueue();
+        $this->queue = collect([]);
     }
 
     /**
@@ -105,22 +100,10 @@ class Pulse
     /**
      * Record the given entry.
      */
-    public function record(Entry $entry): self
+    public function record(Entry|Update $entry): self
     {
         if ($this->shouldRecord) {
-            $this->entriesQueue[] = $entry;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Record the given entry update.
-     */
-    public function recordUpdate(Update $update): self
-    {
-        if ($this->shouldRecord) {
-            $this->updatesQueue[] = $update;
+            $this->queue[] = $entry;
         }
 
         return $this;
@@ -132,19 +115,22 @@ class Pulse
     public function store(): self
     {
         if (! $this->shouldRecord) {
-            return $this->clearQueue();
+            $this->queue = collect([]);
+
+            return $this;
         }
 
         $this->rescue(fn () => $this->ingest->ingest(
-            $this->entriesQueue->map->resolve()->filter($this->shouldRecord(...)),
-            $this->updatesQueue->filter($this->shouldRecord(...)),
+            $this->queue->map->resolve()->filter($this->shouldRecord(...)),
         ));
 
         $this->rescue(fn () => Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
             ->winner(fn () => $this->ingest->trim())
             ->choose());
 
-        return $this->clearQueue();
+        $this->queue = collect([]);
+
+        return $this;
     }
 
     /**
@@ -222,6 +208,7 @@ class Pulse
      */
     public function authorize(Request $request): bool
     {
+        // TODO
         return ($this->authUsing ?: fn () => App::environment('local'))($request);
     }
 
@@ -279,17 +266,5 @@ class Pulse
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
-    }
-
-    /**
-     * Clear any pending entries on the queue.
-     */
-    protected function clearQueue(): self
-    {
-        $this->entriesQueue = collect([]);
-
-        $this->updatesQueue = collect([]);
-
-        return $this;
     }
 }

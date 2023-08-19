@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse shouldNotRecord()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
  * @method static \Laravel\Pulse\Pulse record(\Laravel\Pulse\Entries\Entry $entry)
- * @method static \Laravel\Pulse\Pulse recordUpdate(\Laravel\Pulse\Entries\Update $update)
  * @method static \Laravel\Pulse\Pulse store()
  * @method static \Laravel\Pulse\Pulse resolveUsersUsing(callable $callback)
  * @method static \Illuminate\Support\Collection resolveUsers(\Illuminate\Support\Collection $ids)
