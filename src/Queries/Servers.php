@@ -37,7 +37,7 @@ class Servers
             floor($now->getTimestamp() / ($interval->totalSeconds / $maxDataPoints)) * ($interval->totalSeconds / $maxDataPoints)
         );
 
-        $secondsPerPeriod = $interval->totalSeconds / $maxDataPoints;
+        $secondsPerPeriod = (int) ($interval->totalSeconds / $maxDataPoints);
 
         $padding = collect([])
             ->pad(60, null)
