@@ -7,6 +7,7 @@ use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Laravel\Pulse\Checks\QueueSize;
 use Laravel\Pulse\Checks\SystemStats;
+use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -71,7 +72,7 @@ class CheckCommand extends Command
              */
 
             if ($cache->lock("illuminate:pulse:check-queue-sizes:{$lastSnapshotAt->timestamp}", $this->interval)->get()) {
-                $entries = $queueSize($lastSnapshotAt)->each(fn ($entry) => $pulse->record($entry));
+                $entries = $queueSize($lastSnapshotAt)->each(fn (Entry $entry) => $pulse->record($entry));
             }
 
             $pulse->store();

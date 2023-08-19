@@ -9,6 +9,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Entries\Update;
 
 class Database implements Storage
 {
@@ -36,11 +37,11 @@ class Database implements Storage
 
         $this->connection()->transaction(function () use ($entries, $updates) {
             $entries->groupBy('table')
-                ->each(fn ($rows, $table) => $rows->chunk(1000)
-                    ->map(fn ($inserts) => $inserts->pluck('attributes')->all())
+                ->each(fn (Collection $rows, string $table) => $rows->chunk(1000)
+                    ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
                     ->each($this->connection()->table($table)->insert(...)));
 
-            $updates->each(fn ($update) => $update->perform($this->connection()));
+            $updates->each(fn (Update $update) => $update->perform($this->connection()));
         });
     }
 
@@ -50,7 +51,7 @@ class Database implements Storage
     public function trim(): void
     {
         $this->tables()
-            ->each(fn ($table) => $this->connection()
+            ->each(fn (string $table) => $this->connection()
                 ->table($table)
                 ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
                 ->delete());

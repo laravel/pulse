@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
+use stdClass;
 
 class Cache extends Component
 {
@@ -82,7 +84,7 @@ class Cache extends Component
 
             $start = hrtime(true);
 
-            $interactions = $this->monitoredKeys()->mapWithKeys(fn ($name, $regex) => [
+            $interactions = $this->monitoredKeys()->mapWithKeys(fn (string $name, string $regex) => [
                 $name => (object) [
                     'regex' => $regex,
                     'key' => $name,
@@ -97,11 +99,11 @@ class Cache extends Component
                 ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
                 // TODO: ensure PHP and MySQL regex is compatible
                 // TODO modifiers? is redis / memcached / etc case sensitive?
-                ->where(fn ($query) => $this->monitoredKeys()->keys()->each(fn ($key) => $query->orWhere('key', 'RLIKE', $key)))
+                ->where(fn (Builder $query) => $this->monitoredKeys()->keys()->each(fn (string $key) => $query->orWhere('key', 'RLIKE', $key)))
                 ->orderBy('key')
                 ->groupBy('key')
-                ->each(function ($result) use ($interactions) {
-                    $name = $this->monitoredKeys()->firstWhere(fn ($name, $regex) => preg_match('/'.$regex.'/', $result->key) > 0);
+                ->each(function (stdClass $result) use ($interactions) {
+                    $name = $this->monitoredKeys()->firstWhere(fn (string $name, string $regex) => preg_match('/'.$regex.'/', $result->key) > 0);
 
                     if ($name === null) {
                         return;
@@ -117,7 +119,7 @@ class Cache extends Component
             $monitoringIndex = $this->monitoredKeys()->values()->flip();
 
             $interactions = $interactions
-                ->sortBy(fn ($interaction) => $monitoringIndex[$interaction->key])
+                ->sortBy(fn (stdClass $interaction) => $monitoringIndex[$interaction->key])
                 ->all();
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
@@ -130,8 +132,8 @@ class Cache extends Component
      */
     protected function monitoredKeys(): Collection
     {
-        return collect(config('pulse.cache_keys') ?? [])
-            ->mapWithKeys(fn ($value, $key) => is_string($key)
+        return collect(config('pulse.cache_keys'))
+            ->mapWithKeys(fn (string $value, int|string $key) => is_string($key)
                 ? [$key => $value]
                 : [$value => $value]);
     }
@@ -141,6 +143,6 @@ class Cache extends Component
      */
     protected function monitoredKeysCacheHash(): string
     {
-        return $this->monitoredKeys()->pipe(fn ($items) => md5($items->toJson()));
+        return $this->monitoredKeys()->pipe(fn (Collection $items) => md5($items->toJson()));
     }
 }

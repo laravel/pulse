@@ -47,7 +47,7 @@ class HandleException
     {
         // TODO: has issue when exception occurs in Blade/Livewire view.
         $firstNonVendorFrame = collect($e->getTrace())
-            ->firstWhere(fn ($frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
+            ->firstWhere(fn (array $frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
 
         if ($this->isNonVendorFile($e->getFile()) || $firstNonVendorFrame === null) {
             return $this->formatLocation($e->getFile(), $e->getLine());

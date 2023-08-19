@@ -1,6 +1,6 @@
 <x-pulse::card
     class="col-span-2"
-    wire:poll=""
+    wire:poll.5s
 >
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">

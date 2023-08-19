@@ -6,8 +6,10 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Pulse;
+use stdClass;
 
 /**
  * @interval
@@ -28,7 +30,7 @@ class Usage
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, email: ?string}}>
+     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, 'email': ?string}}>
      */
     public function __invoke(Interval $interval, string $type): Collection
     {
@@ -36,13 +38,13 @@ class Usage
 
         $top10 = $this->connection->query()
             ->when($type === 'dispatched_job_counts',
-                fn ($query) => $query->from('pulse_jobs'),
-                fn ($query) => $query->from('pulse_requests'))
+                fn (Builder $query) => $query->from('pulse_jobs'),
+                fn (Builder $query) => $query->from('pulse_requests'))
             ->selectRaw('user_id, COUNT(*) as count')
             ->whereNotNull('user_id')
             ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->when($type === 'slow_endpoint_counts',
-                fn ($query) => $query->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold')))
+                fn (Builder $query) => $query->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold')))
             ->groupBy('user_id')
             ->orderByDesc('count')
             ->limit(10)
@@ -50,11 +52,11 @@ class Usage
 
         $users = $this->pulse->resolveUsers($top10->pluck('user_id'));
 
-        return $top10->map(function ($row) use ($users) {
+        return $top10->map(function (stdClass $row) use ($users) {
             $user = $users->firstWhere('id', $row->user_id);
 
             return $user ? [
-                'count' => $row->count,
+                'count' => (int) $row->count,
                 'user' => [
                     'name' => $user['name'],
                     // "extra" rather than 'email'

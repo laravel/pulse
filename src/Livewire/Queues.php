@@ -2,7 +2,9 @@
 
 namespace Laravel\Pulse\Livewire;
 
+use Closure;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
@@ -15,14 +17,10 @@ class Queues extends Component
     /**
      * Render the component.
      */
-    public function render(): Renderable
+    public function render(callable $query): Renderable
     {
         return View::make('pulse::livewire.queues', [
-            'queues' => collect(config('pulse.queues'))->map(fn ($queue) => [
-                'queue' => $queue,
-                'size' => Queue::size($queue),
-                'failed' => collect(app('queue.failer')->all())->filter(fn ($job) => $job->queue === $queue)->count(),
-            ]),
+            'queues' => Cache::remember("illuminate:pulse:queues:live", 5, fn () => $query()),
         ]);
     }
 

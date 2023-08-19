@@ -38,6 +38,7 @@ use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
+use Livewire\Component;
 use Livewire\LivewireManager;
 use Throwable;
 
@@ -65,12 +66,12 @@ class PulseServiceProvider extends ServiceProvider
             : $app[RedisIngest::class]);
 
         foreach ([
-            Queries\Servers::class,
             Queries\Usage::class,
+            Queries\Servers::class,
+            Queries\SlowJobs::class,
             Queries\Exceptions::class,
             Queries\SlowRoutes::class,
             Queries\SlowQueries::class,
-            Queries\SlowJobs::class,
             Queries\SlowOutgoingRequests::class,
         ] as $class) {
             $this->app->when($class)
@@ -81,15 +82,15 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         foreach ([
-            Livewire\Servers::class => Queries\Servers::class,
             Livewire\Usage::class => Queries\Usage::class,
+            Livewire\Servers::class => Queries\Servers::class,
+            Livewire\SlowJobs::class => Queries\SlowJobs::class,
             Livewire\Exceptions::class => Queries\Exceptions::class,
             Livewire\SlowRoutes::class => Queries\SlowRoutes::class,
             Livewire\SlowQueries::class => Queries\SlowQueries::class,
-            Livewire\SlowJobs::class => Queries\SlowJobs::class,
             Livewire\SlowOutgoingRequests::class => Queries\SlowOutgoingRequests::class,
         ] as $card => $query) {
-            $this->app->bindMethod([$card, 'render'], fn ($instance, $app) => $instance->render($app[$query]));
+            $this->app->bindMethod([$card, 'render'], fn (Component $instance, Application $app) => $instance->render($app[$query]));
         }
     }
 
@@ -102,13 +103,13 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->listenForEvents();
         $this->registerRoutes();
+        $this->listenForEvents();
+        $this->registerCommands();
         $this->registerResources();
+        $this->registerComponents();
         $this->registerMigrations();
         $this->registerPublishing();
-        $this->registerCommands();
-        $this->registerComponents();
     }
 
     /**
@@ -131,8 +132,8 @@ class PulseServiceProvider extends ServiceProvider
             $event->listen(JobQueued::class, HandleQueuedJob::class);
             $event->listen(JobProcessing::class, HandleProcessingJob::class);
             $event->listen([
-                JobProcessed::class,
                 JobFailed::class,
+                JobProcessed::class,
             ], HandleProcessedJob::class);
         });
 
@@ -182,8 +183,8 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerMigrations(): void
     {
-        $this->callAfterResolving('migrator', function (Migrator $migrator) {
-            if (app(Pulse::class)->runsMigrations()) {
+        $this->callAfterResolving('migrator', function (Migrator $migrator, Application $app) {
+            if ($app[Pulse::class]->runsMigrations()) {
                 $migrator->path(__DIR__.'/../database/migrations');
             }
         });
@@ -212,9 +213,9 @@ class PulseServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                WorkCommand::class,
                 CheckCommand::class,
                 RestartCommand::class,
-                WorkCommand::class,
             ]);
         }
     }
@@ -231,16 +232,16 @@ class PulseServiceProvider extends ServiceProvider
         $this->callAfterResolving('livewire', function (LivewireManager $livewire) {
             $livewire->addPersistentMiddleware([Authorize::class]);
 
-            $livewire->component('period-selector', Livewire\PeriodSelector::class);
-            $livewire->component('servers', Livewire\Servers::class);
+            $livewire->component('cache', Livewire\Cache::class);
             $livewire->component('usage', Livewire\Usage::class);
+            $livewire->component('queues', Livewire\Queues::class);
+            $livewire->component('servers', Livewire\Servers::class);
+            $livewire->component('slow-jobs', Livewire\SlowJobs::class);
             $livewire->component('exceptions', Livewire\Exceptions::class);
             $livewire->component('slow-routes', Livewire\SlowRoutes::class);
             $livewire->component('slow-queries', Livewire\SlowQueries::class);
-            $livewire->component('slow-jobs', Livewire\SlowJobs::class);
+            $livewire->component('period-selector', Livewire\PeriodSelector::class);
             $livewire->component('slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
-            $livewire->component('cache', Livewire\Cache::class);
-            $livewire->component('queues', Livewire\Queues::class);
         });
     }
 }

@@ -4,15 +4,18 @@ namespace Laravel\Pulse\Checks;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
+use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Entries\Entry;
+use stdClass;
 
 class QueueSize
 {
     public function __construct(
         protected Repository $config,
         protected QueueManager $queue,
+        protected FailedJobProviderInterface $failedJobs,
     ) {
         //
     }
@@ -24,12 +27,12 @@ class QueueSize
      */
     public function __invoke(CarbonImmutable $now): Collection
     {
-        return collect($this->config->get('pulse.queues'))->map(fn ($queue) => new Entry('pulse_queue_sizes', [
+        return collect($this->config->get('pulse.queues'))->map(fn (string $queue) => new Entry('pulse_queue_sizes', [
             'date' => $now->toDateTimeString(),
             'queue' => $queue,
             'size' => $this->queue->size($queue),
-            'failed' => collect(app('queue.failer')->all())
-                ->filter(fn ($job) => $job->queue === $queue)
+            'failed' => collect($this->failedJobs->all())
+                ->filter(fn (stdClass $job) => $job->queue === $queue)
                 ->count(),
         ]));
     }

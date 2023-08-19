@@ -2,5 +2,8 @@ parameters:
   paths:
     - src
   level: 8
+  #polluteScopeWithLoopInitialAssignments: false
+  #polluteScopeWithAlwaysIterableForeach: false
+  #checkAlwaysTrueCheckTypeFunctionCall: true
 includes:
   - phpstan-baseline.neon

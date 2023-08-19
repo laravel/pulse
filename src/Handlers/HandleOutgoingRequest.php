@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 class HandleOutgoingRequest
 {
@@ -31,14 +33,14 @@ class HandleOutgoingRequest
      */
     public function __invoke(callable $handler): callable
     {
-        return function ($request, $options) use ($handler) {
+        return function (RequestInterface $request, array $options) use ($handler) {
             $startedAt = new CarbonImmutable;
 
-            return $handler($request, $options)->then(function ($response) use ($request, $startedAt) {
+            return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt) {
                 $this->pulse->rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
 
                 return $response;
-            }, function ($exception) use ($request, $startedAt) {
+            }, function (Throwable $exception) use ($request, $startedAt) {
                 $this->pulse->rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
 
                 return new RejectedPromise($exception);

@@ -2,12 +2,12 @@ parameters:
 	ignoreErrors:
 		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 2
+			count: 1
 			path: src/Checks/QueueSize.php
 
 		-
 			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 2
+			count: 1
 			path: src/Checks/QueueSize.php
 
 		-
@@ -34,6 +34,11 @@ parameters:
 			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
 			count: 1
 			path: src/Handlers/HandleHttpRequest.php
+
+		-
+			message: "#^Parameter \\#1 \\$items of method Illuminate\\\\Support\\\\Collection\\<int,Laravel\\\\Pulse\\\\Entries\\\\Entry\\>\\:\\:merge\\(\\) expects Illuminate\\\\Contracts\\\\Support\\\\Arrayable\\<int, Laravel\\\\Pulse\\\\Entries\\\\Entry\\>\\|iterable\\<int, Laravel\\\\Pulse\\\\Entries\\\\Entry\\>, Illuminate\\\\Support\\\\Collection\\<int, Laravel\\\\Pulse\\\\Entries\\\\Update\\> given\\.$#"
+			count: 1
+			path: src/Ingests/Redis.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
@@ -71,16 +76,6 @@ parameters:
 			path: src/Livewire/Exceptions.php
 
 		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 2
-			path: src/Livewire/Queues.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 2
-			path: src/Livewire/Queues.php
-
-		-
 			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowJobs\\:\\:slowJobs\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Livewire/SlowJobs.php
@@ -116,6 +111,11 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Call to an undefined method Livewire\\\\Component\\:\\:render\\(\\)\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
 			message: "#^Cannot access offset 'Illuminate\\\\\\\\Contracts\\\\\\\\Debug\\\\\\\\ExceptionHandler' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
@@ -136,6 +136,16 @@ parameters:
 			path: src/PulseServiceProvider.php
 
 		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/Queries/Queues.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 1
+			path: src/Queries/Queues.php
+
+		-
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
 			count: 1
 			path: src/Queries/Servers.php
@@ -144,6 +154,11 @@ parameters:
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\SlowRoutes\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{uri\\: string, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), array\\{uri\\: mixed, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\>\\.$#"
 			count: 1
 			path: src/Queries/SlowRoutes.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, email\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, email\\: string\\|null\\}\\}\\|null\\>\\.$#"
+			count: 1
+			path: src/Queries/Usage.php
 
 		-
 			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"

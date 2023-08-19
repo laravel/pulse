@@ -43,16 +43,9 @@ class Redis implements Ingest
             return;
         }
 
-        $this->connection()->pipeline(function ($pipeline) use ($entries, $updates) {
-            $entries->groupBy('table')
-                ->each(fn ($rows, $table) => $rows->each(fn ($data) => $pipeline->xadd($this->stream, [
-                    'type' => $table,
-                    'data' => json_encode($data, flags: JSON_THROW_ON_ERROR),
-                ])));
-
-            $updates->each(fn ($update) => $pipeline->xadd($this->stream, [
-                'type' => 'pulse_update',
-                'data' => serialize($update),
+        $this->connection()->pipeline(function (RedisAdapter $pipeline) use ($entries, $updates) {
+            $entries->merge($updates)->each(fn (Entry|Update $entry) => $pipeline->xadd($this->stream, [
+                'data' => serialize($entry),
             ]));
         });
     }
@@ -78,15 +71,9 @@ class Redis implements Ingest
 
         $keys = $entries->keys();
 
-        [$inserts, $updates] = $entries
-            ->values()
-            ->partition(fn ($entry) => $entry['type'] !== 'pulse_update');
-
-        $inserts = $inserts->map(fn ($data) => with(json_decode($data['data'], true, flags: JSON_THROW_ON_ERROR), function ($data) {
-            return new Entry($data['table'], $data['attributes']);
-        }));
-
-        $updates = $updates->map(fn ($data): Update => unserialize($data['data']));
+        [$inserts, $updates] = $entries->values()
+            ->map(fn (array $payload) => unserialize($payload['data']))
+            ->partition(fn (Entry|Update $entry) => $entry instanceof Entry);
 
         $storage->store($inserts, $updates);
 

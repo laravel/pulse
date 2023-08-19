@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
+use stdClass;
 
 /**
  * @interval
@@ -41,9 +42,9 @@ class SlowRoutes
             ->groupBy('route')
             ->orderByDesc('slowest')
             ->get()
-            ->map(fn ($row) => [
+            ->map(fn (stdClass $row) => [
                 'uri' => $row->route,
-                'action' => with(explode(' ', $row->route, 2), function ($parts) {
+                'action' => with(explode(' ', $row->route, 2), function (array $parts) {
                     [$method, $path] = $parts;
 
                     return ($this->router->getRoutes()->get($method)[$path] ?? null)?->getActionName();

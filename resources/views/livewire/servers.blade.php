@@ -56,7 +56,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                             series: [
                                                 {
                                                     className: 'stroke-purple-600',
-                                                    data: @json(collect($server->readings)->map(fn ($reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
+                                                    data: @json(collect($server->readings)->map(fn (stdClass $reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
                                                 },
                                             ],
                                         },
@@ -116,7 +116,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                             series: [
                                                 {
                                                     className: 'stroke-purple-600',
-                                                    data: @json(collect($server->readings)->map(fn ($reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
+                                                    data: @json(collect($server->readings)->map(fn (stdClass $reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
                                                 },
                                             ],
                                         },

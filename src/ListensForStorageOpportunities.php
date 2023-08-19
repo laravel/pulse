@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -19,11 +20,8 @@ trait ListensForStorageOpportunities
 
     /**
      * Register listeners that store the recorded Telescope entries.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
      */
-    public static function listenForStorageOpportunities($app)
+    public static function listenForStorageOpportunities(Application $app): void
     {
         static::storeEntriesBeforeTermination($app);
         static::storeEntriesAfterWorkerLoop($app);
@@ -33,36 +31,31 @@ trait ListensForStorageOpportunities
      * Store the entries in queue before the application termination.
      *
      * This handles storing entries for HTTP requests and Artisan commands.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
      */
-    protected static function storeEntriesBeforeTermination($app)
+    protected static function storeEntriesBeforeTermination(Application $app): void
     {
         $app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, function () use ($app) {
+            // TODO; this will go stale
             $app[Pulse::class]->store();
         });
     }
 
     /**
      * Store entries after the queue worker loops.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
      */
-    protected static function storeEntriesAfterWorkerLoop($app)
+    protected static function storeEntriesAfterWorkerLoop(Application $app): void
     {
-        $app['events']->listen(JobProcessing::class, function ($event) {
+        $app['events']->listen(JobProcessing::class, function (JobProcessing $event) {
             if ($event->connectionName !== 'sync') {
                 static::$processingJobs[] = true;
             }
         });
 
-        $app['events']->listen(JobProcessed::class, function ($event) use ($app) {
+        $app['events']->listen(JobProcessed::class, function (JobProcessed $event) use ($app) {
             static::storeIfDoneProcessingJob($event, $app);
         });
 
-        $app['events']->listen(JobFailed::class, function ($event) use ($app) {
+        $app['events']->listen(JobFailed::class, function (JobFailed $event) use ($app) {
             static::storeIfDoneProcessingJob($event, $app);
         });
 
@@ -73,16 +66,13 @@ trait ListensForStorageOpportunities
 
     /**
      * Store the recorded entries if totally done processing the current job.
-     *
-     * @param  \Illuminate\Queue\Events\JobProcessed  $event
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
      */
-    protected static function storeIfDoneProcessingJob($event, $app)
+    protected static function storeIfDoneProcessingJob(JobProcessed|JobFailed $event, Application $app): void
     {
         array_pop(static::$processingJobs);
 
         if (empty(static::$processingJobs) && $event->connectionName !== 'sync') {
+            // TODO: this will go stale
             $app[Pulse::class]->store();
         }
     }

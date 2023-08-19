@@ -47,7 +47,7 @@ class Pulse
     /**
      * Users resolver.
      *
-     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: ?string}>)|null
+     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)
      */
     protected $usersResolver;
 
@@ -152,13 +152,13 @@ class Pulse
      */
     protected function shouldRecord(Entry|Update $entry): bool
     {
-        return $this->filters->every(fn ($filter) => $filter($entry));
+        return $this->filters->every(fn (callable $filter) => $filter($entry));
     }
 
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: ?string}>)  $callback
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {
