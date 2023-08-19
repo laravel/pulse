@@ -34,7 +34,7 @@ class SlowOutgoingRequests
 
         return $this->connection->table('pulse_outgoing_requests')
             ->selectRaw('`uri`, COUNT(*) as count, MAX(duration) AS slowest')
-            ->where('date', '>=', $now->subSeconds($interval->totalSeconds)->toDateTimeString())
+            ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.slow_outgoing_request_threshold'))
             ->groupBy('uri')
             ->orderByDesc('slowest')
