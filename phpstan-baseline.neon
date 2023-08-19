@@ -21,9 +21,24 @@ parameters:
 			path: src/Checks/SystemStats.php
 
 		-
+			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
+			count: 1
+			path: src/Handlers/HandleException.php
+
+		-
+			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
+			count: 1
+			path: src/Handlers/HandleException.php
+
+		-
 			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
 			count: 1
 			path: src/Handlers/HandleHttpRequest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
+			count: 2
+			path: src/Livewire/Cache.php
 
 		-
 			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:allCacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
@@ -96,6 +111,26 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:resolveUsers\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string, email\\?\\: string\\|null\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string\\}\\>\\.$#"
+			count: 1
+			path: src/Pulse.php
+
+		-
+			message: "#^Cannot access offset 'Illuminate\\\\\\\\Contracts\\\\\\\\Debug\\\\\\\\ExceptionHandler' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Cannot access offset 'Illuminate\\\\\\\\Contracts\\\\\\\\Http\\\\\\\\Kernel' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Cannot access offset 'config' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
+			count: 2
+			path: src/PulseServiceProvider.php
+
+		-
 			message: "#^Parameter \\#1 \\$app of static method Laravel\\\\Pulse\\\\Pulse\\:\\:listenForStorageOpportunities\\(\\) expects Illuminate\\\\Foundation\\\\Application, Illuminate\\\\Contracts\\\\Foundation\\\\Application given\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
@@ -106,7 +141,32 @@ parameters:
 			path: src/Queries/Servers.php
 
 		-
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\SlowRoutes\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{uri\\: string, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), array\\{uri\\: mixed, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\>\\.$#"
+			count: 1
+			path: src/Queries/SlowRoutes.php
+
+		-
 			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"
+			count: 1
+			path: src/Redis.php
+
+		-
+			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\:\\:xadd\\(\\)\\.$#"
+			count: 1
+			path: src/Redis.php
+
+		-
+			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\:\\:xtrim\\(\\)\\.$#"
+			count: 1
+			path: src/Redis.php
+
+		-
+			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\|Redis\\:\\:xdel\\(\\)\\.$#"
+			count: 1
+			path: src/Redis.php
+
+		-
+			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\|Redis\\:\\:xrange\\(\\)\\.$#"
 			count: 1
 			path: src/Redis.php
 

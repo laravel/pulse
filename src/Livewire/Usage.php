@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Url;
@@ -38,7 +39,7 @@ class Usage extends Component
 
         $this->dispatch('usage:'.($this->type ? "{$this->type}:" : '').'dataLoaded');
 
-        return view('pulse::livewire.usage', [
+        return View::make('pulse::livewire.usage', [
             'time' => $time,
             'runAt' => $runAt,
             'userRequestCounts' => $userRequestCounts,
@@ -50,7 +51,7 @@ class Usage extends Component
      */
     public function placeholder(): Renderable
     {
-        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**

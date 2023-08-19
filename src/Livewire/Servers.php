@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
@@ -27,7 +28,7 @@ class Servers extends Component
             $this->dispatch('chartUpdate', servers: $servers);
         }
 
-        return view('pulse::livewire.servers', [
+        return View::make('pulse::livewire.servers', [
             'servers' => $servers,
         ]);
     }
@@ -37,6 +38,6 @@ class Servers extends Component
      */
     public function placeholder(): Renderable
     {
-        return view('pulse::components.placeholder', ['class' => 'col-span-6']);
+        return View::make('pulse::components.placeholder', ['class' => 'col-span-6']);
     }
 }

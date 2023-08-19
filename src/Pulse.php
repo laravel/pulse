@@ -11,6 +11,7 @@ use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
+use RuntimeException;
 use Throwable;
 
 class Pulse
@@ -170,7 +171,7 @@ class Pulse
      * Resolve the user's details using the given closure.
      *
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, email?: string}>
+     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'email'?: ?string}>
      */
     public function resolveUsers(Collection $ids): Collection
     {
@@ -186,7 +187,7 @@ class Pulse
             return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
-        return $ids->map(fn ($id) => [
+        return $ids->map(fn (string|int $id) => [
             'id' => $id,
             'name' => "User ID: {$id}",
         ]);
@@ -197,7 +198,11 @@ class Pulse
      */
     public function css(): string
     {
-        return file_get_contents(__DIR__.'/../dist/pulse.css');
+        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
+            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
+        }
+
+        return $content;
     }
 
     /**
@@ -205,7 +210,11 @@ class Pulse
      */
     public function js(): string
     {
-        return file_get_contents(__DIR__.'/../dist/pulse.js');
+        if (($content = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
+            throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
+        }
+
+        return $content;
     }
 
     /**

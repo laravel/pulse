@@ -11,7 +11,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Client\Factory;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -19,6 +19,7 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Commands\CheckCommand;
 use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
@@ -139,8 +140,8 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
-        if (method_exists(Factory::class, 'globalMiddleware')) {
-            $this->callAfterResolving(Factory::class, function (Factory $factory) {
+        if (method_exists(HttpFactory::class, 'globalMiddleware')) {
+            $this->callAfterResolving(HttpFactory::class, function (HttpFactory $factory) {
                 $factory->globalMiddleware(fn (...$args) => app(HandleOutgoingRequest::class)(...$args));
             });
         }
@@ -160,10 +161,10 @@ class PulseServiceProvider extends ServiceProvider
                 'domain' => $app['config']->get('pulse.domain', null),
                 'middleware' => $app['config']->get('pulse.middleware', 'web'),
                 'prefix' => $app['config']->get('pulse.path'),
-            ], fn (Router $router) => $router->get('/', function (Pulse $pulse) {
+            ], fn (Router $router) => $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                 $pulse->shouldNotRecord();
 
-                return view('pulse::dashboard');
+                return $view->make('pulse::dashboard');
             }));
         });
     }

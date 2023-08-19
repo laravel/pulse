@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
@@ -22,7 +23,7 @@ class SlowJobs extends Component
 
         $this->dispatch('slow-jobs:dataLoaded');
 
-        return view('pulse::livewire.slow-jobs', [
+        return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
             'slowJobs' => $slowJobs,
@@ -34,7 +35,7 @@ class SlowJobs extends Component
      */
     public function placeholder(): Renderable
     {
-        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -24,7 +25,7 @@ class PeriodSelector extends Component
      */
     public function render(): Renderable
     {
-        return view('pulse::livewire.period-selector');
+        return View::make('pulse::livewire.period-selector');
     }
 
     /**

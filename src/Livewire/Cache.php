@@ -7,6 +7,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
@@ -26,7 +27,7 @@ class Cache extends Component
 
         $this->dispatch('cache:dataLoaded');
 
-        return view('pulse::livewire.cache', [
+        return View::make('pulse::livewire.cache', [
             'allTime' => $allTime,
             'allRunAt' => $allRunAt,
             'monitoredTime' => $monitoredTime,
@@ -41,7 +42,7 @@ class Cache extends Component
      */
     public function placeholder(): Renderable
     {
-        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
@@ -57,7 +58,7 @@ class Cache extends Component
             $cacheInteractions = DB::table('pulse_cache_hits')
                 ->selectRaw('COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
                 ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->first();
+                ->first() ?? (object) ['hits' => 0];
 
             $cacheInteractions->hits = (int) $cacheInteractions->hits;
 

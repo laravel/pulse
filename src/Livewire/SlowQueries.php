@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
@@ -22,7 +23,7 @@ class SlowQueries extends Component
 
         $this->dispatch('slow-queries:dataLoaded');
 
-        return view('pulse::livewire.slow-queries', [
+        return View::make('pulse::livewire.slow-queries', [
             'time' => $time,
             'runAt' => $runAt,
             'slowQueries' => $slowQueries,
@@ -34,7 +35,7 @@ class SlowQueries extends Component
      */
     public function placeholder(): Renderable
     {
-        return view('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
     }
 
     /**
