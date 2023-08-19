@@ -9,7 +9,7 @@ trait ShouldNotReportUsage
     /**
      * Disable recording when the component is booted.
      */
-    public function bootShouldNotReportUsage()
+    public function bootShouldNotReportUsage(): void
     {
         app(Pulse::class)->shouldNotRecord();
     }

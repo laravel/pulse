@@ -27,6 +27,8 @@ class Usage
 
     /**
      * Run the query.
+     *
+     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, email: ?string}}>
      */
     public function __invoke(Interval $interval, string $type): Collection
     {

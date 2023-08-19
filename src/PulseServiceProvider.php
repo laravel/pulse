@@ -35,11 +35,10 @@ use Laravel\Pulse\Handlers\HandleQueuedJob;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
-use Laravel\Pulse\Livewire;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
-use Livewire\Component;
 use Livewire\LivewireManager;
+use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
 {
@@ -138,7 +137,7 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        $this->app[ExceptionHandler::class]->reportable(fn (...$args) => app(HandleException::class)(...$args));
+        $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
         if (method_exists(Factory::class, 'globalMiddleware')) {
             $this->callAfterResolving(Factory::class, function (Factory $factory) {

@@ -58,6 +58,8 @@ class Database implements Storage
 
     /**
      *  Pulse's database tables.
+     *
+     *  @return \Illuminate\Support\Collection<int, string>
      */
     protected function tables(): Collection
     {

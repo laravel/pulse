@@ -28,8 +28,10 @@ class Redis
 
     /**
      * Add an entry to the stream.
+     *
+     * @param  array<string, string>  $dictionary
      */
-    public function xadd(string $key, array $dictionary)
+    public function xadd(string $key, array $dictionary): string|Pipeline
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
@@ -40,6 +42,8 @@ class Redis
 
     /**
      * Read a range of entries from the stream.
+     *
+     * @return array<string, array<string, string>>
      */
     public function xrange(string $key, string $start, string $end, int $count = null): array
     {
@@ -49,7 +53,7 @@ class Redis
     /**
      * Trim the stream.
      */
-    public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold)
+    public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
         $threshold = (string) $threshold;
 
@@ -63,6 +67,8 @@ class Redis
 
     /**
      * Delete the entries from the stream.
+     *
+     * @param  \Illuminate\Support\Collection<int, string>|array<int, string>  $keys
      */
     public function xdel(string $stream, Collection|array $keys): int
     {
@@ -73,6 +79,7 @@ class Redis
      * Run commands within a pipeline.
      *
      * @param  (callable(self): void)  $closure
+     * @return array<int, mixed>
      */
     public function pipeline(callable $closure): array
     {

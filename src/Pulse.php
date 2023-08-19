@@ -46,14 +46,14 @@ class Pulse
     /**
      * Users resolver.
      *
-     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: string|null}>)|null
+     * @var (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: ?string}>)|null
      */
     protected $usersResolver;
 
     /**
      * The callback that should be used to authenticate Pulse users.
      *
-     * @var (callable(\Illuminate\Http\Request): bool)|null
+     * @var ?(callable(\Illuminate\Http\Request): bool)
      */
     protected $authUsing = null;
 
@@ -65,7 +65,7 @@ class Pulse
     /**
      * Handle exceptions using the given callback.
      *
-     * @var (callable(\Throwable): mixed)|null
+     * @var ?(callable(\Throwable): mixed)
      */
     protected $handleExceptionsUsing = null;
 
@@ -157,7 +157,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: string|null}>)  $callback
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, email?: ?string}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {

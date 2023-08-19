@@ -1,0 +1,116 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 2
+			path: src/Checks/QueueSize.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 2
+			path: src/Checks/QueueSize.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/Checks/SystemStats.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 1
+			path: src/Checks/SystemStats.php
+
+		-
+			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
+			count: 1
+			path: src/Handlers/HandleHttpRequest.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:allCacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/Cache.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:monitoredCacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/Cache.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:monitoredKeys\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
+			count: 1
+			path: src/Livewire/Cache.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/Livewire/Cache.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 1
+			path: src/Livewire/Cache.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Exceptions\\:\\:exceptions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/Exceptions.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 2
+			path: src/Livewire/Queues.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 2
+			path: src/Livewire/Queues.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowJobs\\:\\:slowJobs\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/SlowJobs.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowOutgoingRequests\\:\\:slowOutgoingRequests\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/SlowOutgoingRequests.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowQueries\\:\\:slowQueries\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/SlowQueries.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowRoutes\\:\\:slowRoutes\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/SlowRoutes.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Usage\\:\\:userRequestCounts\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Livewire/Usage.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Support\\\\HigherOrderCollectionProxy\\:\\:resolve\\(\\)\\.$#"
+			count: 1
+			path: src/Pulse.php
+
+		-
+			message: "#^Parameter \\#1 \\$app of static method Laravel\\\\Pulse\\\\Pulse\\:\\:listenForStorageOpportunities\\(\\) expects Illuminate\\\\Foundation\\\\Application, Illuminate\\\\Contracts\\\\Foundation\\\\Application given\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
+			count: 1
+			path: src/Queries/Servers.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"
+			count: 1
+			path: src/Redis.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Storage\\\\Database\\:\\:tables\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, string\\> but returns Illuminate\\\\Support\\\\Collection\\<int\\|string, mixed\\>\\.$#"
+			count: 1
+			path: src/Storage/Database.php
