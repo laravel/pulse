@@ -21,6 +21,16 @@ parameters:
 			path: src/Checks/SystemStats.php
 
 		-
+			message: "#^Unable to resolve the template type TFlatMapKey in call to method Illuminate\\\\Support\\\\Collection\\<int,callable\\>\\:\\:flatMap\\(\\)$#"
+			count: 1
+			path: src/Commands/CheckCommand.php
+
+		-
+			message: "#^Unable to resolve the template type TFlatMapValue in call to method Illuminate\\\\Support\\\\Collection\\<int,callable\\>\\:\\:flatMap\\(\\)$#"
+			count: 1
+			path: src/Commands/CheckCommand.php
+
+		-
 			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
 			count: 1
 			path: src/Handlers/HandleException.php
@@ -34,11 +44,6 @@ parameters:
 			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
 			count: 1
 			path: src/Handlers/HandleHttpRequest.php
-
-		-
-			message: "#^Parameter \\#1 \\$items of method Illuminate\\\\Support\\\\Collection\\<int,Laravel\\\\Pulse\\\\Entries\\\\Entry\\>\\:\\:merge\\(\\) expects Illuminate\\\\Contracts\\\\Support\\\\Arrayable\\<int, Laravel\\\\Pulse\\\\Entries\\\\Entry\\>\\|iterable\\<int, Laravel\\\\Pulse\\\\Entries\\\\Entry\\>, Illuminate\\\\Support\\\\Collection\\<int, Laravel\\\\Pulse\\\\Entries\\\\Update\\> given\\.$#"
-			count: 1
-			path: src/Ingests/Redis.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
@@ -132,6 +137,16 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$app of static method Laravel\\\\Pulse\\\\Pulse\\:\\:listenForStorageOpportunities\\(\\) expects Illuminate\\\\Foundation\\\\Application, Illuminate\\\\Contracts\\\\Foundation\\\\Application given\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
 			count: 1
 			path: src/PulseServiceProvider.php
 

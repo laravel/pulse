@@ -30,7 +30,7 @@ class CheckCommand extends Command
     /**
      * Handle the command.
      *
-     * @param  \Illuminate\Support\Collection<int, (callable(): (\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update|iterable<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update))>  $checks
+     * @param  \Illuminate\Support\Collection<int, (callable(\Carbon\CarbonImmutable, \Carbon\CarbonInterval): (\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update|iterable<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>))>  $checks
      */
     public function handle(
         Pulse $pulse,
