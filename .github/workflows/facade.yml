@@ -3,6 +3,7 @@ name: facades
 on:
   push:
     branches:
+      - master
       - '*.x'
 
 jobs:
