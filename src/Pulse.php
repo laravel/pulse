@@ -77,10 +77,38 @@ class Pulse
 
     /**
      * Stop recording entries.
+     *
+     * @template TReturn
+     *
+     * @param  (callable(): TReturn)  $callback
      */
-    public function shouldNotRecord(): self
+    public function ignore($callback): mixed
+    {
+        $this->stopRecording();
+
+        try {
+            return $callback();
+        } finally {
+            $this->startRecording();
+        }
+    }
+
+    /**
+     * Stop recording entries.
+     */
+    public function stopRecording(): self
     {
         $this->shouldRecord = false;
+
+        return $this;
+    }
+
+    /**
+     * Start recording entries.
+     */
+    public function startRecording(): self
+    {
+        $this->shouldRecord = true;
 
         return $this;
     }
@@ -121,7 +149,7 @@ class Pulse
         }
 
         $this->rescue(fn () => $this->ingest->ingest(
-            $this->queue->map->resolve()->filter($this->shouldRecord(...)),
+            $this->queue->map->resolve()->filter($this->shouldRun(...)),
         ));
 
         $this->rescue(fn () => Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
@@ -134,9 +162,19 @@ class Pulse
     }
 
     /**
+     * The pending entries queue.
+     *
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
+     */
+    public function queue()
+    {
+        return $this->queue;
+    }
+
+    /**
      * Determine if the entry should be recorded.
      */
-    protected function shouldRecord(Entry|Update $entry): bool
+    protected function shouldRun(Entry|Update $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
     }

@@ -14,6 +14,8 @@ return [
         Authorize::class,
     ],
 
+    // env variable to not run migrations on certain environments.
+
     // The name that will appear in the dashboard after running the `pulse:check` command.
     // This must be unique for each reporting server.
     'server_name' => env('PULSE_SERVER_NAME', gethostname()),
@@ -43,16 +45,16 @@ return [
     // TODO: filter configuration?
 
     // in milliseconds
-    'slow_endpoint_threshold' => 0,
+    'slow_endpoint_threshold' => 1000,
 
     // in milliseconds
-    'slow_query_threshold' => 0,
+    'slow_query_threshold' => 1000,
 
     // in milliseconds
-    'slow_job_threshold' => 0,
+    'slow_job_threshold' => 1000,
 
     // in milliseconds
-    'slow_outgoing_request_threshold' => 0,
+    'slow_outgoing_request_threshold' => 1000,
 
     // queues to show stats for
     'queues' => [

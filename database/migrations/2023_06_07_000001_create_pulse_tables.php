@@ -32,8 +32,8 @@ return new class extends Migration
             $table->string('route');
             $table->unsignedInteger('duration');
 
-            $table->index(['date', 'user_id'], 'user_usage');
-            $table->index(['date', 'route', 'duration'], 'slow_endpoints');
+            $table->index(['date', 'user_id']); // user_usage
+            $table->index(['date', 'route', 'duration']); // slow_endpoints
         });
 
         Schema::create('pulse_exceptions', function (Blueprint $table) {
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->string('sql');
             $table->unsignedInteger('duration');
 
-            $table->index(['date', 'sql', 'duration'], 'slow_queries');
+            $table->index(['date', 'sql', 'duration']); // slow_queries
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
@@ -64,8 +64,8 @@ return new class extends Migration
 
             // TODO: verify this update index. Needs to find job quickly.
             $table->index(['job_id']);
-            $table->index(['date', 'job', 'duration'], 'slow_jobs');
-            $table->index(['date', 'user_id'], 'user_usage');
+            $table->index(['date', 'job', 'duration']); // slow_jobs
+            $table->index(['date', 'user_id']); // user_usage
         });
 
         Schema::create('pulse_cache_hits', function (Blueprint $table) {

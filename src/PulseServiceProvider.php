@@ -169,7 +169,7 @@ class PulseServiceProvider extends ServiceProvider
                 'middleware' => $app['config']->get('pulse.middleware', 'web'),
                 'prefix' => $app['config']->get('pulse.path'),
             ], fn (Router $router) => $router->get('/', function (Pulse $pulse, ViewFactory $view) {
-                $pulse->shouldNotRecord();
+                $pulse->stopRecording();
 
                 return $view->make('pulse::dashboard');
             }));
