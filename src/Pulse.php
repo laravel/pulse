@@ -84,12 +84,14 @@ class Pulse
      */
     public function ignore($callback): mixed
     {
-        $this->stopRecording();
+       $recording = $this->shouldRecord;
+
+       $this->shouldRecord = false;
 
         try {
             return $callback();
         } finally {
-            $this->startRecording();
+            $this->shouldRecord = $recording;
         }
     }
 

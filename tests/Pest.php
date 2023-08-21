@@ -1,5 +1,10 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
+use Laravel\Pulse\Facades\Pulse;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,7 +16,17 @@
 |
 */
 
-uses(Tests\TestCase::class)->in('Unit', 'Feature');
+uses(TestCase::class)
+    ->beforeEach(function () {
+        Model::unguard();
+        Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
+    })
+    ->afterEach(function () {
+        if (Pulse::queue()->isNotEmpty()) {
+            throw new RuntimeException('The queue is not empty');
+        }
+    })
+    ->in('Unit', 'Feature');
 
 /*
 |--------------------------------------------------------------------------
@@ -37,4 +52,10 @@ uses(Tests\TestCase::class)->in('Unit', 'Feature');
 |
 */
 
-// ...
+function prependListener(string $event, callable $listener): void {
+    $listeners = Event::getRawListeners()[$event];
+
+    Event::forget($event);
+
+    collect([$listener, ...$listeners])->each(fn ($listener) => Event::listen($event, $listener));
+}
