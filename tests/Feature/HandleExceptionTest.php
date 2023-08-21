@@ -1,10 +1,8 @@
 <?php
 
-use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
@@ -13,13 +11,10 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Handlers\HandleException;
-use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Pulse as PulseInstance;
 
 beforeEach(function () {
@@ -86,7 +81,8 @@ it('captures the authenticated user if they logout after the exception is report
 
 it('does not trigger an inifite loop when retriving the authenticated user from the database', function () {
     Config::set('auth.guards.db', ['driver' => 'db']);
-    Auth::extend('db', fn () => new class implements Guard {
+    Auth::extend('db', fn () => new class implements Guard
+    {
         use GuardHelpers;
 
         public function validate(array $credentials = [])
@@ -119,7 +115,8 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
     Facade::clearResolvedInstance(PulseInstance::class);
     App::when(HandleException::class)
         ->needs(AuthManager::class)
-        ->give(fn (Application $app) => new class($app) extends AuthManager {
+        ->give(fn (Application $app) => new class($app) extends AuthManager
+        {
             public function hasUser()
             {
                 throw new RuntimeException('Error checking for user.');

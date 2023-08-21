@@ -52,7 +52,8 @@ uses(TestCase::class)
 |
 */
 
-function prependListener(string $event, callable $listener): void {
+function prependListener(string $event, callable $listener): void
+{
     $listeners = Event::getRawListeners()[$event];
 
     Event::forget($event);
