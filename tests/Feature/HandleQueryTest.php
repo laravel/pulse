@@ -37,12 +37,13 @@ it('ingests queries', function () {
     });
 
     DB::table('users')->count();
+
     expect(Pulse::queue())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 
     Pulse::store();
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
 
+    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect(Pulse::queue())->toHaveCount(0);
     expect($queries)->toHaveCount(1);
     expect((array) $queries->first())->toEqual([
@@ -91,6 +92,7 @@ it('ingests queries over the slow query threshold', function () {
 
 it('captures the authenticated user', function () {
     Auth::setUser(User::make(['id' => '567']));
+
     DB::table('users')->count();
     Pulse::store();
 
@@ -100,9 +102,6 @@ it('captures the authenticated user', function () {
 });
 
 it('captures the authenticated user if they login after the query is made', function () {
-    Config::set('auth.guards.db', ['driver' => 'db']);
-
-    Auth::forgetUser();
     DB::table('users')->count();
     Auth::setUser(User::make(['id' => '567']));
     Pulse::store();
@@ -113,9 +112,8 @@ it('captures the authenticated user if they login after the query is made', func
 });
 
 it('captures the authenticated user if they logout after the query is made', function () {
-    Config::set('auth.guards.db', ['driver' => 'db']);
-
     Auth::setUser(User::make(['id' => '567']));
+
     DB::table('users')->count();
     Auth::forgetUser();
     Pulse::store();
