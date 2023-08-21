@@ -1,21 +1,28 @@
 <?php
 
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Handlers\HandleQuery;
+use Laravel\Pulse\Pulse as PulseInstance;
 
 beforeEach(function () {
+    Config::set('pulse.slow_query_threshold', 0);
     Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
         $table->id();
         $table->string('name');
@@ -24,7 +31,6 @@ beforeEach(function () {
 });
 
 it('ingests queries', function () {
-    Config::set('pulse.slow_query_threshold', 0);
     Carbon::setTestNow('2020-01-02 03:04:05');
     prependListener(QueryExecuted::class, function (QueryExecuted $event) {
         $event->time = 5000;
@@ -84,8 +90,6 @@ it('ingests queries over the slow query threshold', function () {
 });
 
 it('captures the authenticated user', function () {
-    Config::set('pulse.slow_query_threshold', 0);
-
     Auth::setUser(User::make(['id' => '567']));
     DB::table('users')->count();
     Pulse::store();
@@ -96,7 +100,6 @@ it('captures the authenticated user', function () {
 });
 
 it('captures the authenticated user if they login after the query is made', function () {
-    Config::set('pulse.slow_query_threshold', 0);
     Config::set('auth.guards.db', ['driver' => 'db']);
 
     Auth::forgetUser();
@@ -110,7 +113,6 @@ it('captures the authenticated user if they login after the query is made', func
 });
 
 it('captures the authenticated user if they logout after the query is made', function () {
-    Config::set('pulse.slow_query_threshold', 0);
     Config::set('auth.guards.db', ['driver' => 'db']);
 
     Auth::setUser(User::make(['id' => '567']));
@@ -124,7 +126,6 @@ it('captures the authenticated user if they logout after the query is made', fun
 });
 
 it('does not trigger an inifite loop when retriving the authenticated user from the database', function () {
-    Config::set('pulse.slow_query_threshold', 0);
     Config::set('auth.guards.db', ['driver' => 'db']);
     Auth::extend('db', fn () => new class implements Guard {
         use GuardHelpers;
@@ -152,4 +153,22 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
     expect($queries[0]->user_id)->toBe(null);
+});
+
+it('quietly fails if an exception is thrown while preparing the entry payload', function () {
+    App::forgetInstance(PulseInstance::class);
+    Facade::clearResolvedInstance(PulseInstance::class);
+    App::when(HandleQuery::class)
+        ->needs(AuthManager::class)
+        ->give(fn (Application $app) => new class($app) extends AuthManager {
+            public function hasUser()
+            {
+                throw new RuntimeException('Error checking for user.');
+            }
+        });
+
+    DB::table('users')->count();
+    Pulse::store();
+
+    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 });
