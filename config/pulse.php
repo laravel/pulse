@@ -24,7 +24,7 @@ return [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
         'database' => [
-            'connection' => env('PULSE_DB_CONNECTION') ?? env('DB_CONNECTION') ?? 'mysql',
+            'connection' => env('PULSE_DB_CONNECTION', null),
         ],
     ],
 
@@ -35,7 +35,7 @@ return [
         'lottery' => [1, 1000],
 
         'redis' => [
-            'connection' => env('PULSE_REDIS_CONNECTION') ?? 'default',
+            'connection' => env('PULSE_REDIS_CONNECTION', null),
         ],
     ],
 

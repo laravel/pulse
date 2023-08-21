@@ -40,6 +40,7 @@ use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Component;
 use Livewire\LivewireManager;
+use RuntimeException;
 use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
@@ -61,9 +62,11 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
-        $this->app->bind(Ingest::class, fn (Application $app) => $app['config']->get('pulse.ingest.driver') === 'storage'
-            ? $app[StorageIngest::class]
-            : $app[RedisIngest::class]);
+        $this->app->bind(Ingest::class, fn (Application $app) => match($app['config']->get('pulse.ingest.driver')) {
+            'storage' => $app[StorageIngest::class],
+            'redis' => $app[RedisIngest::class],
+            default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
+        });
 
         $this->app->bindMethod([CheckCommand::class, 'handle'], function (CheckCommand $instance, Application $app) {
             $checks = collect($app['config']->get('pulse.checks'))->map(fn (string $check) => $app->make($check));
@@ -83,7 +86,7 @@ class PulseServiceProvider extends ServiceProvider
             $this->app->when($class)
                 ->needs(Connection::class)
                 ->give(fn (Application $app) => $app['db']->connection($app['config']->get(
-                    "pulse.storage.{$app['config']->get('pulse.storage.driver')}.connection"
+                    "pulse.storage.database.connection"
                 )));
         }
 

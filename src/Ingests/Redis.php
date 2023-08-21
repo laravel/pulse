@@ -92,8 +92,6 @@ class Redis implements Ingest
      */
     protected function connection(): RedisAdapter
     {
-        return new RedisAdapter($this->config, $this->manager->connection($this->config->get(
-            "pulse.ingest.{$this->config->get('pulse.ingest.driver')}.connection"
-        )));
+        return new RedisAdapter($this->config, $this->manager->connection($this->config->get("pulse.ingest.redis.connection")));
     }
 }
