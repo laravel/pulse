@@ -40,10 +40,10 @@ it('ingests queries', function () {
 
     Pulse::store();
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect(Pulse::queue())->toHaveCount(0);
+    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
-    expect((array) $queries->first())->toEqual([
+    expect((array) $queries[0])->toEqual([
         'date' => '2020-01-02 03:04:00',
         'user_id' => null,
         'sql' => 'select count(*) as aggregate from "users"',
@@ -98,7 +98,7 @@ it('captures the authenticated user', function () {
     expect($queries[0]->user_id)->toBe('567');
 });
 
-it('captures the authenticated user if they login after the query is made', function () {
+it('captures the authenticated user if they login after the query', function () {
     DB::table('users')->count();
     Auth::setUser(User::make(['id' => '567']));
     Pulse::store();
@@ -108,7 +108,7 @@ it('captures the authenticated user if they login after the query is made', func
     expect($queries[0]->user_id)->toBe('567');
 });
 
-it('captures the authenticated user if they logout after the query is made', function () {
+it('captures the authenticated user if they logout after the query', function () {
     Auth::setUser(User::make(['id' => '567']));
 
     DB::table('users')->count();

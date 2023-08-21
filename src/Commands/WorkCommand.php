@@ -34,14 +34,14 @@ class WorkCommand extends Command
         Storage $storage,
         CacheManager $cache,
     ): int {
-        $lastRestart = $cache->get('illuminate:pulse:restart');
+        $lastRestart = $cache->get('laravel:pulse:restart');
 
         $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
             $now = new CarbonImmutable;
 
-            if ($cache->get('illuminate:pulse:restart') !== $lastRestart) {
+            if ($cache->get('laravel:pulse:restart') !== $lastRestart) {
                 return self::SUCCESS;
             }
 

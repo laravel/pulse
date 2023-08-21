@@ -43,7 +43,7 @@ class SlowQueries extends Component
      */
     protected function slowQueries(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:slow-queries:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

@@ -19,7 +19,7 @@ class Redis implements Ingest
     /**
      * The redis stream.
      */
-    protected string $stream = 'illuminate:pulse:entries';
+    protected string $stream = 'laravel:pulse:entries';
 
     /**
      * Create a new Redis Ingest instance.

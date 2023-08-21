@@ -30,7 +30,7 @@ class QueueSize
      */
     public function __invoke(CarbonImmutable $now, Interval $interval): Collection
     {
-        if (! $this->cache->lock("illuminate:pulse:check-queue-sizes:{$now->timestamp}", (int) $interval->totalSeconds)->get()) {
+        if (! $this->cache->lock("laravel:pulse:check-queue-sizes:{$now->timestamp}", (int) $interval->totalSeconds)->get()) {
             return collect();
         }
 

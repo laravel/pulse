@@ -18,7 +18,7 @@ class Queues extends Component
     public function render(callable $query): Renderable
     {
         return View::make('pulse::livewire.queues', [
-            'queues' => Cache::remember('illuminate:pulse:queues:live', 5, fn () => $query()),
+            'queues' => Cache::remember('laravel:pulse:queues:live', 5, fn () => $query()),
         ]);
     }
 

@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 
@@ -29,7 +30,7 @@ class HandleCacheInteraction
         $this->pulse->rescue(function () use ($event) {
             $now = new CarbonImmutable();
 
-            if (str_starts_with($event->key, 'illuminate:')) {
+            if (Str::startsWith($event->key, ['illuminate:', 'laravel:pulse'])) {
                 return;
             }
 

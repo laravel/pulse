@@ -43,7 +43,7 @@ class SlowOutgoingRequests extends Component
      */
     protected function slowOutgoingRequests(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:slow-outgoing-requests:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

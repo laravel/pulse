@@ -52,7 +52,7 @@ class Cache extends Component
      */
     protected function allCacheInteractions(): array
     {
-        return CacheFacade::remember("illuminate:pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
+        return CacheFacade::remember("laravel:pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
@@ -75,7 +75,7 @@ class Cache extends Component
      */
     protected function monitoredCacheInteractions(): array
     {
-        return CacheFacade::remember("illuminate:pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
+        return CacheFacade::remember("laravel:pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
             $now = new CarbonImmutable;
 
             if ($this->monitoredKeys()->isEmpty()) {

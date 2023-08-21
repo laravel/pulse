@@ -43,7 +43,7 @@ class SlowRoutes extends Component
      */
     protected function slowRoutes(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:slow-routes:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

@@ -43,7 +43,7 @@ class SlowJobs extends Component
      */
     protected function slowJobs(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:slow-jobs:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

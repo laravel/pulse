@@ -31,7 +31,7 @@ class RestartCommand extends Command
      */
     public function handle(CacheManager $cache): void
     {
-        $cache->forever('illuminate:pulse:restart', $this->currentTime());
+        $cache->forever('laravel:pulse:restart', $this->currentTime());
 
         $this->components->info('Broadcasting pulse restart signal.');
     }

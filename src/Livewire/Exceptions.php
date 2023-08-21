@@ -52,7 +52,7 @@ class Exceptions extends Component
      */
     protected function exceptions(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:exceptions:{$this->orderBy}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);

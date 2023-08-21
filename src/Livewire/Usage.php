@@ -59,7 +59,7 @@ class Usage extends Component
      */
     protected function userRequestCounts(callable $query): array
     {
-        return Cache::remember("illuminate:pulse:usage:{$this->getType()}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
+        return Cache::remember("laravel:pulse:usage:{$this->getType()}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
