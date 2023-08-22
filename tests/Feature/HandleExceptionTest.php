@@ -128,3 +128,18 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 
     Pulse::ignore(fn () => expect(DB::table('pulse_exceptions')->count())->toBe(0));
 });
+
+it('handles multiple users being logged in', function () {
+    Pulse::withUser(null, fn () => report($exception = new RuntimeException('Expected exception.')));
+    Auth::login(User::make(['id' => '567']));
+    report($exception = new RuntimeException('Expected exception.'));
+    Auth::login(User::make(['id' => '789']));
+    report($exception = new RuntimeException('Expected exception.'));
+    Pulse::store();
+
+    $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
+    expect($exceptions)->toHaveCount(3);
+    expect($exceptions[0]->user_id)->toBe(null);
+    expect($exceptions[1]->user_id)->toBe('567');
+    expect($exceptions[2]->user_id)->toBe('789');
+});

@@ -173,3 +173,18 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 
     Pulse::ignore(fn () => expect(DB::table('pulse_cache_hits')->count())->toBe(0));
 });
+
+it('handles multiple users being logged in', function () {
+    Pulse::withUser(null, fn () => Cache::get('cache-key'));
+    Auth::login(User::make(['id' => '567']));
+    Cache::get('cache-key');
+    Auth::login(User::make(['id' => '789']));
+    Cache::get('cache-key');
+    Pulse::store();
+
+    $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    expect($interactions)->toHaveCount(3);
+    expect($interactions[0]->user_id)->toBe(null);
+    expect($interactions[1]->user_id)->toBe('567');
+    expect($interactions[2]->user_id)->toBe('789');
+});

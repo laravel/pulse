@@ -315,6 +315,16 @@ class Pulse
     }
 
     /**
+     * Resolve the authenticated user ID with the given callback.
+     */
+    public function resolveAuthenticatedUserIdUsing(callable $callback): self
+    {
+        $this->authenticatedUserIdResolver = $callback;
+
+        return $this;
+    }
+
+    /**
      * The authenticated user ID resolver.
      *
      * @return (callable(): (int|string|null|(callable(): (int|string|null))
