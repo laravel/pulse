@@ -5,6 +5,9 @@ namespace Laravel\Pulse\Handlers;
 use Illuminate\Auth\Events\Logout;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleUserLogout
 {
     /**
@@ -21,6 +24,6 @@ class HandleUserLogout
      */
     public function __invoke(Logout $event): void
     {
-        $this->pulse->rememberUser($event->user);
+        $this->pulse->rescue(fn () => $this->pulse->rememberUser($event->user));
     }
 }

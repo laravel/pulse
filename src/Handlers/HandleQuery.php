@@ -8,6 +8,9 @@ use Illuminate\Database\Events\QueryExecuted;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleQuery
 {
     /**

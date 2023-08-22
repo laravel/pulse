@@ -8,6 +8,9 @@ use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 use Throwable;
 
+/**
+ * @internal
+ */
 class HandleException
 {
     /**

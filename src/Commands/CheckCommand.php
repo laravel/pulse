@@ -7,6 +7,7 @@ use Carbon\CarbonInterval;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Sleep;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -51,7 +52,7 @@ class CheckCommand extends Command
             }
 
             if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
-                sleep(1);
+                Sleep::for(1)->second();
 
                 continue;
             }

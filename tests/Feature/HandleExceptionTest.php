@@ -3,7 +3,6 @@
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
@@ -12,18 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Handlers\HandleException;
 use Laravel\Pulse\Pulse as PulseInstance;
-
-beforeEach(function () {
-    Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    }));
-});
 
 it('ingests exceptions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -47,7 +36,7 @@ it('ingests exceptions', function () {
 });
 
 it('captures the authenticated user', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
 
     report($exception = new RuntimeException('Expected exception.'));
     Pulse::store();
@@ -59,7 +48,7 @@ it('captures the authenticated user', function () {
 
 it('captures the authenticated user if they login after the exception is reported', function () {
     report($exception = new RuntimeException('Expected exception.'));
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
     Pulse::store();
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
@@ -68,7 +57,7 @@ it('captures the authenticated user if they login after the exception is reporte
 });
 
 it('captures the authenticated user if they logout after the exception is reported', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
 
     report($exception = new RuntimeException('Expected exception.'));
     Auth::logout();

@@ -12,6 +12,9 @@ use Illuminate\Support\Collection;
 use Laravel\Pulse\Entries\Entry;
 use stdClass;
 
+/**
+ * @internal
+ */
 class QueueSize
 {
     public function __construct(
@@ -30,7 +33,7 @@ class QueueSize
      */
     public function __invoke(CarbonImmutable $now, Interval $interval): Collection
     {
-        if (! $this->cache->lock("laravel:pulse:check-queue-sizes:{$now->timestamp}", (int) $interval->totalSeconds)->get()) {
+        if (! $this->cache->lock("laravel:pulse:check-queue-size:{$now->timestamp}", (int) $interval->totalSeconds)->get()) {
             return collect();
         }
 

@@ -19,6 +19,8 @@ use Tests\TestCase;
 uses(TestCase::class)
     ->beforeEach(function () {
         Model::unguard();
+        Http::preventStrayRequests();
+        Pulse::flushQueue();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
     })
     ->afterEach(function () {

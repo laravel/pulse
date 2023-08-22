@@ -7,6 +7,9 @@ use Illuminate\Config\Repository;
 use Laravel\Pulse\Entries\Entry;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 class SystemStats
 {
     public function __construct(

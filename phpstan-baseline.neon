@@ -111,7 +111,12 @@ parameters:
 			path: src/Pulse.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:resolveUsers\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string, email\\?\\: string\\|null\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string\\}\\>\\.$#"
+			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:authenticatedUserIdResolver\\(\\) should return callable\\(\\)\\: \\(callable\\(\\)\\: \\(int\\|string\\|null\\)\\|int\\|string\\|null\\) but returns \\(callable\\(\\)\\: int\\)\\|string\\.$#"
+			count: 1
+			path: src/Pulse.php
+
+		-
+			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:resolveApplicationUsageUsers\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string, email\\?\\: string\\|null\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string\\}\\>\\.$#"
 			count: 1
 			path: src/Pulse.php
 

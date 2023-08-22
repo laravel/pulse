@@ -3,7 +3,6 @@
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
@@ -13,18 +12,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Handlers\HandleCacheInteraction;
 use Laravel\Pulse\Pulse as PulseInstance;
-
-beforeEach(function () {
-    Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    }));
-});
 
 it('ingests cache interactions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -92,7 +81,7 @@ it('captures hits and misses', function () {
 });
 
 it('captures the authenticated user', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
 
     Cache::get('cache-key');
     Pulse::store();
@@ -104,7 +93,7 @@ it('captures the authenticated user', function () {
 
 it('captures the authenticated user if they login after the interaction', function () {
     Cache::get('cache-key');
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
     Pulse::store();
 
     $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
@@ -113,7 +102,7 @@ it('captures the authenticated user if they login after the interaction', functi
 });
 
 it('captures the authenticated user if they logout after the interaction', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
 
     Cache::get('cache-key');
     Auth::logout();

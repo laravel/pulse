@@ -8,6 +8,9 @@ use Illuminate\Queue\Events\JobProcessed;
 use Laravel\Pulse\Entries\JobFinished;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleProcessedJob
 {
     /**

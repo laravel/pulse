@@ -4,7 +4,6 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
@@ -13,22 +12,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Pulse as PulseInstance;
 
-beforeEach(function () {
-    Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    }));
-
-    Config::set('pulse.slow_query_threshold', 0);
-});
-
 it('ingests queries', function () {
+    Config::set('pulse.slow_query_threshold', 0);
     Carbon::setTestNow('2000-01-02 03:04:05');
     prependListener(QueryExecuted::class, function (QueryExecuted $event) {
         $event->time = 5000;
@@ -89,7 +77,8 @@ it('ingests queries over the slow query threshold', function () {
 });
 
 it('captures the authenticated user', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Config::set('pulse.slow_query_threshold', 0);
+    Auth::login(User::make(['id' => '567']));
 
     DB::table('users')->count();
     Pulse::store();
@@ -100,8 +89,9 @@ it('captures the authenticated user', function () {
 });
 
 it('captures the authenticated user if they login after the query', function () {
+    Config::set('pulse.slow_query_threshold', 0);
     DB::table('users')->count();
-    Auth::setUser(User::make(['id' => '567']));
+    Auth::login(User::make(['id' => '567']));
     Pulse::store();
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
@@ -110,7 +100,8 @@ it('captures the authenticated user if they login after the query', function () 
 });
 
 it('captures the authenticated user if they logout after the query', function () {
-    Auth::setUser(User::make(['id' => '567']));
+    Config::set('pulse.slow_query_threshold', 0);
+    Auth::login(User::make(['id' => '567']));
 
     DB::table('users')->count();
     Auth::logout();
@@ -122,6 +113,7 @@ it('captures the authenticated user if they logout after the query', function ()
 });
 
 it('does not trigger an inifite loop when retriving the authenticated user from the database', function () {
+    Config::set('pulse.slow_query_threshold', 0);
     Config::set('auth.guards.db', ['driver' => 'db']);
     Auth::extend('db', fn () => new class implements Guard
     {
@@ -153,6 +145,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
 });
 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
+    Config::set('pulse.slow_query_threshold', 0);
     App::forgetInstance(PulseInstance::class);
     Facade::clearResolvedInstance(PulseInstance::class);
     App::when(PulseInstance::class)
@@ -172,6 +165,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 });
 
 it('handles multiple users being logged in', function () {
+    Config::set('pulse.slow_query_threshold', 0);
     Pulse::withUser(null, fn () => DB::table('users')->count());
     Auth::login(User::make(['id' => '567']));
     DB::table('users')->count();

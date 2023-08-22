@@ -8,6 +8,9 @@ use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleQueuedJob
 {
     /**

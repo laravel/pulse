@@ -4,6 +4,9 @@ namespace Laravel\Pulse\Entries;
 
 use Illuminate\Database\Connection;
 
+/**
+ * @internal
+ */
 class JobStarted extends Update
 {
     /**

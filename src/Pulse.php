@@ -87,7 +87,7 @@ class Pulse
     ) {
         $this->filters = collect([]);
 
-        $this->queue = collect([]);
+        $this->flushQueue();
     }
 
     /**
@@ -161,11 +161,9 @@ class Pulse
     public function store(): self
     {
         if (! $this->shouldRecord) {
-            $this->queue = collect([]);
-
             $this->rememberedUserId = null;
 
-            return $this;
+            return $this->flushQueue();
         }
 
         $this->rescue(fn () => $this->ingest->ingest(
@@ -176,11 +174,10 @@ class Pulse
             ->winner(fn () => $this->ingest->trim())
             ->choose());
 
-        $this->queue = collect([]);
-
         $this->rememberedUserId = null;
 
-        return $this;
+        return $this->flushQueue();
+
     }
 
     /**
@@ -191,6 +188,16 @@ class Pulse
     public function queue()
     {
         return $this->queue;
+    }
+
+    /**
+     * Flush the queue.
+     */
+    public function flushQueue(): self
+    {
+        $this->queue = collect([]);
+
+        return $this;
     }
 
     /**
@@ -327,7 +334,7 @@ class Pulse
     /**
      * The authenticated user ID resolver.
      *
-     * @return (callable(): (int|string|null|(callable(): (int|string|null))
+     * @return (callable(): (int|string|null|(callable(): (int|string|null))))
      */
     public function authenticatedUserIdResolver(): callable
     {

@@ -7,6 +7,9 @@ use Illuminate\Queue\Events\JobProcessing;
 use Laravel\Pulse\Entries\JobStarted;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleProcessingJob
 {
     /**

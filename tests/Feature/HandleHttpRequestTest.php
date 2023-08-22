@@ -3,7 +3,6 @@
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
@@ -13,26 +12,15 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Handlers\HandleHttpRequest;
 use Laravel\Pulse\Pulse as PulseInstance;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
-beforeEach(function () {
-    Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    }));
-
-    Route::get('users', fn () => []);
-});
-
 it('ingests requests', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
+    Route::get('users', fn () => []);
 
     get('users');
 
@@ -49,6 +37,7 @@ it('ingests requests', function () {
 
 it('ingests requests under the slow endpoint threshold', function () {
     Config::set('pulse.slow_endpoint_threshold', PHP_INT_MAX);
+    Route::get('users', fn () => []);
 
     get('users');
 
@@ -56,6 +45,8 @@ it('ingests requests under the slow endpoint threshold', function () {
 });
 
 it('captures the authenticated user', function () {
+    Route::get('users', fn () => []);
+
     actingAs(User::make(['id' => '567']))->get('users');
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
@@ -84,6 +75,7 @@ it('captures the authenticated user if they logout during the request', function
 });
 
 it('does not trigger an inifite loop when retriving the authenticated user from the database', function () {
+    Route::get('users', fn () => []);
     Config::set('auth.guards.db', ['driver' => 'db']);
     Auth::extend('db', fn () => new class implements Guard
     {
@@ -114,6 +106,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
 });
 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
+    Route::get('users', fn () => []);
     App::forgetInstance(PulseInstance::class);
     Facade::clearResolvedInstance(PulseInstance::class);
     App::when(PulseInstance::class)

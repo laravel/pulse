@@ -9,6 +9,9 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class HandleCacheInteraction
 {
     /**

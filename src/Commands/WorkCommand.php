@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Commands;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -49,16 +50,12 @@ class WorkCommand extends Command
                 $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
-
-                $this->comment('Storage trimmed');
             }
 
             $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {
-                sleep(1);
-            } else {
-                $this->comment('Processed ['.$processed.'] entries at '.$now->toDateTimeString());
+                Sleep::for(1)->second();
             }
         }
     }

@@ -10,6 +10,9 @@ use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @internal
+ */
 class HandleHttpRequest
 {
     /**

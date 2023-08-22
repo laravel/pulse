@@ -12,6 +12,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 class HandleOutgoingRequest
 {
     /**
@@ -35,11 +38,11 @@ class HandleOutgoingRequest
             $startedAt = new CarbonImmutable;
 
             return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt) {
-                $this->pulse->rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
+                $this->record($request, $startedAt);
 
                 return $response;
             }, function (Throwable $exception) use ($request, $startedAt) {
-                $this->pulse->rescue(fn () => $this->record($request, $startedAt, new CarbonImmutable));
+                $this->record($request, $startedAt);
 
                 return new RejectedPromise($exception);
             });
@@ -49,13 +52,15 @@ class HandleOutgoingRequest
     /**
      * Record the request information.
      */
-    protected function record(RequestInterface $request, CarbonImmutable $startedAt, CarbonImmutable $endedAt): void
+    protected function record(RequestInterface $request, CarbonImmutable $startedAt): void
     {
-        $this->pulse->record(new Entry('pulse_outgoing_requests', [
+        $endedAt = new CarbonImmutable;
+
+        $this->pulse->rescue(fn () => $this->pulse->record(new Entry('pulse_outgoing_requests', [
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]));
+        ])));
     }
 }
