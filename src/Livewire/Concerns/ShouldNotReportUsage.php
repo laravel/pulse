@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Livewire\Concerns;
 
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Facades\Pulse;
 
 trait ShouldNotReportUsage
 {
@@ -11,6 +11,6 @@ trait ShouldNotReportUsage
      */
     public function bootShouldNotReportUsage(): void
     {
-        app(Pulse::class)->stopRecording();
+        Pulse::stopRecording();
     }
 }
