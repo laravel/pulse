@@ -94,6 +94,7 @@ class PulseServiceProvider extends ServiceProvider
 
         foreach ([
             Livewire\Usage::class => Queries\Usage::class,
+            Livewire\Queues::class => Queries\Queues::class,
             Livewire\Servers::class => Queries\Servers::class,
             Livewire\SlowJobs::class => Queries\SlowJobs::class,
             Livewire\Exceptions::class => Queries\Exceptions::class,
