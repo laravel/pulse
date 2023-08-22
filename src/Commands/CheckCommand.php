@@ -59,7 +59,8 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            $checks->flatMap(fn (callable $check) => $check($lastSnapshotAt, $interval))
+            $checks->map(fn (callable $check) => $check($lastSnapshotAt, $interval))
+                ->flatten()
                 ->each($pulse->record(...));
 
             $pulse->store();
