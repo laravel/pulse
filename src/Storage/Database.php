@@ -92,10 +92,8 @@ class Database implements Storage
      */
     protected function connection(): Connection
     {
-        return $this->manager->connection($this->config->get(
-            'pulse.storage.database.connection'
-        ) ?? $this->config->get(
-            'database.default'
-        ));
+        return $this->manager->connection(
+            $this->config->get('pulse.storage.database.connection') ?? $this->config->get('database.default')
+        );
     }
 }

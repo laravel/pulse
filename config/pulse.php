@@ -35,7 +35,7 @@ return [
         'lottery' => [1, 1000],
 
         'redis' => [
-            'connection' => env('PULSE_REDIS_CONNECTION', null),
+            'connection' => env('PULSE_REDIS_CONNECTION', 'default'),
         ],
     ],
 
