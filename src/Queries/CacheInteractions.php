@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Database\Connection;
-use stdClass;
 
 /**
  * @interval
