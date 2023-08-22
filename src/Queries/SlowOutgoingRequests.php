@@ -26,7 +26,7 @@ class SlowOutgoingRequests
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{uri: string, count: int, slowest: int}>
+     * @return \Illuminate\Support\Collection<int, \stdClass>
      */
     public function __invoke(Interval $interval): Collection
     {

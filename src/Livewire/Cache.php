@@ -4,15 +4,12 @@ namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache as CacheFacade;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
-use stdClass;
 
 class Cache extends Component
 {
@@ -21,11 +18,11 @@ class Cache extends Component
     /**
      * Render the component.
      */
-    public function render(): Renderable
+    public function render(callable $cacheInteractionsQuery, callable $monitoredCacheInteractionsQuery): Renderable
     {
-        [$allCacheInteractions, $allTime, $allRunAt] = $this->allCacheInteractions();
+        [$cacheInteractions, $allTime, $allRunAt] = $this->cacheInteractions($cacheInteractionsQuery);
 
-        [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->monitoredCacheInteractions();
+        [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->monitoredCacheInteractions($monitoredCacheInteractionsQuery);
 
         $this->dispatch('cache:dataLoaded');
 
@@ -34,7 +31,7 @@ class Cache extends Component
             'allRunAt' => $allRunAt,
             'monitoredTime' => $monitoredTime,
             'monitoredRunAt' => $monitoredRunAt,
-            'allCacheInteractions' => $allCacheInteractions,
+            'allCacheInteractions' => $cacheInteractions,
             'monitoredCacheInteractions' => $monitoredCacheInteractions,
         ]);
     }
@@ -50,19 +47,14 @@ class Cache extends Component
     /**
      * All the cache interactions.
      */
-    protected function allCacheInteractions(): array
+    protected function cacheInteractions(callable $query): array
     {
-        return CacheFacade::remember("laravel:pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () {
+        return CacheFacade::remember("laravel:pulse:cache-all:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
 
             $start = hrtime(true);
 
-            $cacheInteractions = DB::table('pulse_cache_hits')
-                ->selectRaw('COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
-                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                ->first() ?? (object) ['hits' => 0];
-
-            $cacheInteractions->hits = (int) $cacheInteractions->hits;
+            $cacheInteractions = $query($this->periodAsInterval());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 
@@ -73,54 +65,14 @@ class Cache extends Component
     /**
      * The monitored cache interactions.
      */
-    protected function monitoredCacheInteractions(): array
+    protected function monitoredCacheInteractions(callable $query): array
     {
-        return CacheFacade::remember("laravel:pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () {
+        return CacheFacade::remember("laravel:pulse:cache-monitored:{$this->period}:{$this->monitoredKeysCacheHash()}", $this->periodCacheDuration(), function () use ($query) {
             $now = new CarbonImmutable;
-
-            if ($this->monitoredKeys()->isEmpty()) {
-                return [[], 0, $now->toDateTimeString()];
-            }
 
             $start = hrtime(true);
 
-            $interactions = $this->monitoredKeys()->mapWithKeys(fn (string $name, string $regex) => [
-                $name => (object) [
-                    'regex' => $regex,
-                    'key' => $name,
-                    'uniqueKeys' => 0,
-                    'hits' => 0,
-                    'count' => 0,
-                ],
-            ]);
-
-            DB::table('pulse_cache_hits')
-                ->selectRaw('`key`, COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
-                ->where('date', '>=', $now->subHours($this->periodAsHours())->toDateTimeString())
-                // TODO: ensure PHP and MySQL regex is compatible
-                // TODO modifiers? is redis / memcached / etc case sensitive?
-                ->where(fn (Builder $query) => $this->monitoredKeys()->keys()->each(fn (string $key) => $query->orWhere('key', 'RLIKE', $key)))
-                ->orderBy('key')
-                ->groupBy('key')
-                ->each(function (stdClass $result) use ($interactions) {
-                    $name = $this->monitoredKeys()->firstWhere(fn (string $name, string $regex) => preg_match('/'.$regex.'/', $result->key) > 0);
-
-                    if ($name === null) {
-                        return;
-                    }
-
-                    $interaction = $interactions[$name];
-
-                    $interaction->uniqueKeys++;
-                    $interaction->hits += $result->hits;
-                    $interaction->count += $result->count;
-                });
-
-            $monitoringIndex = $this->monitoredKeys()->values()->flip();
-
-            $interactions = $interactions
-                ->sortBy(fn (stdClass $interaction) => $monitoringIndex[$interaction->key])
-                ->all();
+            $interactions = $query($this->periodAsInterval(), $this->monitoredKeys());
 
             $time = (int) ((hrtime(true) - $start) / 1000000);
 

@@ -83,7 +83,9 @@ class PulseServiceProvider extends ServiceProvider
             Queries\Exceptions::class,
             Queries\SlowRoutes::class,
             Queries\SlowQueries::class,
+            Queries\CacheInteractions::class,
             Queries\SlowOutgoingRequests::class,
+            Queries\MonitoredCacheInteractions::class,
         ] as $class) {
             $this->app->when($class)
                 ->needs(Connection::class)
@@ -93,16 +95,17 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         foreach ([
-            Livewire\Usage::class => Queries\Usage::class,
-            Livewire\Queues::class => Queries\Queues::class,
-            Livewire\Servers::class => Queries\Servers::class,
-            Livewire\SlowJobs::class => Queries\SlowJobs::class,
-            Livewire\Exceptions::class => Queries\Exceptions::class,
-            Livewire\SlowRoutes::class => Queries\SlowRoutes::class,
-            Livewire\SlowQueries::class => Queries\SlowQueries::class,
-            Livewire\SlowOutgoingRequests::class => Queries\SlowOutgoingRequests::class,
-        ] as $card => $query) {
-            $this->app->bindMethod([$card, 'render'], fn (Component $instance, Application $app) => $instance->render($app[$query]));
+            Livewire\Usage::class => [Queries\Usage::class],
+            Livewire\Queues::class => [Queries\Queues::class],
+            Livewire\Servers::class => [Queries\Servers::class],
+            Livewire\SlowJobs::class => [Queries\SlowJobs::class],
+            Livewire\Exceptions::class => [Queries\Exceptions::class],
+            Livewire\SlowRoutes::class => [Queries\SlowRoutes::class],
+            Livewire\SlowQueries::class => [Queries\SlowQueries::class],
+            Livewire\SlowOutgoingRequests::class => [Queries\SlowOutgoingRequests::class],
+            Livewire\Cache::class => [Queries\CacheInteractions::class, Queries\MonitoredCacheInteractions::class],
+        ] as $card => $queries) {
+            $this->app->bindMethod([$card, 'render'], fn (Component $instance, Application $app) => $instance->render(...array_map($app->make(...), $queries)));
         }
     }
 

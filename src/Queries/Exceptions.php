@@ -24,7 +24,7 @@ class Exceptions
      * Run the query.
      *
      * @param  'last_occurrence'|'count'  $orderBy
-     * @return \Illuminate\Support\Collection<int, array{class: string, location: string, count: int, last_occurrence: string}>
+     * @return \Illuminate\Support\Collection<int, \stdClass>
      */
     public function __invoke(Interval $interval, string $orderBy): Collection
     {

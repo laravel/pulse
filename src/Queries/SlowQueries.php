@@ -26,7 +26,7 @@ class SlowQueries
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{sql: string, count: int, slowest: int}>
+     * @return \Illuminate\Support\Collection<int, \stdClass>
      */
     public function __invoke(Interval $interval): Collection
     {

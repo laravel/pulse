@@ -26,7 +26,7 @@ class SlowJobs
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{job: string, count: int, slowest: int}>
+     * @return \Illuminate\Support\Collection<int, \stdClass>
      */
     public function __invoke(Interval $interval): Collection
     {

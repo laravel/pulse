@@ -21,16 +21,6 @@ parameters:
 			path: src/Checks/SystemStats.php
 
 		-
-			message: "#^Unable to resolve the template type TFlatMapKey in call to method Illuminate\\\\Support\\\\Collection\\<int,callable\\>\\:\\:flatMap\\(\\)$#"
-			count: 1
-			path: src/Commands/CheckCommand.php
-
-		-
-			message: "#^Unable to resolve the template type TFlatMapValue in call to method Illuminate\\\\Support\\\\Collection\\<int,callable\\>\\:\\:flatMap\\(\\)$#"
-			count: 1
-			path: src/Commands/CheckCommand.php
-
-		-
 			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
 			count: 1
 			path: src/Handlers/HandleException.php
@@ -46,12 +36,7 @@ parameters:
 			path: src/Handlers/HandleHttpRequest.php
 
 		-
-			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
-			count: 2
-			path: src/Livewire/Cache.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:allCacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:cacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Livewire/Cache.php
 
@@ -154,6 +139,11 @@ parameters:
 			message: "#^Unable to resolve the template type TValue in call to function collect$#"
 			count: 1
 			path: src/PulseServiceProvider.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
+			count: 2
+			path: src/Queries/CacheInteractions.php
 
 		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
