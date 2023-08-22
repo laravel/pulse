@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Support\Str;
@@ -17,7 +16,6 @@ class HandleCacheInteraction
      */
     public function __construct(
         protected Pulse $pulse,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -38,9 +36,7 @@ class HandleCacheInteraction
                 'date' => $now->toDateTimeString(),
                 'hit' => $event instanceof CacheHit,
                 'key' => $event->key,
-                'user_id' => $this->auth->hasUser()
-                    ? $this->auth->id()
-                    : fn () => $this->auth->id(),
+                'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]));
         });
     }

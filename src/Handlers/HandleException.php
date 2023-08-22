@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
@@ -16,7 +15,6 @@ class HandleException
      */
     public function __construct(
         protected Pulse $pulse,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -33,9 +31,7 @@ class HandleException
                 'date' => $now->toDateTimeString(),
                 'class' => $e::class,
                 'location' => $this->getLocation($e),
-                'user_id' => $this->auth->hasUser()
-                    ? $this->auth->id()
-                    : fn () => $this->auth->id(),
+                'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]));
         });
     }

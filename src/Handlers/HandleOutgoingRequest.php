@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Handlers;
 use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\RejectedPromise;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
@@ -20,7 +19,6 @@ class HandleOutgoingRequest
      */
     public function __construct(
         protected Pulse $pulse,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -57,9 +55,7 @@ class HandleOutgoingRequest
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
-            'user_id' => $this->auth->hasUser()
-                ? $this->auth->id()
-                : fn () => $this->auth->id(),
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]));
     }
 }

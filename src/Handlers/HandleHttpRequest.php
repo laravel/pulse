@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -18,7 +17,6 @@ class HandleHttpRequest
      */
     public function __construct(
         protected Pulse $pulse,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -35,9 +33,7 @@ class HandleHttpRequest
                 'date' => $startedAt->toDateTimeString(),
                 'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
                 'duration' => $startedAt->diffInMilliseconds(),
-                'user_id' => $this->auth->hasUser()
-                    ? $this->auth->id()
-                    : fn () => $this->auth->id(),
+                'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]));
         });
     }

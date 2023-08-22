@@ -26,7 +26,7 @@ beforeEach(function () {
 });
 
 it('ingests exceptions', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
 
     report($exception = new RuntimeException('Expected exception.'));
 
@@ -39,7 +39,7 @@ it('ingests exceptions', function () {
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
     expect((array) $exceptions[0])->toEqual([
-        'date' => '2020-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'class' => 'RuntimeException',
         'location' => __FILE__.':'.$exception->getLine(),
@@ -71,7 +71,7 @@ it('captures the authenticated user if they logout after the exception is report
     Auth::setUser(User::make(['id' => '567']));
 
     report($exception = new RuntimeException('Expected exception.'));
-    Auth::forgetUser();
+    Auth::logout();
     Pulse::store();
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
@@ -113,7 +113,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
     App::forgetInstance(PulseInstance::class);
     Facade::clearResolvedInstance(PulseInstance::class);
-    App::when(HandleException::class)
+    App::when(PulseInstance::class)
         ->needs(AuthManager::class)
         ->give(fn (Application $app) => new class($app) extends AuthManager
         {

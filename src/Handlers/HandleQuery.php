@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
 use Laravel\Pulse\Entries\Entry;
@@ -17,7 +16,6 @@ class HandleQuery
     public function __construct(
         protected Pulse $pulse,
         protected Repository $config,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -38,9 +36,7 @@ class HandleQuery
                 'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
                 'sql' => $event->sql,
                 'duration' => (int) $event->time,
-                'user_id' => $this->auth->hasUser()
-                    ? $this->auth->id()
-                    : fn () => $this->auth->id(),
+                'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]));
         });
     }

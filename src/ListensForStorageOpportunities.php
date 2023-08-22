@@ -34,7 +34,7 @@ trait ListensForStorageOpportunities
      */
     protected static function storeEntriesBeforeTermination(Application $app): void
     {
-        $app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, function () use ($app) {
+        $app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
             // TODO; this will go stale
             $app[Pulse::class]->store();
         });

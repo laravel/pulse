@@ -19,21 +19,22 @@ use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Pulse as PulseInstance;
 
 beforeEach(function () {
-    Config::set('pulse.slow_query_threshold', 0);
     Pulse::ignore(fn () => Schema::create('users', function (Blueprint $table) {
         $table->id();
         $table->string('name');
         $table->timestamps();
     }));
+
+    Config::set('pulse.slow_query_threshold', 0);
 });
 
 it('ingests queries', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
     prependListener(QueryExecuted::class, function (QueryExecuted $event) {
         $event->time = 5000;
     });
 
-    DB::table('users')->count();
+    DB::connection()->statement('select * from users');
 
     expect(Pulse::queue())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
@@ -44,9 +45,9 @@ it('ingests queries', function () {
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
     expect((array) $queries[0])->toEqual([
-        'date' => '2020-01-02 03:04:00',
+        'date' => '2000-01-02 03:04:00',
         'user_id' => null,
-        'sql' => 'select count(*) as aggregate from "users"',
+        'sql' => 'select * from users',
         'duration' => 5000,
     ]);
 });
@@ -112,7 +113,7 @@ it('captures the authenticated user if they logout after the query', function ()
     Auth::setUser(User::make(['id' => '567']));
 
     DB::table('users')->count();
-    Auth::forgetUser();
+    Auth::logout();
     Pulse::store();
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
@@ -154,7 +155,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
     App::forgetInstance(PulseInstance::class);
     Facade::clearResolvedInstance(PulseInstance::class);
-    App::when(HandleQuery::class)
+    App::when(PulseInstance::class)
         ->needs(AuthManager::class)
         ->give(fn (Application $app) => new class($app) extends AuthManager
         {
@@ -168,4 +169,20 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
     Pulse::store();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
+});
+
+it('handles multiple users being logged in', function () {
+    Pulse::withUser(null, fn () => DB::table('users')->count());
+    Auth::login(User::make(['id' => '567']));
+    DB::table('users')->count();
+    Auth::login(User::make(['id' => '789']));
+    DB::table('users')->count();
+
+    Pulse::store();
+
+    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    expect($queries)->toHaveCount(3);
+    expect($queries[0]->user_id)->toBe(null);
+    expect($queries[1]->user_id)->toBe('567');
+    expect($queries[2]->user_id)->toBe('789');
 });

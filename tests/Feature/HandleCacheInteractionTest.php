@@ -27,7 +27,7 @@ beforeEach(function () {
 });
 
 it('ingests cache interactions', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
 
     Cache::get('cache-key');
 
@@ -40,7 +40,7 @@ it('ingests cache interactions', function () {
     $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
     expect($cacheHits)->toHaveCount(1);
     expect((array) $cacheHits[0])->toEqual([
-        'date' => '2020-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'cache-key',
         'hit' => 0,
@@ -48,7 +48,7 @@ it('ingests cache interactions', function () {
 });
 
 it('ignores any internal illuminate cache interactions', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
 
     Cache::get('illuminate:');
     Pulse::store();
@@ -58,7 +58,7 @@ it('ignores any internal illuminate cache interactions', function () {
 });
 
 it('ignores any internal pulse cache interactions', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
 
     Cache::get('laravel:pulse');
     Pulse::store();
@@ -68,7 +68,7 @@ it('ignores any internal pulse cache interactions', function () {
 });
 
 it('captures hits and misses', function () {
-    Carbon::setTestNow('2020-01-02 03:04:05');
+    Carbon::setTestNow('2000-01-02 03:04:05');
     Cache::put('hit', 123);
 
     Cache::get('hit');
@@ -78,13 +78,13 @@ it('captures hits and misses', function () {
     $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
     expect($cacheHits)->toHaveCount(2);
     expect((array) $cacheHits[0])->toEqual([
-        'date' => '2020-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'hit',
         'hit' => 1,
     ]);
     expect((array) $cacheHits[1])->toEqual([
-        'date' => '2020-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'miss',
         'hit' => 0,
@@ -116,7 +116,7 @@ it('captures the authenticated user if they logout after the interaction', funct
     Auth::setUser(User::make(['id' => '567']));
 
     Cache::get('cache-key');
-    Auth::forgetUser();
+    Auth::logout();
     Pulse::store();
 
     $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
@@ -158,7 +158,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
     App::forgetInstance(PulseInstance::class);
     Facade::clearResolvedInstance(PulseInstance::class);
-    App::when(HandleCacheInteraction::class)
+    App::when(PulseInstance::class)
         ->needs(AuthManager::class)
         ->give(fn (Application $app) => new class($app) extends AuthManager
         {

@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Entries\Entry;
@@ -17,7 +16,6 @@ class HandleQueuedJob
     public function __construct(
         protected Pulse $pulse,
         protected Repository $config,
-        protected AuthManager $auth,
     ) {
         //
     }
@@ -36,9 +34,7 @@ class HandleQueuedJob
                     ? $event->job
                     : $event->job::class,
                 'job_id' => $event->id,
-                'user_id' => $this->auth->hasUser()
-                    ? $this->auth->id()
-                    : fn () => $this->auth->id(),
+                'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]));
         });
     }

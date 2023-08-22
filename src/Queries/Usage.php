@@ -50,7 +50,7 @@ class Usage
             ->limit(10)
             ->get();
 
-        $users = $this->pulse->resolveUsers($top10->pluck('user_id'));
+        $users = $this->pulse->resolveApplicationUsageUsers($top10->pluck('user_id'));
 
         return $top10->map(function (stdClass $row) use ($users) {
             $user = $users->firstWhere('id', $row->user_id);

@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse;
 
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -33,6 +34,7 @@ use Laravel\Pulse\Handlers\HandleProcessedJob;
 use Laravel\Pulse\Handlers\HandleProcessingJob;
 use Laravel\Pulse\Handlers\HandleQuery;
 use Laravel\Pulse\Handlers\HandleQueuedJob;
+use Laravel\Pulse\Handlers\HandleUserLogout;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
@@ -62,7 +64,7 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
-        $this->app->bind(Ingest::class, fn (Application $app) => match($app['config']->get('pulse.ingest.driver')) {
+        $this->app->bind(Ingest::class, fn (Application $app) => match ($app['config']->get('pulse.ingest.driver')) {
             'storage' => $app[StorageIngest::class],
             'redis' => $app[RedisIngest::class],
             default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
@@ -86,7 +88,7 @@ class PulseServiceProvider extends ServiceProvider
             $this->app->when($class)
                 ->needs(Connection::class)
                 ->give(fn (Application $app) => $app['db']->connection($app['config']->get(
-                    "pulse.storage.database.connection"
+                    'pulse.storage.database.connection'
                 )));
         }
 
@@ -144,9 +146,11 @@ class PulseServiceProvider extends ServiceProvider
                 JobFailed::class,
                 JobProcessed::class,
             ], HandleProcessedJob::class);
+
+            $event->listen(Logout::class, HandleUserLogout::class);
         });
 
-        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(0, fn (...$args) => app(HandleHttpRequest::class)(...$args));
+        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
         $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 

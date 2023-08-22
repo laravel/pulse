@@ -3,7 +3,9 @@
 namespace Laravel\Pulse;
 
 use Closure;
+use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -38,18 +40,18 @@ class Pulse
     protected Collection $filters;
 
     /**
-     * Users resolver.
+     * The application usage users resolver.
      *
      * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)
      */
-    protected $usersResolver;
+    protected $applicationUserUsersResolver = null;
 
     /**
-     * The callback that should be used to authenticate Pulse users.
+     * The callback that should be used to authorize Pulse users.
      *
      * @var ?(callable(\Illuminate\Http\Request): bool)
      */
-    protected $authUsing = null;
+    protected $authorizeUsing = null;
 
     /**
      * Indicates if Pulse migrations will be run.
@@ -64,11 +66,24 @@ class Pulse
     protected $handleExceptionsUsing = null;
 
     /**
+     * The remembered user's ID.
+     */
+    protected int|string|null $rememberedUserId = null;
+
+    /**
+     * The authenticated user ID resolver.
+     *
+     * @var (callable(): int|string|null)
+     */
+    protected $authenticatedUserIdResolver = null;
+
+    /**
      * Create a new Pulse instance.
      */
     public function __construct(
         protected Repository $config,
         protected Ingest $ingest,
+        protected AuthManager $auth,
     ) {
         $this->filters = collect([]);
 
@@ -81,17 +96,18 @@ class Pulse
      * @template TReturn
      *
      * @param  (callable(): TReturn)  $callback
+     * @return TReturn
      */
     public function ignore($callback): mixed
     {
-        $recording = $this->shouldRecord;
-
-        $this->shouldRecord = false;
+        $cachedRecording = $this->shouldRecord;
 
         try {
+            $this->shouldRecord = false;
+
             return $callback();
         } finally {
-            $this->shouldRecord = $recording;
+            $this->shouldRecord = $cachedRecording;
         }
     }
 
@@ -147,6 +163,8 @@ class Pulse
         if (! $this->shouldRecord) {
             $this->queue = collect([]);
 
+            $this->rememberedUserId = null;
+
             return $this;
         }
 
@@ -159,6 +177,8 @@ class Pulse
             ->choose());
 
         $this->queue = collect([]);
+
+        $this->rememberedUserId = null;
 
         return $this;
     }
@@ -186,9 +206,9 @@ class Pulse
      *
      * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)  $callback
      */
-    public function resolveUsersUsing(callable $callback): self
+    public function resolveApplicationUsageUsersUsing(callable $callback): self
     {
-        $this->usersResolver = $callback;
+        $this->applicationUserUsersResolver = $callback;
 
         return $this;
     }
@@ -199,10 +219,10 @@ class Pulse
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
      * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'email'?: ?string}>
      */
-    public function resolveUsers(Collection $ids): Collection
+    public function resolveApplicationUsageUsers(Collection $ids): Collection
     {
-        if ($this->usersResolver) {
-            return collect(($this->usersResolver)($ids));
+        if ($this->applicationUserUsersResolver) {
+            return collect(($this->applicationUserUsersResolver)($ids));
         }
 
         if (class_exists(\App\Models\User::class)) {
@@ -249,7 +269,7 @@ class Pulse
     public function authorize(Request $request): bool
     {
         // TODO
-        return ($this->authUsing ?: fn () => App::environment('local'))($request);
+        return ($this->authorizeUsing ?: fn () => App::environment('local'))($request);
     }
 
     /**
@@ -257,9 +277,9 @@ class Pulse
      *
      * @param  (callable(\Illuminate\Http\Request): bool)  $callback
      */
-    public function auth(callable $callback): self
+    public function authorizeUsing(callable $callback): self
     {
-        $this->authUsing = $callback;
+        $this->authorizeUsing = $callback;
 
         return $this;
     }
@@ -290,6 +310,61 @@ class Pulse
     public function handleExceptionsUsing(callable $callback): self
     {
         $this->handleExceptionsUsing = $callback;
+
+        return $this;
+    }
+
+    /**
+     * The authenticated user ID resolver.
+     *
+     * @return (callable(): (int|string|null|(callable(): (int|string|null))
+     */
+    public function authenticatedUserIdResolver(): callable
+    {
+        if ($this->authenticatedUserIdResolver !== null) {
+            return $this->authenticatedUserIdResolver;
+        }
+
+        if ($this->auth->hasUser()) {
+            $id = $this->auth->id();
+
+            return fn () => $id;
+        }
+
+        return fn () => $this->auth->id() ?? $this->rememberedUserId;
+    }
+
+    /**
+     * Set the user for the given callback.
+     *
+     * @template TReturn
+     *
+     * @param  (callable(): TReturn)  $callback
+     * @return TReturn
+     */
+    public function withUser(Authenticatable|int|string|null $user, callable $callback): mixed
+    {
+        $cachedUserIdResolver = $this->authenticatedUserIdResolver;
+
+        try {
+            $id = $user instanceof Authenticatable
+                ? $user->getAuthIdentifier()
+                : $user;
+
+            $this->authenticatedUserIdResolver = fn () => $id;
+
+            return $callback();
+        } finally {
+            $this->authenticatedUserIdResolver = $cachedUserIdResolver;
+        }
+    }
+
+    /**
+     * Remember the authenticated user's ID.
+     */
+    public function rememberUser(Authenticatable $user): self
+    {
+        $this->rememberedUserId = $user->getAuthIdentifier();
 
         return $this;
     }
