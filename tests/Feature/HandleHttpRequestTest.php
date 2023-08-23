@@ -25,7 +25,7 @@ it('ingests requests', function () {
 
     get('users');
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
     expect($requests)->toHaveCount(1);
     expect((array) $requests[0])->toEqual([

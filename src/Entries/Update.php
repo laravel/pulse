@@ -16,6 +16,9 @@ abstract class Update
      */
     abstract public function perform(Connection $db): void;
 
+    /**
+     * Resolve the update.
+     */
     public function resolve(): self
     {
         return $this;

@@ -52,6 +52,7 @@ class WorkCommand extends Command
                 $lastTrimmedStorageAt = $now;
             }
 
+            // TODO: chunking?
             $processed = $ingest->store($storage, 1000);
 
             if ($processed === 0) {

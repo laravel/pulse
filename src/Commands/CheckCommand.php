@@ -40,7 +40,8 @@ class CheckCommand extends Command
     ): int {
         $lastRestart = $cache->get('laravel:pulse:restart');
 
-        $interval = CarbonInterval::seconds(15);
+        // TODO: configure?
+        $interval = CarbonInterval::seconds(5);
 
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);
 
@@ -60,6 +61,7 @@ class CheckCommand extends Command
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
             $checks->map(fn (callable $check) => $check($lastSnapshotAt, $interval))
+                ->filter()
                 ->flatten()
                 ->each($pulse->record(...));
 

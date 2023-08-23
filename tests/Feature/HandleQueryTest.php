@@ -24,12 +24,12 @@ it('ingests queries', function () {
 
     DB::connection()->statement('select * from users');
 
-    expect(Pulse::queue())->toHaveCount(1);
+    expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
     expect((array) $queries[0])->toEqual([

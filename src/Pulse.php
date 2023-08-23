@@ -25,7 +25,7 @@ class Pulse
      *
      * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
      */
-    protected Collection $queue;
+    protected Collection $entries;
 
     /**
      * Indicates if Pulse should record entries.
@@ -40,11 +40,11 @@ class Pulse
     protected Collection $filters;
 
     /**
-     * The application usage users resolver.
+     * The users resolver.
      *
      * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)
      */
-    protected $applicationUserUsersResolver = null;
+    protected $usersResolver = null;
 
     /**
      * The callback that should be used to authorize Pulse users.
@@ -87,7 +87,7 @@ class Pulse
     ) {
         $this->filters = collect([]);
 
-        $this->flushQueue();
+        $this->flushEntries();
     }
 
     /**
@@ -149,25 +149,25 @@ class Pulse
     public function record(Entry|Update $entry): self
     {
         if ($this->shouldRecord) {
-            $this->queue[] = $entry;
+            $this->entries[] = $entry;
         }
 
         return $this;
     }
 
     /**
-     * Store the queued entries and flush the queue.
+     * Store the queued entries.
      */
     public function store(): self
     {
         if (! $this->shouldRecord) {
             $this->rememberedUserId = null;
 
-            return $this->flushQueue();
+            return $this->flushEntries();
         }
 
         $this->rescue(fn () => $this->ingest->ingest(
-            $this->queue->map->resolve()->filter($this->shouldRun(...)),
+            $this->entries->map->resolve()->filter($this->shouldRecord(...)),
         ));
 
         $this->rescue(fn () => Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
@@ -176,26 +176,25 @@ class Pulse
 
         $this->rememberedUserId = null;
 
-        return $this->flushQueue();
-
+        return $this->flushEntries();
     }
 
     /**
-     * The pending entries queue.
+     * The pending entries to be recorded.
      *
      * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
      */
-    public function queue()
+    public function entries()
     {
-        return $this->queue;
+        return $this->entries;
     }
 
     /**
      * Flush the queue.
      */
-    public function flushQueue(): self
+    public function flushEntries(): self
     {
-        $this->queue = collect([]);
+        $this->entries = collect([]);
 
         return $this;
     }
@@ -203,7 +202,7 @@ class Pulse
     /**
      * Determine if the entry should be recorded.
      */
-    protected function shouldRun(Entry|Update $entry): bool
+    protected function shouldRecord(Entry|Update $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
     }
@@ -213,9 +212,9 @@ class Pulse
      *
      * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)  $callback
      */
-    public function resolveApplicationUsageUsersUsing(callable $callback): self
+    public function resolveUsersUsing(callable $callback): self
     {
-        $this->applicationUserUsersResolver = $callback;
+        $this->usersResolver = $callback;
 
         return $this;
     }
@@ -226,10 +225,10 @@ class Pulse
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
      * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'email'?: ?string}>
      */
-    public function resolveApplicationUsageUsers(Collection $ids): Collection
+    public function resolveUsers(Collection $ids): Collection
     {
-        if ($this->applicationUserUsersResolver) {
-            return collect(($this->applicationUserUsersResolver)($ids));
+        if ($this->usersResolver) {
+            return collect(($this->usersResolver)($ids));
         }
 
         if (class_exists(\App\Models\User::class)) {

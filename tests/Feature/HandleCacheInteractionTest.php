@@ -20,12 +20,12 @@ it('ingests cache interactions', function () {
 
     Cache::get('cache-key');
 
-    expect(Pulse::queue())->toHaveCount(1);
+    expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_cache_hits')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
     expect($cacheHits)->toHaveCount(1);
     expect((array) $cacheHits[0])->toEqual([

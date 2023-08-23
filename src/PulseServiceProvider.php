@@ -87,6 +87,7 @@ class PulseServiceProvider extends ServiceProvider
             Queries\SlowOutgoingRequests::class,
             Queries\MonitoredCacheInteractions::class,
         ] as $class) {
+            // TODO: these should get the databasemanager and confing
             $this->app->when($class)
                 ->needs(Connection::class)
                 ->give(fn (Application $app) => $app['db']->connection($app['config']->get(

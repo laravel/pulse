@@ -21,8 +21,12 @@ class SystemStats
     /**
      * Resolve the systems stats.
      */
-    public function __invoke(CarbonImmutable $now): Entry
+    public function __invoke(CarbonImmutable $now): ?Entry
     {
+        if ($now->second % 15 !== 0) {
+            return null;
+        }
+
         return new Entry('pulse_servers', [
             'date' => $now->toDateTimeString(),
             'server' => $this->config->get('pulse.server_name'),

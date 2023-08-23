@@ -75,6 +75,7 @@ class Database implements Storage
             'pulse_queue_sizes',
             'pulse_requests',
             'pulse_servers',
+            // TODO: consider if there is a better place for this.
             ...($this->config->get('pulse.storage.additional_tables') ?? []),
         ]);
     }

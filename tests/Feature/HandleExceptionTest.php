@@ -19,12 +19,12 @@ it('ingests exceptions', function () {
 
     report($exception = new RuntimeException('Expected exception.'));
 
-    expect(Pulse::queue())->toHaveCount(1);
+    expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_exceptions')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
     expect((array) $exceptions[0])->toEqual([

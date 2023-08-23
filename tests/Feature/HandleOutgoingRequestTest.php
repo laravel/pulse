@@ -21,12 +21,12 @@ it('ingests outgoing http requests', function () {
 
     Http::get('https://laravel.com');
 
-    expect(Pulse::queue())->toHaveCount(1);
+    expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_outgoing_requests')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
     expect((array) $requests[0])->toEqual([

@@ -14,12 +14,12 @@ it('ingests bus dispatched jobs', function () {
 
     Bus::dispatch(new MyJob);
 
-    expect(Pulse::queue())->toHaveCount(1);
+    expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_jobs')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
@@ -41,7 +41,7 @@ it('ingests queued closures', function () {
     });
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
@@ -61,7 +61,7 @@ it('ingests queue pushed jobs', function () {
     Queue::push('MyJob');
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([

@@ -20,11 +20,11 @@ uses(TestCase::class)
     ->beforeEach(function () {
         Model::unguard();
         Http::preventStrayRequests();
-        Pulse::flushQueue();
+        Pulse::flushEntries();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
     })
     ->afterEach(function () {
-        if (Pulse::queue()->isNotEmpty()) {
+        if (Pulse::entries()->isNotEmpty()) {
             throw new RuntimeException('The queue is not empty');
         }
     })
