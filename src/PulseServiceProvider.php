@@ -17,18 +17,18 @@ use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Recorders\CacheInteractions;
-use Laravel\Pulse\Recorders\Exceptions;
-use Laravel\Pulse\Recorders\HttpRequests;
 use Laravel\Pulse\Handlers\HandleOutgoingRequest;
-use Laravel\Pulse\Recorders\JobCompletion;
-use Laravel\Pulse\Recorders\JobProcessing;
-use Laravel\Pulse\Recorders\SlowQueries;
-use Laravel\Pulse\Recorders\JobQueued;
 use Laravel\Pulse\Handlers\HandleUserLogout;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
+use Laravel\Pulse\Recorders\CacheInteractions;
+use Laravel\Pulse\Recorders\Exceptions;
+use Laravel\Pulse\Recorders\HttpRequests;
+use Laravel\Pulse\Recorders\JobProcessing;
+use Laravel\Pulse\Recorders\JobQueued;
+use Laravel\Pulse\Recorders\Jobs;
+use Laravel\Pulse\Recorders\SlowQueries;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Component;
@@ -115,10 +115,8 @@ class PulseServiceProvider extends ServiceProvider
             CacheInteractions::class,
             Exceptions::class,
             HttpRequests::class,
-            JobCompletion::class,
-            JobProcessing::class,
+            Jobs::class,
             SlowQueries::class,
-            JobQueued::class,
         ]);
 
         $this->registerRoutes();
