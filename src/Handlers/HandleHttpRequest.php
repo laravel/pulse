@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Handlers;
 
-use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class HandleHttpRequest
 {
+    public array $tables = ['pulse_requests'];
+
     /**
      * Create a new handler instance.
      */
@@ -24,20 +26,21 @@ class HandleHttpRequest
         //
     }
 
+    public function register(callable $record, Kernel $kernel)
+    {
+        $kernel->whenRequestLifecycleIsLongerThan(-1, $record);
+    }
+
     /**
      * Handle the completion of an HTTP request.
      */
-    public function __invoke(Carbon $startedAt, Request $request, Response $response): void
+    public function record(Carbon $startedAt, Request $request, Response $response): Entry
     {
-        $this->pulse->rescue(function () use ($startedAt, $request) {
-            $now = new CarbonImmutable();
-
-            $this->pulse->record(new Entry('pulse_requests', [
-                'date' => $startedAt->toDateTimeString(),
-                'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
-                'duration' => $startedAt->diffInMilliseconds(),
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]));
-        });
+        return new Entry($this->tables[0], [
+            'date' => $startedAt->toDateTimeString(),
+            'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
+            'duration' => $startedAt->diffInMilliseconds(),
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
+        ]);
     }
 }

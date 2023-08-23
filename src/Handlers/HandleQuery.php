@@ -13,6 +13,10 @@ use Laravel\Pulse\Pulse;
  */
 class HandleQuery
 {
+    public $tables = ['pulse_queries'];
+
+    public $events = [QueryExecuted::class];
+
     /**
      * Create a new handler instance.
      */
@@ -26,21 +30,19 @@ class HandleQuery
     /**
      * Handle the execution of a database query.
      */
-    public function __invoke(QueryExecuted $event): void
+    public function record(QueryExecuted $event): ?Entry
     {
-        $this->pulse->rescue(function () use ($event) {
-            $now = new CarbonImmutable();
+        $now = new CarbonImmutable();
 
-            if ($event->time < $this->config->get('pulse.slow_query_threshold')) {
-                return;
-            }
+        if ($event->time < $this->config->get('pulse.slow_query_threshold')) {
+            return null;
+        }
 
-            $this->pulse->record(new Entry('pulse_queries', [
-                'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
-                'sql' => $event->sql,
-                'duration' => (int) $event->time,
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]));
-        });
+        return new Entry('pulse_queries', [
+            'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
+            'sql' => $event->sql,
+            'duration' => (int) $event->time,
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
+        ]);
     }
 }

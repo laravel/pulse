@@ -14,6 +14,10 @@ use Laravel\Pulse\Pulse;
  */
 class HandleCacheInteraction
 {
+    public array $tables = ['pulse_cache_hits'];
+
+    public array $events = [CacheHit::class, CacheMissed::class];
+
     /**
      * Create a new handler instance.
      */
@@ -26,21 +30,19 @@ class HandleCacheInteraction
     /**
      * Handle a cache miss.
      */
-    public function __invoke(CacheHit|CacheMissed $event): void
+    public function record(CacheHit|CacheMissed $event): ?Entry
     {
-        $this->pulse->rescue(function () use ($event) {
-            $now = new CarbonImmutable();
+        $now = new CarbonImmutable();
 
-            if (Str::startsWith($event->key, ['illuminate:', 'laravel:pulse'])) {
-                return;
-            }
+        if (Str::startsWith($event->key, ['illuminate:', 'laravel:pulse'])) {
+            return null;
+        }
 
-            $this->pulse->record(new Entry('pulse_cache_hits', [
-                'date' => $now->toDateTimeString(),
-                'hit' => $event instanceof CacheHit,
-                'key' => $event->key,
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]));
-        });
+        return new Entry('pulse_cache_hits', [
+            'date' => $now->toDateTimeString(),
+            'hit' => $event instanceof CacheHit,
+            'key' => $event->key,
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
+        ]);
     }
 }

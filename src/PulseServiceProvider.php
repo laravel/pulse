@@ -3,20 +3,11 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Cache\Events\CacheHit;
-use Illuminate\Cache\Events\CacheMissed;
-use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Queue\Events\JobProcessing;
-use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -43,7 +34,6 @@ use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Component;
 use Livewire\LivewireManager;
 use RuntimeException;
-use Throwable;
 
 class PulseServiceProvider extends ServiceProvider
 {
@@ -119,6 +109,18 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
+        $pulse = $this->app[Pulse::class];
+
+        $pulse->register([
+            HandleCacheInteraction::class,
+            HandleException::class,
+            HandleHttpRequest::class,
+            HandleProcessedJob::class,
+            HandleProcessingJob::class,
+            HandleQuery::class,
+            HandleQueuedJob::class,
+        ]);
+
         $this->registerRoutes();
         $this->listenForEvents();
         $this->registerCommands();
@@ -134,30 +136,30 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents(): void
     {
         $this->callAfterResolving('events', function (Dispatcher $event) {
-            $event->listen(QueryExecuted::class, HandleQuery::class);
+            // $event->listen(QueryExecuted::class, HandleQuery::class);
 
-            $event->listen([
-                CacheHit::class,
-                CacheMissed::class,
-            ], HandleCacheInteraction::class);
+            // $event->listen([
+            //     CacheHit::class,
+            //     CacheMissed::class,
+            // ], HandleCacheInteraction::class);
 
             // TODO: currently if a job fails, we have no way of tracking it through properly.
             // When a job fails it gets a new "jobId", so we can't track the one job.
             // If we can get the job's UUID in the `JobQueued` event, then we can
             // follow the job through successfully.
-            $event->listen(JobQueued::class, HandleQueuedJob::class);
-            $event->listen(JobProcessing::class, HandleProcessingJob::class);
-            $event->listen([
-                JobFailed::class,
-                JobProcessed::class,
-            ], HandleProcessedJob::class);
+            // $event->listen(JobQueued::class, HandleQueuedJob::class);
+            // $event->listen(JobProcessing::class, HandleProcessingJob::class);
+            // $event->listen([
+            //     JobFailed::class,
+            //     JobProcessed::class,
+            // ], HandleProcessedJob::class);
 
             $event->listen(Logout::class, HandleUserLogout::class);
         });
 
-        $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, fn (...$args) => app(HandleHttpRequest::class)(...$args));
+        // $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, fn (...$args) => app(HandleHttpRequest::class)(...$args));
 
-        $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
+        // $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
 
         if (method_exists(HttpFactory::class, 'globalMiddleware')) {
             $this->callAfterResolving(HttpFactory::class, function (HttpFactory $factory) {

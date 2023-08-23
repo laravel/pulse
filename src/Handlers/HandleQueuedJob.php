@@ -13,6 +13,10 @@ use Laravel\Pulse\Pulse;
  */
 class HandleQueuedJob
 {
+    public array $tables = ['pulse_jobs'];
+
+    public array $events = [JobQueued::class];
+
     /**
      * Create a new handler instance.
      */
@@ -26,19 +30,17 @@ class HandleQueuedJob
     /**
      * Handle the execution of a database query.
      */
-    public function __invoke(JobQueued $event): void
+    public function record(JobQueued $event): Entry
     {
-        $this->pulse->rescue(function () use ($event) {
-            $now = new CarbonImmutable();
+        $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry('pulse_jobs', [
-                'date' => $now->toDateTimeString(),
-                'job' => is_string($event->job)
-                    ? $event->job
-                    : $event->job::class,
-                'job_id' => $event->id,
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]));
-        });
+        return new Entry($this->tables[0], [
+            'date' => $now->toDateTimeString(),
+            'job' => is_string($event->job)
+                ? $event->job
+                : $event->job::class,
+            'job_id' => $event->id,
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
+        ]);
     }
 }

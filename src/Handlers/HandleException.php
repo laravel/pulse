@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Handlers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
@@ -13,6 +14,8 @@ use Throwable;
  */
 class HandleException
 {
+    public array $tables = ['pulse_exceptions'];
+
     /**
      * Create a new handler instance.
      */
@@ -22,21 +25,24 @@ class HandleException
         //
     }
 
+    public function register(callable $record, ExceptionHandler $handler)
+    {
+        $handler->reportable(fn (Throwable $e) => $record($e));
+    }
+
     /**
      * Handle an exception.
      */
-    public function __invoke(Throwable $e): void
+    public function record(Throwable $e): Entry
     {
-        $this->pulse->rescue(function () use ($e) {
-            $now = new CarbonImmutable();
+        $now = new CarbonImmutable();
 
-            $this->pulse->record(new Entry('pulse_exceptions', [
-                'date' => $now->toDateTimeString(),
-                'class' => $e::class,
-                'location' => $this->getLocation($e),
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]));
-        });
+        return new Entry($this->tables[0], [
+            'date' => $now->toDateTimeString(),
+            'class' => $e::class,
+            'location' => $this->getLocation($e),
+            'user_id' => $this->pulse->authenticatedUserIdResolver(),
+        ]);
     }
 
     /**

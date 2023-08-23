@@ -2,10 +2,11 @@
 
 namespace Laravel\Pulse;
 
-use Closure;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -19,6 +20,8 @@ use Throwable;
 class Pulse
 {
     use ListensForStorageOpportunities;
+
+    protected $recorders = [];
 
     /**
      * The list of queued entries or updates.
@@ -84,10 +87,47 @@ class Pulse
         protected Repository $config,
         protected Ingest $ingest,
         protected AuthManager $auth,
+        protected Application $app,
     ) {
         $this->filters = collect([]);
 
         $this->flushEntries();
+    }
+
+    public function register(string|array $recorders): self
+    {
+        $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
+
+        $callback = fn (Dispatcher $event) => $recorders
+            ->filter(fn ($recorder) => $recorder->events ?? null)
+            ->each(fn ($recorder) => $event->listen(
+                $recorder->events,
+                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event))
+                    ->filter()
+                    ->each($this->record(...)))
+            ));
+
+        $this->app->afterResolving('events', $callback);
+
+        if ($this->app->resolved('events')) {
+            $callback($this->app->make('events'));
+        }
+
+        $recorders
+            ->filter(fn ($recorder) => method_exists($recorder, 'register'))
+            ->each(function ($recorder) {
+                $record = function (...$args) use ($recorder) {
+                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args))
+                        ->filter()
+                        ->each($this->record(...)));
+                };
+
+                $this->app->call($recorder->register(...), ['record' => $record]);
+            });
+
+        $this->recorders = [...$this->recorders, ...$recorders];
+
+        return $this;
     }
 
     /**
