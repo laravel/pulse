@@ -13,8 +13,10 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
+    /** @var list<string> */
     public $tables = ['pulse_queries'];
 
+    /** @var list<class-string> */
     public $events = [QueryExecuted::class];
 
     /**

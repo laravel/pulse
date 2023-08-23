@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class HttpRequests
 {
+    /** @var list<string> */
     public array $tables = ['pulse_requests'];
 
     /**
@@ -26,7 +27,7 @@ class HttpRequests
         //
     }
 
-    public function register(callable $record, Kernel $kernel)
+    public function register(callable $record, Kernel $kernel): void
     {
         $kernel->whenRequestLifecycleIsLongerThan(-1, $record);
     }

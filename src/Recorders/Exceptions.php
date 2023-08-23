@@ -14,6 +14,7 @@ use Throwable;
  */
 class Exceptions
 {
+    /** @var list<string> */
     public array $tables = ['pulse_exceptions'];
 
     /**
@@ -25,7 +26,7 @@ class Exceptions
         //
     }
 
-    public function register(callable $record, ExceptionHandler $handler)
+    public function register(callable $record, ExceptionHandler $handler): void
     {
         $handler->reportable(fn (Throwable $e) => $record($e));
     }

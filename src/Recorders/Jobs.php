@@ -16,8 +16,10 @@ use Laravel\Pulse\Pulse;
 
 class Jobs
 {
+    /** @var list<string> */
     public array $tables = ['pulse_jobs'];
 
+    /** @var list<class-string> */
     public array $events = [
         JobFailed::class,
         JobProcessed::class,

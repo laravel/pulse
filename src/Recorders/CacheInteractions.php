@@ -14,8 +14,10 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
+    /** @var list<string> */
     public array $tables = ['pulse_cache_hits'];
 
+    /** @var list<class-string> */
     public array $events = [CacheHit::class, CacheMissed::class];
 
     /**
