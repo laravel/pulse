@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @internal
  */
-class HandleHttpRequest
+class HttpRequests
 {
     public array $tables = ['pulse_requests'];
 

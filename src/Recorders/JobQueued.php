@@ -1,21 +1,21 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
-use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\JobQueued as JobQueuedEvent;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class HandleQueuedJob
+class JobQueued
 {
     public array $tables = ['pulse_jobs'];
 
-    public array $events = [JobQueued::class];
+    public array $events = [JobQueuedEvent::class];
 
     /**
      * Create a new handler instance.
@@ -30,7 +30,7 @@ class HandleQueuedJob
     /**
      * Handle the execution of a database query.
      */
-    public function record(JobQueued $event): Entry
+    public function record(JobQueuedEvent $event): Entry
     {
         $now = new CarbonImmutable();
 

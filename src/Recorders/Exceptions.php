@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -12,7 +12,7 @@ use Throwable;
 /**
  * @internal
  */
-class HandleException
+class Exceptions
 {
     public array $tables = ['pulse_exceptions'];
 

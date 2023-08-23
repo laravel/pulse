@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
@@ -12,7 +12,7 @@ use Laravel\Pulse\Pulse;
 /**
  * @internal
  */
-class HandleCacheInteraction
+class CacheInteractions
 {
     public array $tables = ['pulse_cache_hits'];
 

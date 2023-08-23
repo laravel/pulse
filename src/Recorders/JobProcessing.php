@@ -1,9 +1,9 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobProcessing as JobProcessingEvent;
 use Laravel\Pulse\Entries\JobStarted;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Pulse;
@@ -11,11 +11,11 @@ use Laravel\Pulse\Pulse;
 /**
  * @internal
  */
-class HandleProcessingJob
+class JobProcessing
 {
     public array $tables = ['pulse_jobs'];
 
-    public array $events = [JobProcessing::class];
+    public array $events = [JobProcessingEvent::class];
 
     /**
      * Create a new handler instance.
@@ -29,7 +29,7 @@ class HandleProcessingJob
     /**
      * Handle the execution of a database query.
      */
-    public function record(JobProcessing $event): Update
+    public function record(JobProcessingEvent $event): Update
     {
         $now = new CarbonImmutable();
 

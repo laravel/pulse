@@ -17,14 +17,14 @@ use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Handlers\HandleCacheInteraction;
-use Laravel\Pulse\Handlers\HandleException;
-use Laravel\Pulse\Handlers\HandleHttpRequest;
+use Laravel\Pulse\Recorders\CacheInteractions;
+use Laravel\Pulse\Recorders\Exceptions;
+use Laravel\Pulse\Recorders\HttpRequests;
 use Laravel\Pulse\Handlers\HandleOutgoingRequest;
-use Laravel\Pulse\Handlers\HandleProcessedJob;
-use Laravel\Pulse\Handlers\HandleProcessingJob;
-use Laravel\Pulse\Handlers\HandleQuery;
-use Laravel\Pulse\Handlers\HandleQueuedJob;
+use Laravel\Pulse\Recorders\JobCompletion;
+use Laravel\Pulse\Recorders\JobProcessing;
+use Laravel\Pulse\Recorders\SlowQueries;
+use Laravel\Pulse\Recorders\JobQueued;
 use Laravel\Pulse\Handlers\HandleUserLogout;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
@@ -112,13 +112,13 @@ class PulseServiceProvider extends ServiceProvider
         $pulse = $this->app[Pulse::class];
 
         $pulse->register([
-            HandleCacheInteraction::class,
-            HandleException::class,
-            HandleHttpRequest::class,
-            HandleProcessedJob::class,
-            HandleProcessingJob::class,
-            HandleQuery::class,
-            HandleQueuedJob::class,
+            CacheInteractions::class,
+            Exceptions::class,
+            HttpRequests::class,
+            JobCompletion::class,
+            JobProcessing::class,
+            SlowQueries::class,
+            JobQueued::class,
         ]);
 
         $this->registerRoutes();

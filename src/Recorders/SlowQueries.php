@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Handlers;
+namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
@@ -11,7 +11,7 @@ use Laravel\Pulse\Pulse;
 /**
  * @internal
  */
-class HandleQuery
+class SlowQueries
 {
     public $tables = ['pulse_queries'];
 
