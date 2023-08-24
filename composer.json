@@ -1,7 +1,9 @@
 {
     "name": "laravel/pulse",
     "description": "",
-    "keywords": ["laravel"],
+    "keywords": [
+        "laravel"
+    ],
     "homepage": "https://github.com/laravel/pulse",
     "license": "MIT",
     "support": {
@@ -66,5 +68,24 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "lint": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": [
+            "@php vendor/bin/pest"
+        ]
+    }
 }
