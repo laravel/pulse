@@ -1,0 +1,12 @@
+providers:
+  - Laravel\Pulse\PulseServiceProvider
+
+migrations: true
+
+workbench:
+  start: '/'
+  install: true
+  welcome: true
+  build:
+    - asset-publish
+    - migrate-refresh
