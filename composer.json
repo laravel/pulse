@@ -1,9 +1,7 @@
 {
     "name": "laravel/pulse",
     "description": "",
-    "keywords": [
-        "laravel"
-    ],
+    "keywords": ["laravel"],
     "homepage": "https://github.com/laravel/pulse",
     "license": "MIT",
     "support": {
