@@ -39,6 +39,11 @@ class Jobs
 
     public function record(JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update
     {
+        // TODO: currently if a job fails, we have no way of tracking it through properly.
+        // When a job fails it gets a new "jobId", so we can't track the one job.
+        // If we can get the job's UUID in the `JobQueued` event, then we can
+        // follow the job through successfully.
+
         $now = new CarbonImmutable();
 
         return match (true) {

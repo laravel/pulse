@@ -7,7 +7,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -17,17 +16,14 @@ use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Handlers\HandleOutgoingRequest;
-use Laravel\Pulse\Handlers\HandleUserLogout;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Recorders\CacheInteractions;
 use Laravel\Pulse\Recorders\Exceptions;
 use Laravel\Pulse\Recorders\HttpRequests;
-use Laravel\Pulse\Recorders\JobProcessing;
-use Laravel\Pulse\Recorders\JobQueued;
 use Laravel\Pulse\Recorders\Jobs;
+use Laravel\Pulse\Recorders\OutgoingRequests;
 use Laravel\Pulse\Recorders\SlowQueries;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
@@ -116,6 +112,7 @@ class PulseServiceProvider extends ServiceProvider
             Exceptions::class,
             HttpRequests::class,
             Jobs::class,
+            OutgoingRequests::class,
             SlowQueries::class,
         ]);
 
@@ -134,36 +131,11 @@ class PulseServiceProvider extends ServiceProvider
     protected function listenForEvents(): void
     {
         $this->callAfterResolving('events', function (Dispatcher $event) {
-            // $event->listen(QueryExecuted::class, HandleQuery::class);
-
-            // $event->listen([
-            //     CacheHit::class,
-            //     CacheMissed::class,
-            // ], HandleCacheInteraction::class);
-
-            // TODO: currently if a job fails, we have no way of tracking it through properly.
-            // When a job fails it gets a new "jobId", so we can't track the one job.
-            // If we can get the job's UUID in the `JobQueued` event, then we can
-            // follow the job through successfully.
-            // $event->listen(JobQueued::class, HandleQueuedJob::class);
-            // $event->listen(JobProcessing::class, HandleProcessingJob::class);
-            // $event->listen([
-            //     JobFailed::class,
-            //     JobProcessed::class,
-            // ], HandleProcessedJob::class);
-
-            $event->listen(Logout::class, HandleUserLogout::class);
-        });
-
-        // $this->app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, fn (...$args) => app(HandleHttpRequest::class)(...$args));
-
-        // $this->app[ExceptionHandler::class]->reportable(fn (Throwable $e) => app(HandleException::class)($e));
-
-        if (method_exists(HttpFactory::class, 'globalMiddleware')) {
-            $this->callAfterResolving(HttpFactory::class, function (HttpFactory $factory) {
-                $factory->globalMiddleware(fn (...$args) => app(HandleOutgoingRequest::class)(...$args));
+            $event->listen(Logout::class, function (Logout $event) {
+                $pulse = app(Pulse::class);
+                $pulse->rescue(fn () => $pulse->rememberUser($event->user));
             });
-        }
+        });
 
         // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
         // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
