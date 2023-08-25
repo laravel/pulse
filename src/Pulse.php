@@ -108,9 +108,9 @@ class Pulse
         $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
 
         $callback = fn (Dispatcher $event) => $recorders
-            ->filter(fn ($recorder) => $recorder->events ?? null)
+            ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
-                $recorder->events,
+                $recorder->listen,
                 fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event))
                     ->filter()
                     ->each($this->record(...)))
@@ -256,7 +256,7 @@ class Pulse
     public function tables(): Collection
     {
         return collect($this->recorders)
-            ->map(fn ($recorder) => $recorder->tables ?? null)
+            ->map(fn ($recorder) => $recorder->table ?? null)
             ->flatten()
             ->filter()
             ->unique()

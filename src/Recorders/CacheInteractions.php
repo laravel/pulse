@@ -14,11 +14,17 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
-    /** @var list<string> */
-    public array $tables = ['pulse_cache_hits'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_cache_hits';
 
-    /** @var list<class-string> */
-    public array $events = [CacheHit::class, CacheMissed::class];
+    /**
+     * The events to listen for.
+     *
+     * @var list<class-string>
+     */
+    public array $listen = [CacheHit::class, CacheMissed::class];
 
     /**
      * Create a new handler instance.
@@ -40,7 +46,7 @@ class CacheInteractions
             return null;
         }
 
-        return new Entry('pulse_cache_hits', [
+        return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
             'key' => $event->key,

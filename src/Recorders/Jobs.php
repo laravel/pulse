@@ -16,11 +16,17 @@ use Laravel\Pulse\Pulse;
 
 class Jobs
 {
-    /** @var list<string> */
-    public array $tables = ['pulse_jobs'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_jobs';
 
-    /** @var list<class-string> */
-    public array $events = [
+    /**
+     * The events to listen for.
+     *
+     * @var list<class-string>
+     */
+    public array $listen = [
         JobFailed::class,
         JobProcessed::class,
         JobProcessing::class,
@@ -47,7 +53,7 @@ class Jobs
         $now = new CarbonImmutable();
 
         return match (true) {
-            $event instanceof JobQueued => new Entry($this->tables[0], [
+            $event instanceof JobQueued => new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
                 'job' => is_string($event->job)
                     ? $event->job

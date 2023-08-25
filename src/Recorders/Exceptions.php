@@ -14,8 +14,10 @@ use Throwable;
  */
 class Exceptions
 {
-    /** @var list<string> */
-    public array $tables = ['pulse_exceptions'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_exceptions';
 
     /**
      * Create a new handler instance.
@@ -26,6 +28,9 @@ class Exceptions
         //
     }
 
+    /**
+     * Register the recorder.
+     */
     public function register(callable $record, ExceptionHandler $handler): void
     {
         $handler->reportable(fn (Throwable $e) => $record($e));
@@ -38,7 +43,7 @@ class Exceptions
     {
         $now = new CarbonImmutable();
 
-        return new Entry($this->tables[0], [
+        return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'class' => $e::class,
             'location' => $this->getLocation($e),

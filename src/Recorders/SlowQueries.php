@@ -13,11 +13,17 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
-    /** @var list<string> */
-    public $tables = ['pulse_queries'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_queries';
 
-    /** @var list<class-string> */
-    public $events = [QueryExecuted::class];
+    /**
+     * The events to listen for.
+     *
+     * @var class-string
+     */
+    public string $listen = QueryExecuted::class;
 
     /**
      * Create a new handler instance.
@@ -40,7 +46,7 @@ class SlowQueries
             return null;
         }
 
-        return new Entry('pulse_queries', [
+        return new Entry($this->table, [
             'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
             'sql' => $event->sql,
             'duration' => (int) $event->time,

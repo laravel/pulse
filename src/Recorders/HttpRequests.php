@@ -15,8 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class HttpRequests
 {
-    /** @var list<string> */
-    public array $tables = ['pulse_requests'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_requests';
 
     /**
      * Create a new handler instance.
@@ -27,6 +29,9 @@ class HttpRequests
         //
     }
 
+    /**
+     * Register the recorder.
+     */
     public function register(callable $record, Kernel $kernel): void
     {
         $kernel->whenRequestLifecycleIsLongerThan(-1, $record);
@@ -37,7 +42,7 @@ class HttpRequests
      */
     public function record(Carbon $startedAt, Request $request, Response $response): Entry
     {
-        return new Entry($this->tables[0], [
+        return new Entry($this->table, [
             'date' => $startedAt->toDateTimeString(),
             'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
             'duration' => $startedAt->diffInMilliseconds(),

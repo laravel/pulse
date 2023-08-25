@@ -18,8 +18,10 @@ use Throwable;
  */
 class OutgoingRequests
 {
-    /** @var list<string> */
-    public $tables = ['pulse_queries'];
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_outgoing_requests';
 
     /**
      * Create a new handler instance.
@@ -30,6 +32,9 @@ class OutgoingRequests
         //
     }
 
+    /**
+     * Register the recorder.
+     */
     public function register(callable $record, Application $app): void
     {
         if (! method_exists(HttpFactory::class, 'globalMiddleware')) {
@@ -65,7 +70,7 @@ class OutgoingRequests
     {
         $endedAt = new CarbonImmutable;
 
-        return new Entry('pulse_outgoing_requests', [
+        return new Entry($this->table, [
             'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
