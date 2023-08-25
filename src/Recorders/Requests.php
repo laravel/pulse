@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @internal
  */
-class HttpRequests
+class Requests
 {
     /**
      * The table to record to.

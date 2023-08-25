@@ -64,7 +64,7 @@ class Servers
             })
             ->fromSub(
                 fn (Builder $query) => $query
-                    ->from('pulse_servers')
+                    ->from('pulse_system_stats')
                     ->select(['server', 'cpu_percent', 'memory_used', 'date'])
                     // Divide the data into buckets.
                     ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
@@ -83,16 +83,16 @@ class Servers
                 return $padding->merge($readings)->values();
             });
 
-        return $this->connection->table('pulse_servers')
+        return $this->connection->table('pulse_system_stats')
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
-                $this->connection->table('pulse_servers')
+                $this->connection->table('pulse_system_stats')
                     ->selectRaw('server, MAX(date) AS date')
                     ->groupBy('server'),
                 'grouped',
                 fn (JoinClause $join) => $join
-                    ->on('pulse_servers'.'.server', '=', 'grouped.server')
-                    ->on('pulse_servers'.'.date', '=', 'grouped.date')
+                    ->on('pulse_system_stats'.'.server', '=', 'grouped.server')
+                    ->on('pulse_system_stats'.'.date', '=', 'grouped.date')
             )
             ->get()
             ->map(fn (stdClass $server) => (object) [

@@ -22,12 +22,12 @@ it('ingests cache interactions', function () {
     Cache::get('cache-key');
 
     expect(Pulse::entries())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_cache_hits')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_cache_interactions')->count())->toBe(0));
 
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(1);
     expect((array) $cacheHits[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
@@ -43,7 +43,7 @@ it('ignores any internal illuminate cache interactions', function () {
     Cache::get('illuminate:');
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(0);
 });
 
@@ -53,7 +53,7 @@ it('ignores any internal pulse cache interactions', function () {
     Cache::get('laravel:pulse');
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(0);
 });
 
@@ -65,7 +65,7 @@ it('captures hits and misses', function () {
     Cache::get('miss');
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(2);
     expect((array) $cacheHits[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
@@ -87,7 +87,7 @@ it('captures the authenticated user', function () {
     Cache::get('cache-key');
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(1);
     expect($cacheHits[0]->user_id)->toBe('567');
 });
@@ -97,7 +97,7 @@ it('captures the authenticated user if they login after the interaction', functi
     Auth::login(User::make(['id' => '567']));
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(1);
     expect($cacheHits[0]->user_id)->toBe('567');
 });
@@ -109,7 +109,7 @@ it('captures the authenticated user if they logout after the interaction', funct
     Auth::logout();
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(1);
     expect($cacheHits[0]->user_id)->toBe('567');
 });
@@ -140,7 +140,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     Cache::get('cache-key');
     Pulse::store(app(Ingest::class));
 
-    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $cacheHits = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($cacheHits)->toHaveCount(1);
     expect($cacheHits[0]->user_id)->toBe(null);
 });
@@ -161,7 +161,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
     Cache::get('cache-key');
     Pulse::store(app(Ingest::class));
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_cache_hits')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_cache_interactions')->count())->toBe(0));
 });
 
 it('handles multiple users being logged in', function () {
@@ -172,7 +172,7 @@ it('handles multiple users being logged in', function () {
     Cache::get('cache-key');
     Pulse::store(app(Ingest::class));
 
-    $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_hits')->get());
+    $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(3);
     expect($interactions[0]->user_id)->toBe(null);
     expect($interactions[1]->user_id)->toBe('567');

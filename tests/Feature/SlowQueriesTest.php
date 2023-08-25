@@ -26,12 +26,12 @@ it('ingests queries', function () {
     DB::connection()->statement('select * from users');
 
     expect(Pulse::entries())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
 
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
     expect((array) $queries[0])->toEqual([
         'date' => '2000-01-02 03:04:00',
@@ -50,7 +50,7 @@ it('does not ingest queries under the slow query threshold', function () {
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
 });
 
 it('ingests queries equal to the slow query threshold', function () {
@@ -62,7 +62,7 @@ it('ingests queries equal to the slow query threshold', function () {
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(1));
+    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(1));
 });
 
 it('ingests queries over the slow query threshold', function () {
@@ -74,7 +74,7 @@ it('ingests queries over the slow query threshold', function () {
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(1));
+    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(1));
 });
 
 it('captures the authenticated user', function () {
@@ -84,7 +84,7 @@ it('captures the authenticated user', function () {
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
     expect($queries[0]->user_id)->toBe('567');
 });
@@ -95,7 +95,7 @@ it('captures the authenticated user if they login after the query', function () 
     Auth::login(User::make(['id' => '567']));
     Pulse::store(app(Ingest::class));
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
     expect($queries[0]->user_id)->toBe('567');
 });
@@ -108,7 +108,7 @@ it('captures the authenticated user if they logout after the query', function ()
     Auth::logout();
     Pulse::store(app(Ingest::class));
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
     expect($queries[0]->user_id)->toBe('567');
 });
@@ -140,7 +140,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
     expect($queries[0]->user_id)->toBe(null);
 });
@@ -162,7 +162,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
     DB::table('users')->count();
     Pulse::store(app(Ingest::class));
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
 });
 
 it('handles multiple users being logged in', function () {
@@ -175,7 +175,7 @@ it('handles multiple users being logged in', function () {
 
     Pulse::store(app(Ingest::class));
 
-    $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(3);
     expect($queries[0]->user_id)->toBe(null);
     expect($queries[1]->user_id)->toBe('567');

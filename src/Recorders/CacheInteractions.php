@@ -17,7 +17,7 @@ class CacheInteractions
     /**
      * The table to record to.
      */
-    public string $table = 'pulse_cache_hits';
+    public string $table = 'pulse_cache_interactions';
 
     /**
      * The events to listen for.

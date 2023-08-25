@@ -15,7 +15,7 @@ class SystemStats
     /**
      * The table to record to.
      */
-    public string $table = 'pulse_servers';
+    public string $table = 'pulse_system_stats';
 
     /**
      * The events to listen for.

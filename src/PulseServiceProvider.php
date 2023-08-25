@@ -21,10 +21,10 @@ use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Recorders\CacheInteractions;
 use Laravel\Pulse\Recorders\Exceptions;
-use Laravel\Pulse\Recorders\HttpRequests;
 use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\OutgoingRequests;
 use Laravel\Pulse\Recorders\QueueSizes;
+use Laravel\Pulse\Recorders\Requests;
 use Laravel\Pulse\Recorders\SlowQueries;
 use Laravel\Pulse\Recorders\SystemStats;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
@@ -106,10 +106,10 @@ class PulseServiceProvider extends ServiceProvider
         $pulse->register([
             CacheInteractions::class,
             Exceptions::class,
-            HttpRequests::class,
             Jobs::class,
             OutgoingRequests::class,
             QueueSizes::class,
+            Requests::class,
             SlowQueries::class,
             SystemStats::class,
         ]);

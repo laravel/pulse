@@ -16,7 +16,7 @@ class SlowQueries
     /**
      * The table to record to.
      */
-    public string $table = 'pulse_queries';
+    public string $table = 'pulse_slow_queries';
 
     /**
      * The events to listen for.

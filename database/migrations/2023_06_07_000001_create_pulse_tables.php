@@ -24,7 +24,7 @@ return new class extends Migration
         // - Review column types. Most of these likely need to be a text column, even "route".
         // - We may need to keep a hashed version of the text columns to index and group by.
         // - Do another pass at the indexes to ensure that they are optimized correctly.
-        Schema::create('pulse_servers', function (Blueprint $table) {
+        Schema::create('pulse_system_stats', function (Blueprint $table) {
             $table->timestamp('date');
             $table->string('server');
             $table->unsignedTinyInteger('cpu_percent');
@@ -54,7 +54,7 @@ return new class extends Migration
             $table->index(['date', 'class', 'location']);
         });
 
-        Schema::create('pulse_queries', function (Blueprint $table) {
+        Schema::create('pulse_slow_queries', function (Blueprint $table) {
             $table->timestamp('date');
             $table->string('user_id')->nullable();
             $table->string('sql');
@@ -77,7 +77,7 @@ return new class extends Migration
             $table->index(['date', 'user_id']); // user_usage
         });
 
-        Schema::create('pulse_cache_hits', function (Blueprint $table) {
+        Schema::create('pulse_cache_interactions', function (Blueprint $table) {
             $table->timestamp('date');
             $table->string('key');
             $table->boolean('hit');
@@ -107,12 +107,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pulse_servers');
+        Schema::dropIfExists('pulse_system_stats');
         Schema::dropIfExists('pulse_requests');
         Schema::dropIfExists('pulse_exceptions');
-        Schema::dropIfExists('pulse_queries');
+        Schema::dropIfExists('pulse_slow_queries');
         Schema::dropIfExists('pulse_jobs');
-        Schema::dropIfExists('pulse_cache_hits');
+        Schema::dropIfExists('pulse_cache_interactions');
         Schema::dropIfExists('pulse_outgoing_requests');
         Schema::dropIfExists('pulse_queue_sizes');
     }
