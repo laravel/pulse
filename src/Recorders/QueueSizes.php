@@ -28,6 +28,9 @@ class QueueSizes
      */
     public string $listen = Beat::class;
 
+    /**
+     * Create a new recorder instance.
+     */
     public function __construct(
         protected Repository $config,
         protected QueueManager $queue,
@@ -38,7 +41,7 @@ class QueueSizes
     }
 
     /**
-     * Resolve the queue size.
+     * Record the queue sizes.
      *
      * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>
      */

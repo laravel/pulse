@@ -49,6 +49,8 @@ class Exceptions extends Component
 
     /**
      * The exceptions.
+     *
+     * @return array{mixed, int, string}
      */
     protected function exceptions(callable $query): array
     {

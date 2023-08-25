@@ -40,6 +40,8 @@ class SlowOutgoingRequests extends Component
 
     /**
      * The slow outgoing requests.
+     *
+     * @return array{mixed, int, string}
      */
     protected function slowOutgoingRequests(callable $query): array
     {

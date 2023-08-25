@@ -34,7 +34,7 @@ class Jobs
     ];
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -43,6 +43,9 @@ class Jobs
         //
     }
 
+    /**
+     * Record the job.
+     */
     public function record(JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update
     {
         // TODO: currently if a job fails, we have no way of tracking it through properly.

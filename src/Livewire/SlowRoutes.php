@@ -40,6 +40,8 @@ class SlowRoutes extends Component
 
     /**
      * The slow routes.
+     *
+     * @return array{mixed, int, string}
      */
     protected function slowRoutes(callable $query): array
     {

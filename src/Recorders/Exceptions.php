@@ -20,7 +20,7 @@ class Exceptions
     public string $table = 'pulse_exceptions';
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -37,7 +37,7 @@ class Exceptions
     }
 
     /**
-     * Handle an exception.
+     * Record the exception.
      */
     public function record(Throwable $e): Entry
     {

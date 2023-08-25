@@ -21,7 +21,7 @@ class Requests
     public string $table = 'pulse_requests';
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -38,7 +38,7 @@ class Requests
     }
 
     /**
-     * Handle the completion of an HTTP request.
+     * Record the request.
      */
     public function record(Carbon $startedAt, Request $request, Response $response): Entry
     {

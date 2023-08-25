@@ -27,7 +27,7 @@ class CacheInteractions
     public array $listen = [CacheHit::class, CacheMissed::class];
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -36,7 +36,7 @@ class CacheInteractions
     }
 
     /**
-     * Handle a cache miss.
+     * Record the cache interaction.
      */
     public function record(CacheHit|CacheMissed $event): ?Entry
     {

@@ -40,6 +40,8 @@ class SlowQueries extends Component
 
     /**
      * The slow queries.
+     *
+     * @return array{mixed, int, string}
      */
     protected function slowQueries(callable $query): array
     {

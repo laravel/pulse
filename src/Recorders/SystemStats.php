@@ -24,6 +24,9 @@ class SystemStats
      */
     public string $listen = Beat::class;
 
+    /**
+     * Create a new recorder instance.
+     */
     public function __construct(
         protected Repository $config,
     ) {
@@ -31,7 +34,7 @@ class SystemStats
     }
 
     /**
-     * Resolve the systems stats.
+     * Record the system stats.
      */
     public function record(Beat $event): ?Entry
     {

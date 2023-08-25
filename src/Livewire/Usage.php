@@ -56,6 +56,8 @@ class Usage extends Component
 
     /**
      * The user request counts.
+     *
+     * @return array{mixed, int, string}
      */
     protected function userRequestCounts(callable $query): array
     {

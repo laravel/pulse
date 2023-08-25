@@ -26,7 +26,7 @@ class SlowQueries
     public string $listen = QueryExecuted::class;
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -36,7 +36,7 @@ class SlowQueries
     }
 
     /**
-     * Handle the execution of a database query.
+     * Record a slow query.
      */
     public function record(QueryExecuted $event): ?Entry
     {

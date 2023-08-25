@@ -46,6 +46,8 @@ class Cache extends Component
 
     /**
      * All the cache interactions.
+     *
+     * @return array{mixed, int, string}
      */
     protected function cacheInteractions(callable $query): array
     {
@@ -64,6 +66,8 @@ class Cache extends Component
 
     /**
      * The monitored cache interactions.
+     *
+     * @return array{mixed, int, string}
      */
     protected function monitoredCacheInteractions(callable $query): array
     {
@@ -80,7 +84,10 @@ class Cache extends Component
         });
     }
 
-    /** The monitored keys.
+    /**
+     * The monitored keys.
+     *
+     * @return \Illuminate\Support\Collection<string, string>
      */
     protected function monitoredKeys(): Collection
     {

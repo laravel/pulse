@@ -24,7 +24,7 @@ class OutgoingRequests
     public string $table = 'pulse_outgoing_requests';
 
     /**
-     * Create a new handler instance.
+     * Create a new recorder instance.
      */
     public function __construct(
         protected Pulse $pulse,
@@ -64,7 +64,7 @@ class OutgoingRequests
     }
 
     /**
-     * Record the request information.
+     * Record the outgoing request.
      */
     public function record(RequestInterface $request, CarbonImmutable $startedAt): Entry
     {

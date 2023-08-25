@@ -40,6 +40,8 @@ class SlowJobs extends Component
 
     /**
      * The slow jobs.
+     *
+     * @return array{mixed, int, string}
      */
     protected function slowJobs(callable $query): array
     {

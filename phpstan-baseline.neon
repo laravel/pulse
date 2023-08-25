@@ -1,21 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:cacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/Cache.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:monitoredCacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/Cache.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:monitoredKeys\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
-			count: 1
-			path: src/Livewire/Cache.php
-
-		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
 			count: 1
 			path: src/Livewire/Cache.php
@@ -24,36 +9,6 @@ parameters:
 			message: "#^Unable to resolve the template type TValue in call to function collect$#"
 			count: 1
 			path: src/Livewire/Cache.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Exceptions\\:\\:exceptions\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/Exceptions.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowJobs\\:\\:slowJobs\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/SlowJobs.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowOutgoingRequests\\:\\:slowOutgoingRequests\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/SlowOutgoingRequests.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowQueries\\:\\:slowQueries\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/SlowQueries.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\SlowRoutes\\:\\:slowRoutes\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/SlowRoutes.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Usage\\:\\:userRequestCounts\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Livewire/Usage.php
 
 		-
 			message: "#^Call to an undefined method Illuminate\\\\Support\\\\HigherOrderCollectionProxy\\:\\:resolve\\(\\)\\.$#"
