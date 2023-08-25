@@ -24,7 +24,9 @@ use Laravel\Pulse\Recorders\Exceptions;
 use Laravel\Pulse\Recorders\HttpRequests;
 use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\OutgoingRequests;
+use Laravel\Pulse\Recorders\QueueSizes;
 use Laravel\Pulse\Recorders\SlowQueries;
+use Laravel\Pulse\Recorders\SystemStats;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Component;
@@ -54,12 +56,6 @@ class PulseServiceProvider extends ServiceProvider
             'storage' => $app[StorageIngest::class],
             'redis' => $app[RedisIngest::class],
             default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
-        });
-
-        $this->app->bindMethod([CheckCommand::class, 'handle'], function (CheckCommand $instance, Application $app) {
-            $checks = collect($app['config']->get('pulse.checks'))->map(fn (string $check) => $app->make($check));
-
-            return $instance->handle($app[Pulse::class], $app[Ingest::class], $app['cache'], $checks);
         });
 
         foreach ([
@@ -113,7 +109,9 @@ class PulseServiceProvider extends ServiceProvider
             HttpRequests::class,
             Jobs::class,
             OutgoingRequests::class,
+            QueueSizes::class,
             SlowQueries::class,
+            SystemStats::class,
         ]);
 
         $this->registerRoutes();

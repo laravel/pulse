@@ -1,22 +1,33 @@
 <?php
 
-namespace Laravel\Pulse\Checks;
+namespace Laravel\Pulse\Recorders;
 
-use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Events\Beat;
 use stdClass;
 
 /**
  * @internal
  */
-class QueueSize
+class QueueSizes
 {
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_queue_sizes';
+
+    /**
+     * The events to listen for.
+     *
+     * @var class-string
+     */
+    public string $listen = Beat::class;
+
     public function __construct(
         protected Repository $config,
         protected QueueManager $queue,
@@ -31,20 +42,21 @@ class QueueSize
      *
      * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>
      */
-    public function __invoke(CarbonImmutable $now, Interval $interval): Collection
+    public function record(Beat $event): Collection
     {
-        if ($now->second % 15 !== 0) {
+        if ($event->time->second % 15 !== 0) {
             return collect([]);
         }
 
-        if (! $this->cache->lock("laravel:pulse:check-queue-size:{$now->timestamp}", (int) $interval->totalSeconds)->get()) {
+        if (! $this->cache->lock("laravel:pulse:check-queue-size:{$event->time->timestamp}", (int) $event->interval->totalSeconds)->get()) {
             return collect([]);
         }
 
         return collect($this->config->get('pulse.queues'))->map(fn (string $queue) => new Entry('pulse_queue_sizes', [
-            'date' => $now->toDateTimeString(),
+            'date' => $event->time->toDateTimeString(),
             'queue' => $queue,
             'size' => $this->queue->size($queue),
+            // TODO: Replace with new `count` method when released.
             'failed' => collect($this->failedJobs->all())
                 ->filter(fn (stdClass $job) => $job->queue === $queue)
                 ->count(),

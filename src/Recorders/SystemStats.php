@@ -1,10 +1,10 @@
 <?php
 
-namespace Laravel\Pulse\Checks;
+namespace Laravel\Pulse\Recorders;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Events\Beat;
 use RuntimeException;
 
 /**
@@ -12,6 +12,18 @@ use RuntimeException;
  */
 class SystemStats
 {
+    /**
+     * The table to record to.
+     */
+    public string $table = 'pulse_servers';
+
+    /**
+     * The events to listen for.
+     *
+     * @var class-string
+     */
+    public string $listen = Beat::class;
+
     public function __construct(
         protected Repository $config,
     ) {
@@ -21,14 +33,14 @@ class SystemStats
     /**
      * Resolve the systems stats.
      */
-    public function __invoke(CarbonImmutable $now): ?Entry
+    public function record(Beat $event): ?Entry
     {
-        if ($now->second % 15 !== 0) {
+        if ($event->time->second % 15 !== 0) {
             return null;
         }
 
         return new Entry('pulse_servers', [
-            'date' => $now->toDateTimeString(),
+            'date' => $event->time->toDateTimeString(),
             'server' => $this->config->get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {
                 'Darwin' => [

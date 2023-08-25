@@ -6,9 +6,10 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Events\Beat;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -31,14 +32,12 @@ class CheckCommand extends Command
 
     /**
      * Handle the command.
-     *
-     * @param  \Illuminate\Support\Collection<int, (callable(\Carbon\CarbonImmutable, \Carbon\CarbonInterval): (\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update|iterable<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>))>  $checks
      */
     public function handle(
         Pulse $pulse,
         Ingest $ingest,
         CacheManager $cache,
-        Collection $checks,
+        Dispatcher $event,
     ): int {
         $lastRestart = $cache->get('laravel:pulse:restart');
 
@@ -62,10 +61,7 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            $checks->map(fn (callable $check) => $check($lastSnapshotAt, $interval))
-                ->filter()
-                ->flatten()
-                ->each($pulse->record(...));
+            $event->dispatch(new Beat($lastSnapshotAt, $interval));
 
             $pulse->store($ingest);
         }
