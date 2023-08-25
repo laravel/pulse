@@ -8,6 +8,7 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Laravel\Pulse\Contracts\Ingest;
 
 trait ListensForStorageOpportunities
 {
@@ -36,7 +37,7 @@ trait ListensForStorageOpportunities
     {
         $app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
             // TODO; this will go stale; also duplicated.
-            $app[Pulse::class]->store();
+            $app[Pulse::class]->store($app[Ingest::class]);
         });
     }
 
@@ -73,7 +74,7 @@ trait ListensForStorageOpportunities
 
         if (empty(static::$processingJobs) && $event->connectionName !== 'sync') {
             // TODO: this will go stale
-            $app[Pulse::class]->store();
+            $app[Pulse::class]->store($app[Ingest::class]);
         }
     }
 }

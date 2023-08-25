@@ -14,7 +14,9 @@ interface Storage
     public function store(Collection $items): void;
 
     /**
-     * Trim the stored entries.
+     * Trim the stored entries from the given tables.
+     *
+     * @param  \Illuminate\Support\Collection<int, string>  $tables
      */
-    public function trim(): void;
+    public function trim(Collection $tables): void;
 }

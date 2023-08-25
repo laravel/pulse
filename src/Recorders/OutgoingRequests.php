@@ -36,21 +36,20 @@ class OutgoingRequests
             return;
         }
 
-        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware(function ($handler) use ($record) {
-            return function (RequestInterface $request, array $options) use ($handler, $record) {
-                $startedAt = new CarbonImmutable;
+        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware(fn ($handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
+            $startedAt = new CarbonImmutable;
 
-                return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
-                    $record($request, $startedAt);
+            return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
+                $record($request, $startedAt);
 
-                    return $response;
-                }, function (Throwable $exception) use ($request, $startedAt, $record) {
-                    $record($request, $startedAt);
+                return $response;
+            }, function (Throwable $exception) use ($request, $startedAt, $record) {
+                $record($request, $startedAt);
 
-                    return new RejectedPromise($exception);
-                });
-            };
-        });
+                return new RejectedPromise($exception);
+            });
+        }
+        );
 
         $app->afterResolving(HttpFactory::class, $callback);
 

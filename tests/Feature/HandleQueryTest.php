@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
 
@@ -27,7 +28,7 @@ it('ingests queries', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
@@ -47,7 +48,7 @@ it('does not ingest queries under the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 });
@@ -59,7 +60,7 @@ it('ingests queries equal to the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(1));
 });
@@ -71,7 +72,7 @@ it('ingests queries over the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(1));
 });
@@ -81,7 +82,7 @@ it('captures the authenticated user', function () {
     Auth::login(User::make(['id' => '567']));
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
@@ -92,7 +93,7 @@ it('captures the authenticated user if they login after the query', function () 
     Config::set('pulse.slow_query_threshold', 0);
     DB::table('users')->count();
     Auth::login(User::make(['id' => '567']));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
@@ -105,7 +106,7 @@ it('captures the authenticated user if they logout after the query', function ()
 
     DB::table('users')->count();
     Auth::logout();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
@@ -137,7 +138,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     })->shouldUse('db');
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(1);
@@ -159,7 +160,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
         });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_queries')->count())->toBe(0));
 });
@@ -172,7 +173,7 @@ it('handles multiple users being logged in', function () {
     Auth::login(User::make(['id' => '789']));
     DB::table('users')->count();
 
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $queries = Pulse::ignore(fn () => DB::table('pulse_queries')->get());
     expect($queries)->toHaveCount(3);

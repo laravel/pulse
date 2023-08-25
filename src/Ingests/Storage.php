@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Ingests;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage as StorageContract;
+use Laravel\Pulse\Pulse;
 use RuntimeException;
 
 class Storage implements Ingest
@@ -12,7 +13,7 @@ class Storage implements Ingest
     /**
      * Create a new Storage Ingest instance.
      */
-    public function __construct(protected StorageContract $storage)
+    public function __construct(protected StorageContract $storage, protected Pulse $pulse)
     {
         //
     }
@@ -32,7 +33,7 @@ class Storage implements Ingest
      */
     public function trim(): void
     {
-        $this->storage->trim();
+        $this->storage->trim($this->pulse->tables());
     }
 
     /**

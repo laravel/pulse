@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 
 it('ingests bus dispatched jobs', function () {
@@ -17,7 +18,7 @@ it('ingests bus dispatched jobs', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_jobs')->count())->toBe(0));
 
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
@@ -39,7 +40,7 @@ it('ingests queued closures', function () {
     dispatch(function () {
         //
     });
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
@@ -59,7 +60,7 @@ it('ingests queue pushed jobs', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
     Queue::push('MyJob');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());

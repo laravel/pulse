@@ -59,7 +59,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->bindMethod([CheckCommand::class, 'handle'], function (CheckCommand $instance, Application $app) {
             $checks = collect($app['config']->get('pulse.checks'))->map(fn (string $check) => $app->make($check));
 
-            return $instance->handle($app[Pulse::class], $app['cache'], $checks);
+            return $instance->handle($app[Pulse::class], $app[Ingest::class], $app['cache'], $checks);
         });
 
         foreach ([

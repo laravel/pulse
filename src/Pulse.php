@@ -90,7 +90,6 @@ class Pulse
      */
     public function __construct(
         protected Repository $config,
-        protected Ingest $ingest,
         protected AuthManager $auth,
         protected Application $app,
     ) {
@@ -208,7 +207,7 @@ class Pulse
     /**
      * Store the queued entries.
      */
-    public function store(): self
+    public function store(Ingest $ingest): self
     {
         if (! $this->shouldRecord) {
             $this->rememberedUserId = null;
@@ -216,12 +215,12 @@ class Pulse
             return $this->flushEntries();
         }
 
-        $this->rescue(fn () => $this->ingest->ingest(
+        $this->rescue(fn () => $ingest->ingest(
             $this->entries->map->resolve()->filter($this->shouldRecord(...)),
         ));
 
         $this->rescue(fn () => Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
-            ->winner(fn () => $this->ingest->trim())
+            ->winner(fn () => $ingest->trim())
             ->choose());
 
         $this->rememberedUserId = null;
@@ -247,6 +246,21 @@ class Pulse
         $this->entries = collect([]);
 
         return $this;
+    }
+
+    /**
+     * Get the tables used by the recorders.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    public function tables(): Collection
+    {
+        return collect($this->recorders)
+            ->map(fn ($recorder) => $recorder->tables ?? null)
+            ->flatten()
+            ->filter()
+            ->unique()
+            ->values();
     }
 
     /**

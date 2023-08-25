@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:work')]
@@ -31,6 +32,7 @@ class WorkCommand extends Command
      * Handle the command.
      */
     public function handle(
+        Pulse $pulse,
         Ingest $ingest,
         Storage $storage,
         CacheManager $cache,
@@ -47,7 +49,7 @@ class WorkCommand extends Command
             }
 
             if ($now->subMinute()->greaterThan($lastTrimmedStorageAt)) {
-                $storage->trim();
+                $storage->trim($pulse->tables());
 
                 $lastTrimmedStorageAt = $now;
             }

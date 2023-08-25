@@ -204,8 +204,3 @@ parameters:
 			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\|Redis\\:\\:xrange\\(\\)\\.$#"
 			count: 1
 			path: src/Redis.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Storage\\\\Database\\:\\:tables\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, string\\> but returns Illuminate\\\\Support\\\\Collection\\<int\\|string, mixed\\>\\.$#"
-			count: 1
-			path: src/Storage/Database.php

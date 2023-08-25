@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
 
@@ -22,7 +23,7 @@ it('ingests exceptions', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_exceptions')->count())->toBe(0));
 
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
@@ -39,7 +40,7 @@ it('captures the authenticated user', function () {
     Auth::login(User::make(['id' => '567']));
 
     report($exception = new RuntimeException('Expected exception.'));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
@@ -49,7 +50,7 @@ it('captures the authenticated user', function () {
 it('captures the authenticated user if they login after the exception is reported', function () {
     report($exception = new RuntimeException('Expected exception.'));
     Auth::login(User::make(['id' => '567']));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
@@ -61,7 +62,7 @@ it('captures the authenticated user if they logout after the exception is report
 
     report($exception = new RuntimeException('Expected exception.'));
     Auth::logout();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
@@ -92,7 +93,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     })->shouldUse('db');
 
     report($exception = new RuntimeException('Expected exception.'));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
@@ -113,7 +114,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
         });
 
     report($exception = new RuntimeException('Expected exception.'));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_exceptions')->count())->toBe(0));
 });
@@ -124,7 +125,7 @@ it('handles multiple users being logged in', function () {
     report($exception = new RuntimeException('Expected exception.'));
     Auth::login(User::make(['id' => '789']));
     report($exception = new RuntimeException('Expected exception.'));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(3);

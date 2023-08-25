@@ -8,6 +8,7 @@ use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Sleep;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -35,6 +36,7 @@ class CheckCommand extends Command
      */
     public function handle(
         Pulse $pulse,
+        Ingest $ingest,
         CacheManager $cache,
         Collection $checks,
     ): int {
@@ -65,7 +67,7 @@ class CheckCommand extends Command
                 ->flatten()
                 ->each($pulse->record(...));
 
-            $pulse->store();
+            $pulse->store($ingest);
         }
     }
 }

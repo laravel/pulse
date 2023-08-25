@@ -50,34 +50,12 @@ class Database implements Storage
     /**
      * Trim the stored entries.
      */
-    public function trim(): void
+    public function trim(Collection $tables): void
     {
-        $this->tables()
-            ->each(fn (string $table) => $this->connection()
-                ->table($table)
-                ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
-                ->delete());
-    }
-
-    /**
-     *  Pulse's database tables.
-     *
-     *  @return \Illuminate\Support\Collection<int, string>
-     */
-    protected function tables(): Collection
-    {
-        return collect([
-            'pulse_cache_hits',
-            'pulse_exceptions',
-            'pulse_jobs',
-            'pulse_outgoing_requests',
-            'pulse_queries',
-            'pulse_queue_sizes',
-            'pulse_requests',
-            'pulse_servers',
-            // TODO: consider if there is a better place for this.
-            ...($this->config->get('pulse.storage.additional_tables') ?? []),
-        ]);
+        $tables->each(fn (string $table) => $this->connection()
+            ->table($table)
+            ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
+            ->delete());
     }
 
     /**

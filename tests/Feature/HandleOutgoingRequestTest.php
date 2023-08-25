@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Http;
+use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
 
@@ -24,7 +25,7 @@ it('ingests outgoing http requests', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_outgoing_requests')->count())->toBe(0));
 
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
@@ -42,7 +43,7 @@ it('captures failed requests', function () {
     Http::fake(['https://laravel.com' => Http::response('error', status: 500)]);
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -59,7 +60,7 @@ it('doesnt include query parameters', function () {
     Http::fake(['https://laravel.com*' => Http::response('ok')]);
 
     Http::get('https://laravel.com?v=123');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -76,7 +77,7 @@ it('captures the authenticated user', function () {
     Http::fake(['https://laravel.com' => Http::response('ok')]);
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -88,7 +89,7 @@ it('captures the authenticated user if they login after the request', function (
 
     Http::get('https://laravel.com');
     Auth::login(User::make(['id' => '567']));
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -101,7 +102,7 @@ it('captures the authenticated user if they logout after the request', function 
 
     Http::get('https://laravel.com');
     Auth::logout();
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -133,7 +134,7 @@ it('does not trigger an inifite loop when retriving the authenticated user from 
     })->shouldUse('db');
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
@@ -155,7 +156,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
         });
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     Pulse::ignore(fn () => expect(DB::table('pulse_outgoing_requests')->count())->toBe(0));
 });
@@ -168,7 +169,7 @@ it('handles multiple users being logged in', function () {
     Http::get('https://laravel.com');
     Auth::login(User::make(['id' => '789']));
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::store(app(Ingest::class));
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(3);
