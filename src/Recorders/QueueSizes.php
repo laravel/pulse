@@ -52,7 +52,7 @@ class QueueSizes
             return collect([]);
         }
 
-        return collect($this->config->get('pulse.queues'))->map(fn (string $queue) => new Entry('pulse_queue_sizes', [
+        return collect($this->config->get('pulse.queues'))->map(fn (string $queue) => new Entry($this->table, [
             'date' => $event->time->toDateTimeString(),
             'queue' => $queue,
             'size' => $this->queue->size($queue),

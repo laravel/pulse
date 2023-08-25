@@ -39,7 +39,7 @@ class SystemStats
             return null;
         }
 
-        return new Entry('pulse_servers', [
+        return new Entry($this->table, [
             'date' => $event->time->toDateTimeString(),
             'server' => $this->config->get('pulse.server_name'),
             ...match (PHP_OS_FAMILY) {

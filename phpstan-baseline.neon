@@ -1,26 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/Checks/QueueSize.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/Checks/QueueSize.php
-
-		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/Checks/SystemStats.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/Checks/SystemStats.php
-
-		-
 			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:cacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Livewire/Cache.php
@@ -116,16 +96,6 @@ parameters:
 			path: src/PulseServiceProvider.php
 
 		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$hits\\.$#"
 			count: 2
 			path: src/Queries/CacheInteractions.php
@@ -179,6 +149,26 @@ parameters:
 			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
 			count: 1
 			path: src/Recorders/HttpRequests.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/Recorders/QueueSizes.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 1
+			path: src/Recorders/QueueSizes.php
+
+		-
+			message: "#^Unable to resolve the template type TKey in call to function collect$#"
+			count: 1
+			path: src/Recorders/SystemStats.php
+
+		-
+			message: "#^Unable to resolve the template type TValue in call to function collect$#"
+			count: 1
+			path: src/Recorders/SystemStats.php
 
 		-
 			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"
