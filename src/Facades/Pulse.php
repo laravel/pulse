@@ -5,15 +5,16 @@ namespace Laravel\Pulse\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Laravel\Pulse\Pulse register(array|string $recorders)
+ * @method static \Laravel\Pulse\Pulse register(string| $recorders)
  * @method static mixed|null ignore(callable $callback)
  * @method static \Laravel\Pulse\Pulse stopRecording()
  * @method static \Laravel\Pulse\Pulse startRecording()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
  * @method static \Laravel\Pulse\Pulse record(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update $entry)
- * @method static \Laravel\Pulse\Pulse store()
+ * @method static \Laravel\Pulse\Pulse store(\Laravel\Pulse\Contracts\Ingest $ingest)
  * @method static \Illuminate\Support\Collection entries()
  * @method static \Laravel\Pulse\Pulse flushEntries()
+ * @method static \Illuminate\Support\Collection tables()
  * @method static \Laravel\Pulse\Pulse resolveUsersUsing(callable $callback)
  * @method static \Illuminate\Support\Collection resolveUsers(\Illuminate\Support\Collection $ids)
  * @method static string css()
