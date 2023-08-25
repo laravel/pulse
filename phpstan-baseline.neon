@@ -21,21 +21,6 @@ parameters:
 			path: src/Checks/SystemStats.php
 
 		-
-			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
-			count: 1
-			path: src/Handlers/HandleException.php
-
-		-
-			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
-			count: 1
-			path: src/Handlers/HandleException.php
-
-		-
-			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
-			count: 1
-			path: src/Handlers/HandleHttpRequest.php
-
-		-
 			message: "#^Method Laravel\\\\Pulse\\\\Livewire\\\\Cache\\:\\:cacheInteractions\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Livewire/Cache.php
@@ -106,17 +91,17 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Parameter \\#1 \\$value of function collect expects Illuminate\\\\Contracts\\\\Support\\\\Arrayable\\<int, class\\-string\\>\\|iterable\\<int, class\\-string\\>\\|null, array\\<int, class\\-string\\>\\|class\\-string given\\.$#"
+			count: 1
+			path: src/Pulse.php
+
+		-
 			message: "#^Call to an undefined method Livewire\\\\Component\\:\\:render\\(\\)\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
 
 		-
-			message: "#^Cannot access offset 'Illuminate\\\\\\\\Contracts\\\\\\\\Debug\\\\\\\\ExceptionHandler' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Cannot access offset 'Illuminate\\\\\\\\Contracts\\\\\\\\Http\\\\\\\\Kernel' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
+			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
 
@@ -169,6 +154,31 @@ parameters:
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, email\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, email\\: string\\|null\\}\\}\\|null\\>\\.$#"
 			count: 1
 			path: src/Queries/Usage.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Debug\\\\ExceptionHandler\\:\\:reportable\\(\\)\\.$#"
+			count: 1
+			path: src/Recorders/Exceptions.php
+
+		-
+			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
+			count: 1
+			path: src/Recorders/Exceptions.php
+
+		-
+			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
+			count: 1
+			path: src/Recorders/Exceptions.php
+
+		-
+			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
+			count: 1
+			path: src/Recorders/HttpRequests.php
+
+		-
+			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
+			count: 1
+			path: src/Recorders/HttpRequests.php
 
 		-
 			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"

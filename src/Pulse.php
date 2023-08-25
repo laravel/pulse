@@ -21,6 +21,11 @@ class Pulse
 {
     use ListensForStorageOpportunities;
 
+    /**
+     * The list of metric recorders.
+     *
+     * @var list<object>
+     */
     protected $recorders = [];
 
     /**
@@ -94,6 +99,11 @@ class Pulse
         $this->flushEntries();
     }
 
+    /**
+     * Register a recorder.
+     *
+     * @param  class-string|list<class-string>  $recorders
+     */
     public function register(string|array $recorders): self
     {
         $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
