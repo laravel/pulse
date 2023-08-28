@@ -23,7 +23,7 @@ class Entry
     }
 
     /**
-     * Resolve the entry's attributes.
+     * Resolve the entry for ingest and storage.
      */
     public function resolve(): self
     {
