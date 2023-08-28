@@ -14,6 +14,9 @@ use Laravel\Pulse\Entries\JobStarted;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Pulse;
 
+/**
+ * @internal
+ */
 class Jobs
 {
     /**
