@@ -59,25 +59,6 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         foreach ([
-            Queries\Usage::class,
-            Queries\Servers::class,
-            Queries\SlowJobs::class,
-            Queries\Exceptions::class,
-            Queries\SlowRoutes::class,
-            Queries\SlowQueries::class,
-            Queries\CacheInteractions::class,
-            Queries\SlowOutgoingRequests::class,
-            Queries\MonitoredCacheInteractions::class,
-        ] as $class) {
-            // TODO: these should get the databasemanager and confing
-            $this->app->when($class)
-                ->needs(Connection::class)
-                ->give(fn (Application $app) => $app['db']->connection($app['config']->get(
-                    'pulse.storage.database.connection'
-                )));
-        }
-
-        foreach ([
             Livewire\Usage::class => [Queries\Usage::class],
             Livewire\Queues::class => [Queries\Queues::class],
             Livewire\Servers::class => [Queries\Servers::class],

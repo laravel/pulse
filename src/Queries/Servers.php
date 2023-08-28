@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -17,12 +17,14 @@ use stdClass;
  */
 class Servers
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Connection $connection,
         protected Repository $config,
+        protected DatabaseManager $db,
     ) {
         //
     }
@@ -52,7 +54,7 @@ class Servers
             ->reverse()
             ->keyBy('date');
 
-        $serverReadings = $this->connection->query()
+        $serverReadings = $this->connection()->query()
             ->select('bucket', 'server')
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.graph_aggregation')) {
                 'max' => $query
@@ -83,10 +85,10 @@ class Servers
                 return $padding->merge($readings)->values();
             });
 
-        return $this->connection->table('pulse_system_stats')
+        return $this->connection()->table('pulse_system_stats')
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
-                $this->connection->table('pulse_system_stats')
+                $this->connection()->table('pulse_system_stats')
                     ->selectRaw('server, MAX(date) AS date')
                     ->groupBy('server'),
                 'grouped',

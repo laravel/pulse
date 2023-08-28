@@ -4,7 +4,8 @@ namespace Laravel\Pulse\Queries;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
-use Illuminate\Database\Connection;
+use Illuminate\Config\Repository;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use stdClass;
@@ -14,11 +15,15 @@ use stdClass;
  */
 class MonitoredCacheInteractions
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
-    public function __construct(protected Connection $connection)
-    {
+    public function __construct(
+        protected Repository $config,
+        protected DatabaseManager $db,
+    ) {
         //
     }
 
@@ -46,7 +51,7 @@ class MonitoredCacheInteractions
             ],
         ]);
 
-        $this->connection->table('pulse_cache_interactions')
+        $this->connection()->table('pulse_cache_interactions')
             ->selectRaw('`key`, COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
             ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             // TODO: ensure PHP and MySQL regex is compatible

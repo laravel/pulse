@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Pulse;
@@ -16,12 +16,14 @@ use stdClass;
  */
 class Usage
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Connection $connection,
         protected Repository $config,
+        protected DatabaseManager $db,
         protected Pulse $pulse,
     ) {
         //
@@ -36,7 +38,7 @@ class Usage
     {
         $now = new CarbonImmutable;
 
-        $top10 = $this->connection->query()
+        $top10 = $this->connection()->query()
             ->when($type === 'dispatched_job_counts',
                 fn (Builder $query) => $query->from('pulse_jobs'),
                 fn (Builder $query) => $query->from('pulse_requests'))

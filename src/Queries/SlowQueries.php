@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,12 +13,14 @@ use Illuminate\Support\Collection;
  */
 class SlowQueries
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Connection $connection,
         protected Repository $config,
+        protected DatabaseManager $db,
     ) {
         //
     }
@@ -32,7 +34,7 @@ class SlowQueries
     {
         $now = new CarbonImmutable;
 
-        return $this->connection->table('pulse_slow_queries')
+        return $this->connection()->table('pulse_slow_queries')
             ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
             ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.slow_query_threshold'))

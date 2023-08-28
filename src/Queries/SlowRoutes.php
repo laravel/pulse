@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use stdClass;
@@ -15,13 +15,15 @@ use stdClass;
  */
 class SlowRoutes
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Connection $connection,
-        protected Router $router,
         protected Repository $config,
+        protected DatabaseManager $db,
+        protected Router $router,
     ) {
         //
     }
@@ -35,7 +37,7 @@ class SlowRoutes
     {
         $now = new CarbonImmutable;
 
-        return $this->connection->table('pulse_requests')
+        return $this->connection()->table('pulse_requests')
             ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
             ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold'))

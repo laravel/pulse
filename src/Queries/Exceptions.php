@@ -4,7 +4,8 @@ namespace Laravel\Pulse\Queries;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
-use Illuminate\Database\Connection;
+use Illuminate\Config\Repository;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 
 /**
@@ -12,11 +13,15 @@ use Illuminate\Support\Collection;
  */
 class Exceptions
 {
+    use Concerns\InteractsWithConnection;
+
     /**
      * Create a new query instance.
      */
-    public function __construct(protected Connection $connection)
-    {
+    public function __construct(
+        protected Repository $config,
+        protected DatabaseManager $db,
+    ) {
         //
     }
 
@@ -30,7 +35,7 @@ class Exceptions
     {
         $now = new CarbonImmutable;
 
-        return $this->connection->table('pulse_exceptions')
+        return $this->connection()->table('pulse_exceptions')
             ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
             ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->groupBy('class', 'location')
