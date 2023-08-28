@@ -3,7 +3,6 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Database\Connection;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
