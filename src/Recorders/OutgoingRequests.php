@@ -41,20 +41,7 @@ class OutgoingRequests
             return;
         }
 
-        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware(fn ($handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
-            $startedAt = new CarbonImmutable;
-
-            return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
-                $record($request, $startedAt);
-
-                return $response;
-            }, function (Throwable $exception) use ($request, $startedAt, $record) {
-                $record($request, $startedAt);
-
-                return new RejectedPromise($exception);
-            });
-        }
-        );
+        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware());
 
         $app->afterResolving(HttpFactory::class, $callback);
 
@@ -76,5 +63,25 @@ class OutgoingRequests
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    /**
+     * The recorder's middleware.
+     */
+    protected function middleware(): callable
+    {
+        return fn (callable $handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
+            $startedAt = new CarbonImmutable;
+
+            return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
+                $record($request, $startedAt);
+
+                return $response;
+            }, function (Throwable $exception) use ($request, $startedAt, $record) {
+                $record($request, $startedAt);
+
+                return new RejectedPromise($exception);
+            });
+        };
     }
 }
