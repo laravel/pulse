@@ -26,11 +26,14 @@
             </tr>
         </thead>
         <tbody>
+            @php
+                $showConnection = $queues->pluck('connection')->unique()->count() > 1;
+            @endphp
             @foreach ($queues as $queue)
                 <tr>
                     <td class="rounded-l-md bg-gray-50 px-3 py-2 text-left">
                         <div class="text-gray-700 text-sm">
-                            {{ $queue['queue'] }}
+                            {{ $showConnection ? $queue['connection'].':' : '' }}{{ $queue['queue'] }}
                         </div>
                     </td>
                     <td class="bg-gray-50 px-3 py-2 text-right">

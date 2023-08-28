@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository;
+use Illuminate\Queue\Failed\CountableFailedJobProvider;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
@@ -55,14 +56,17 @@ class QueueSizes
             return collect([]);
         }
 
-        return collect($this->config->get('pulse.queues'))->map(fn (string $queue) => new Entry($this->table, [
-            'date' => $event->time->toDateTimeString(),
-            'queue' => $queue,
-            'size' => $this->queue->size($queue),
-            // TODO: Replace with new `count` method when released.
-            'failed' => collect($this->failedJobs->all())
-                ->filter(fn (stdClass $job) => $job->queue === $queue)
-                ->count(),
-        ]));
+        return collect($this->config->get('pulse.queues'))
+            ->groupBy(fn ($value, $key) => is_int($key) ? $this->config->get('queue.default') : $key)
+            ->map->flatten()
+            ->flatMap(fn (Collection $queues, string $connection) => $queues->map(fn (string $queue) => new Entry($this->table, [
+                'date' => $event->time->toDateTimeString(),
+                'connection' => $connection,
+                'queue' => $queue,
+                'size' => $this->queue->connection($connection)->size($queue),
+                'failed' => $this->failedJobs instanceof CountableFailedJobProvider
+                    ? $this->failedJobs->count($connection, $queue)
+                    : 0,
+            ])));
     }
 }

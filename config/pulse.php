@@ -57,8 +57,26 @@ return [
     'slow_outgoing_request_threshold' => 1000,
 
     // queues to show stats for
+    // TODO clean up this example after chatting with Jess.
     'queues' => [
         'default',
+        // 'default-connection:queue-1',
+        // 'default-connection:queue-2',
+        // env('QUEUE_CONNECTION', 'sync') => [
+        //     'default-connection:queue-3-via-array',
+        // ],
+        // 'specific-connection' => [
+        //     'queue-a',
+        //     'queue-1',
+        // ],
+        // 'connection-1' => [
+        //     'queue-1',
+        //     'queue-2'
+        // ],
+        // 'connection-2' => [
+        //     'queue-1',
+        //     'queue-2'
+        // ],
     ],
 
     // directories to monitor sizes for
