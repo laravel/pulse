@@ -24,7 +24,10 @@ class CacheInteractions
      *
      * @var list<class-string>
      */
-    public array $listen = [CacheHit::class, CacheMissed::class];
+    public array $listen = [
+        CacheHit::class,
+        CacheMissed::class,
+    ];
 
     /**
      * Create a new recorder instance.
