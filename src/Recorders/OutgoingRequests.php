@@ -41,7 +41,7 @@ class OutgoingRequests
             return;
         }
 
-        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware());
+        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record));
 
         $app->afterResolving(HttpFactory::class, $callback);
 
@@ -68,7 +68,7 @@ class OutgoingRequests
     /**
      * The recorder's middleware.
      */
-    protected function middleware(): callable
+    protected function middleware(callable $record): callable
     {
         return fn (callable $handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
             $startedAt = new CarbonImmutable;
