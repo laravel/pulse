@@ -38,8 +38,8 @@
                             <tbody>
                                 @foreach ($slowQueries as $query)
                                     <tr>
-                                        <x-pulse::td>
-                                            <code class="block text-xs text-gray-900 truncate" title="{{ $query->sql }}">
+                                        <x-pulse::td class="!p-0">
+                                            <code class="bg-gray-800 rounded-md h-full p-3 text-gray-200 block text-xs truncate" title="{{ $query->sql }}">
                                                 {{ $query->sql }}
                                             </code>
                                         </x-pulse::td>
