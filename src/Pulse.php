@@ -9,7 +9,6 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
@@ -24,9 +23,9 @@ class Pulse
     /**
      * The list of metric recorders.
      *
-     * @var list<object>
+     * @var \Illuminate\Support\Collection<int, object>
      */
-    protected $recorders = [];
+    protected Collection $recorders;
 
     /**
      * The list of queued entries or updates.
@@ -94,6 +93,7 @@ class Pulse
         protected Application $app,
     ) {
         $this->filters = collect([]);
+        $this->recorders = collect([]);
 
         $this->flushEntries();
     }
@@ -134,7 +134,7 @@ class Pulse
                 $this->app->call($recorder->register(...), ['record' => $record]);
             });
 
-        $this->recorders = [...$this->recorders, ...$recorders];
+        $this->recorders = collect([...$this->recorders, ...$recorders]);
 
         return $this;
     }
@@ -255,7 +255,7 @@ class Pulse
      */
     public function tables(): Collection
     {
-        return collect($this->recorders)
+        return $this->recorders
             ->map(fn ($recorder) => $recorder->table ?? null)
             ->flatten()
             ->filter()
@@ -338,8 +338,7 @@ class Pulse
      */
     public function authorize(Request $request): bool
     {
-        // TODO
-        return ($this->authorizeUsing ?: fn () => App::environment('local'))($request);
+        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
     }
 
     /**

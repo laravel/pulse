@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
+use Carbon\CarbonInterval;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 
@@ -31,13 +32,26 @@ trait HasPeriod
     /**
      * The duration to to cache queries for.
      */
-    public function periodCacheDuration(): CarbonImmutable
+    public function periodCacheDuration(): CarbonInterval
     {
-        return (new CarbonImmutable)->addSeconds(match ($this->period) {
+        return CarbonInterval::seconds(match ($this->period) {
             '6_hours' => 30,
             '24_hours' => 60,
             '7_days' => 600,
             default => 5,
+        });
+    }
+
+    /**
+     * The period as an Interval instance.
+     */
+    public function periodAsInterval(): Interval
+    {
+        return Interval::hours(match ($this->period) {
+            '6_hours' => 6,
+            '24_hours' => 24,
+            '7_days' => 168,
+            default => 1,
         });
     }
 
@@ -52,33 +66,5 @@ trait HasPeriod
             '7_days' => '7 days',
             default => 'hour',
         };
-    }
-
-    /**
-     * The period expressed in hours.
-     *
-     * @TODO remove this.
-     */
-    public function periodAsHours(): int
-    {
-        return match ($this->period) {
-            '6_hours' => 6,
-            '24_hours' => 24,
-            '7_days' => 168,
-            default => 1,
-        };
-    }
-
-    /**
-     * The period as an Interval instance.
-     */
-    public function periodAsInterval(): Interval
-    {
-        return Interval::hours(match ($this->period) {
-            '6_hours' => 6,
-            '24_hours' => 24,
-            '7_days' => 168,
-            default => 1,
-        });
     }
 }

@@ -62,8 +62,8 @@ class Usage
                 'user' => [
                     'name' => $user['name'],
                     // "extra" rather than 'email'
-                    // avatar for pretty-ness?
                     'email' => $user['email'] ?? null,
+                    'avatar' => $user['avatar'] ?? null,
                 ],
             ] : null;
         })

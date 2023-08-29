@@ -41,7 +41,6 @@ class CheckCommand extends Command
     ): int {
         $lastRestart = $cache->get('laravel:pulse:restart');
 
-        // TODO: configure?
         $interval = CarbonInterval::seconds(5);
 
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);

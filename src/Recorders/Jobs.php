@@ -73,9 +73,6 @@ class Jobs
                 $now->toDateTimeString('millisecond')
             ),
 
-            // TODO respect slow limit configuration? I don't think we should
-            // here, and instead we should have our "clear data" command do this
-            // for us.
             $event instanceof JobProcessed,
             $event instanceof JobFailed => new JobFinished(
                 (string) $event->job->getJobId(),

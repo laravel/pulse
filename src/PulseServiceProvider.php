@@ -81,9 +81,7 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $pulse = $this->app[Pulse::class];
-
-        $pulse->register([
+        $this->app[Pulse::class]->register([
             CacheInteractions::class,
             Exceptions::class,
             Jobs::class,

@@ -60,13 +60,16 @@
                     @else
                         <div class="grid grid-cols-2 gap-2">
                             @foreach ($userRequestCounts as $userRequestCount)
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                    <div>
-                                        <div class="text-sm text-gray-900 font-medium">
-                                            {{ $userRequestCount['user']['name'] }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ $userRequestCount['user']['email'] }}
+                                <div class="flex items-center justify-between p-3 gap-3 bg-gray-50 rounded">
+                                    <div class="flex items-center gap-3">
+                                        <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">
+                                        <div class="overflow-hidden">
+                                            <div class="text-sm text-gray-900 font-medium truncate">
+                                                {{ $userRequestCount['user']['name'] }}
+                                            </div>
+                                            <div class="text-xs text-gray-500 truncate">
+                                                {{ $userRequestCount['user']['email'] }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div>
