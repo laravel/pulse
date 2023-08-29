@@ -40,7 +40,7 @@ class OutgoingRequests
     public function register(callable $record, Application $app): void
     {
         if (method_exists(HttpFactory::class, 'globalMiddleware')) {
-            $this->afterResolving($app, HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record))));
+            $this->afterResolving($app, HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record)));
         }
     }
 

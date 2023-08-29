@@ -8,6 +8,7 @@ use Illuminate\Queue\Failed\CountableFailedJobProvider;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Enumerable;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Events\Beat;
 
@@ -43,9 +44,9 @@ class QueueSizes
     /**
      * Record the queue sizes.
      *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry>
+     * @return \Illuminate\Support\Enumerable<int, \Laravel\Pulse\Entries\Entry>
      */
-    public function record(Beat $event): Collection
+    public function record(Beat $event): Enumerable
     {
         if ($event->time->second % 15 !== 0) {
             return collect([]);

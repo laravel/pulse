@@ -8,6 +8,7 @@ use Illuminate\Queue\Failed\CountableFailedJobProvider;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Enumerable;
 
 /**
  * @interval
@@ -28,9 +29,9 @@ class Queues
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{queue: string, size: int, failed: int}>
+     * @return \Illuminate\Support\Enumerable<int, array{connection: string, queue: string, size: int, failed: int}>
      */
-    public function __invoke(): Collection
+    public function __invoke(): Enumerable
     {
         return collect($this->config->get('pulse.queues'))
             ->groupBy(fn ($value, $key) => is_int($key) ? $this->config->get('queue.default') : $key)
@@ -39,7 +40,6 @@ class Queues
                 'connection' => $connection,
                 'queue' => $queue,
                 'size' => $this->queue->connection($connection)->size($queue),
-                'supported' => $this->failedJobs instanceof CountableFailedJobProvider,
                 'failed' => $this->failedJobs instanceof CountableFailedJobProvider
                     ? $this->failedJobs->count($connection, $queue)
                     : 0,
