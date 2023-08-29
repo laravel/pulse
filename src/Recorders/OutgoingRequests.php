@@ -18,6 +18,8 @@ use Throwable;
  */
 class OutgoingRequests
 {
+    use Concerns\ConfiguresAfterResolving;
+
     /**
      * The table to record to.
      */
@@ -37,14 +39,8 @@ class OutgoingRequests
      */
     public function register(callable $record, Application $app): void
     {
-        if (! method_exists(HttpFactory::class, 'globalMiddleware')) {
-            return;
-        }
-
-        $app->afterResolving(HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record))));
-
-        if ($app->resolved(HttpFactory::class)) {
-            $app->make(HttpFactory::class)->globalMiddleware($this->middleware($record))
+        if (method_exists(HttpFactory::class, 'globalMiddleware')) {
+            $this->afterResolving($app, HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record))));
         }
     }
 

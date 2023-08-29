@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Requests
 {
+    use Concerns\ConfiguresAfterResolving;
+
     /**
      * The table to record to.
      */
@@ -32,9 +35,9 @@ class Requests
     /**
      * Register the recorder.
      */
-    public function register(callable $record, Kernel $kernel): void
+    public function register(callable $record, Application $app): void
     {
-        $kernel->whenRequestLifecycleIsLongerThan(-1, $record);
+        $this->afterResolving($app, Kernel::class, fn (Kernel $kernel) => $kernel->whenRequestLifecycleIsLongerThan(-1, $record));
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Pulse;
@@ -14,6 +15,8 @@ use Throwable;
  */
 class Exceptions
 {
+    use Concerns\ConfiguresAfterResolving;
+
     /**
      * The table to record to.
      */
@@ -31,9 +34,9 @@ class Exceptions
     /**
      * Register the recorder.
      */
-    public function register(callable $record, ExceptionHandler $handler): void
+    public function register(callable $record, Application $app): void
     {
-        $handler->reportable(fn (Throwable $e) => $record($e));
+        $this->afterResolving($app, ExceptionHandler::class, fn (ExceptionHandler $handler) => $handler->reportable(fn (Throwable $e) => $record($e)));
     }
 
     /**
