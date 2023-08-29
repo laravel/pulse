@@ -41,12 +41,10 @@ class OutgoingRequests
             return;
         }
 
-        $callback = fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record));
-
-        $app->afterResolving(HttpFactory::class, $callback);
+        $app->afterResolving(HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record))));
 
         if ($app->resolved(HttpFactory::class)) {
-            $callback($app->make(HttpFactory::class));
+            $app->make(HttpFactory::class)->globalMiddleware($this->middleware($record))
         }
     }
 

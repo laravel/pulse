@@ -18,7 +18,8 @@ class Queues extends Component
     public function render(callable $query): Renderable
     {
         return View::make('pulse::livewire.queues', [
-            'queues' => Cache::remember('laravel:pulse:queues:live', 5, fn () => $query()),
+            'queues' => $queues = Cache::remember('laravel:pulse:queues:live', 5, fn () => $query()),
+            'showConnection' => $queues->pluck('connection')->unique()->count() > 1,
         ]);
     }
 
