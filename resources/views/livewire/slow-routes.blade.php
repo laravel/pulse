@@ -37,11 +37,17 @@
                             </x-pulse::thead>
                             <tbody>
                                 @foreach ($slowRoutes as $route)
+                                    @php
+                                        [$method, $uri] = explode(' ', $route['uri'], 2);
+                                    @endphp
                                     <tr>
                                         <x-pulse::td>
-                                            <code class="block text-xs text-gray-900">
-                                                {{ $route['uri'] }}
-                                            </code>
+                                            <div>
+                                                <x-pulse::http-method-badge :method="$method" />
+                                                <code class="ml-1 text-xs text-gray-900">
+                                                    {{ $uri }}
+                                                </code>
+                                            </div>
                                             @if ($route['action'])
                                                 <p class="mt-1 text-xs text-gray-500">
                                                     {{ $route['action'] }}
