@@ -95,6 +95,7 @@ return new class extends Migration
 
         Schema::create('pulse_queue_sizes', function (Blueprint $table) {
             $table->timestamp('date');
+            $table->string('connection');
             $table->string('queue');
             $table->unsignedInteger('size');
             $table->unsignedInteger('failed');
