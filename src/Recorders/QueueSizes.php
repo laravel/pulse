@@ -10,7 +10,6 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Events\Beat;
-use stdClass;
 
 /**
  * @internal

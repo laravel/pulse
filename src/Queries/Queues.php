@@ -4,11 +4,10 @@ namespace Laravel\Pulse\Queries;
 
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\Failed\CountableFailedJobProvider;
+use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
-use stdClass;
 
 /**
  * @interval
