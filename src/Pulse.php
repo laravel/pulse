@@ -296,23 +296,11 @@ class Pulse
         }
 
         if (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)
-                ->get(['id', 'name', 'email'])
-                ->map(fn (User $user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'extra' => $user->email,
-                ]);
+            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
         if (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)
-                ->get(['id', 'name', 'email'])
-                ->map(fn (User $user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'extra' => $user->email,
-                ]);
+            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
         }
 
         return $ids->map(fn (string|int $id) => [
