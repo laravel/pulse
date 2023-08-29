@@ -49,7 +49,7 @@
                         </span>
                     </div>
                 </div>
-                @if ($monitoredCacheInteractions === [])
+                @if ($monitoredCacheInteractions->isEmpty())
                     <div class="flex flex-col items-center justify-center p-4 py-6">
                         <div class="bg-gray-50 rounded-full text-xs leading-none px-2 py-1 text-gray-500">
                             No keys configured to monitor
