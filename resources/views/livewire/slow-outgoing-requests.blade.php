@@ -49,9 +49,12 @@ $supported = method_exists(Illuminate\Http\Client\Factory::class, 'globalMiddlew
                                     @foreach ($slowOutgoingRequests as $request)
                                         <tr>
                                             <x-pulse::td>
-                                                <code class="block text-xs text-gray-900 truncate" title="{{ $request->uri }}">
-                                                    {{ $request->uri }}
-                                                </code>
+                                                <div class="flex items-center gap-2">
+                                                    <img src="https://unavatar.io/{{ parse_url($request->uri, PHP_URL_HOST) }}" class="w-4 h-4" />
+                                                    <code class="block text-xs text-gray-900 truncate" title="{{ $request->uri }}">
+                                                        {{ $request->uri }}
+                                                    </code>
+                                                </div>
                                             </x-pulse::td>
                                             <x-pulse::td class="text-right text-gray-700 text-sm w-24">
                                                 <strong>{{ number_format($request->count) }}</strong>
