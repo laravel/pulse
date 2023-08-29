@@ -1,7 +1,4 @@
-<x-pulse::card
-    class="col-span-2"
-    wire:poll.5s
->
+<x-pulse::card class="col-span-2">
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-500">
@@ -11,7 +8,7 @@
         </x-pulse::card-title>
     </x-slot:title>
 
-    <table class="w-full border-separate border-spacing-y-2">
+    <table wire:poll.5s class="w-full border-separate border-spacing-y-2">
         <thead class="sticky top-0 p-2 bg-white">
             <tr class="p-2">
                 <th class="text-xs text-gray-500 uppercase px-3 text-left">
