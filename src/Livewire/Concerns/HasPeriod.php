@@ -2,9 +2,8 @@
 
 namespace Laravel\Pulse\Livewire\Concerns;
 
-use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
 use Carbon\CarbonInterval;
+use Carbon\CarbonInterval as Interval;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 
