@@ -70,7 +70,7 @@
                                                 {{ $userRequestCount['user']['name'] }}
                                             </div>
                                             <div class="text-xs text-gray-500 truncate">
-                                                {{ $userRequestCount['user']['email'] }}
+                                                {{ $userRequestCount['user']['extra'] }}
                                             </div>
                                         </div>
                                     </div>

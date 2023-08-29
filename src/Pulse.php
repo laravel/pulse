@@ -49,7 +49,7 @@ class Pulse
     /**
      * The users resolver.
      *
-     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)
+     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'extra'?: ?string}>)
      */
     protected $usersResolver = null;
 
@@ -274,7 +274,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'email'?: ?string}>)  $callback
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'extra'?: ?string}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {
@@ -287,7 +287,7 @@ class Pulse
      * Resolve the user's details using the given closure.
      *
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'email'?: ?string}>
+     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'extra'?: ?string}>
      */
     public function resolveUsers(Collection $ids): Collection
     {
@@ -296,11 +296,23 @@ class Pulse
         }
 
         if (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
+            return \App\Models\User::whereKey($ids)
+                ->get(['id', 'name', 'email'])
+                ->map(fn (User $user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'extra' => $user->email,
+                ]);
         }
 
         if (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
+            return \App\User::whereKey($ids)
+                ->get(['id', 'name', 'email'])
+                ->map(fn (User $user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'extra' => $user->email,
+                ]);
         }
 
         return $ids->map(fn (string|int $id) => [

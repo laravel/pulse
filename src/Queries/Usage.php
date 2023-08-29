@@ -32,7 +32,7 @@ class Usage
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, 'email': ?string}}>
+     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, 'extra': ?string}}>
      */
     public function __invoke(Interval $interval, string $type): Collection
     {
@@ -61,9 +61,8 @@ class Usage
                 'count' => (int) $row->count,
                 'user' => [
                     'name' => $user['name'],
-                    // "extra" rather than 'email'
-                    'email' => $user['email'] ?? null,
-                    'avatar' => $user['avatar'] ?? null,
+                    'extra' => $user['extra'] ?? $user['email'],
+                    'avatar' => $user['avatar'] ?? ($user['email'] ?? false) ? "https://unavatar.io/{$user['email']}?fallback=".rawurlencode("https://source.boringavatars.com/marble/120/{$user['email']}?colors=2f2bad,ad2bad,e42692,f71568,f7db15") : null,
                 ],
             ] : null;
         })
