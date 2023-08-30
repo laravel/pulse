@@ -13,11 +13,13 @@ use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\Update;
+use Laravel\Pulse\Recorders\Concerns\ConfiguresAfterResolving;
 use RuntimeException;
 use Throwable;
 
 class Pulse
 {
+    use ConfiguresAfterResolving;
     use ListensForStorageOpportunities;
 
     /**
@@ -107,20 +109,15 @@ class Pulse
     {
         $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
 
-        $callback = fn (Dispatcher $event) => $recorders
+        $this->afterResolving($this->app, 'events', fn (Dispatcher $event) => $recorders
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
                 fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event))
                     ->filter()
                     ->each($this->record(...)))
-            ));
-
-        $this->app->afterResolving('events', $callback);
-
-        if ($this->app->resolved('events')) {
-            $callback($this->app->make('events'));
-        }
+            ))
+        );
 
         $recorders
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
