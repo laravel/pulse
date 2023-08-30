@@ -20,8 +20,10 @@ $supported = method_exists(Illuminate\Http\Client\Factory::class, 'globalMiddlew
             init() {
                 Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
-                window.addEventListener('slow-outgoing-requests:dataLoaded', () => {
-                    this.loadingNewDataset = false
+                Livewire.hook('commit', ({ component, succeed }) => {
+                    if (component.name === 'slow-outgoing-requests') {
+                        succeed(() => this.loadingNewDataset = false)
+                    }
                 })
             }
         }">

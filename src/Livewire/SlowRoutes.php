@@ -21,8 +21,6 @@ class SlowRoutes extends Component
     {
         [$slowRoutes, $time, $runAt] = $this->slowRoutes($query);
 
-        $this->dispatch('slow-routes:dataLoaded');
-
         return View::make('pulse::livewire.slow-routes', [
             'time' => $time,
             'runAt' => $runAt,

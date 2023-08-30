@@ -30,8 +30,6 @@ class Exceptions extends Component
     {
         [$exceptions, $time, $runAt] = $this->exceptions($query);
 
-        $this->dispatch('exceptions:dataLoaded');
-
         return View::make('pulse::livewire.exceptions', [
             'time' => $time,
             'runAt' => $runAt,

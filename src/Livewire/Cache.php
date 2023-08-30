@@ -24,8 +24,6 @@ class Cache extends Component
 
         [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->monitoredCacheInteractions($monitoredCacheInteractionsQuery);
 
-        $this->dispatch('cache:dataLoaded');
-
         return View::make('pulse::livewire.cache', [
             'allTime' => $allTime,
             'allRunAt' => $allRunAt,

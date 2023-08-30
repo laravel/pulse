@@ -17,8 +17,10 @@
             init() {
                 Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
-                window.addEventListener('slow-jobs:dataLoaded', () => {
-                    this.loadingNewDataset = false
+                Livewire.hook('commit', ({ component, succeed }) => {
+                    if (component.name === 'slow-jobs') {
+                        succeed(() => this.loadingNewDataset = false)
+                    }
                 })
             }
         }">

@@ -21,8 +21,6 @@ class SlowOutgoingRequests extends Component
     {
         [$slowOutgoingRequests, $time, $runAt] = $this->slowOutgoingRequests($query);
 
-        $this->dispatch('slow-outgoing-requests:dataLoaded');
-
         return View::make('pulse::livewire.slow-outgoing-requests', [
             'time' => $time,
             'runAt' => $runAt,

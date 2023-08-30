@@ -21,8 +21,6 @@ class SlowQueries extends Component
     {
         [$slowQueries, $time, $runAt] = $this->slowQueries($query);
 
-        $this->dispatch('slow-queries:dataLoaded');
-
         return View::make('pulse::livewire.slow-queries', [
             'time' => $time,
             'runAt' => $runAt,

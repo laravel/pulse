@@ -21,8 +21,6 @@ class SlowJobs extends Component
     {
         [$slowJobs, $time, $runAt] = $this->slowJobs($query);
 
-        $this->dispatch('slow-jobs:dataLoaded');
-
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,

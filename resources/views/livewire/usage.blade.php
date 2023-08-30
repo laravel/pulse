@@ -47,8 +47,10 @@
                         Livewire.on('usage-changed', () => (this.loadingNewDataset = true))
                     @endif
 
-                    Livewire.on('usage{{ $this->type ? ":{$this->type}" : '' }}:dataLoaded', () => {
-                        this.loadingNewDataset = false
+                    Livewire.hook('commit', ({ component, succeed }) => {
+                        if (component.name === 'usage' && component.snapshot.data.type === @js($this->type)) {
+                            succeed(() => this.loadingNewDataset = false)
+                        }
                     })
                 }
             }"

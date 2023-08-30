@@ -29,8 +29,10 @@
                 Livewire.on('period-changed', () => (this.loadingNewDataset = true))
                 Livewire.on('exception-changed', () => (this.loadingNewDataset = true))
 
-                window.addEventListener('exceptions:dataLoaded', () => {
-                    this.loadingNewDataset = false
+                Livewire.hook('commit', ({ component, succeed }) => {
+                    if (component.name === 'exceptions') {
+                        succeed(() => this.loadingNewDataset = false)
+                    }
                 })
             }
         }">

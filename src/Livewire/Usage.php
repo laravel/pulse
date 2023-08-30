@@ -37,8 +37,6 @@ class Usage extends Component
     {
         [$userRequestCounts, $time, $runAt] = $this->userRequestCounts($query);
 
-        $this->dispatch('usage:'.($this->type ? "{$this->type}:" : '').'dataLoaded');
-
         return View::make('pulse::livewire.usage', [
             'time' => $time,
             'runAt' => $runAt,
