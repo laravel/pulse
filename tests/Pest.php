@@ -1,7 +1,11 @@
 <?php
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Tests\TestCase;
 
@@ -61,4 +65,37 @@ function prependListener(string $event, callable $listener): void
     Event::forget($event);
 
     collect([$listener, ...$listeners])->each(fn ($listener) => Event::listen($event, $listener));
+}
+
+function captureRedisCommands(callable $callback)
+{
+    $process = Process::timeout(30)->start('redis-cli MONITOR');
+
+    Sleep::for(50)->milliseconds();
+
+    $pingFlag = Str::random();
+    Process::timeout(10)->run("redis-cli ping {$pingFlag}")->throw();
+
+    $pingedAt = new CarbonImmutable;
+
+    while (! str_contains($process->output(), $pingFlag) && $pingedAt->addSeconds(3)->isFuture()) {
+        Sleep::for(50)->milliseconds();
+    }
+
+    if (! str_contains($process->output(), $pingFlag)) {
+        throw new Exception('Redis PING was never recorded.');
+    }
+
+    try {
+        $callback();
+
+        return collect(explode("\n", $process->signal(SIGINT)->output()))
+            ->skipUntil(fn ($value) => str_contains($value, $pingFlag))
+            ->skip(1)
+            ->filter()
+            ->map(fn ($value) => Str::after($value, '] '))
+            ->values();
+    } finally {
+        $process->signal(SIGINT);
+    }
 }

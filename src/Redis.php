@@ -21,7 +21,7 @@ class Redis
     public function __construct(
         protected Repository $config,
         protected Connection $connection,
-        protected ?Pipeline $client = null,
+        protected Pipeline|PhpRedis|null $client = null,
     ) {
         //
     }
@@ -31,7 +31,7 @@ class Redis
      *
      * @param  array<string, string>  $dictionary
      */
-    public function xadd(string $key, array $dictionary): string|Pipeline
+    public function xadd(string $key, array $dictionary): string|Pipeline|PhpRedis
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
@@ -59,7 +59,7 @@ class Redis
 
         return match (true) {
             // PHP Redis does not support the minid strategy.
-            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('redis.options.prefix').$key, $strategy, $strategyModifier, $threshold),
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, $threshold),
             $this->client() instanceof Predis ||
             $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], $threshold),
         };
@@ -89,7 +89,7 @@ class Redis
 
         // Create a pipeline and wrap the Redis client in an instance of this
         // class to ensure our wrapper methods are used within the pipeline.
-        return $this->connection->pipeline(fn (Pipeline $client) => $closure(new self($this->config, $this->connection, $client)));
+        return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->config, $this->connection, $client)));
     }
 
     /**
