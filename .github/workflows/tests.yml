@@ -41,6 +41,9 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      - name: Install redis-cli
+        run: sudo apt-get install -qq redis-tools
+
       - name: Install dependencies
         run: |
            composer require "illuminate/contracts=^${{ matrix.laravel }}" --dev --no-update
