@@ -74,7 +74,7 @@ function captureRedisCommands(callable $callback)
     Sleep::for(50)->milliseconds();
 
     $pingFlag = Str::random();
-    Process::timeout(10)->run("redis-cli ping {$pingFlag}")->throw();
+    Process::timeout(1)->run("redis-cli ping {$pingFlag}")->throw();
 
     $pingedAt = new CarbonImmutable;
 

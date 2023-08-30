@@ -9,7 +9,7 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Ingests\Redis;
 
-beforeEach(fn () => Process::timeout(5)->run('redis-cli DEL laravel_database_laravel:pulse:entries')->throw());
+beforeEach(fn () => Process::timeout(1)->run('redis-cli DEL laravel_database_laravel:pulse:entries')->throw());
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -42,12 +42,12 @@ it('runs the same commands while storing', function ($driver) {
         ->run('redis-cli XINFO STREAM laravel_database_laravel:pulse:entries')
         ->throw()
         ->output();
-    [$firstKey, $lastKey] = collect(explode("\n", $output))->only([17, 21])->values();
+    [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
     $commands = captureRedisCommands(fn () => $ingest->store(new NullStorage, 567));
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:entries" "-" "+" "COUNT" "567"');
-    expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:entries" "'.$firstKey.'" "'.$lastKey.'"');
+    expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:entries" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
 })->with(['predis', 'phpredis']);
 
 class NullStorage implements Storage
