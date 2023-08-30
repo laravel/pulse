@@ -59,19 +59,19 @@ class Exceptions
     /**
      * Get the exception details.
      *
-     * @return array{0: string, 1: string}
+     * @return array{0: class-string<Throwable>, 1: string}
      */
     protected function getDetails(Throwable $e): array
     {
         return match (true) {
             $e instanceof \Illuminate\View\ViewException => [
-                get_class($e->getPrevious()),
+                get_class($e->getPrevious()), // @phpstan-ignore argument.type
                 $this->getLocationFromViewException($e),
             ],
 
-            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => [
-                get_class($e->getPrevious()),
-                $this->formatLocation($e->getFile(), $e->getLine()),
+            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => [ // @phpstan-ignore class.notFound
+                get_class($e->getPrevious()), // @phpstan-ignore argument.type, class.notFound
+                $this->formatLocation($e->getFile(), $e->getLine()), // @phpstan-ignore class.notFound, class.notFound
             ],
 
             default => [
