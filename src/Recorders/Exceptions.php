@@ -46,12 +46,51 @@ class Exceptions
     {
         $now = new CarbonImmutable();
 
+        [$class, $location] = $this->getDetails($e);
+
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
-            'class' => $e::class,
-            'location' => $this->getLocation($e),
+            'class' => $class,
+            'location' => $location,
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    /**
+     * Get the exception details.
+     *
+     * @return array{0: string, 1: string}
+     */
+    protected function getDetails(Throwable $e): array
+    {
+        return match (true) {
+            $e instanceof \Illuminate\View\ViewException => [
+                get_class($e->getPrevious()),
+                $this->getLocationFromViewException($e),
+            ],
+
+            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => [
+                get_class($e->getPrevious()),
+                $this->formatLocation($e->getFile(), $e->getLine())
+            ],
+
+            default => [
+                get_class($e),
+                $this->getLocation($e),
+            ]
+        };
+
+    }
+
+    /*
+     * Get the location of the original view file instead of the cached version.
+     */
+    protected function getLocationFromViewException(Throwable $e): string
+    {
+        // Getting the line number in the view file is a bit tricky.
+        preg_match('/\(View: (?P<path>.*?)\)/', $e->getMessage(), $matches);
+
+        return $this->formatLocation($matches['path'], null);
     }
 
     /**
@@ -59,7 +98,6 @@ class Exceptions
      */
     protected function getLocation(Throwable $e): string
     {
-        // TODO: has issue when exception occurs in Blade/Livewire view.
         $firstNonVendorFrame = collect($e->getTrace())
             ->firstWhere(fn (array $frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
 
@@ -79,10 +117,10 @@ class Exceptions
     }
 
     /**
-     * Format a file and line number and strip the base base.
+     * Format a file and line number and strip the base path.
      */
-    protected function formatLocation(string $file, int $line): string
+    protected function formatLocation(string $file, ?int $line): string
     {
-        return Str::replaceFirst(base_path(), '', $file).':'.$line;
+        return Str::replaceFirst(base_path('/'), '', $file).(is_int($line) ? (':'.$line) : '');
     }
 }
