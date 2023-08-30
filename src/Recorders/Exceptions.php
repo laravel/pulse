@@ -71,7 +71,7 @@ class Exceptions
 
             $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => [
                 get_class($e->getPrevious()),
-                $this->formatLocation($e->getFile(), $e->getLine())
+                $this->formatLocation($e->getFile(), $e->getLine()),
             ],
 
             default => [
