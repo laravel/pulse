@@ -27,7 +27,7 @@ class Jobs
     /**
      * The time the last job started processing.
      */
-    protected CarbonImmutable|null $lastJobStartedProcessingAt;
+    protected ?CarbonImmutable $lastJobStartedProcessingAt;
 
     /**
      * The events to listen for.

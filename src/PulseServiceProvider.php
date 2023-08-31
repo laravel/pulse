@@ -11,7 +11,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
