@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
@@ -25,6 +26,7 @@ class SlowOutgoingRequests extends Component
             'time' => $time,
             'runAt' => $runAt,
             'slowOutgoingRequests' => $slowOutgoingRequests,
+            'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);
     }
 

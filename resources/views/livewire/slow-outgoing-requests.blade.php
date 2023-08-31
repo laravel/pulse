@@ -1,6 +1,3 @@
-@php
-$supported = method_exists(Illuminate\Http\Client\Factory::class, 'globalMiddleware');
-@endphp
 <x-pulse::card class="col-span-3">
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
