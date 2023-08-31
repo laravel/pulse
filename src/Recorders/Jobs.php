@@ -86,7 +86,7 @@ class Jobs
         }
 
         return tap(new JobFinished(
-            $event->job->uuid(),
+            (string) $event->job->uuid(),
             $this->lastJobStartedProcessingAt->toDateTimeString('millisecond'),
             $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
         ), function () {

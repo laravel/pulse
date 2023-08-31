@@ -31,6 +31,11 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
 			message: "#^Call to an undefined method Livewire\\\\Component\\:\\:render\\(\\)\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
@@ -43,11 +48,6 @@ parameters:
 		-
 			message: "#^Cannot access offset 'config' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 2
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Parameter \\#1 \\$app of static method Laravel\\\\Pulse\\\\Pulse\\:\\:listenForStorageOpportunities\\(\\) expects Illuminate\\\\Foundation\\\\Application, Illuminate\\\\Contracts\\\\Foundation\\\\Application given\\.$#"
-			count: 1
 			path: src/PulseServiceProvider.php
 
 		-
@@ -114,6 +114,16 @@ parameters:
 			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
 			count: 1
 			path: src/Recorders/Exceptions.php
+
+		-
+			message: "#^Cannot call method diffInMilliseconds\\(\\) on Carbon\\\\CarbonImmutable\\|null\\.$#"
+			count: 1
+			path: src/Recorders/Jobs.php
+
+		-
+			message: "#^Cannot call method toDateTimeString\\(\\) on Carbon\\\\CarbonImmutable\\|null\\.$#"
+			count: 1
+			path: src/Recorders/Jobs.php
 
 		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
