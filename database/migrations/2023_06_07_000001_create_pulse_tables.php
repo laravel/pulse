@@ -67,12 +67,11 @@ return new class extends Migration
             $table->timestamp('date');
             $table->string('user_id')->nullable();
             $table->string('job');
-            $table->string('job_id');
-            $table->timestamp('processing_started_at', 3)->nullable();
+            $table->uuid('job_uuid');
             $table->unsignedInteger('duration')->nullable();
 
             // TODO: verify this update index. Needs to find job quickly.
-            $table->index(['job_id']);
+            $table->index(['job_uuid']);
             $table->index(['date', 'job', 'duration']); // slow_jobs
             $table->index(['date', 'user_id']); // user_usage
         });

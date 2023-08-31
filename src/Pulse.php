@@ -20,7 +20,6 @@ use Throwable;
 class Pulse
 {
     use ConfiguresAfterResolving;
-    use ListensForStorageOpportunities;
 
     /**
      * The list of metric recorders.
@@ -216,9 +215,9 @@ class Pulse
             $this->entries->map->resolve()->filter($this->shouldRecord(...)),
         ));
 
-        $this->rescue(fn () => Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
-            ->winner(fn () => $ingest->trim())
-            ->choose());
+        Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
+            ->winner(fn () => $this->rescue($ingest->trim(...)))
+            ->choose();
 
         $this->rememberedUserId = null;
 

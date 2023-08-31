@@ -13,8 +13,9 @@ class JobFinished extends Update
      * Create a new JobFinished instance.
      */
     public function __construct(
-        public string $jobId,
-        public string $endedAt
+        public string $jobUuid,
+        public string $startedProcessingAt,
+        public int $duration,
     ) {
         //
     }
@@ -25,9 +26,9 @@ class JobFinished extends Update
     public function perform(Connection $db): void
     {
         $db->table($this->table())
-            ->where('job_id', $this->jobId)
+            ->where('job_uuid', $this->jobUuid)
             ->update([
-                'duration' => $db->raw('TIMESTAMPDIFF(MICROSECOND, `processing_started_at`, "'.$this->endedAt.'") / 1000'),
+                'duration' => $this->duration,
             ]);
     }
 

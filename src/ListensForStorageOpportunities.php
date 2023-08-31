@@ -24,21 +24,7 @@ trait ListensForStorageOpportunities
      */
     public static function listenForStorageOpportunities(Application $app): void
     {
-        static::storeEntriesBeforeTermination($app);
         static::storeEntriesAfterWorkerLoop($app);
-    }
-
-    /**
-     * Store the entries in queue before the application termination.
-     *
-     * This handles storing entries for HTTP requests and Artisan commands.
-     */
-    protected static function storeEntriesBeforeTermination(Application $app): void
-    {
-        $app[Kernel::class]->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
-            // TODO; this will go stale; also duplicated.
-            $app[Pulse::class]->store($app[Ingest::class]);
-        });
     }
 
     /**
@@ -46,11 +32,11 @@ trait ListensForStorageOpportunities
      */
     protected static function storeEntriesAfterWorkerLoop(Application $app): void
     {
-        $app['events']->listen(JobProcessing::class, function (JobProcessing $event) {
-            if ($event->connectionName !== 'sync') {
-                static::$processingJobs[] = true;
-            }
-        });
+        // $app['events']->listen(JobProcessing::class, function (JobProcessing $event) {
+        //     if ($event->connectionName !== 'sync') {
+        //         static::$processingJobs[] = true;
+        //     }
+        // });
 
         $app['events']->listen(JobProcessed::class, function (JobProcessed $event) use ($app) {
             static::storeIfDoneProcessingJob($event, $app);
@@ -74,7 +60,7 @@ trait ListensForStorageOpportunities
 
         if (empty(static::$processingJobs) && $event->connectionName !== 'sync') {
             // TODO: this will go stale
-            $app[Pulse::class]->store($app[Ingest::class]);
+            app()[Pulse::class]->store($app[Ingest::class]);
         }
     }
 }

@@ -23,4 +23,10 @@ return new class extends Migration
             $table->unsignedInteger('created_at');
         });
     }
+
+    public function down()
+    {
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('jobs');
+    }
 };

@@ -3,9 +3,16 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\Looping;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -106,16 +113,36 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
-        $this->callAfterResolving('events', function (Dispatcher $event) {
-            $event->listen(Logout::class, function (Logout $event) {
-                $pulse = app(Pulse::class);
+        $this->callAfterResolving('events', function (Dispatcher $event, Application $app) {
+            $event->listen(Logout::class, function (Logout $event) use ($app) {
+                $pulse = $app[Pulse::class];
+
                 $pulse->rescue(fn () => $pulse->rememberUser($event->user));
+            });
+
+            // TODO: consider moving this registration to the "Booted" event to ensure, for sure, that our stuff is registered last?
+            $event->listen([
+                Looping::class,
+                JobFailed::class,
+                JobProcessed::class,
+                JobExceptionOccurred::class,
+            ], function ($event) use ($app) {
+                $app[Pulse::class]->store($app[Ingest::class]);
             });
         });
 
-        // TODO: Telescope passes the container like this, but I'm unsure how it works with Octane.
-        // TODO: consider moving this to the "Booted" event to ensure, for sure, that our stuff is registered last?
-        Pulse::listenForStorageOpportunities($this->app);
+        // TODO: consider moving this registration to the "Booted" event to ensure, for sure, that our stuff is registered last?
+        $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
+            $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
+                $app[Pulse::class]->store($app[Ingest::class]);
+            });
+        });
+
+        $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
+            $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) {
+                $app[Pulse::class]->store($app[Ingest::class]);
+            });
+        });
     }
 
     /**

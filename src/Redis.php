@@ -55,13 +55,11 @@ class Redis
      */
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
-        $threshold = (string) $threshold;
-
         return match (true) {
             // PHP Redis does not support the minid strategy.
-            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, $threshold),
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
             $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], $threshold),
+            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold),
         };
     }
 

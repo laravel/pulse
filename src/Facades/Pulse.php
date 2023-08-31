@@ -30,7 +30,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse rememberUser(\Illuminate\Contracts\Auth\Authenticatable $user)
  * @method static void rescue(callable $callback)
  * @method static void afterResolving(\Illuminate\Foundation\Application $app, string $class, \Closure $callback)
- * @method static void listenForStorageOpportunities(\Illuminate\Foundation\Application $app)
  *
  * @see \Laravel\Pulse\Pulse
  */

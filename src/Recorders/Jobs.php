@@ -4,13 +4,13 @@ namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\JobFinished;
-use Laravel\Pulse\Entries\JobStarted;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Pulse;
 
@@ -25,6 +25,11 @@ class Jobs
     public string $table = 'pulse_jobs';
 
     /**
+     * The time the last job started processing.
+     */
+    protected CarbonImmutable|null $lastJobStartedProcessingAt;
+
+    /**
      * The events to listen for.
      *
      * @var list<class-string>
@@ -33,6 +38,7 @@ class Jobs
         JobFailed::class,
         JobProcessed::class,
         JobProcessing::class,
+        JobExceptionOccurred::class,
         JobQueued::class,
     ];
 
@@ -49,8 +55,12 @@ class Jobs
     /**
      * Record the job.
      */
-    public function record(JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update
+    public function record(JobExceptionOccurred|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|null
     {
+        if ($event->connectionName === 'sync') {
+            return null;
+        }
+
         // TODO: currently if a job fails, we have no way of tracking it through properly.
         // When a job fails it gets a new "jobId", so we can't track the one job.
         // If we can get the job's UUID in the `JobQueued` event, then we can
@@ -58,26 +68,29 @@ class Jobs
 
         $now = new CarbonImmutable();
 
-        return match (true) {
-            $event instanceof JobQueued => new Entry($this->table, [
+        if ($event instanceof JobQueued) {
+            return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
                 'job' => is_string($event->job)
                     ? $event->job
                     : $event->job::class,
-                'job_id' => $event->id,
+                'job_uuid' => $event->payload()['uuid'],
                 'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]),
+            ]);
+        }
 
-            $event instanceof JobProcessing => new JobStarted(
-                (string) $event->job->getJobId(),
-                $now->toDateTimeString('millisecond')
-            ),
+        if ($event instanceof JobProcessing) {
+            $this->lastJobStartedProcessingAt = $now;
 
-            $event instanceof JobProcessed,
-            $event instanceof JobFailed => new JobFinished(
-                (string) $event->job->getJobId(),
-                $now->toDateTimeString('millisecond')
-            ),
-        };
+            return null;
+        }
+
+        return tap(new JobFinished(
+            $event->job->uuid(),
+            $this->lastJobStartedProcessingAt->toDateTimeString('millisecond'),
+            $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
+        ), function () {
+            $this->lastJobStartedProcessingAt = null;
+        });
     }
 }

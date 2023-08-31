@@ -31,8 +31,7 @@ return [
     'ingest' => [
         'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
 
-        // TODO this might conflict with sampling lottery / whatevers
-        'lottery' => [1, 1000],
+        'lottery' => [1, 1_000],
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
