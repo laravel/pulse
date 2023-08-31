@@ -64,6 +64,8 @@ class QueueSizes
                 'connection' => $connection,
                 'queue' => $queue,
                 'size' => $this->queue->connection($connection)->size($queue),
+                // TODO we need to recommed adding indexes to the failed jobs "queue" and "connection" columns, otherwise
+                // this is gonna take forever on large tables.
                 'failed' => $this->failedJobs instanceof CountableFailedJobProvider
                     ? $this->failedJobs->count($connection, $queue)
                     : 0,
