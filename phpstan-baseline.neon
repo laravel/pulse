@@ -56,31 +56,6 @@ parameters:
 			path: src/Queries/CacheInteractions.php
 
 		-
-			message: "#^Call to method count\\(\\) on an unknown class Illuminate\\\\Queue\\\\Failed\\\\CountableFailedJobProvider\\.$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
-			message: "#^Class Illuminate\\\\Queue\\\\Failed\\\\CountableFailedJobProvider not found\\.$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Queues\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Enumerable\\<int, array\\{connection\\: string, queue\\: string, size\\: int, failed\\: int\\}\\> but returns Illuminate\\\\Support\\\\Enumerable\\<\\(int\\|string\\), array\\{connection\\: string, queue\\: string, size\\: int, failed\\: mixed\\}\\>\\.$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
-			message: "#^Return type of call to method Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\),mixed\\>\\:\\:map\\(\\) contains unresolvable type\\.$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
-			message: "#^Return type of call to method Illuminate\\\\Support\\\\Enumerable\\<\\(int\\|string\\),mixed\\>\\:\\:flatMap\\(\\) contains unresolvable type\\.$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
 			count: 1
 			path: src/Queries/Queues.php
@@ -139,16 +114,6 @@ parameters:
 			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
 			count: 1
 			path: src/Recorders/Exceptions.php
-
-		-
-			message: "#^Call to method count\\(\\) on an unknown class Illuminate\\\\Queue\\\\Failed\\\\CountableFailedJobProvider\\.$#"
-			count: 1
-			path: src/Recorders/QueueSizes.php
-
-		-
-			message: "#^Class Illuminate\\\\Queue\\\\Failed\\\\CountableFailedJobProvider not found\\.$#"
-			count: 1
-			path: src/Recorders/QueueSizes.php
 
 		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
