@@ -24,7 +24,7 @@ class QueueMonitor
     /**
      * Run the query.
      */
-    public function __invoke(Interval $interval, string $queue, string|null $connection = null)
+    public function __invoke(Interval $interval, string $queue, string $connection = null)
     {
         $now = new CarbonImmutable();
 

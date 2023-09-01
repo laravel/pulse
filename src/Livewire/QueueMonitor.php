@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Livewire;
 
-use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
