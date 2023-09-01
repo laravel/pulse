@@ -20,6 +20,8 @@ class Servers extends Component
      */
     public function render(callable $query): Renderable
     {
+        // TODO: Chart doesn't update immediately when changing the period.
+
         return View::make('pulse::livewire.servers', [
             'servers' => $this->servers ??= $query($this->periodAsInterval()),
         ]);
