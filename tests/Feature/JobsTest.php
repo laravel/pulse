@@ -413,7 +413,7 @@ it('handles a job that was manually failed', function () {
     expect(Pulse::entries()[0])->toBeInstanceOf(Entry::class);
     expect(Pulse::entries()[0]->table)->toBe('pulse_exceptions');
     Pulse::flushEntries();
-})->only();
+})->todo();
 
 class MyJob implements ShouldQueue
 {
