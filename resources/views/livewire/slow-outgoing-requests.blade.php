@@ -55,8 +55,8 @@
                                                 <x-pulse::http-method-badge :method="$method" />
                                             </x-pulse::td>
                                             <x-pulse::td>
-                                                <div class="flex items-center gap-2">
-                                                    <img src="https://unavatar.io/{{ parse_url($uri, PHP_URL_HOST) }}" class="w-4 h-4" />
+                                                <div class="flex items-center">
+                                                    <img wire:ignore src="https://unavatar.io/{{ parse_url($uri, PHP_URL_HOST) }}?fallback=false" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
                                                     <code class="block text-xs text-gray-900 truncate" title="{{ $uri }}">
                                                         {{ $uri }}
                                                     </code>
