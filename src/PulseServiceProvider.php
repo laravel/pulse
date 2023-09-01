@@ -68,6 +68,7 @@ class PulseServiceProvider extends ServiceProvider
             Livewire\Exceptions::class => [Queries\Exceptions::class],
             Livewire\SlowRoutes::class => [Queries\SlowRoutes::class],
             Livewire\SlowQueries::class => [Queries\SlowQueries::class],
+            Livewire\QueueMonitor::class => [Queries\QueueMonitor::class],
             Livewire\SlowOutgoingRequests::class => [Queries\SlowOutgoingRequests::class],
             Livewire\Cache::class => [Queries\CacheInteractions::class, Queries\MonitoredCacheInteractions::class],
         ] as $card => $queries) {
@@ -224,6 +225,7 @@ class PulseServiceProvider extends ServiceProvider
             $livewire->component('pulse.queues', Livewire\Queues::class);
             $livewire->component('pulse.servers', Livewire\Servers::class);
             $livewire->component('pulse.slow-jobs', Livewire\SlowJobs::class);
+            $livewire->component('queue-monitor', Livewire\QueueMonitor::class);
             $livewire->component('pulse.exceptions', Livewire\Exceptions::class);
             $livewire->component('pulse.slow-routes', Livewire\SlowRoutes::class);
             $livewire->component('pulse.slow-queries', Livewire\SlowQueries::class);

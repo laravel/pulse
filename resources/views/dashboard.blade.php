@@ -38,4 +38,6 @@
 
     <livewire:pulse.queues cols="6" />
 
+    <livewire:queue-monitor lazy />
+
 </x-pulse>
