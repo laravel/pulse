@@ -58,7 +58,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => '')),
+                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->date)),
                                             datasets: [
                                                 {
                                                     label: 'Memory Used',
@@ -98,7 +98,8 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                                 },
                                                 tooltip: {
                                                     callbacks: {
-                                                        label: (context) => context.formattedValue + ' MB'
+                                                        title: () => '',
+                                                        label: (context) => `${context.label} - ${context.formattedValue} MB`
                                                     },
                                                     displayColors: false,
                                                 },
@@ -108,7 +109,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                 )
 
                                 Livewire.on('chartUpdate', ({ servers }) => {
-                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => '')
+                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used)
                                     chart.update()
                                 })
@@ -134,7 +135,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => '')),
+                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->date)),
                                             datasets: [
                                                 {
                                                     label: 'CPU Percent',
@@ -174,7 +175,8 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                                 },
                                                 tooltip: {
                                                     callbacks: {
-                                                        label: (context) => context.formattedValue + '%',
+                                                        title: () => '',
+                                                        label: (context) => `${context.label} - ${context.formattedValue}%`
                                                     },
                                                     displayColors: false,
                                                 },
@@ -184,7 +186,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                                 )
 
                                 Livewire.on('chartUpdate', ({ servers }) => {
-                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => '')
+                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent)
                                     chart.update()
                                 })

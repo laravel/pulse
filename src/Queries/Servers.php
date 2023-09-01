@@ -56,6 +56,7 @@ class Servers
 
         $serverReadings = $this->connection()->query()
             ->select('bucket', 'server')
+            ->selectRaw('MAX(`date`) AS `date`')
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.graph_aggregation')) {
                 'max' => $query
                     ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
@@ -104,6 +105,7 @@ class Servers
                 'memory_total' => $server->memory_total,
                 'storage' => json_decode($server->storage, flags: JSON_THROW_ON_ERROR),
                 'readings' => $serverReadings->get($server->server)?->map(fn (stdClass $reading) => (object) [
+                    'date' => CarbonImmutable::parse($reading->date)->format('Y-m-d H:i:s'),
                     'cpu_percent' => $reading->cpu_percent,
                     'memory_used' => $reading->memory_used,
                 ])->all() ?? [],
