@@ -39,7 +39,7 @@ class Database implements Storage
 
         $this->connection()->transaction(function () use ($inserts, $updates) {
             $inserts->groupBy('table')
-                ->each(fn (Collection $rows, string $table) => $rows->chunk(1000)
+                ->each(fn (Collection $rows, string $table) => $rows->chunk($this->config->get('pulse.storage.database.chunk'))
                     ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
                     ->each($this->connection()->table($table)->insert(...)));
 
@@ -63,7 +63,7 @@ class Database implements Storage
      */
     protected function trimAfter(): Interval
     {
-        return new Interval($this->config->get('pulse.retain') ?? 'P7D');
+        return new Interval($this->config->get('pulse.retain'));
     }
 
     /**

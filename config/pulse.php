@@ -25,6 +25,7 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION', null),
+            'chunk' => 1000,
         ],
     ],
 
@@ -35,6 +36,7 @@ return [
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
+            'chunk' => 1000,
         ],
     ],
 

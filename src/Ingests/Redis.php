@@ -60,9 +60,9 @@ class Redis implements Ingest
     /**
      * Store the ingested entries.
      */
-    public function store(Storage $storage, int $count): int
+    public function store(Storage $storage): int
     {
-        $entries = collect($this->connection()->xrange($this->stream, '-', '+', $count));
+        $entries = collect($this->connection()->xrange($this->stream, '-', '+', $this->config->get('pulse.ingest.redis.chunk')));
 
         if ($entries->isEmpty()) {
             return 0;
@@ -84,7 +84,7 @@ class Redis implements Ingest
      */
     protected function trimAfter(): Interval
     {
-        return new Interval($this->config->get('pulse.retain') ?? 'P7D');
+        return new Interval($this->config->get('pulse.retain'));
     }
 
     /**

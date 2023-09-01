@@ -39,7 +39,7 @@ class Storage implements Ingest
     /**
      * Store the ingested entries.
      */
-    public function store(StorageContract $store, int $count): int
+    public function store(StorageContract $store): int
     {
         throw new RuntimeException('The storage ingest driver does not need to process entries.');
     }

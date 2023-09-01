@@ -21,5 +21,5 @@ interface Ingest
     /**
      * Store the ingested entries.
      */
-    public function store(Storage $storage, int $count): int;
+    public function store(Storage $storage): int;
 }

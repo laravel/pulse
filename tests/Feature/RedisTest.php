@@ -32,6 +32,7 @@ it('runs the same commands while triming the stream', function ($driver) {
 
 it('runs the same commands while storing', function ($driver) {
     Config::set('database.redis.client', $driver);
+    Config::set('pulse.ingest.redis.chunk', 567);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
     $ingest = App::make(Redis::class);
     $ingest->ingest(collect([
@@ -44,7 +45,7 @@ it('runs the same commands while storing', function ($driver) {
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
-    $commands = captureRedisCommands(fn () => $ingest->store(new NullStorage, 567));
+    $commands = captureRedisCommands(fn () => $ingest->store(new NullStorage));
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:entries" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:entries" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
