@@ -70,12 +70,11 @@ class Servers
                     ->select(['server', 'cpu_percent', 'memory_used', 'date'])
                     // Divide the data into buckets.
                     ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
-                    ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)),
+                    ->where('date', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds)),
                 'grouped'
             )
             ->groupBy('server', 'bucket')
             ->orderByDesc('bucket')
-            ->limit($maxDataPoints)
             ->get()
             ->reverse()
             ->groupBy('server')
