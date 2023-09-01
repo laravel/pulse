@@ -2,18 +2,17 @@
 
 namespace Laravel\Pulse\Livewire;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
+use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Usage extends Component
 {
-    use HasPeriod, ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage, RemembersQueries;
 
     /**
      * The type of usage to show.
@@ -35,7 +34,9 @@ class Usage extends Component
      */
     public function render(callable $query): Renderable
     {
-        [$userRequestCounts, $time, $runAt] = $this->userRequestCounts($query);
+        $type = $this->type ?? $this->usage;
+
+        [$userRequestCounts, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $type), $type);
 
         return View::make('pulse::livewire.usage', [
             'time' => $time,
@@ -50,35 +51,5 @@ class Usage extends Component
     public function placeholder(): Renderable
     {
         return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
-    }
-
-    /**
-     * The user request counts.
-     *
-     * @return array{mixed, int, string}
-     */
-    protected function userRequestCounts(callable $query): array
-    {
-        return Cache::remember("laravel:pulse:usage:{$this->getType()}:{$this->period}", $this->periodCacheDuration(), function () use ($query) {
-            $now = new CarbonImmutable;
-
-            $start = hrtime(true);
-
-            $userRequestCounts = $query($this->periodAsInterval(), $this->getType());
-
-            $time = (int) ((hrtime(true) - $start) / 1000000);
-
-            return [$userRequestCounts, $time, $now->toDateTimeString()];
-        });
-    }
-
-    /**
-     * Get the type of usage to display.
-     *
-     * @return 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'
-     */
-    public function getType(): string
-    {
-        return $this->type ?? $this->usage;
     }
 }
