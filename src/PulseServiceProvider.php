@@ -8,10 +8,8 @@ use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use Illuminate\Queue\Events\JobExceptionOccurred;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\Looping;
+use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -122,9 +120,7 @@ class PulseServiceProvider extends ServiceProvider
             // TODO: consider moving this registration to the "Booted" event to ensure, for sure, that our stuff is registered last?
             $event->listen([
                 Looping::class,
-                JobFailed::class,
-                JobProcessed::class,
-                JobExceptionOccurred::class,
+                WorkerStopping::class,
             ], function ($event) use ($app) {
                 $app[Pulse::class]->store($app[Ingest::class]);
             });
