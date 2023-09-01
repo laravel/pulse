@@ -11,7 +11,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 @endphp
 <div wire:poll.5s="updateChart" class="col-span-6">
     @if ($servers->count() > 0)
-        <div class="grid grid-cols-[max-content,max-content,max-content,minmax(0,1fr),max-content,minmax(0,1fr),max-content]">
+        <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(0,2fr),max-content,minmax(0,2fr),minmax(max-content,1fr)]">
             <div></div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 font-bold">Memory</div>
@@ -50,7 +50,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     <div
                         wire:ignore
-                        class="w-full h-9 relative"
+                        class="w-full max-w-xs h-9 relative"
                         x-data="{
                             init() {
                                 const chart = new Chart(
@@ -125,8 +125,8 @@ $friendlySize = function(int $mb, int $precision = 0) {
                 </div>
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     <div
-                        class="w-full h-9 relative"
                         wire:ignore
+                        class="w-full max-w-xs h-9 relative"
                         x-data="{
                             init() {
                                 const chart = new Chart(
