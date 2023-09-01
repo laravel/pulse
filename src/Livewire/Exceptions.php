@@ -12,7 +12,7 @@ use Livewire\Component;
 
 class Exceptions extends Component
 {
-    use HasPeriod, ShouldNotReportUsage, RemembersQueries;
+    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
 
     /**
      * The view type

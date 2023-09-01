@@ -11,7 +11,7 @@ use Livewire\Component;
 
 class SlowJobs extends Component
 {
-    use HasPeriod, ShouldNotReportUsage, RemembersQueries;
+    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
 
     /**
      * Render the component.
