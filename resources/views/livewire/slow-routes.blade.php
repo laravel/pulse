@@ -32,6 +32,7 @@
                         <x-pulse::table>
                             <x-pulse::thead>
                                 <tr>
+                                    <x-pulse::th class="text-left w-[70px]">Method</x-pulse::th>
                                     <x-pulse::th class="w-full text-left">Route</x-pulse::th>
                                     <x-pulse::th class="text-right">Count</x-pulse::th>
                                     <x-pulse::th class="text-right">Slowest</x-pulse::th>
@@ -44,8 +45,10 @@
                                     @endphp
                                     <tr>
                                         <x-pulse::td>
+                                            <x-pulse::http-method-badge :method="$method" />
+                                        </x-pulse::td>
+                                        <x-pulse::td>
                                             <div>
-                                                <x-pulse::http-method-badge :method="$method" />
                                                 <code class="ml-1 text-xs text-gray-900">
                                                     {{ $uri }}
                                                 </code>

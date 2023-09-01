@@ -39,6 +39,7 @@
                             <x-pulse::table class="table-fixed">
                                 <x-pulse::thead>
                                     <tr>
+                                        <x-pulse::th class="text-left w-[70px]">Method</x-pulse::th>
                                         <x-pulse::th class="text-left">URI</x-pulse::th>
                                         <x-pulse::th class="text-right w-24">Count</x-pulse::th>
                                         <x-pulse::th class="text-right w-24">Slowest</x-pulse::th>
@@ -46,12 +47,18 @@
                                 </x-pulse::thead>
                                 <tbody>
                                     @foreach ($slowOutgoingRequests as $request)
+                                        @php
+                                            [$method, $uri] = explode(' ', $request->uri, 2);
+                                        @endphp
                                         <tr>
                                             <x-pulse::td>
+                                                <x-pulse::http-method-badge :method="$method" />
+                                            </x-pulse::td>
+                                            <x-pulse::td>
                                                 <div class="flex items-center gap-2">
-                                                    <img src="https://unavatar.io/{{ parse_url($request->uri, PHP_URL_HOST) }}" class="w-4 h-4" />
-                                                    <code class="block text-xs text-gray-900 truncate" title="{{ $request->uri }}">
-                                                        {{ $request->uri }}
+                                                    <img src="https://unavatar.io/{{ parse_url($uri, PHP_URL_HOST) }}" class="w-4 h-4" />
+                                                    <code class="block text-xs text-gray-900 truncate" title="{{ $uri }}">
+                                                        {{ $uri }}
                                                     </code>
                                                 </div>
                                             </x-pulse::td>
