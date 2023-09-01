@@ -1,7 +1,3 @@
-import { LineChart, PieChart, Interpolation } from "chartist";
+import Chart from 'chart.js/auto';
 
-window.LineChart = LineChart;
-window.PieChart = PieChart;
-window.Interpolation = Interpolation;
-
-window.pulse = { charts: {} }
+window.Chart = Chart;

@@ -9,16 +9,18 @@ $friendlySize = function(int $mb, int $precision = 0) {
     return round($mb, $precision) . 'MB';
 };
 @endphp
-<div wire:poll.15s class="col-span-6">
+<div wire:poll.5s="updateChart" class="col-span-6">
     @if ($servers->count() > 0)
-        <div class="grid grid-cols-[max-content,_repeat(4,_auto)]">
+        <div class="grid grid-cols-[max-content,max-content,max-content,minmax(0,1fr),max-content,minmax(0,1fr),max-content]">
             <div></div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 font-bold">Memory</div>
+            <div></div>
             <div class="text-xs uppercase text-left text-gray-500 font-bold">CPU</div>
+            <div></div>
             <div class="text-xs uppercase text-left text-gray-500 font-bold">Storage</div>
             @foreach ($servers as $server)
-                <div class="flex items-center [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }}"  title="{{ $server->updated_at->fromNow() }}">
+                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }}"  title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
                         <div class="w-5 flex justify-center mr-1">
                             <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>
@@ -29,14 +31,14 @@ $friendlySize = function(int $mb, int $precision = 0) {
                         </svg>
                     @endif
                 </div>
-                <div class="flex items-center [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-500">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 00-.12-1.03l-2.268-9.64a3.375 3.375 0 00-3.285-2.602H7.923a3.375 3.375 0 00-3.285 2.602l-2.268 9.64a4.5 4.5 0 00-.12 1.03v.228m19.5 0a3 3 0 01-3 3H5.25a3 3 0 01-3-3m19.5 0a3 3 0 00-3-3H5.25a3 3 0 00-3 3m16.5 0h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" />
                     </svg>
                     <span class="text-base font-bold text-gray-600">{{ $server->name }}</span>
                 </div>
-                <div class="flex items-center gap-4 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
-                    <div class="w-32">
+                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                    <div class="w-32 flex-shrink-0 whitespace-nowrap">
                         <span class="text-xl font-bold text-gray-700">
                             {{ $friendlySize($server->memory_used, 1) }}
                         </span>
@@ -44,158 +46,219 @@ $friendlySize = function(int $mb, int $precision = 0) {
                             / {{ $friendlySize($server->memory_total, 1) }}
                         </span>
                     </div>
-
-                    <div wire:ignore>
-                        <div
-                            id="memory-{{ $server->slug }}" class="h-9 w-48"
-                            x-data="{
-                                init() {
-                                    window.pulse.charts['memory-{{ $server->slug }}'] = new LineChart(
-                                        '#memory-{{ $server->slug }}',
-                                        {
-                                            series: [
+                </div>
+                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                    <div
+                        wire:ignore
+                        class="w-full h-9 relative"
+                        x-data="{
+                            init() {
+                                const chart = new Chart(
+                                    this.$refs.canvas,
+                                    {
+                                        type: 'line',
+                                        data: {
+                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => '')),
+                                            datasets: [
                                                 {
-                                                    className: 'stroke-purple-600',
-                                                    data: @json(collect($server->readings)->map(fn (stdClass $reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
+                                                    label: 'Memory Used',
+                                                    borderColor: '#9333ea',
+                                                    borderWidth: 2,
+                                                    data: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
+                                                    pointStyle: false,
+                                                    tension: 0.2,
+                                                    spanGaps: false,
                                                 },
                                             ],
                                         },
-                                        {
-                                            lineSmooth: Interpolation.simple({
-                                                divisor: 2
-                                            }),
-                                            classNames: {
-                                                line: 'stroke-2 fill-none',
+                                        options: {
+                                            maintainAspectRatio: false,
+                                            layout: {
+                                                autoPadding: false,
                                             },
-                                            fullWidth: true,
-                                            showPoint: false,
-                                            chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
-                                            axisX: {
-                                                offset: 0,
-                                                showGrid: false,
-                                                showLabel: false,
+                                            scales: {
+                                                x: {
+                                                    display: false,
+                                                    grid: {
+                                                        display: false,
+                                                    },
+                                                },
+                                                y: {
+                                                    display: false,
+                                                    min: 0,
+                                                    max: {{ $server->memory_total }},
+                                                    grid: {
+                                                        display: false,
+                                                    },
+                                                },
                                             },
-                                            axisY: {
-                                                offset: 0,
-                                                low: 0,
-                                                high: {{ $server->memory_total }},
-                                                showGrid: false,
-                                                showLabel: false,
+                                            plugins: {
+                                                legend: {
+                                                    display: false,
+                                                },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: (context) => context.formattedValue + ' MB'
+                                                    },
+                                                    displayColors: false,
+                                                },
                                             },
-                                        }
-                                    )
+                                        },
+                                    }
+                                )
 
-                                    Livewire.on('chartUpdate', ({ servers }) => {
-                                        window.pulse.charts['memory-{{ $server->slug }}'].update({
-                                            series: [
-                                                {
-                                                    className: 'stroke-purple-600',
-                                                    data: servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used),
-                                                }
-                                            ],
-                                        })
-                                    })
-                                }
-                            }"
-                        ></div>
+                                Livewire.on('chartUpdate', ({ servers }) => {
+                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => '')
+                                    chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used)
+                                    chart.update()
+                                })
+                            }
+                        }"
+                    >
+                        <canvas x-ref="canvas" width="100%" class="ring-1 ring-gray-900/5 bg-white rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
-                    <div class="text-xl font-bold text-gray-700 w-12">
+                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                    <div class="text-xl font-bold text-gray-700 w-14 whitespace-nowrap">
                         {{ $server->cpu_percent }}%
                     </div>
-
-                    <div wire:ignore>
-                        <div
-                            id="cpu-{{ $server->slug }}" class="h-9 w-48"
-                            x-data="{
-                                init() {
-                                    window.pulse.charts['cpu-{{ $server->slug }}'] = new LineChart(
-                                        '#cpu-{{ $server->slug }}',
-                                        {
-                                            series: [
+                </div>
+                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                    <div
+                        class="w-full h-9 relative"
+                        wire:ignore
+                        x-data="{
+                            init() {
+                                const chart = new Chart(
+                                    this.$refs.canvas,
+                                    {
+                                        type: 'line',
+                                        data: {
+                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => '')),
+                                            datasets: [
                                                 {
-                                                    className: 'stroke-purple-600',
-                                                    data: @json(collect($server->readings)->map(fn (stdClass $reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
+                                                    label: 'CPU Percent',
+                                                    borderColor: '#9333ea',
+                                                    borderWidth: 2,
+                                                    data: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
+                                                    pointStyle: false,
+                                                    tension: 0.2,
+                                                    spanGaps: false,
                                                 },
                                             ],
                                         },
-                                        {
-                                            lineSmooth: Interpolation.simple({
-                                                divisor: 2
-                                            }),
-                                            classNames: {
-                                                line: 'stroke-2 fill-none',
+                                        options: {
+                                            maintainAspectRatio: false,
+                                            layout: {
+                                                autoPadding: false,
                                             },
-                                            fullWidth: true,
-                                            showPoint: false,
-                                            chartPadding: 1, // Half of the stroke width - avoids overflow at the extremes
-                                            axisX: {
-                                                offset: 0,
-                                                showGrid: false,
-                                                showLabel: false,
+                                            scales: {
+                                                x: {
+                                                    display: false,
+                                                    grid: {
+                                                        display: false,
+                                                    },
+                                                },
+                                                y: {
+                                                    display: false,
+                                                    min: 0,
+                                                    max: 100,
+                                                    grid: {
+                                                        display: false,
+                                                    },
+                                                },
                                             },
-                                            axisY: {
-                                                offset: 0,
-                                                low: 0,
-                                                high: 100,
-                                                showGrid: false,
-                                                showLabel: false,
+                                            plugins: {
+                                                legend: {
+                                                    display: false,
+                                                },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: (context) => context.formattedValue + '%',
+                                                    },
+                                                    displayColors: false,
+                                                },
                                             },
-                                        }
-                                    )
+                                        },
+                                    }
+                                )
 
-                                    Livewire.on('chartUpdate', ({ servers }) => {
-                                        window.pulse.charts['cpu-{{ $server->slug }}'].update({
-                                            series: [
-                                                {
-                                                    className: 'stroke-purple-600',
-                                                    data: servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent),
-                                                }
-                                            ],
-                                        })
-                                    })
-                                }
-                            }"
-                        ></div>
+                                Livewire.on('chartUpdate', ({ servers }) => {
+                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => '')
+                                    chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent)
+                                    chart.update()
+                                })
+                            }
+                        }"
+                    >
+                        <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div class="flex items-center gap-10 [&:nth-child(1n+11)]:border-t {{ count($servers) > 1 ? 'py-1' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                <div class="flex items-center gap-8 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
-                        <div class="flex items-center gap-2">
-                            @if (count($server->storage) > 1 || $storage->directory !== '/')
-                                <div>
-                                    <span class="text-xl font-bold text-gray-700">{{ $storage->directory }}</span>
-                                </div>
-                            @endif
-                            <div>
+                        <div class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
+                            <div class="whitespace-nowrap">
                                 <span class="text-xl font-bold text-gray-700">{{ $friendlySize($storage->used) }}</span>
                                 <span class="text-sm font-medium text-gray-500">/ {{ $friendlySize($storage->total) }}</span>
                             </div>
 
-                            <div wire:ignore>
-                                {{-- TODO: Make this work with multiple storage devices --}}
-                                <div
-                                    id="storage-{{ $server->slug }}" class="flex-shrink-0 w-8 h-8"
-                                    x-data="{
-                                        init() {
-                                            window.pulse.charts['storage-{{ $server->slug }}'] = new PieChart(
-                                                '#storage-{{ $server->slug }}',
-                                                {
-                                                    series: [
-                                                        { value: {{ $storage->total - $storage->used }}, className: 'stroke-purple-100', },
-                                                        { value: {{ $storage->used }}, className: 'stroke-purple-600' },
+                            <div
+                                wire:ignore
+                                x-data="{
+                                    init() {
+                                        const chart = new Chart(
+                                            this.$refs.canvas,
+                                            {
+                                                type: 'doughnut',
+                                                data: {
+                                                    labels: ['Used', 'Free'],
+                                                    datasets: [
+                                                        {
+                                                            data: [
+                                                                {{ $storage->used }},
+                                                                {{ $storage->total - $storage->used }},
+                                                            ],
+                                                            backgroundColor: [
+                                                                '#9333ea',
+                                                                '#f3e8ff',
+                                                            ],
+                                                            hoverBackgroundColor: [
+                                                                '#9333ea',
+                                                                '#f3e8ff',
+                                                            ],
+                                                        },
                                                     ],
                                                 },
-                                                {
-                                                    donut: true,
-                                                    donutWidth: 4,
-                                                    showLabel: false,
-                                                }
-                                            )
-                                        }
-                                    }"
-                                ></div>
+                                                options: {
+                                                    borderWidth: 0,
+                                                    plugins: {
+                                                        legend: {
+                                                            display: false,
+                                                        },
+                                                        tooltip: {
+                                                            enabled: false,
+                                                            callbacks: {
+                                                                label: (context) => context.formattedValue + ' MB',
+                                                            },
+                                                            displayColors: false,
+                                                        },
+                                                    },
+                                                },
+                                            }
+                                        )
+
+                                        Livewire.on('chartUpdate', ({ servers }) => {
+                                            const storage = servers['{{ $server->slug }}'].storage.find(storage => storage.directory === '{{ $storage->directory }}')
+                                            chart.data.datasets[0].data = [
+                                                storage.used,
+                                                storage.total - storage.used,
+                                            ]
+                                            chart.update()
+                                        })
+                                    }
+                                }"
+                            >
+                                <canvas x-ref="canvas" class="h-8 w-8"></canvas>
                             </div>
                         </div>
                     @endforeach
