@@ -7,14 +7,13 @@ use Illuminate\Database\Connection;
 /**
  * @internal
  */
-class JobFinished extends Update
+class SlowJobFinished extends Update
 {
     /**
      * Create a new JobFinished instance.
      */
     public function __construct(
         public string $jobUuid,
-        public string $startedProcessingAt,
         public int $duration,
     ) {
         //
@@ -28,7 +27,8 @@ class JobFinished extends Update
         $db->table($this->table())
             ->where('job_uuid', $this->jobUuid)
             ->update([
-                'duration' => $this->duration,
+                'slowest' => $db->raw("COALESCE(GREATEST(`slowest`,{$this->duration}),{$this->duration})"),
+                'slow' => $db->raw('`slow` + 1'),
             ]);
     }
 

@@ -100,6 +100,6 @@ class Cache extends Component
      */
     protected function monitoredKeysCacheHash(): string
     {
-        return $this->monitoredKeys()->pipe(fn (Collection $items) => md5($items->toJson()));
+        return $this->monitoredKeys()->toJson();
     }
 }

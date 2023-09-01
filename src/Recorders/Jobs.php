@@ -10,7 +10,7 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\JobFinished;
+use Laravel\Pulse\Entries\SlowJobFinished;
 use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Pulse;
 
@@ -35,7 +35,7 @@ class Jobs
      * @var list<class-string>
      */
     public array $listen = [
-        JobFailed::class,
+        // JobFailed::class,
         JobProcessed::class,
         JobProcessing::class,
         JobExceptionOccurred::class,
@@ -61,11 +61,6 @@ class Jobs
             return null;
         }
 
-        // TODO: currently if a job fails, we have no way of tracking it through properly.
-        // When a job fails it gets a new "jobId", so we can't track the one job.
-        // If we can get the job's UUID in the `JobQueued` event, then we can
-        // follow the job through successfully.
-
         $now = new CarbonImmutable();
 
         if ($event instanceof JobQueued) {
@@ -85,12 +80,15 @@ class Jobs
             return null;
         }
 
-        return tap(new JobFinished(
+        $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
+
+        if ($duration < $this->config->get('pulse.slow_job_threshold')) {
+            return null;
+        }
+
+        return tap(new SlowJobFinished(
             (string) $event->job->uuid(),
-            $this->lastJobStartedProcessingAt->toDateTimeString('millisecond'),
-            $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
-        ), function () {
-            $this->lastJobStartedProcessingAt = null;
-        });
+            $duration,
+        ), fn () => $this->lastJobStartedProcessingAt = null);
     }
 }
