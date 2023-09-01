@@ -48,11 +48,9 @@
                                             <x-pulse::http-method-badge :method="$method" />
                                         </x-pulse::td>
                                         <x-pulse::td>
-                                            <div>
-                                                <code class="ml-1 text-xs text-gray-900">
-                                                    {{ $uri }}
-                                                </code>
-                                            </div>
+                                            <code class="text-xs text-gray-900">
+                                                {{ $uri }}
+                                            </code>
                                             @if ($route['action'])
                                                 <p class="mt-1 text-xs text-gray-500">
                                                     {{ $route['action'] }}
