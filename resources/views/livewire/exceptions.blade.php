@@ -61,7 +61,7 @@
                                             </p>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-center text-gray-700 text-sm font-bold whitespace-nowrap">
-                                            {{ $exception->last_occurrence !== null ? Carbon\CarbonImmutable::parse($exception->last_occurrence)->fromNow() : 'Unknown' }}
+                                            {{ $exception->last_occurrence !== null ? Carbon\CarbonImmutable::parse($exception->last_occurrence)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm font-bold">
                                             {{ number_format($exception->count) }}
