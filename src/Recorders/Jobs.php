@@ -9,6 +9,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\JobReleasedAfterException;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\SlowJobFinished;
 use Laravel\Pulse\Entries\Update;
@@ -35,7 +36,7 @@ class Jobs
      * @var list<class-string>
      */
     public array $listen = [
-        JobExceptionOccurred::class,
+        JobReleasedAfterException::class,
         JobFailed::class,
         JobProcessed::class,
         JobProcessing::class,
@@ -55,7 +56,7 @@ class Jobs
     /**
      * Record the job.
      */
-    public function record(JobExceptionOccurred|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|null
+    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|null
     {
         if ($event->connectionName === 'sync') {
             return null;
