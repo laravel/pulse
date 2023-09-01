@@ -35,7 +35,7 @@ class Jobs
      * @var list<class-string>
      */
     public array $listen = [
-        // JobFailed::class,
+        JobFailed::class,
         JobProcessed::class,
         JobProcessing::class,
         JobExceptionOccurred::class,

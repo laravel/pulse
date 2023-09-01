@@ -121,11 +121,6 @@ parameters:
 			path: src/Recorders/Jobs.php
 
 		-
-			message: "#^Cannot call method toDateTimeString\\(\\) on Carbon\\\\CarbonImmutable\\|null\\.$#"
-			count: 1
-			path: src/Recorders/Jobs.php
-
-		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
 			count: 1
 			path: src/Recorders/QueueSizes.php
