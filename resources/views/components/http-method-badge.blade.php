@@ -2,10 +2,10 @@
 
 @php
 $colorClasses = match ($method) {
-    'GET', 'OPTIONS' => 'text-purple-600 bg-purple-200 border-purple-300',
-    'POST', 'PUT', 'PATCH' => 'text-blue-600 bg-blue-200 border-blue-300',
-    'DELETE' => 'text-red-600 bg-red-200 border-red-300',
-    default => 'text-gray-600 bg-gray-200 border-gray-300',
+    'GET', 'OPTIONS' => 'text-purple-400 bg-purple-50 border-purple-200',
+    'POST', 'PUT', 'PATCH' => 'text-blue-400 bg-blue-50 border-blue-200',
+    'DELETE' => 'text-red-400 bg-red-50 border-red-200',
+    default => 'text-gray-400 bg-gray-50 border-gray-200',
 }
 @endphp
 
