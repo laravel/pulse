@@ -1,14 +1,14 @@
 <x-pulse>
-    <livewire:servers lazy />
-    <livewire:usage lazy />
-    {{-- <livewire:usage type="dispatched_job_counts" lazy /> --}}
-    {{-- <livewire:usage type="slow_endpoint_counts" lazy /> --}}
-    {{-- <livewire:usage type="request_counts" lazy /> --}}
-    <livewire:exceptions lazy />
-    <livewire:slow-routes lazy />
-    <livewire:slow-queries lazy />
-    <livewire:slow-jobs lazy />
-    <livewire:slow-outgoing-requests lazy />
-    <livewire:cache lazy />
-    <livewire:queues lazy />
+    <livewire:servers />
+    <livewire:usage />
+    {{-- <livewire:usage type="dispatched_job_counts" /> --}}
+    {{-- <livewire:usage type="slow_endpoint_counts" /> --}}
+    {{-- <livewire:usage type="request_counts" /> --}}
+    <livewire:exceptions />
+    <livewire:slow-routes />
+    <livewire:slow-queries />
+    <livewire:slow-jobs />
+    <livewire:slow-outgoing-requests />
+    <livewire:cache />
+    <livewire:queues />
 </x-pulse>

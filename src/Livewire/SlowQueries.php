@@ -8,8 +8,10 @@ use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
+#[Lazy]
 class SlowQueries extends Component
 {
     use HasColumns, HasPeriod, RemembersQueries, ShouldNotReportUsage;

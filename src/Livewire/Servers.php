@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
+#[Lazy]
 class Servers extends Component
 {
     use HasColumns, HasPeriod, ShouldNotReportUsage;
