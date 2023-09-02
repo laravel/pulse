@@ -1,3 +1,19 @@
+@php
+use \Doctrine\SqlFormatter\HtmlHighlighter;
+use \Doctrine\SqlFormatter\SqlFormatter;
+
+$sqlFormatter = new SqlFormatter(new HtmlHighlighter([
+    HtmlHighlighter::HIGHLIGHT_RESERVED => 'class="font-semibold"',
+    HtmlHighlighter::HIGHLIGHT_QUOTE => 'class="text-purple-200"',
+    HtmlHighlighter::HIGHLIGHT_BACKTICK_QUOTE => 'class="text-purple-200"',
+    HtmlHighlighter::HIGHLIGHT_BOUNDARY => 'class="text-cyan-200"',
+    HtmlHighlighter::HIGHLIGHT_NUMBER => 'class="text-orange-200"',
+    HtmlHighlighter::HIGHLIGHT_WORD => 'class="text-orange-200"',
+    HtmlHighlighter::HIGHLIGHT_VARIABLE => 'class="text-orange-200"',
+    HtmlHighlighter::HIGHLIGHT_ERROR => 'class="text-red-200"',
+    HtmlHighlighter::HIGHLIGHT_COMMENT => 'class="text-gray-400"',
+], false));
+@endphp
 <x-pulse::card class="col-span-3">
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
@@ -41,9 +57,12 @@
                                 @foreach ($slowQueries as $query)
                                     <tr>
                                         <x-pulse::td class="!p-0">
-                                            <code class="bg-gray-700 rounded-md h-full p-3 text-gray-100 block text-xs truncate" title="{{ $query->sql }}">
-                                                {{ $query->sql }}
-                                            </code>
+                                            <div class="relative">
+                                                <code class="bg-gray-700 py-3 rounded-md h-full text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
+                                                    <span class="px-3">{!! $sqlFormatter->highlight($query->sql) !!}</span>
+                                                </code>
+                                                <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700"></div>
+                                            </div>
                                         </x-pulse::td>
                                         <x-pulse::td class="text-right text-gray-700 text-sm w-24">
                                             <strong>{{ number_format($query->count) }}</strong>
