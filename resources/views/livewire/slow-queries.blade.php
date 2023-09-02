@@ -14,7 +14,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
     HtmlHighlighter::HIGHLIGHT_COMMENT => 'class="text-gray-400"',
 ], false));
 @endphp
-<x-pulse::card class="col-span-3">
+<x-pulse::card class="col-span-{{ $cols ?? 3 }}">
     <x-slot:title>
         <x-pulse::card-title class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-500">

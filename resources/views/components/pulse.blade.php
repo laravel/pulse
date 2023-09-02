@@ -1,3 +1,4 @@
+@props(['cols' => 6])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -41,7 +42,7 @@
             </header>
 
             <main class="pt-5 px-5 pb-12">
-                <div class="container mx-auto grid grid-cols-6 gap-6">
+                <div class="container mx-auto grid grid-cols-{{ $cols }} gap-6">
                     {{ $slot }}
                 </div>
             </main>

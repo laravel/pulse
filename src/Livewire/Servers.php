@@ -4,13 +4,14 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
+use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
 class Servers extends Component
 {
-    use HasPeriod, ShouldNotReportUsage;
+    use HasColumns, HasPeriod, ShouldNotReportUsage;
 
     /**
      * Render the component.

@@ -5,12 +5,13 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
+use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Component;
 
 class Queues extends Component
 {
-    use ShouldNotReportUsage;
+    use HasColumns, ShouldNotReportUsage;
 
     /**
      * Render the component.

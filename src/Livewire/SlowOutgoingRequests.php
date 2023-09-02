@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\View;
+use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
@@ -12,7 +13,7 @@ use Livewire\Component;
 
 class SlowOutgoingRequests extends Component
 {
-    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
+    use HasColumns, HasPeriod, RemembersQueries, ShouldNotReportUsage;
 
     /**
      * Render the component.
