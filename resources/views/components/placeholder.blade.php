@@ -1,10 +1,12 @@
 <x-pulse::card class="animate-pulse col-span-{{ $cols }}">
     <x-slot:title>
-        <div class="rounded bg-gray-100 h-6 w-1/2"></div>
+        <div class="h-[30px] flex items-center w-full">
+            <div class="rounded bg-gray-50 h-6 w-1/2"></div>
+        </div>
     </x-slot:title>
-    <div class="space-y-4">
-        <div class="rounded bg-gray-100 h-4 w-1/3"></div>
-        <div class="rounded bg-gray-100 h-4 w-2/3"></div>
-        <div class="rounded bg-gray-100 h-4 w-3/5"></div>
+    <div class="space-y-4 h-56">
+        <div class="rounded bg-gray-50 h-12"></div>
+        <div class="rounded bg-gray-50 h-12"></div>
+        <div class="rounded bg-gray-50 h-12"></div>
     </div>
 </x-pulse::card>

@@ -40,6 +40,6 @@ class Servers extends Component
      */
     public function placeholder(): Renderable
     {
-        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
+        return View::make('pulse::components.servers-placeholder', ['cols' => $this->cols]);
     }
 }
