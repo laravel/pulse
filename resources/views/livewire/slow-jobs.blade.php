@@ -6,7 +6,7 @@
             </svg>
             <span>
                 <span title="Time: {{ $time }}ms; Run at: {{ $runAt }}">Slow Jobs</span>
-                <small class="ml-2 text-gray-400 text-xs font-medium">past {{ $this->periodForHumans() }}, &gt;&equals;{{ config('pulse.slow_job_threshold') }}ms</small>
+                <small class="ml-2 text-gray-400 text-xs font-medium">{{ config('pulse.slow_job_threshold') }}ms threshold, past {{ $this->periodForHumans() }}</small>
             </span>
         </x-pulse::card-title>
     </x-slot:title>
