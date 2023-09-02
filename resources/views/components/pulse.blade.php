@@ -40,7 +40,7 @@
                 </div>
             </header>
 
-            <main class="p-5">
+            <main class="pt-5 px-5 pb-12">
                 <div class="container mx-auto grid grid-cols-6 gap-6">
                     {{ $slot }}
                 </div>
