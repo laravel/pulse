@@ -27,7 +27,7 @@
             <div :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']">
                 <div class="grid grid-cols-3 text-center">
                     <div>
-                        <span class="text-xl uppercase font-bold text-gray-700">
+                        <span class="text-xl uppercase font-bold text-gray-700 tabular-nums">
                             {{ number_format($allCacheInteractions->hits) }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500">
@@ -35,7 +35,7 @@
                         </span>
                     </div>
                     <div>
-                        <span class="text-xl uppercase font-bold text-gray-700">
+                        <span class="text-xl uppercase font-bold text-gray-700 tabular-nums">
                             {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500">
@@ -43,7 +43,7 @@
                         </span>
                     </div>
                     <div>
-                        <span class="text-xl uppercase font-bold text-gray-700">
+                        <span class="text-xl uppercase font-bold text-gray-700 tabular-nums">
                             {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500">
@@ -77,13 +77,13 @@
                                             {{ $interaction->key }}
                                         </code>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 text-sm">
+                                    <x-pulse::td class="text-right text-gray-700 text-sm tabular-nums">
                                         <strong>{{ number_format($interaction->hits) }}</strong>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap tabular-nums">
                                         <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                    <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap tabular-nums">
                                         <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
                                     </x-pulse::td>
                                 </tr>

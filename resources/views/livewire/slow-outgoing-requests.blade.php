@@ -62,10 +62,10 @@
                                                     </code>
                                                 </div>
                                             </x-pulse::td>
-                                            <x-pulse::td class="text-right text-gray-700 text-sm w-24">
+                                            <x-pulse::td class="text-right text-gray-700 text-sm w-24 tabular-nums">
                                                 <strong>{{ number_format($request->count) }}</strong>
                                             </x-pulse::td>
-                                            <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
+                                            <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap tabular-nums">
                                                 @if ($request->slowest === null)
                                                     <strong>Unknown</strong>
                                                 @else

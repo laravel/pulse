@@ -45,10 +45,10 @@
                                                 {{ $job->job }}
                                             </code>
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 tabular-nums">
                                             <strong>{{ number_format($job->count) }}</strong>
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap tabular-nums">
                                             @if ($job->slowest === null)
                                                 <strong>Unknown</strong>
                                             @else

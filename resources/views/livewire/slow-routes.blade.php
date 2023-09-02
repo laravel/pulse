@@ -57,10 +57,10 @@
                                                 </p>
                                             @endif
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm tabular-nums">
                                             <strong>{{ number_format($route['request_count']) }}</strong>
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm whitespace-nowrap tabular-nums">
                                             @if ($route['slowest_duration'] === null)
                                                 <strong>Unknown</strong>
                                             @else

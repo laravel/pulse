@@ -64,10 +64,10 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                                                 <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700"></div>
                                             </div>
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 tabular-nums">
                                             <strong>{{ number_format($query->count) }}</strong>
                                         </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap">
+                                        <x-pulse::td class="text-right text-gray-700 text-sm w-24 whitespace-nowrap tabular-nums">
                                             @if ($query->slowest === null)
                                                 <strong>Unknown</strong>
                                             @else

@@ -53,7 +53,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                     <span class="text-base font-bold text-gray-600">{{ $server->name }}</span>
                 </div>
                 <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    <div class="text-xl font-bold text-gray-700 w-14 whitespace-nowrap">
+                    <div class="text-xl font-bold text-gray-700 w-14 whitespace-nowrap tabular-nums">
                         {{ $server->cpu_percent }}%
                     </div>
                 </div>
@@ -130,7 +130,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                     </div>
                 </div>
                 <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    <div class="w-32 flex-shrink-0 whitespace-nowrap">
+                    <div class="w-36 flex-shrink-0 whitespace-nowrap tabular-nums">
                         <span class="text-xl font-bold text-gray-700">
                             {{ $friendlySize($server->memory_used, 1) }}
                         </span>
@@ -214,7 +214,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                 <div class="flex items-center gap-8 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
                         <div class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
-                            <div class="whitespace-nowrap">
+                            <div class="whitespace-nowrap tabular-nums">
                                 <span class="text-xl font-bold text-gray-700">{{ $friendlySize($storage->used) }}</span>
                                 <span class="text-sm font-medium text-gray-500">/ {{ $friendlySize($storage->total) }}</span>
                             </div>

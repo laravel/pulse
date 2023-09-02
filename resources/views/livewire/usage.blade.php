@@ -77,7 +77,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <b class="text-xl text-gray-900 font-bold">
+                                        <b class="text-xl text-gray-900 font-bold tabular-nums">
                                             {{ number_format($userRequestCount['count']) }}
                                         </b>
                                     </div>
