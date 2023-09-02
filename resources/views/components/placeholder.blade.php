@@ -1,4 +1,4 @@
-<x-pulse::card class="animate-pulse {{ $class ?? '' }}">
+<x-pulse::card class="animate-pulse col-span-{{ $cols }}">
     <x-slot:title>
         <div class="rounded bg-gray-100 h-6 w-1/2"></div>
     </x-slot:title>

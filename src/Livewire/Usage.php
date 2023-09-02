@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
@@ -15,7 +14,12 @@ use Livewire\Component;
 #[Lazy]
 class Usage extends Component
 {
-    use HasColumns, HasPeriod, RemembersQueries, ShouldNotReportUsage;
+    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
+
+    /**
+     * The number of columns to span.
+     */
+    public int|string $cols = 3;
 
     /**
      * The type of usage to show.
@@ -53,6 +57,6 @@ class Usage extends Component
      */
     public function placeholder(): Renderable
     {
-        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }

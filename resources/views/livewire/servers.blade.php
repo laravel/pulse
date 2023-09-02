@@ -11,7 +11,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
 @endphp
 <div
     wire:poll.5s
-    class="col-span-{{ $cols ?? 'full' }}"
+    class="col-span-{{ $cols }}"
     x-data="{
         loadingNewDataset: false,
         init() {

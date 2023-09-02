@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
 use Livewire\Component;
@@ -13,7 +12,12 @@ use Livewire\Component;
 #[Lazy]
 class Queues extends Component
 {
-    use HasColumns, ShouldNotReportUsage;
+    use ShouldNotReportUsage;
+
+    /**
+     * The number of columns to span.
+     */
+    public int|string $cols = 3;
 
     /**
      * Render the component.
@@ -31,6 +35,6 @@ class Queues extends Component
      */
     public function placeholder(): Renderable
     {
-        return View::make('pulse::components.placeholder', ['class' => 'col-span-3']);
+        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }

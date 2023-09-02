@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\HasColumns;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
@@ -13,7 +12,12 @@ use Livewire\Component;
 #[Lazy]
 class Servers extends Component
 {
-    use HasColumns, HasPeriod, ShouldNotReportUsage;
+    use HasPeriod, ShouldNotReportUsage;
+
+    /**
+     * The number of columns to span.
+     */
+    public int|string $cols = 'full';
 
     /**
      * Render the component.
@@ -36,6 +40,6 @@ class Servers extends Component
      */
     public function placeholder(): Renderable
     {
-        return View::make('pulse::components.placeholder', ['class' => 'col-span-6']);
+        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }
