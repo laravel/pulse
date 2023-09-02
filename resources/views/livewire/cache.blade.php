@@ -71,7 +71,7 @@
                         </x-pulse::thead>
                         <tbody>
                             @foreach ($monitoredCacheInteractions as $interaction)
-                                <tr>
+                                <tr wire:key="{{ $interaction->key }}">
                                     <x-pulse::td>
                                         <code class="block text-xs text-gray-900">
                                             {{ $interaction->key }}

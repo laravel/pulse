@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             @foreach ($queues as $queue)
-                <tr>
+                <tr wire:key="{{ $queue['queue'].$queue['connection'] }}">
                     <td class="rounded-l-md bg-gray-50 px-3 py-2 text-left">
                         <div class="text-gray-700 text-sm">
                             {{ $queue['queue'] }}{{ $showConnection ? '('.$queue['connection'].')' : '' }}

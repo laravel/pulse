@@ -20,7 +20,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 font-bold">Storage</div>
             @foreach ($servers as $server)
-                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }}"  title="{{ $server->updated_at->fromNow() }}">
+                <div wire:key="{{ $server->name }}" class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }}" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
                         <div class="w-5 flex justify-center mr-1">
                             <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>

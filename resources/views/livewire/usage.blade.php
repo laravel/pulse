@@ -62,7 +62,7 @@
                     @else
                         <div class="grid grid-cols-2 gap-2">
                             @foreach ($userRequestCounts as $userRequestCount)
-                                <div class="flex items-center justify-between p-3 gap-3 bg-gray-50 rounded">
+                                <div wire:key="{{ $userRequestCount['user']['name'] }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 rounded">
                                     <div class="flex items-center gap-3">
                                         @if ($userRequestCount['user']['avatar'] ?? false)
                                             <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">

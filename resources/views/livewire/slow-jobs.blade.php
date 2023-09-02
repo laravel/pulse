@@ -39,7 +39,7 @@
                             </x-pulse::thead>
                             <tbody>
                                 @foreach ($slowJobs as $job)
-                                    <tr>
+                                    <tr wire:key="{{ $job->job }}">
                                         <x-pulse::td>
                                             <code class="block text-xs text-gray-900 truncate" title="{{ $job->job }}">
                                                 {{ $job->job }}
