@@ -20,9 +20,9 @@
         </script>
     </head>
     <body class="font-sans antialiased">
-        <div class="bg-gray-50 min-h-screen">
+        <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
             <header class="px-5">
-                <div class="{{ $fullWidth ? '' : 'container' }} py-5 mx-auto border-b">
+                <div class="{{ $fullWidth ? '' : 'container' }} py-5 mx-auto border-b border-gray-200 dark:border-gray-900">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -34,9 +34,12 @@
                                     </linearGradient>
                                 </defs>
                             </svg>
-                            <span class="ml-2 text-2xl text-gray-700 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
+                            <span class="ml-2 text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
                         </div>
-                        <livewire:period-selector />
+                        <div class="flex items-center gap-6">
+                            <livewire:period-selector />
+                            <x-pulse::theme-switcher />
+                        </div>
                     </div>
                 </div>
             </header>

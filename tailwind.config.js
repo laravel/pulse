@@ -11,6 +11,7 @@ module.exports = {
             pattern: /grid-cols-(\d+)/,
         }
     ],
+    darkMode: 'class',
     theme: {
         extend: {
             fontFamily: {
