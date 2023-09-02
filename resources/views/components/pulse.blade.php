@@ -1,4 +1,4 @@
-@props(['cols' => 6])
+@props(['cols' => 6, 'fullWidth' => false])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -22,7 +22,7 @@
     <body class="font-sans antialiased">
         <div class="bg-gray-50 min-h-screen">
             <header class="px-5">
-                <div class="container py-5 mx-auto border-b">
+                <div class="{{ $fullWidth ? '' : 'container' }} py-5 mx-auto border-b">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +42,7 @@
             </header>
 
             <main class="pt-5 px-5 pb-12">
-                <div class="container mx-auto grid grid-cols-{{ $cols }} gap-6">
+                <div class="{{ $fullWidth ? '' : 'container' }} mx-auto grid grid-cols-{{ $cols }} gap-6">
                     {{ $slot }}
                 </div>
             </main>
