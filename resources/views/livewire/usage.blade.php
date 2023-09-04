@@ -10,7 +10,12 @@
         details="{{ $this->usage === 'slow_endpoint_counts' ? (config('pulse.slow_endpoint_threshold').'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
-            <x-pulse::icons.cursor-arrow-rays />
+            <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {
+                'request_counts' => 'arrow-trending-up',
+                'slow_endpoint_counts' => 'clock',
+                'dispatched_job_counts' => 'scale',
+                default => 'cursor-arrow-rays'
+            }" />
         </x-slot:icon>
         <x-slot:actions>
             @if (! $this->type)
