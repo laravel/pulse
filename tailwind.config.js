@@ -12,6 +12,10 @@ module.exports = {
             pattern: /(row|col)-span-(\d+|full)/,
             variants: ['sm', 'md', 'lg', 'xl', '2xl', 'default', 'default:lg'],
         },
+        {
+            pattern: /h-\d+/,
+            variants: ['sm', 'md', 'lg', 'xl', '2xl'],
+        }
     ],
     darkMode: 'class',
     theme: {
@@ -19,6 +23,9 @@ module.exports = {
             fontFamily: {
                 'sans': ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            height: {
+                '128': '32rem',
+            }
         },
     },
     plugins: [
