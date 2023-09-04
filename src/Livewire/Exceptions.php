@@ -9,17 +9,11 @@ use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 
 #[Lazy]
-class Exceptions extends Component
+class Exceptions extends Card
 {
     use HasPeriod, RemembersQueries, ShouldNotReportUsage;
-
-    /**
-     * The number of columns to span.
-     */
-    public int|string $cols = 3;
 
     /**
      * The view type
@@ -46,13 +40,5 @@ class Exceptions extends Component
             'runAt' => $runAt,
             'exceptions' => $exceptions,
         ]);
-    }
-
-    /**
-     * Render the placeholder.
-     */
-    public function placeholder(): Renderable
-    {
-        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }

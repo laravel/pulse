@@ -4,6 +4,7 @@
         "watch": "vite build --watch"
     },
     "devDependencies": {
+        "@tailwindcss/container-queries": "^0.1.1",
         "@tailwindcss/forms": "^0.5.3",
         "autoprefixer": "^10.4.13",
         "chart.js": "^4.4.0",

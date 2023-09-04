@@ -1,4 +1,4 @@
-@props(['cols' => 6, 'fullWidth' => false])
+@props(['cols' => 12, 'fullWidth' => false])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -22,7 +22,7 @@
     <body class="font-sans antialiased">
         <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
             <header class="px-5">
-                <div class="{{ $fullWidth ? '' : 'container' }} py-5 mx-auto border-b border-gray-200 dark:border-gray-900">
+                <div class="{{ $fullWidth ? '' : 'container' }} py-3 sm:py-5 mx-auto border-b border-gray-200 dark:border-gray-900">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -34,9 +34,9 @@
                                     </linearGradient>
                                 </defs>
                             </svg>
-                            <span class="ml-2 text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
+                            <span class="ml-2 text-lg sm:text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
                         </div>
-                        <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-3 sm:gap-6">
                             <livewire:period-selector />
                             <x-pulse::theme-switcher />
                         </div>
@@ -44,8 +44,8 @@
                 </div>
             </header>
 
-            <main class="pt-5 px-5 pb-12">
-                <div class="{{ $fullWidth ? '' : 'container' }} mx-auto grid grid-cols-{{ $cols }} gap-6">
+            <main class="pt-6 px-6 pb-12">
+                <div {{ $attributes->merge(['class' => "mx-auto grid default:grid-cols-{$cols} default:gap-6" . ($fullWidth ? '' : ' container')]) }}">
                     {{ $slot }}
                 </div>
             </main>

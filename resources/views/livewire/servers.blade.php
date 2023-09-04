@@ -8,10 +8,14 @@ $friendlySize = function(int $mb, int $precision = 0) {
     }
     return round($mb, $precision) . 'MB';
 };
+
+$cols = is_numeric($cols) ? $cols : 'full';
+$rows = is_numeric($rows) ? $rows : 1;
 @endphp
+
 <div
     wire:poll.5s
-    class="col-span-{{ $cols }}"
+    class="overflow-x-auto pb-px default:col-span-{{ $cols }} default:row-span-{{ $rows }} {{ $class }}"
     x-data="{
         loadingNewDataset: false,
         init() {
@@ -26,7 +30,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
     }"
 >
     @if ($servers->count() > 0)
-        <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(0,2fr),max-content,minmax(0,2fr),minmax(max-content,1fr)]">
+        <div class="min-w-[42rem] grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(0,2fr),max-content,minmax(0,2fr),minmax(max-content,1fr)]">
             <div></div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">CPU</div>
@@ -41,9 +45,7 @@ $friendlySize = function(int $mb, int $precision = 0) {
                             <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>
                         </div>
                     @else
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 fill-red-500 mr-1">
-                            <path d="M2.22 2.22a.75.75 0 011.06 0l6.783 6.782a1 1 0 01.935.935l6.782 6.783a.75.75 0 11-1.06 1.06l-6.783-6.782a1 1 0 01-.935-.935L2.22 3.28a.75.75 0 010-1.06zM3.636 16.364a9.004 9.004 0 01-1.39-10.936L3.349 6.53a7.503 7.503 0 001.348 8.773.75.75 0 01-1.061 1.061zM6.464 13.536a5 5 0 01-1.213-5.103l1.262 1.262a3.493 3.493 0 001.012 2.78.75.75 0 01-1.06 1.06zM16.364 3.636a9.004 9.004 0 011.39 10.937l-1.103-1.104a7.503 7.503 0 00-1.348-8.772.75.75 0 111.061-1.061zM13.536 6.464a5 5 0 011.213 5.103l-1.262-1.262a3.493 3.493 0 00-1.012-2.78.75.75 0 011.06-1.06z" />
-                        </svg>
+                        <x-pulse::icons.signal-slash class="w-5 h-5 stroke-red-500 mr-1" />
                     @endif
                 </div>
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">

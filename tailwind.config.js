@@ -5,11 +5,13 @@ module.exports = {
     content: ["./resources/views/**/*.blade.php"],
     safelist: [
         {
-            pattern: /col-span-(\d+|full)/,
+            pattern: /grid-cols-(\d+)/,
+            variants: ['sm', 'md', 'lg', 'xl', '2xl', 'default', 'default:lg'],
         },
         {
-            pattern: /grid-cols-(\d+)/,
-        }
+            pattern: /(row|col)-span-(\d+|full)/,
+            variants: ['sm', 'md', 'lg', 'xl', '2xl', 'default', 'default:lg'],
+        },
     ],
     darkMode: 'class',
     theme: {
@@ -19,5 +21,11 @@ module.exports = {
             },
         },
     },
-    plugins: [require("@tailwindcss/forms")],
+    plugins: [
+        require("@tailwindcss/forms"),
+        require("@tailwindcss/container-queries"),
+        function ({ addVariant }) {
+            addVariant('default', 'html :where(&)')
+        }
+    ],
 };

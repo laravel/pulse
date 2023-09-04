@@ -1,17 +1,15 @@
-<x-pulse::card class="col-span-{{ $cols }}">
-    <x-slot:title>
-        <x-pulse::card-title class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-600">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-            </svg>
-            <span>
-                <span title="Time: {{ $time }}ms; Run at: {{ $runAt }}">Slow Outgoing Requests</span>
-                <small class="ml-2 text-gray-400 dark:text-gray-600 text-xs font-medium">{{ config('pulse.slow_outgoing_request_threshold') }}ms threshold, past {{ $this->periodForHumans() }}</small>
-            </span>
-        </x-pulse::card-title>
-    </x-slot:title>
+<x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
+    <x-pulse::card-header
+        name="Slow Outgoing Requests"
+        title="Time: {{ $time }}; Run at: {{ $runAt }};"
+        details="{{ config('pulse.slow_outgoing_request_threshold') }}ms threshold, past {{ $this->periodForHumans() }}"
+    >
+        <x-slot:icon>
+            <x-pulse::icons.cloud-arrow-up />
+        </x-slot:icon>
+    </x-pulse::card-header>
 
-    <div class="max-h-56 h-full relative overflow-y-auto" wire:poll.5s>
+    <x-pulse::card-body wire:poll.5s="">
         <div x-data="{
             loadingNewDataset: false,
             init() {
@@ -36,13 +34,19 @@
                         @if (count($slowOutgoingRequests) === 0)
                             <x-pulse::no-results />
                         @else
-                            <x-pulse::table class="table-fixed">
+                            <x-pulse::table>
+                                <colgroup>
+                                    <col width="0%" />
+                                    <col width="100%" />
+                                    <col width="0%" />
+                                    <col width="0%" />
+                                </colgroup>
                                 <x-pulse::thead>
                                     <tr>
-                                        <x-pulse::th class="text-left w-[70px]">Method</x-pulse::th>
+                                        <x-pulse::th class="text-left">Method</x-pulse::th>
                                         <x-pulse::th class="text-left">URI</x-pulse::th>
-                                        <x-pulse::th class="text-right w-24">Count</x-pulse::th>
-                                        <x-pulse::th class="text-right w-24">Slowest</x-pulse::th>
+                                        <x-pulse::th class="text-right">Count</x-pulse::th>
+                                        <x-pulse::th class="text-right">Slowest</x-pulse::th>
                                     </tr>
                                 </x-pulse::thead>
                                 <tbody>
@@ -54,10 +58,10 @@
                                             <x-pulse::td>
                                                 <x-pulse::http-method-badge :method="$method" />
                                             </x-pulse::td>
-                                            <x-pulse::td>
-                                                <div class="flex items-center">
+                                            <x-pulse::td class="max-w-[1px]">
+                                                <div class="flex items-center" title="{{ $uri }}">
                                                     <img wire:ignore src="https://unavatar.io/{{ parse_url($uri, PHP_URL_HOST) }}?fallback=false" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
-                                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $uri }}">
+                                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
                                                         {{ $uri }}
                                                     </code>
                                                 </div>
@@ -81,5 +85,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </x-pulse::card-body>
 </x-pulse::card>

@@ -9,17 +9,11 @@ use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
-use Livewire\Component;
 
 #[Lazy]
-class Cache extends Component
+class Cache extends Card
 {
     use HasPeriod, RemembersQueries, ShouldNotReportUsage;
-
-    /**
-     * The number of columns to span.
-     */
-    public int|string $cols = 3;
 
     /**
      * Render the component.
@@ -46,13 +40,5 @@ class Cache extends Component
             'allCacheInteractions' => $cacheInteractions,
             'monitoredCacheInteractions' => $monitoredCacheInteractions,
         ]);
-    }
-
-    /**
-     * Render the placeholder.
-     */
-    public function placeholder(): Renderable
-    {
-        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }

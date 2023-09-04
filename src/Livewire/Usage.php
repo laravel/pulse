@@ -9,17 +9,11 @@ use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 
 #[Lazy]
-class Usage extends Component
+class Usage extends Card
 {
     use HasPeriod, RemembersQueries, ShouldNotReportUsage;
-
-    /**
-     * The number of columns to span.
-     */
-    public int|string $cols = 3;
 
     /**
      * The type of usage to show.
@@ -50,13 +44,5 @@ class Usage extends Component
             'runAt' => $runAt,
             'userRequestCounts' => $userRequestCounts,
         ]);
-    }
-
-    /**
-     * Render the placeholder.
-     */
-    public function placeholder(): Renderable
-    {
-        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }

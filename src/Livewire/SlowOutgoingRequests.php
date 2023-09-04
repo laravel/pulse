@@ -9,17 +9,11 @@ use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Livewire\Attributes\Lazy;
-use Livewire\Component;
 
 #[Lazy]
-class SlowOutgoingRequests extends Component
+class SlowOutgoingRequests extends Card
 {
     use HasPeriod, RemembersQueries, ShouldNotReportUsage;
-
-    /**
-     * The number of columns to span.
-     */
-    public int|string $cols = 3;
 
     /**
      * Render the component.
@@ -34,13 +28,5 @@ class SlowOutgoingRequests extends Component
             'slowOutgoingRequests' => $slowOutgoingRequests,
             'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);
-    }
-
-    /**
-     * Render the placeholder.
-     */
-    public function placeholder(): Renderable
-    {
-        return View::make('pulse::components.placeholder', ['cols' => $this->cols]);
     }
 }
