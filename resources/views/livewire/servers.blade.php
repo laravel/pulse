@@ -9,8 +9,8 @@ $friendlySize = function(int $mb, int $precision = 0) {
     return round($mb, $precision) . 'MB';
 };
 
-$cols = is_numeric($cols) ? $cols : 'full';
-$rows = is_numeric($rows) ? $rows : 1;
+$cols = ! empty($cols) ? $cols : 'full';
+$rows = ! empty($rows) ? $rows : 1;
 @endphp
 
 <div
