@@ -25,66 +25,65 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         </x-slot:icon>
     </x-pulse::card-header>
 
-    <x-pulse::card-body wire:poll.5s="">
-        <div x-data="{
-            loadingNewDataset: false,
-            init() {
-                Livewire.on('period-changed', () => (this.loadingNewDataset = true))
+    <x-pulse::card-body :scroll="$scroll" wire:poll.5s="">
+        <div
+            x-data="{
+                loadingNewDataset: false,
+                init() {
+                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
-                Livewire.hook('commit', ({ component, succeed }) => {
-                    if (component.name === 'slow-queries') {
-                        succeed(() => this.loadingNewDataset = false)
-                    }
-                })
-            }
-        }">
-            <div class="max-w-full w-full">
-                <div class="max-w-full w-full" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    @if (count($slowQueries) === 0)
-                        <x-pulse::no-results />
-                    @else
-                        <x-pulse::table>
-                            <colgroup>
-                                <col width="100%" />
-                                <col width="0%" />
-                                <col width="0%" />
-                            </colgroup>
-                            <x-pulse::thead>
-                                <tr>
-                                    <x-pulse::th class="text-left">Query</x-pulse::th>
-                                    <x-pulse::th class="text-right">Count</x-pulse::th>
-                                    <x-pulse::th class="text-right">Slowest</x-pulse::th>
-                                </tr>
-                            </x-pulse::thead>
-                            <tbody>
-                                @foreach ($slowQueries as $query)
-                                    <tr class="h-2 first:h-0"></tr>
-                                    <tr wire:key="{{ md5($query->sql) }}">
-                                        <x-pulse::td class="!p-0 truncate max-w-[1px]">
-                                            <div class="relative">
-                                                <code class="bg-gray-700 dark:bg-gray-700/50 py-3 rounded-md h-full text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
-                                                    <span class="px-3">{!! $sqlFormatter->highlight($query->sql) !!}</span>
-                                                </code>
-                                                <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-[#2B3544] pointer-events-none"></div>
-                                            </div>
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                            <strong>{{ number_format($query->count) }}</strong>
-                                        </x-pulse::td>
-                                        <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                            @if ($query->slowest === null)
-                                                <strong>Unknown</strong>
-                                            @else
-                                                <strong>{{ number_format($query->slowest) ?: '<1' }}</strong> ms
-                                            @endif
-                                        </x-pulse::td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </x-pulse::table>
-                    @endif
-                </div>
-            </div>
+                    Livewire.hook('commit', ({ component, succeed }) => {
+                        if (component.name === 'slow-queries') {
+                            succeed(() => this.loadingNewDataset = false)
+                        }
+                    })
+                }
+            }"
+            :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
+        >
+            @if (count($slowQueries) === 0)
+                <x-pulse::no-results />
+            @else
+                <x-pulse::table>
+                    <colgroup>
+                        <col width="100%" />
+                        <col width="0%" />
+                        <col width="0%" />
+                    </colgroup>
+                    <x-pulse::thead>
+                        <tr>
+                            <x-pulse::th class="text-left">Query</x-pulse::th>
+                            <x-pulse::th class="text-right">Count</x-pulse::th>
+                            <x-pulse::th class="text-right">Slowest</x-pulse::th>
+                        </tr>
+                    </x-pulse::thead>
+                    <tbody>
+                        @foreach ($slowQueries as $query)
+                            <tr class="h-2 first:h-0"></tr>
+                            <tr wire:key="{{ md5($query->sql) }}">
+                                <x-pulse::td class="!p-0 truncate max-w-[1px]">
+                                    <div class="relative">
+                                        <code class="bg-gray-700 dark:bg-gray-700/50 py-3 rounded-md h-full text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
+                                            <span class="px-3">{!! $sqlFormatter->highlight($query->sql) !!}</span>
+                                        </code>
+                                        <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-[#2B3544] pointer-events-none"></div>
+                                    </div>
+                                </x-pulse::td>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
+                                    <strong>{{ number_format($query->count) }}</strong>
+                                </x-pulse::td>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                                    @if ($query->slowest === null)
+                                        <strong>Unknown</strong>
+                                    @else
+                                        <strong>{{ number_format($query->slowest) ?: '<1' }}</strong> ms
+                                    @endif
+                                </x-pulse::td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </x-pulse::table>
+            @endif
         </div>
     </x-pulse::card-body>
 </x-pulse::card>

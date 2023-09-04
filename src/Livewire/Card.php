@@ -23,6 +23,11 @@ abstract class Card extends Component
     public int|string|null $rows = null;
 
     /**
+     * Whether to scroll the card body.
+     */
+    public bool $scroll = true;
+
+    /**
      * Custom CSS classes.
      */
     public string $class = '';
