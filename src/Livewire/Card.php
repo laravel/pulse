@@ -35,7 +35,7 @@ abstract class Card extends Component
         return View::make('pulse::components.placeholder', [
             'cols' => $this->cols ?? null,
             'rows' => $this->rows ?? null,
-            'class' => $this->class
+            'class' => $this->class,
         ]);
     }
 }
