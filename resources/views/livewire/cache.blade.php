@@ -23,8 +23,8 @@
             }
         }">
             <div :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']">
-                <div class="grid grid-cols-3 text-center">
-                    <div>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             {{ number_format($allCacheInteractions->hits) }}
                         </span>
@@ -32,7 +32,7 @@
                             Hits
                         </span>
                     </div>
-                    <div>
+                    <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
                         </span>
@@ -40,7 +40,7 @@
                             Misses
                         </span>
                     </div>
-                    <div>
+                    <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
                         </span>

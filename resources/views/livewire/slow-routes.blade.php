@@ -52,12 +52,12 @@
                                         <x-pulse::td>
                                             <x-pulse::http-method-badge :method="$method" />
                                         </x-pulse::td>
-                                        <x-pulse::td class="truncate max-w-[1px]">
-                                            <code class="text-xs text-gray-900 dark:text-gray-100" title="{{ $uri }}">
+                                        <x-pulse::td class="overflow-hidden max-w-[1px]">
+                                            <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $uri }}">
                                                 {{ $uri }}
                                             </code>
                                             @if ($route['action'])
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" table="{{ $route['action'] }}">
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $route['action'] }}">
                                                     {{ $route['action'] }}
                                                 </p>
                                             @endif

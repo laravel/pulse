@@ -61,39 +61,36 @@
                     })
                 }
             }"
+            :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
-            <div>
-                <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    @if (count($userRequestCounts) === 0)
-                        <x-pulse::no-results />
-                    @else
-                        <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
-                            @foreach ($userRequestCounts as $userRequestCount)
-                                <div wire:key="{{ $userRequestCount['user']['name'] }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 dark:bg-gray-800 rounded">
-                                    <div class="flex items-center gap-3">
-                                        @if ($userRequestCount['user']['avatar'] ?? false)
-                                            <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">
-                                        @endif
-                                        <div class="overflow-hidden">
-                                            <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
-                                                {{ $userRequestCount['user']['name'] }}
-                                            </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                {{ $userRequestCount['user']['extra'] }}
-                                            </div>
-                                        </div>
+            @if (count($userRequestCounts) === 0)
+                <x-pulse::no-results />
+            @else
+                <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
+                    @foreach ($userRequestCounts as $userRequestCount)
+                        <div wire:key="{{ $userRequestCount['user']['name'] }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 dark:bg-gray-800/50 rounded">
+                            <div class="flex items-center gap-3">
+                                @if ($userRequestCount['user']['avatar'] ?? false)
+                                    <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">
+                                @endif
+                                <div class="overflow-hidden">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                                        {{ $userRequestCount['user']['name'] }}
                                     </div>
-                                    <div>
-                                        <b class="text-xl text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                            {{ number_format($userRequestCount['count']) }}
-                                        </b>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                        {{ $userRequestCount['user']['extra'] }}
                                     </div>
                                 </div>
-                            @endforeach
+                            </div>
+                            <div>
+                                <b class="text-xl text-gray-900 dark:text-gray-100 font-bold tabular-nums">
+                                    {{ number_format($userRequestCount['count']) }}
+                                </b>
+                            </div>
                         </div>
-                    @endif
+                    @endforeach
                 </div>
-            </div>
+            @endif
         </div>
     </x-pulse::card-body>
 </x-pulse::card>

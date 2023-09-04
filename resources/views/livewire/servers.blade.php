@@ -15,7 +15,7 @@ $rows = is_numeric($rows) ? $rows : 1;
 
 <div
     wire:poll.5s
-    class="overflow-x-auto pb-px default:col-span-{{ $cols }} default:row-span-{{ $rows }} {{ $class }}"
+    class="overflow-x-auto pb-px default:col-span-full default:lg:col-span-{{ $cols }} default:row-span-{{ $rows }} {{ $class }}"
     x-data="{
         loadingNewDataset: false,
         init() {
