@@ -58,6 +58,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                             </x-pulse::thead>
                             <tbody>
                                 @foreach ($slowQueries as $query)
+                                    <tr class="h-2 first:h-0"></tr>
                                     <tr wire:key="{{ md5($query->sql) }}">
                                         <x-pulse::td class="!p-0 truncate max-w-[1px]">
                                             <div class="relative">

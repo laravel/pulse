@@ -1,3 +1,3 @@
-<thead class="sticky top-0 p-2 bg-white dark:bg-gray-900">
+<thead class="sticky z-10 top-0 bg-white dark:bg-gray-900">
     {{ $slot }}
 </thead>

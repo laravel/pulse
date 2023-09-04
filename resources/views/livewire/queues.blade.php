@@ -21,6 +21,7 @@
             </x-pulse::thead>
             <tbody>
                 @foreach ($queues as $queue)
+                    <tr class="h-2 first:h-0"></tr>
                     <tr wire:key="{{ $queue['queue'].$queue['connection'] }}">
                         <x-pulse::td class="text-gray-700 dark:text-gray-300 text-sm">
                             {{ $queue['queue'] }}{{ $showConnection ? '('.$queue['connection'].')' : '' }}

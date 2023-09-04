@@ -47,6 +47,7 @@
                                     @php
                                         [$method, $uri] = explode(' ', $route['uri'], 2);
                                     @endphp
+                                    <tr class="h-2 first:h-0"></tr>
                                     <tr>
                                         <x-pulse::td>
                                             <x-pulse::http-method-badge :method="$method" />

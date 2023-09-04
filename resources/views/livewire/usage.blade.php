@@ -15,13 +15,13 @@
         <x-slot:actions>
             @if (! $this->type)
                 <div class="flex items-center bg-gray-50 dark:bg-gray-800 border {{ $this->type ? 'border-transparent' : 'border-gray-200 dark:border-gray-700' }} rounded-md pl-3 focus-within:ring">
-                    <label class="block text-sm text-gray-700 dark:text-gray-300 py-1 whitespace-nowrap">Top 10 users</label>
+                    <label class="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 py-1 whitespace-nowrap">Top 10 users</label>
                     &nbsp;
                     <select
                         x-ref="select"
                         wire:model="usage"
                         wire:change="$dispatch('usage-changed', { usage: $event.target.value })"
-                        class="rounded-md overflow-ellipsis w-full border-0 bg-transparent pl-0 pr-8 py-1 text-gray-700 dark:text-gray-300 text-sm shadow-none border-transparent focus:ring-0"
+                        class="rounded-md overflow-ellipsis w-full border-0 bg-transparent pl-0 pr-8 py-1 text-gray-700 dark:text-gray-300 text-xs sm:text-sm shadow-none border-transparent focus:ring-0"
                     >
                         <option value="request_counts">
                             making requests
