@@ -69,7 +69,7 @@ function prependListener(string $event, callable $listener): void
 
 function captureRedisCommands(callable $callback)
 {
-    $process = Process::timeout(30)->start('redis-cli MONITOR');
+    $process = Process::timeout(5)->start('redis-cli MONITOR');
 
     Sleep::for(50)->milliseconds();
 
