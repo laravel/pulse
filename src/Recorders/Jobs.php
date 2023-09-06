@@ -9,10 +9,9 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\SlowJobFinished;
-use Laravel\Pulse\Entries\Update;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Update;
 
 /**
  * @internal
@@ -86,9 +85,13 @@ class Jobs
             return null;
         }
 
-        return tap(new SlowJobFinished(
-            (string) $event->job->uuid(),
-            $duration,
+        return tap(new Update(
+            $this->table,
+            ['job_uuid' => (string) $event->job->uuid()],
+            fn (array $attributes) => [
+                'slowest' => max($attributes['slowest'] ?? 0, $duration),
+                'slow' => $attributes['slow'] + 1,
+            ],
         ), fn () => $this->lastJobStartedProcessingAt = null);
     }
 }

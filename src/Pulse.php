@@ -11,8 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Update;
 use Laravel\Pulse\Recorders\Concerns\ConfiguresAfterResolving;
 use RuntimeException;
 use Throwable;
@@ -31,7 +29,7 @@ class Pulse
     /**
      * The list of queued entries or updates.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
      */
     protected Collection $entries;
 
@@ -43,7 +41,7 @@ class Pulse
     /**
      * The entry filters.
      *
-     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update): bool)>
+     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)>
      */
     protected Collection $filters;
 
@@ -179,7 +177,7 @@ class Pulse
     /**
      * Filter incoming entries using the provided filter.
      *
-     * @param  (callable(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update): bool)  $filter
+     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)  $filter
      */
     public function filter(callable $filter): self
     {
@@ -227,7 +225,7 @@ class Pulse
     /**
      * The pending entries to be recorded.
      *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
      */
     public function entries()
     {

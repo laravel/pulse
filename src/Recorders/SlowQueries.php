@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Recorders;
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
