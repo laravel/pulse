@@ -2,19 +2,21 @@
 
 namespace Laravel\Pulse\Entries;
 
-use Illuminate\Database\Connection;
+use Closure;
 
-abstract class Update
+class Update
 {
     /**
-     * The update's table.
+     * @param  array<string, mixed>  $conditions
+     * @param  array<string, mixed>|(\Closure(array<string, mixed>): array<string, mixed>)  $attributes
      */
-    abstract public function table(): string;
-
-    /**
-     * Perform the update.
-     */
-    abstract public function perform(Connection $db): void;
+    public function __construct(
+        public string $table,
+        public array $conditions,
+        public array|Closure $attributes
+    ) {
+        //
+    }
 
     /**
      * Resolve the update for ingest and storage.

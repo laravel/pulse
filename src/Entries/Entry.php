@@ -15,14 +15,6 @@ class Entry
     }
 
     /**
-     * The entries table.
-     */
-    public function table(): string
-    {
-        return $this->table;
-    }
-
-    /**
      * Resolve the entry for ingest and storage.
      */
     public function resolve(): self

@@ -43,7 +43,28 @@ class Database implements Storage
                     ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
                     ->each($this->connection()->table($table)->insert(...)));
 
-            $updates->each(fn (Update $update) => $update->perform($this->connection()));
+            $updates->each(function (Update $update) {
+                if (is_array($update->attributes)) {
+                    $this->connection()
+                        ->table($update->table)
+                        ->where($update->conditions)
+                        ->update($update->attributes);
+                } else {
+                    $existing = $this->connection()
+                        ->table($update->table)
+                        ->where($update->conditions)
+                        ->first();
+
+                    if ($existing === null) {
+                        return;
+                    }
+
+                    $this->connection()
+                        ->table($update->table)
+                        ->where($update->conditions)
+                        ->update(($update->attributes)((array) $existing));
+                }
+            });
         });
     }
 
