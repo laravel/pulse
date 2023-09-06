@@ -3,9 +3,12 @@
 namespace Laravel\Pulse;
 
 use Closure;
+use Laravel\Pulse\Concerns\SerializesClosures;
 
 class Update
 {
+    use SerializesClosures;
+
     /**
      * @param  array<string, mixed>  $conditions
      * @param  array<string, mixed>|(\Closure(array<string, mixed>): array<string, mixed>)  $attributes
@@ -19,7 +22,7 @@ class Update
     }
 
     /**
-     * Resolve the update for ingest and storage.
+     * Resolve the update for ingest.
      */
     public function resolve(): self
     {
