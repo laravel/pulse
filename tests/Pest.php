@@ -73,29 +73,42 @@ function captureRedisCommands(callable $callback)
 
     Sleep::for(50)->milliseconds();
 
-    $pingFlag = Str::random();
-    Process::timeout(1)->run("redis-cli ping {$pingFlag}")->throw();
+    $beforeFlag = Str::random();
+    Process::timeout(1)->run("redis-cli ping {$beforeFlag}")->throw();
 
     $pingedAt = new CarbonImmutable;
 
-    while (! str_contains($process->output(), $pingFlag) && $pingedAt->addSeconds(3)->isFuture()) {
+    while (! str_contains($process->output(), $beforeFlag) && $pingedAt->addSeconds(3)->isFuture()) {
         Sleep::for(50)->milliseconds();
     }
 
-    if (! str_contains($process->output(), $pingFlag)) {
-        throw new Exception('Redis PING was never recorded.');
+    if (! str_contains($process->output(), $beforeFlag)) {
+        throw new Exception('Redis before PING was never recorded.');
     }
 
     try {
         $callback();
 
-        return collect(explode("\n", $process->signal(SIGINT)->output()))
-            ->skipUntil(fn ($value) => str_contains($value, $pingFlag))
+        $afterFlag = Str::random();
+        Process::timeout(1)->run("redis-cli ping {$afterFlag}")->throw();
+
+        $pingedAt = new CarbonImmutable;
+
+        while (! str_contains($process->output(), $afterFlag) && $pingedAt->addSeconds(3)->isFuture()) {
+            Sleep::for(50)->milliseconds();
+        }
+
+        if (! str_contains($process->output(), $afterFlag)) {
+            throw new Exception('Redis after PING was never recorded.');
+        }
+
+        return collect(explode("\n", tap($process->signal(SIGINT)->wait(), fn ($p) => $p->throwIf($p->exitCode() !== 130))->output()))
+            ->skipUntil(fn ($value) => str_contains($value, $beforeFlag))
             ->skip(1)
-            ->filter()
+            ->filter(fn ($output) => $output && ! str_contains($output, $afterFlag))
             ->map(fn ($value) => Str::after($value, '] '))
             ->values();
     } finally {
-        $process->signal(SIGINT);
+        $process->running() && $process->signal(SIGINT);
     }
 }
