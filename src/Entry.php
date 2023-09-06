@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Entries;
+namespace Laravel\Pulse;
 
 class Entry
 {

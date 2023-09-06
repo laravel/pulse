@@ -7,7 +7,7 @@ use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;

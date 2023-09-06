@@ -3,7 +3,7 @@
 namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Events\Beat;
 use RuntimeException;
 

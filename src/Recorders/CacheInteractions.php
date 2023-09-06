@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**

@@ -10,9 +10,9 @@ use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Update;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Redis as RedisAdapter;
+use Laravel\Pulse\Update;
 
 class Redis implements Ingest
 {
@@ -34,7 +34,7 @@ class Redis implements Ingest
     /**
      * Ingest the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $items
      */
     public function ingest(Collection $items): void
     {

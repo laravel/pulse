@@ -9,9 +9,9 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Update;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Update;
 
 /**
  * @internal

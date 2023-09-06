@@ -7,7 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 

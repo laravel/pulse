@@ -9,8 +9,8 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Entries\Entry;
-use Laravel\Pulse\Entries\Update;
+use Laravel\Pulse\Entry;
+use Laravel\Pulse\Update;
 
 class Database implements Storage
 {
@@ -27,7 +27,7 @@ class Database implements Storage
     /**
      * Store the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $items
      */
     public function store(Collection $items): void
     {

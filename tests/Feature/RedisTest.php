@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Process;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\Redis;
 
 beforeEach(fn () => Process::timeout(1)->run('redis-cli DEL laravel_database_laravel:pulse:entries')->throw());

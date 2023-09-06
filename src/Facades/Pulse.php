@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse stopRecording()
  * @method static \Laravel\Pulse\Pulse startRecording()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
- * @method static \Laravel\Pulse\Pulse record(\Laravel\Pulse\Entries\Entry|\Laravel\Pulse\Entries\Update $entry)
+ * @method static \Laravel\Pulse\Pulse record(\Laravel\Pulse\Entry|\Laravel\Pulse\Update $entry)
  * @method static \Laravel\Pulse\Pulse store(\Laravel\Pulse\Contracts\Ingest $ingest)
  * @method static \Illuminate\Support\Collection entries()
  * @method static \Laravel\Pulse\Pulse flushEntries()
