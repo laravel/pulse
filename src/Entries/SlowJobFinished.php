@@ -20,19 +20,6 @@ class SlowJobFinished extends Update
     }
 
     /**
-     * Perform the update.
-     */
-    public function perform(Connection $db): void
-    {
-        $db->table($this->table())
-            ->where('job_uuid', $this->jobUuid)
-            ->update([
-                'slowest' => $db->raw("COALESCE(GREATEST(`slowest`,{$this->duration}),{$this->duration})"),
-                'slow' => $db->raw('`slow` + 1'),
-            ]);
-    }
-
-    /**
      * The update's table.
      */
     public function table(): string

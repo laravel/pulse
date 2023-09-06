@@ -4,16 +4,26 @@ namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
+use Closure;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Traits\ReflectsClosures;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entries\Entry;
+use Laravel\Pulse\Entries\SlowJobFinished;
 use Laravel\Pulse\Entries\Update;
 
 class Database implements Storage
 {
+    use ReflectsClosures;
+
+    /**
+     * Additional storage update handlers.
+     */
+    protected array $updateHandlers = [];
+
     /**
      * Create a new Database storage instance.
      */
@@ -22,6 +32,20 @@ class Database implements Storage
         protected Repository $config,
     ) {
         //
+    }
+
+    /**
+     * Handle the update using the closure.
+     *
+     * @param  (callable(Update): void)  $callback
+     */
+    public function handleUpdateUsing($callback): self
+    {
+        foreach ($this->firstClosureParameterTypes(Closure::fromCallable($callback)) as $class) {
+            $this->updateHandlers[$class] = $callback;
+        }
+
+        return $this;
     }
 
     /**
@@ -43,7 +67,30 @@ class Database implements Storage
                     ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
                     ->each($this->connection()->table($table)->insert(...)));
 
-            $updates->each(fn (Update $update) => $update->perform($this->connection()));
+            $this->perform($updates);
+        });
+    }
+
+    /**
+     * Perform the given updates.
+     */
+    protected function perform($updates)
+    {
+        $updates->each(function (Update $update) {
+            if ($this->updateHandlers[$update::class] ?? false) {
+                $this->updateHandlers[$update::class]($update);
+
+                return;
+            }
+
+            if ($update instanceof SlowJobFinished) {
+                $this->connection()->table($update->table())
+                    ->where('job_uuid', $update->jobUuid)
+                    ->update([
+                        'slowest' => $this->connection()->raw("COALESCE(GREATEST(`slowest`,{$update->duration}),{$update->duration})"),
+                        'slow' => $this->connection()->raw('`slow` + 1'),
+                    ]);
+            }
         });
     }
 

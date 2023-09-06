@@ -52,6 +52,8 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         $this->app->singleton(Pulse::class);
+        $this->app->singleton(DatabaseStorage::class);
+        $this->app->singleton(RedisIngest::class);
 
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
