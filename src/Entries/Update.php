@@ -2,8 +2,6 @@
 
 namespace Laravel\Pulse\Entries;
 
-use Illuminate\Database\Connection;
-
 abstract class Update
 {
     /**

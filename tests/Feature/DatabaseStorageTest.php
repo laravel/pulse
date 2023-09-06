@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Entries\Entry;
 use Laravel\Pulse\Entries\SlowJobFinished;
 use Laravel\Pulse\Storage\Database;
@@ -15,12 +14,12 @@ it('performs slow job updates', function () {
             'date' => now()->toDateTimeString(),
             'job' => 'MyJob',
             'job_uuid' => 'job-uuid',
-            'user_id' => '55'
+            'user_id' => '55',
         ]),
     ]));
 
     $storage->store(collect([
-        new SlowJobFinished('job-uuid', 456)
+        new SlowJobFinished('job-uuid', 456),
     ]));
 
     $jobs = DB::table('pulse_jobs')->get();
