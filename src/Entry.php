@@ -15,7 +15,7 @@ class Entry
     }
 
     /**
-     * Resolve the entry for ingest and storage.
+     * Resolve the entry for ingest.
      */
     public function resolve(): self
     {
