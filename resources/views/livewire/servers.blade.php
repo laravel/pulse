@@ -13,7 +13,7 @@ $cols = ! empty($cols) ? $cols : 'full';
 $rows = ! empty($rows) ? $rows : 1;
 @endphp
 
-<div
+<section
     wire:poll.5s
     class="overflow-x-auto pb-px default:col-span-full default:lg:col-span-{{ $cols }} default:row-span-{{ $rows }} {{ $class }}"
     x-data="{
@@ -285,4 +285,4 @@ $rows = ! empty($rows) ? $rows : 1;
             @endforeach
         </div>
     @endif
-</div>
+</section>
