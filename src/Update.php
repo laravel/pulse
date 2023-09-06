@@ -3,11 +3,11 @@
 namespace Laravel\Pulse;
 
 use Closure;
-use Laravel\SerializableClosure\SerializableClosure;
+use Laravel\Pulse\Concerns\SerializesClosures;
 
 class Update
 {
-    protected array|Closure|SerializableClosure $attributes;
+    use SerializesClosures;
 
     /**
      * @param  array<string, mixed>  $conditions
@@ -27,20 +27,5 @@ class Update
     public function resolve(): self
     {
         return $this;
-    }
-
-    public function __sleep()
-    {
-        //
-    }
-
-    public function __wakeup()
-    {
-        ///
-    }
-
-    public function attributes()
-    {
-        //
     }
 }
