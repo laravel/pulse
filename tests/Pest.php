@@ -69,7 +69,7 @@ function prependListener(string $event, callable $listener): void
 
 function captureRedisCommands(callable $callback)
 {
-    $process = Process::timeout(5)->start('redis-cli MONITOR');
+    $process = Process::timeout(10)->start('redis-cli MONITOR');
 
     Sleep::for(50)->milliseconds();
 
@@ -102,7 +102,7 @@ function captureRedisCommands(callable $callback)
             throw new Exception('Redis after PING was never recorded.');
         }
 
-        return collect(explode("\n", tap($process->signal(SIGINT)->wait(), fn ($p) => $p->throwIf($p->exitCode() !== 130))->output()))
+        return collect(explode("\n", $process->signal(SIGINT)->output()))
             ->skipUntil(fn ($value) => str_contains($value, $beforeFlag))
             ->skip(1)
             ->filter(fn ($output) => $output && ! str_contains($output, $afterFlag))

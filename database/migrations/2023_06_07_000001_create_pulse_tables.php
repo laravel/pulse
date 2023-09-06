@@ -25,7 +25,7 @@ return new class extends Migration
         // - We may need to keep a hashed version of the text columns to index and group by.
         // - Do another pass at the indexes to ensure that they are optimized correctly.
         Schema::create('pulse_system_stats', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('server');
             $table->unsignedTinyInteger('cpu_percent');
             $table->unsignedInteger('memory_used');
@@ -36,7 +36,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_requests', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('user_id')->nullable();
             $table->string('route');
             $table->unsignedInteger('duration');
@@ -46,7 +46,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_exceptions', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('user_id')->nullable();
             $table->string('class');
             $table->string('location');
@@ -55,7 +55,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_slow_queries', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('user_id')->nullable();
             $table->string('sql');
             $table->unsignedInteger('duration');
@@ -64,7 +64,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('user_id')->nullable();
             $table->string('job');
             $table->uuid('job_uuid');
@@ -78,7 +78,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_cache_interactions', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('key');
             $table->boolean('hit');
             $table->string('user_id')->nullable();
@@ -86,7 +86,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_outgoing_requests', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('uri');
             $table->unsignedInteger('duration');
             $table->string('user_id')->nullable();
@@ -94,7 +94,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_queue_sizes', function (Blueprint $table) {
-            $table->timestamp('date');
+            $table->datetime('date');
             $table->string('connection');
             $table->string('queue');
             $table->unsignedInteger('size');
