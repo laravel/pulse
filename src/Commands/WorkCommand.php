@@ -44,7 +44,7 @@ class WorkCommand extends Command
         while (true) {
             $now = new CarbonImmutable;
 
-            if ($cache->get('laravel:pulse:restart') !== $lastRestart) {
+            if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
                 return self::SUCCESS;
             }
 
