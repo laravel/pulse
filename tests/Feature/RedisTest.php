@@ -18,7 +18,7 @@ it('runs the same commands while ingesting entries', function ($driver) {
         new Entry('pulse_table', ['entry' => 'data']),
     ])));
 
-    expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:entries" "*" "data" "O:27:\"Laravel\\\\Pulse\\\\Entries\\\\Entry\\":2:{s:5:\"table\";s:11:\"pulse_table\";s:10:\"attributes\";a:1:{s:5:\"entry\";s:4:\"data\";}}"');
+    expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:entries" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":2:{s:5:\"table\";s:11:\"pulse_table\";s:10:\"attributes\";a:1:{s:5:\"entry\";s:4:\"data\";}}"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same commands while triming the stream', function ($driver) {
