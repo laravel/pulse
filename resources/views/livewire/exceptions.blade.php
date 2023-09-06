@@ -24,60 +24,61 @@
     </x-pulse::card-header>
 
     <x-pulse::card-body :scroll="$scroll" wire:poll.5s="">
-        <div x-data="{
-            loadingNewDataset: false,
-            init() {
-                Livewire.on('period-changed', () => (this.loadingNewDataset = true))
-                Livewire.on('exception-changed', () => (this.loadingNewDataset = true))
+        <div
+            x-data="{
+                loadingNewDataset: false,
+                init() {
+                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
+                    Livewire.on('exception-changed', () => (this.loadingNewDataset = true))
 
-                Livewire.hook('commit', ({ component, succeed }) => {
-                    if (component.name === 'exceptions') {
-                        succeed(() => this.loadingNewDataset = false)
-                    }
-                })
-            }
-        }">
-            <div :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                @if (count($exceptions) === 0)
-                    <x-pulse::no-results />
-                @else
-                    <x-pulse::table>
-                        <colgroup>
-                            <col width="100%" />
-                            <col width="0%" />
-                            <col width="0%" />
-                        </colgroup>
-                        <x-pulse::thead>
-                            <tr>
-                                <x-pulse::th class="text-left">Type</x-pulse::th>
-                                <x-pulse::th class="text-right">Latest</x-pulse::th>
-                                <x-pulse::th class="text-right">Count</x-pulse::th>
+                    Livewire.hook('commit', ({ component, succeed }) => {
+                        if (component.name === 'exceptions') {
+                            succeed(() => this.loadingNewDataset = false)
+                        }
+                    })
+                }
+            }"
+            :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
+        >
+            @if (count($exceptions) === 0)
+                <x-pulse::no-results />
+            @else
+                <x-pulse::table>
+                    <colgroup>
+                        <col width="100%" />
+                        <col width="0%" />
+                        <col width="0%" />
+                    </colgroup>
+                    <x-pulse::thead>
+                        <tr>
+                            <x-pulse::th class="text-left">Type</x-pulse::th>
+                            <x-pulse::th class="text-right">Latest</x-pulse::th>
+                            <x-pulse::th class="text-right">Count</x-pulse::th>
+                        </tr>
+                    </x-pulse::thead>
+                    <tbody>
+                        @foreach ($exceptions as $exception)
+                            <tr class="h-2 first:h-0"></tr>
+                            <tr wire:key="{{ $exception->class.$exception->location }}">
+                                <x-pulse::td class="break-words overflow-hidden">
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 overflow-ellipsis">
+                                        {{ $exception->class }}
+                                    </code>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 overflow-ellipsis">
+                                        {{ $exception->location }}
+                                    </p>
+                                </x-pulse::td>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold whitespace-nowrap tabular-nums">
+                                    {{ $exception->last_occurrence !== null ? Carbon\CarbonImmutable::parse($exception->last_occurrence)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
+                                </x-pulse::td>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold tabular-nums">
+                                    {{ number_format($exception->count) }}
+                                </x-pulse::td>
                             </tr>
-                        </x-pulse::thead>
-                        <tbody>
-                            @foreach ($exceptions as $exception)
-                                <tr class="h-2 first:h-0"></tr>
-                                <tr wire:key="{{ $exception->class.$exception->location }}">
-                                    <x-pulse::td class="break-words overflow-hidden">
-                                        <code class="block text-xs text-gray-900 dark:text-gray-100 overflow-ellipsis">
-                                            {{ $exception->class }}
-                                        </code>
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 overflow-ellipsis">
-                                            {{ $exception->location }}
-                                        </p>
-                                    </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold whitespace-nowrap tabular-nums">
-                                        {{ $exception->last_occurrence !== null ? Carbon\CarbonImmutable::parse($exception->last_occurrence)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
-                                    </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold tabular-nums">
-                                        {{ number_format($exception->count) }}
-                                    </x-pulse::td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </x-pulse::table>
-                @endif
-            </div>
+                        @endforeach
+                    </tbody>
+                </x-pulse::table>
+            @endif
         </div>
     </x-pulse::card-body>
 </x-pulse::card>
