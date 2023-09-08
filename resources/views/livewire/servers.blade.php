@@ -65,18 +65,19 @@ $rows = ! empty($rows) ? $rows : 1;
                         class="w-full max-w-xs h-9 relative"
                         x-data="{
                             init() {
-                                const chart = new Chart(
+                                let chart = new Chart(
                                     this.$refs.canvas,
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->date)),
+                                            labels: @js(collect($server->readings)->pluck('date')),
                                             datasets: [
                                                 {
                                                     label: 'CPU Percent',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
-                                                    data: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->cpu_percent ? (int) $reading->cpu_percent : null)),
+                                                    borderCapStyle: 'round',
+                                                    data: @js(collect($server->readings)->pluck('cpu_percent')),
                                                     pointStyle: false,
                                                     tension: 0.2,
                                                     spanGaps: false,
@@ -121,6 +122,18 @@ $rows = ! empty($rows) ? $rows : 1;
                                 )
 
                                 Livewire.on('chart-update', ({ servers }) => {
+                                    // TODO: Figure out how to destroy the Alpine instance and remove this listener.
+
+                                    if (chart === undefined) {
+                                        return
+                                    }
+
+                                    if (servers['{{ $server->slug }}'] === undefined && chart) {
+                                        chart.destroy()
+                                        chart = undefined
+                                        return
+                                    }
+
                                     chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent)
                                     chart.update()
@@ -147,18 +160,19 @@ $rows = ! empty($rows) ? $rows : 1;
                         class="w-full max-w-xs h-9 relative"
                         x-data="{
                             init() {
-                                const chart = new Chart(
+                                let chart = new Chart(
                                     this.$refs.canvas,
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->date)),
+                                            labels: @js(collect($server->readings)->pluck('date')),
                                             datasets: [
                                                 {
                                                     label: 'Memory Used',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
-                                                    data: @js(collect($server->readings)->map(fn (stdClass $reading) => $reading->memory_used ? (int) $reading->memory_used : null)),
+                                                    borderCapStyle: 'round',
+                                                    data: @js(collect($server->readings)->pluck('memory_used')),
                                                     pointStyle: false,
                                                     tension: 0.2,
                                                     spanGaps: false,
@@ -203,6 +217,18 @@ $rows = ! empty($rows) ? $rows : 1;
                                 )
 
                                 Livewire.on('chart-update', ({ servers }) => {
+                                    // TODO: Figure out how to destroy the Alpine instance and remove this listener.
+
+                                    if (chart === undefined) {
+                                        return
+                                    }
+
+                                    if (servers['{{ $server->slug }}'] === undefined && chart) {
+                                        chart.destroy()
+                                        chart = undefined
+                                        return
+                                    }
+
                                     chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used)
                                     chart.update()
@@ -225,7 +251,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                 wire:ignore
                                 x-data="{
                                     init() {
-                                        const chart = new Chart(
+                                        let chart = new Chart(
                                             this.$refs.canvas,
                                             {
                                                 type: 'doughnut',
@@ -267,7 +293,20 @@ $rows = ! empty($rows) ? $rows : 1;
                                         )
 
                                         Livewire.on('chart-update', ({ servers }) => {
-                                            const storage = servers['{{ $server->slug }}'].storage.find(storage => storage.directory === '{{ $storage->directory }}')
+                                            // TODO: Figure out how to destroy the Alpine instance and remove this listener.
+
+                                            const storage = servers['{{ $server->slug }}']?.storage?.find(storage => storage.directory === '{{ $storage->directory }}')
+
+                                            if (chart === undefined) {
+                                                return
+                                            }
+
+                                            if (storage === undefined && chart) {
+                                                chart.destroy()
+                                                chart = undefined
+                                                return
+                                            }
+
                                             chart.data.datasets[0].data = [
                                                 storage.used,
                                                 storage.total - storage.used,
