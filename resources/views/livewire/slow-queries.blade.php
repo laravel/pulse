@@ -25,7 +25,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         </x-slot:icon>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :scroll="$scroll" wire:poll.5s="">
+    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
         <div
             x-data="{
                 loadingNewDataset: false,

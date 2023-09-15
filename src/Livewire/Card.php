@@ -23,9 +23,9 @@ abstract class Card extends Component
     public int|string|null $rows = null;
 
     /**
-     * Whether to scroll the card body.
+     * Whether to expand the card body instead of scrolling.
      */
-    public bool $scroll = true;
+    public bool $expand = false;
 
     /**
      * Custom CSS classes.
