@@ -37,7 +37,7 @@
                             <span class="ml-2 text-lg sm:text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
                         </div>
                         <div class="flex items-center gap-3 sm:gap-6">
-                            <livewire:period-selector />
+                            <livewire:pulse.period-selector />
                             <x-pulse::theme-switcher />
                         </div>
                     </div>

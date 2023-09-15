@@ -220,16 +220,16 @@ class PulseServiceProvider extends ServiceProvider
         $this->callAfterResolving('livewire', function (LivewireManager $livewire) {
             $livewire->addPersistentMiddleware([Authorize::class]);
 
-            $livewire->component('cache', Livewire\Cache::class);
-            $livewire->component('usage', Livewire\Usage::class);
-            $livewire->component('queues', Livewire\Queues::class);
-            $livewire->component('servers', Livewire\Servers::class);
-            $livewire->component('slow-jobs', Livewire\SlowJobs::class);
-            $livewire->component('exceptions', Livewire\Exceptions::class);
-            $livewire->component('slow-routes', Livewire\SlowRoutes::class);
-            $livewire->component('slow-queries', Livewire\SlowQueries::class);
-            $livewire->component('period-selector', Livewire\PeriodSelector::class);
-            $livewire->component('slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
+            $livewire->component('pulse.cache', Livewire\Cache::class);
+            $livewire->component('pulse.usage', Livewire\Usage::class);
+            $livewire->component('pulse.queues', Livewire\Queues::class);
+            $livewire->component('pulse.servers', Livewire\Servers::class);
+            $livewire->component('pulse.slow-jobs', Livewire\SlowJobs::class);
+            $livewire->component('pulse.exceptions', Livewire\Exceptions::class);
+            $livewire->component('pulse.slow-routes', Livewire\SlowRoutes::class);
+            $livewire->component('pulse.slow-queries', Livewire\SlowQueries::class);
+            $livewire->component('pulse.period-selector', Livewire\PeriodSelector::class);
+            $livewire->component('pulse.slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
         });
     }
 }
