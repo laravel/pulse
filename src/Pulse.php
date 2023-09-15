@@ -213,7 +213,7 @@ class Pulse
             $this->entries->map->resolve()->filter($this->shouldRecord(...)),
         ));
 
-        Lottery::odds(...$this->config->get('pulse.ingest.lottery'))
+        Lottery::odds(...$this->config->get('pulse.ingest.trim_lottery'))
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
