@@ -9,6 +9,8 @@ abstract class TestCase extends OrchestraTestCase
 {
     use RefreshDatabase;
 
+    protected $enablesPackageDiscoveries = true;
+
     protected function getPackageProviders($app): array
     {
         return [
