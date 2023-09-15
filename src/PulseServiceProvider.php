@@ -31,7 +31,6 @@ use Laravel\Pulse\Recorders\Requests;
 use Laravel\Pulse\Recorders\SlowQueries;
 use Laravel\Pulse\Recorders\SystemStats;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
-use Laravel\Pulse\View\Components\Pulse as PulseComponent;
 use Livewire\Component;
 use Livewire\LivewireManager;
 use RuntimeException;
@@ -214,7 +213,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerComponents(): void
     {
         $this->callAfterResolving('blade.compiler', function (BladeCompiler $blade) {
-            $blade->component('pulse', PulseComponent::class);
+            $blade->anonymousComponentPath(__DIR__.'/../resources/views/components', 'pulse');
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire) {
