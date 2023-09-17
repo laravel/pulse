@@ -214,6 +214,21 @@ return [
         '^flight:.*' => 'All flights',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pulse Sample Rate
+    |--------------------------------------------------------------------------
+    |
+    | NOTE: This feature doesn't exist yet.
+    | For metrics such as request counts, you may want to sample the data to reduce what is captured and stored.
+    | The dashboard would scale the data to account for the sampling rate, potentially showing a "~" to indicate that it is an approximation.
+    | The more traffic you receive, the lower you could set this number, without losing too much accuracy.
+    | This setting should probably not be used for capturing problems like "slow" metrics, which already have a mechanism to reduce the data captured, as well as exceptions.
+    |
+    */
+
+    'sample_rate' => env('PULSE_SAMPLE_RATE', 1),
+
     // ---
     // TODO:
     // - env variable to not run migrations on certain environments?
