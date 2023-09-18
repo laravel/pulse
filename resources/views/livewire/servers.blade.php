@@ -64,6 +64,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         wire:ignore
                         class="w-full max-w-xs h-9 relative"
                         x-data="{
+                            count: @js(collect($server->readings)->pluck('cpu_percent')->filter()->count()),
                             init() {
                                 let chart = new Chart(
                                     this.$refs.canvas,
@@ -136,11 +137,15 @@ $rows = ! empty($rows) ? $rows : 1;
 
                                     chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent)
+                                    this.count = chart.data.datasets[0].data.filter(value => value !== null).length
                                     chart.update()
                                 })
                             }
                         }"
                     >
+                        <div x-show="count <= 1" class="absolute inset-0 flex items-center justify-center animate-pulse">
+                            <x-pulse::icons.ellipsis-horizontal class="w-6 h-6 stroke-gray-300" />
+                        </div>
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
@@ -159,6 +164,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         wire:ignore
                         class="w-full max-w-xs h-9 relative"
                         x-data="{
+                            count: @js(collect($server->readings)->pluck('memory_used')->filter()->count()),
                             init() {
                                 let chart = new Chart(
                                     this.$refs.canvas,
@@ -231,11 +237,15 @@ $rows = ! empty($rows) ? $rows : 1;
 
                                     chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
                                     chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used)
+                                    this.count = chart.data.datasets[0].data.filter(value => value !== null).length
                                     chart.update()
                                 })
                             }
                         }"
                     >
+                        <div x-show="count <= 1" class="absolute inset-0 flex items-center justify-center animate-pulse">
+                            <x-pulse::icons.ellipsis-horizontal class="w-6 h-6 stroke-gray-300" />
+                        </div>
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
