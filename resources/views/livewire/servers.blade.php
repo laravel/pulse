@@ -49,9 +49,7 @@ $rows = ! empty($rows) ? $rows : 1;
                     @endif
                 </div>
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 00-.12-1.03l-2.268-9.64a3.375 3.375 0 00-3.285-2.602H7.923a3.375 3.375 0 00-3.285 2.602l-2.268 9.64a4.5 4.5 0 00-.12 1.03v.228m19.5 0a3 3 0 01-3 3H5.25a3 3 0 01-3-3m19.5 0a3 3 0 00-3-3H5.25a3 3 0 00-3 3m16.5 0h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" />
-                    </svg>
+                    <x-pulse::icons.server class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400" />
                     <span class="text-base font-bold text-gray-600 dark:text-gray-300">{{ $server->name }}</span>
                 </div>
                 <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
