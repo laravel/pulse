@@ -55,7 +55,7 @@
                     @endif
 
                     Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === 'usage' && component.snapshot.data.type === @js($this->type)) {
+                        if (component.name === $wire.__instance.name && component.snapshot.data.type === @js($this->type)) {
                             succeed(() => this.loadingNewDataset = false)
                         }
                     })

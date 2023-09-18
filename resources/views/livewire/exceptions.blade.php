@@ -32,7 +32,7 @@
                     Livewire.on('exception-changed', () => (this.loadingNewDataset = true))
 
                     Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === 'exceptions') {
+                        if (component.name === $wire.__instance.name) {
                             succeed(() => this.loadingNewDataset = false)
                         }
                     })

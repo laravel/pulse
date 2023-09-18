@@ -22,7 +22,7 @@ $rows = ! empty($rows) ? $rows : 1;
             Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
             Livewire.hook('commit', ({ component, succeed }) => {
-                if (component.name === 'servers') {
+                if (component.name === $wire.__instance.name) {
                     succeed(() => this.loadingNewDataset = false)
                 }
             })

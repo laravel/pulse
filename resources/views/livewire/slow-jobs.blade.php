@@ -17,7 +17,7 @@
                     Livewire.on('period-changed', () => (this.loadingNewDataset = true))
 
                     Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === 'slow-jobs') {
+                        if (component.name === $wire.__instance.name) {
                             succeed(() => this.loadingNewDataset = false)
                         }
                     })
