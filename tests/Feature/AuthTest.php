@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Auth\User;
-use Laravel\Pulse\Livewire\Servers;
 use Laravel\Pulse\Pulse;
-use Livewire\Livewire;
 
 it('authorizes dashboard access', function ($environment, $status) {
     $this->app['env'] = $environment;
@@ -29,5 +27,48 @@ it('authorizes dashboard access with a callback', function ($email, $status) {
 ]);
 
 it('requires authentication on livewire requests', function () {
-    Livewire::test(Servers::class)->assertForbidden();
+    $authCount = 0;
+
+    $this->app[Pulse::class]->authorizeUsing(function () use (&$authCount) {
+        $authCount++;
+
+        return true;
+    });
+
+    $response = $this
+        ->get('/pulse')
+        ->assertOk();
+
+    $this->assertSame(1, $authCount);
+
+    preg_match_all('/wire:snapshot="([^"]+)"/', $response->content(), $matches);
+    $component = collect($matches[1])
+        ->map(fn ($match) => json_decode(html_entity_decode($match)))
+        ->first(fn ($component) => $component->memo->name === 'pulse.servers');
+
+    $this
+        ->post('/livewire/update', [
+            '_token' => csrf_token(),
+            'components' => [
+                [
+                    'calls' => [],
+                    'snapshot' => json_encode($component),
+                    'updates' => [],
+                ],
+            ],
+        ])
+        ->assertOk();
+
+    $this->assertSame(2, $authCount);
+});
+
+it('doesnt use pulse middleware on other livewire requests', function () {
+    $this->app[Pulse::class]->authorizeUsing(fn () => false);
+
+    $this
+        ->post('/livewire/update', [
+            '_token' => csrf_token(),
+            'components' => [],
+        ])
+        ->assertOk();
 });

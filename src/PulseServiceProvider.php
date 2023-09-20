@@ -19,7 +19,6 @@ use Laravel\Pulse\Commands\RestartCommand;
 use Laravel\Pulse\Commands\WorkCommand;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
 use Laravel\Pulse\Recorders\CacheInteractions;
@@ -216,8 +215,8 @@ class PulseServiceProvider extends ServiceProvider
             $blade->anonymousComponentPath(__DIR__.'/../resources/views/components', 'pulse');
         });
 
-        $this->callAfterResolving('livewire', function (LivewireManager $livewire) {
-            $livewire->addPersistentMiddleware([Authorize::class]);
+        $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
+            $livewire->addPersistentMiddleware($app['config']->get('pulse.middleware', []));
 
             $livewire->component('pulse.cache', Livewire\Cache::class);
             $livewire->component('pulse.usage', Livewire\Usage::class);
