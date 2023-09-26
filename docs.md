@@ -18,6 +18,9 @@ TODO
 <a name="installation"></a>
 ## Installation
 
+> **Warning**  
+> Pulse currently requires MySQL.
+
 You may use the Composer package manager to install Pulse into your Laravel project:
 
 ```sh
