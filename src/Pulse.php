@@ -332,7 +332,7 @@ class Pulse
      */
     public function authorize(Request $request): bool
     {
-        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
+        return (bool) ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
     }
 
     /**
