@@ -23,7 +23,7 @@
         "illuminate/routing": "^9.0 || ^10.0",
         "illuminate/support": "^9.0 || ^10.0",
         "laravel/serializable-closure": "^1.3",
-        "livewire/livewire": "dev-main",
+        "livewire/livewire": "^3.0",
         "nesbot/carbon": "^2.67"
     },
     "require-dev": {
