@@ -31,6 +31,11 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Console\\\\Kernel\\:\\:whenCommandLifecycleIsLongerThan\\(\\)\\.$#"
+			count: 1
+			path: src/PulseServiceProvider.php
+
+		-
 			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
