@@ -1,5 +1,5 @@
 @props(['name', 'title' => '', 'details' => null])
-<header class="flex flex-wrap justify-between gap-3 mb-3 @md:mb-6">
+<header class="flex flex-wrap justify-between gap-4 mb-3 @md:mb-6">
     <div class="flex-1 basis-0 flex-grow-[10000] max-w-full">
         <div class="flex overflow-hidden gap-2 items-start">
             <div class="[&>svg]:flex-shrink-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:stroke-gray-500 [&>svg]:dark:stroke-gray-600">
