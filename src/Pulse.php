@@ -13,6 +13,7 @@ use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Recorders\Concerns\ConfiguresAfterResolving;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Pulse
@@ -55,7 +56,7 @@ class Pulse
     /**
      * The callback that should be used to authorize Pulse users.
      *
-     * @var ?(callable(\Illuminate\Http\Request): bool)
+     * @var ?(callable(\Illuminate\Http\Request): bool|\Symfony\Component\HttpFoundation\Response)
      */
     protected $authorizeUsing = null;
 
@@ -330,15 +331,15 @@ class Pulse
     /**
      * Determine if the given request can access the Pulse dashboard.
      */
-    public function authorize(Request $request): bool
+    public function authorize(Request $request): bool|Response
     {
-        return (bool) ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
+        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
     }
 
     /**
      * Set the callback that should be used to authorize Pulse users.
      *
-     * @param  (callable(\Illuminate\Http\Request): bool)  $callback
+     * @param  (callable(\Illuminate\Http\Request): bool|\Symfony\Component\HttpFoundation\Response)  $callback
      */
     public function authorizeUsing(callable $callback): self
     {

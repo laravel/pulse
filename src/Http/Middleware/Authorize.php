@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Laravel\Pulse\Pulse;
+use Symfony\Component\HttpFoundation\Response;
 
 class Authorize
 {
@@ -21,6 +22,12 @@ class Authorize
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        return $this->pulse->authorize($request) ? $next($request) : abort(403);
+        $response = $this->pulse->authorize($request);
+
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+        return $response ? $next($request) : abort(403);
     }
 }
