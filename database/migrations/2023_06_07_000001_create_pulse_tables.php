@@ -68,13 +68,16 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->string('job');
             $table->uuid('job_uuid');
+            $table->datetime('processing_at')->nullable();
+            $table->datetime('processed_at')->nullable();
+            $table->datetime('failed_at')->nullable();
             $table->unsignedInteger('slow')->default(0);
             $table->unsignedInteger('slowest')->nullable();
 
             // TODO: verify this update index. Needs to find job quickly.
             $table->index(['job_uuid']);
-            $table->index(['date', 'job', 'slowest']); // slow_jobs
-            $table->index(['date', 'user_id']); // user_usage
+            // $table->index(['date', 'job', 'slowest']); // slow_jobs
+            // $table->index(['date', 'user_id']); // user_usage
         });
 
         Schema::create('pulse_cache_interactions', function (Blueprint $table) {
@@ -93,14 +96,14 @@ return new class extends Migration
             $table->index(['uri', 'date', 'duration']);
         });
 
-        Schema::create('pulse_queue_sizes', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('connection');
-            $table->string('queue');
-            $table->unsignedInteger('size');
-            $table->unsignedInteger('failed');
-            // TODO: indexes?
-        });
+        // Schema::create('pulse_queue_sizes', function (Blueprint $table) {
+        //     $table->datetime('date');
+        //     $table->string('connection');
+        //     $table->string('queue');
+        //     $table->unsignedInteger('size');
+        //     $table->unsignedInteger('failed');
+        //     // TODO: indexes?
+        // });
     }
 
     /**
