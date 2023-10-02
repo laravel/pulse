@@ -6,11 +6,12 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
@@ -50,15 +51,29 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         $this->app->singleton(Pulse::class);
-
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
+        $this->registerIngest();
+        $this->registerComponentMethodBindings();
+    }
+
+    /**
+     * Register the ingest implementation.
+     */
+    protected function registerIngest(): void
+    {
         $this->app->bind(Ingest::class, fn (Application $app) => match ($app['config']->get('pulse.ingest.driver')) {
             'storage' => $app[StorageIngest::class],
             'redis' => $app[RedisIngest::class],
             default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
         });
+    }
 
+    /**
+     * Register the Livewire component method bindings.
+     */
+    protected function registerComponentMethodBindings(): void
+    {
         foreach ([
             Livewire\Usage::class => [Queries\Usage::class],
             Livewire\Queues::class => [Queries\Queues::class],
@@ -70,7 +85,11 @@ class PulseServiceProvider extends ServiceProvider
             Livewire\SlowOutgoingRequests::class => [Queries\SlowOutgoingRequests::class],
             Livewire\Cache::class => [Queries\CacheInteractions::class, Queries\MonitoredCacheInteractions::class],
         ] as $card => $queries) {
-            $this->app->bindMethod([$card, 'render'], fn (Component $instance, Application $app) => $instance->render(...array_map($app->make(...), $queries)));
+            $this->app->bindMethod(
+                [$card, 'render'],
+                fn (Component $instance, Application $app) =>
+                    $instance->render(...array_map($app->make(...), $queries))
+            );
         }
     }
 
@@ -96,46 +115,11 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->registerRoutes();
         $this->listenForEvents();
-        $this->registerCommands();
-        $this->registerResources();
         $this->registerComponents();
+        $this->registerResources();
         $this->registerMigrations();
         $this->registerPublishing();
-    }
-
-    /**
-     * Listen for the events that are relevant to the package.
-     */
-    protected function listenForEvents(): void
-    {
-        $this->callAfterResolving('events', function (Dispatcher $event, Application $app) {
-            $event->listen(Logout::class, function (Logout $event) use ($app) {
-                $pulse = $app[Pulse::class];
-
-                $pulse->rescue(fn () => $pulse->rememberUser($event->user));
-            });
-
-            // TODO: consider moving this registration to the "Booted" event to ensure, for sure, that our stuff is registered last?
-            $event->listen([
-                Looping::class,
-                WorkerStopping::class,
-            ], function ($event) use ($app) {
-                $app[Pulse::class]->store($app[Ingest::class]);
-            });
-        });
-
-        // TODO: consider moving this registration to the "Booted" event to ensure, for sure, that our stuff is registered last?
-        $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
-            $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
-                $app[Pulse::class]->store($app[Ingest::class]);
-            });
-        });
-
-        $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
-            $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) {
-                $app[Pulse::class]->store($app[Ingest::class]);
-            });
-        });
+        $this->registerCommands();
     }
 
     /**
@@ -143,11 +127,11 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        $this->callAfterResolving('router', function (Router $router, Application $app) {
-            $router->group([
+        $this->app->booted(function (Application $app) {
+            Route::group([
                 'domain' => $app['config']->get('pulse.domain', null),
-                'middleware' => $app['config']->get('pulse.middleware', 'web'),
                 'prefix' => $app['config']->get('pulse.path'),
+                'middleware' => $app['config']->get('pulse.middleware', 'web'),
             ], fn (Router $router) => $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                 $pulse->stopRecording();
 
@@ -157,7 +141,65 @@ class PulseServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the package resources.
+     * Listen for the events that are relevant to the package.
+     */
+    protected function listenForEvents(): void
+    {
+        $this->app->booted(function (Application $app) {
+            Event::listen(function (Logout $event) use ($app) {
+                $pulse = $app[Pulse::class];
+
+                $pulse->rescue(fn () => $pulse->rememberUser($event->user));
+            });
+
+            Event::listen([
+                Looping::class,
+                WorkerStopping::class,
+            ], function ($event) use ($app) {
+                $app[Pulse::class]->store($app[Ingest::class]);
+            });
+
+            $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
+                $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
+                    $app[Pulse::class]->store($app[Ingest::class]);
+                });
+            });
+
+            $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
+                $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) {
+                    $app[Pulse::class]->store($app[Ingest::class]);
+                });
+            });
+        });
+    }
+
+    /**
+     * Register the package's components.
+     */
+    protected function registerComponents(): void
+    {
+        $this->callAfterResolving('blade.compiler', function (BladeCompiler $blade) {
+            $blade->anonymousComponentPath(__DIR__.'/../resources/views/components', 'pulse');
+        });
+
+        $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
+            $livewire->addPersistentMiddleware($app['config']->get('pulse.middleware', []));
+
+            $livewire->component('pulse.cache', Livewire\Cache::class);
+            $livewire->component('pulse.usage', Livewire\Usage::class);
+            $livewire->component('pulse.queues', Livewire\Queues::class);
+            $livewire->component('pulse.servers', Livewire\Servers::class);
+            $livewire->component('pulse.slow-jobs', Livewire\SlowJobs::class);
+            $livewire->component('pulse.exceptions', Livewire\Exceptions::class);
+            $livewire->component('pulse.slow-routes', Livewire\SlowRoutes::class);
+            $livewire->component('pulse.slow-queries', Livewire\SlowQueries::class);
+            $livewire->component('pulse.period-selector', Livewire\PeriodSelector::class);
+            $livewire->component('pulse.slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
+        });
+    }
+
+    /**
+     * Register the package's resources.
      */
     protected function registerResources(): void
     {
@@ -204,30 +246,5 @@ class PulseServiceProvider extends ServiceProvider
                 RestartCommand::class,
             ]);
         }
-    }
-
-    /**
-     * Register the package's components.
-     */
-    protected function registerComponents(): void
-    {
-        $this->callAfterResolving('blade.compiler', function (BladeCompiler $blade) {
-            $blade->anonymousComponentPath(__DIR__.'/../resources/views/components', 'pulse');
-        });
-
-        $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $livewire->addPersistentMiddleware($app['config']->get('pulse.middleware', []));
-
-            $livewire->component('pulse.cache', Livewire\Cache::class);
-            $livewire->component('pulse.usage', Livewire\Usage::class);
-            $livewire->component('pulse.queues', Livewire\Queues::class);
-            $livewire->component('pulse.servers', Livewire\Servers::class);
-            $livewire->component('pulse.slow-jobs', Livewire\SlowJobs::class);
-            $livewire->component('pulse.exceptions', Livewire\Exceptions::class);
-            $livewire->component('pulse.slow-routes', Livewire\SlowRoutes::class);
-            $livewire->component('pulse.slow-queries', Livewire\SlowQueries::class);
-            $livewire->component('pulse.period-selector', Livewire\PeriodSelector::class);
-            $livewire->component('pulse.slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
-        });
     }
 }
