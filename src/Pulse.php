@@ -88,9 +88,9 @@ class Pulse
      * Create a new Pulse instance.
      */
     public function __construct(
-        protected Repository $config,
-        protected AuthManager $auth,
         protected Application $app,
+        protected AuthManager $auth,
+        protected Repository $config,
     ) {
         $this->filters = collect([]);
         $this->recorders = collect([]);
