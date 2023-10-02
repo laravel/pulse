@@ -69,6 +69,8 @@ class Jobs
                     ? $event->job
                     : $event->job::class,
                 'job_uuid' => $event->payload()['uuid'],
+                'connection' => $event->connectionName,
+                'queue' => $event->job->queue ?? 'default',
                 'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]);
         }

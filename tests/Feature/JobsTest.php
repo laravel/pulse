@@ -36,6 +36,8 @@ it('ingests bus dispatched jobs', function () {
         'user_id' => null,
         'job' => 'MyJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -62,6 +64,8 @@ it('ingests queued closures', function () {
         'user_id' => null,
         'job' => 'Illuminate\Queue\CallQueuedClosure',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -86,6 +90,8 @@ it('ingests jobs pushed to the queue', function () {
         'user_id' => null,
         'job' => 'MyJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -114,6 +120,8 @@ it('handles a job throwing exceptions and failing', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -136,6 +144,8 @@ it('handles a job throwing exceptions and failing', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 1,
         'slowest' => 11,
     ]);
@@ -158,6 +168,8 @@ it('handles a job throwing exceptions and failing', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 2,
         'slowest' => 22,
     ]);
@@ -180,6 +192,8 @@ it('handles a job throwing exceptions and failing', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 3,
         'slowest' => 33,
     ]);
@@ -208,6 +222,8 @@ it('only remembers the slowest duration', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -230,6 +246,8 @@ it('only remembers the slowest duration', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 1,
         'slowest' => 99,
     ]);
@@ -252,6 +270,8 @@ it('only remembers the slowest duration', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 2,
         'slowest' => 99,
     ]);
@@ -274,6 +294,8 @@ it('only remembers the slowest duration', function () {
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 3,
         'slowest' => 99,
     ]);
@@ -302,6 +324,8 @@ it('handles a failure and then a successful job', function () {
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -324,6 +348,8 @@ it('handles a failure and then a successful job', function () {
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 1,
         'slowest' => 99,
     ]);
@@ -346,6 +372,8 @@ it('handles a failure and then a successful job', function () {
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 2,
         'slowest' => 99,
     ]);
@@ -374,6 +402,8 @@ it('handles a slow successful job', function () {
         'user_id' => null,
         'job' => 'MySlowJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -396,6 +426,8 @@ it('handles a slow successful job', function () {
         'user_id' => null,
         'job' => 'MySlowJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 1,
         'slowest' => 100,
     ]);
@@ -424,6 +456,8 @@ it('handles a job that was manually failed', function () {
         'user_id' => null,
         'job' => 'MyJobThatManuallyFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 0,
         'slowest' => null,
     ]);
@@ -446,6 +480,8 @@ it('handles a job that was manually failed', function () {
         'user_id' => null,
         'job' => 'MyJobThatManuallyFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'connection' => 'database',
+        'queue' => 'default',
         'slow' => 1,
         'slowest' => 100,
     ]);

@@ -68,6 +68,8 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->string('job');
             $table->uuid('job_uuid');
+            $table->string('connection');
+            $table->string('queue');
             $table->datetime('processing_at')->nullable();
             $table->datetime('processed_at')->nullable();
             $table->datetime('failed_at')->nullable();
