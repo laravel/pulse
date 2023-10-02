@@ -81,16 +81,6 @@ parameters:
 			path: src/Recorders/Jobs.php
 
 		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/Recorders/QueueSizes.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/Recorders/QueueSizes.php
-
-		-
 			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
 			count: 1
 			path: src/Recorders/Requests.php

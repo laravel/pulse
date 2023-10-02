@@ -97,15 +97,6 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->index(['uri', 'date', 'duration']);
         });
-
-        // Schema::create('pulse_queue_sizes', function (Blueprint $table) {
-        //     $table->datetime('date');
-        //     $table->string('connection');
-        //     $table->string('queue');
-        //     $table->unsignedInteger('size');
-        //     $table->unsignedInteger('failed');
-        //     // TODO: indexes?
-        // });
     }
 
     /**
