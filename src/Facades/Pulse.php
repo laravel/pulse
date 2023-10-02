@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string css()
  * @method static string js()
  * @method static \Symfony\Component\HttpFoundation\Response|bool authorize(\Illuminate\Http\Request $request)
- * @method static \Laravel\Pulse\Pulse authorizeUsing(callable|\Symfony\Component\HttpFoundation\Response $callback)
+ * @method static \Laravel\Pulse\Pulse authorizeUsing(callable $callback)
  * @method static \Laravel\Pulse\Pulse ignoreMigrations()
  * @method static bool runsMigrations()
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
