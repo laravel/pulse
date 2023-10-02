@@ -177,6 +177,7 @@ return [
     */
 
     // TODO clean up this example after chatting with Jess.
+    // TODO: Remove?
     'queues' => [
         'default',
         // 'default-connection:queue-1',

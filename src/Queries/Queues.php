@@ -32,6 +32,7 @@ class Queues
      */
     public function __invoke(): Enumerable
     {
+        // TODO: Get historic and current stats from the pulse_jobs table, similar to system stats charts and current value.
         return collect($this->config->get('pulse.queues'))
             ->groupBy(fn ($value, $key) => is_int($key) ? $this->config->get('queue.default') : $key)
             ->map->flatten()
