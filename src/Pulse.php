@@ -56,7 +56,7 @@ class Pulse
     /**
      * The callback that should be used to authorize Pulse users.
      *
-     * @var ?(callable(\Illuminate\Http\Request): bool|\Symfony\Component\HttpFoundation\Response)
+     * @var ?callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)
      */
     protected $authorizeUsing = null;
 
@@ -339,7 +339,7 @@ class Pulse
     /**
      * Set the callback that should be used to authorize Pulse users.
      *
-     * @param  (callable(\Illuminate\Http\Request): bool|\Symfony\Component\HttpFoundation\Response)  $callback
+     * @param  callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)  $callback
      */
     public function authorizeUsing(callable $callback): self
     {

@@ -21,11 +21,6 @@ parameters:
 			path: src/Pulse.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:resolveUsers\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string, extra\\?\\: string\\|null\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string\\}\\>\\.$#"
-			count: 1
-			path: src/Pulse.php
-
-		-
 			message: "#^Parameter \\#1 \\$value of function collect expects Illuminate\\\\Contracts\\\\Support\\\\Arrayable\\<int, class\\-string\\>\\|iterable\\<int, class\\-string\\>\\|null, array\\<int, class\\-string\\>\\|class\\-string given\\.$#"
 			count: 1
 			path: src/Pulse.php
