@@ -19,8 +19,8 @@ class Redis
      * Create a new Redis instance.
      */
     public function __construct(
-        protected Repository $config,
         protected Connection $connection,
+        protected Repository $config,
         protected Pipeline|PhpRedis|null $client = null,
     ) {
         //
@@ -56,7 +56,7 @@ class Redis
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
         return match (true) {
-            // PHP Redis does not support the minid strategy.
+            // PHP Redis does not support the minid strategy....
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
             $this->client() instanceof Predis ||
             $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold),
@@ -85,13 +85,12 @@ class Redis
             throw new RuntimeException('Pipelines are not able to be nested.');
         }
 
-        // Create a pipeline and wrap the Redis client in an instance of this
-        // class to ensure our wrapper methods are used within the pipeline.
+        // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
         return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->config, $this->connection, $client)));
     }
 
     /**
-     * Retrieve the redis client.
+     * Get the Redis client instance.
      */
     protected function client(): PhpRedis|Predis|Pipeline
     {
