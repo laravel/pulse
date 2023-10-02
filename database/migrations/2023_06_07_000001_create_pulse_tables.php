@@ -111,6 +111,5 @@ return new class extends Migration
         Schema::dropIfExists('pulse_jobs');
         Schema::dropIfExists('pulse_cache_interactions');
         Schema::dropIfExists('pulse_outgoing_requests');
-        Schema::dropIfExists('pulse_queue_sizes');
     }
 };
