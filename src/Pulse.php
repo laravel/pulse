@@ -54,6 +54,18 @@ class Pulse
     protected $usersResolver = null;
 
     /**
+     * The authenticated user ID resolver.
+     *
+     * @var (callable(): int|string|null)
+     */
+    protected $authenticatedUserIdResolver = null;
+
+    /**
+     * The remembered user's ID.
+     */
+    protected int|string|null $rememberedUserId = null;
+
+    /**
      * The callback that should be used to authorize Pulse users.
      *
      * @var ?callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)
@@ -71,18 +83,6 @@ class Pulse
      * @var ?(callable(\Throwable): mixed)
      */
     protected $handleExceptionsUsing = null;
-
-    /**
-     * The remembered user's ID.
-     */
-    protected int|string|null $rememberedUserId = null;
-
-    /**
-     * The authenticated user ID resolver.
-     *
-     * @var (callable(): int|string|null)
-     */
-    protected $authenticatedUserIdResolver = null;
 
     /**
      * Create a new Pulse instance.
@@ -135,7 +135,39 @@ class Pulse
     }
 
     /**
+     * Record the given entry.
+     */
+    public function record(Entry|Update $entry): self
+    {
+        if ($this->shouldRecord) {
+            $this->entries[] = $entry;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Start recording entries.
+     */
+    public function startRecording(): self
+    {
+        $this->shouldRecord = true;
+
+        return $this;
+    }
+
+    /**
      * Stop recording entries.
+     */
+    public function stopRecording(): self
+    {
+        $this->shouldRecord = false;
+
+        return $this;
+    }
+
+    /**
+     * Execute the given callback without recording entries.
      *
      * @template TReturn
      *
@@ -156,21 +188,21 @@ class Pulse
     }
 
     /**
-     * Stop recording entries.
+     * The pending entries to be recorded.
+     *
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
      */
-    public function stopRecording(): self
+    public function entries()
     {
-        $this->shouldRecord = false;
-
-        return $this;
+        return $this->entries;
     }
 
     /**
-     * Start recording entries.
+     * Flush the queue.
      */
-    public function startRecording(): self
+    public function flushEntries(): self
     {
-        $this->shouldRecord = true;
+        $this->entries = collect([]);
 
         return $this;
     }
@@ -183,18 +215,6 @@ class Pulse
     public function filter(callable $filter): self
     {
         $this->filters[] = $filter;
-
-        return $this;
-    }
-
-    /**
-     * Record the given entry.
-     */
-    public function record(Entry|Update $entry): self
-    {
-        if ($this->shouldRecord) {
-            $this->entries[] = $entry;
-        }
 
         return $this;
     }
@@ -224,23 +244,11 @@ class Pulse
     }
 
     /**
-     * The pending entries to be recorded.
-     *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
+     * Determine if the given entry should be recorded.
      */
-    public function entries()
+    protected function shouldRecord(Entry|Update $entry): bool
     {
-        return $this->entries;
-    }
-
-    /**
-     * Flush the queue.
-     */
-    public function flushEntries(): self
-    {
-        $this->entries = collect([]);
-
-        return $this;
+        return $this->filters->every(fn (callable $filter) => $filter($entry));
     }
 
     /**
@@ -259,11 +267,25 @@ class Pulse
     }
 
     /**
-     * Determine if the entry should be recorded.
+     * Resolve the user details for the given user IDs.
+     *
+     * @param  \Illuminate\Support\Collection<int, string|int>  $ids
+     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'extra'?: ?string}>
      */
-    protected function shouldRecord(Entry|Update $entry): bool
+    public function resolveUsers(Collection $ids): Collection
     {
-        return $this->filters->every(fn (callable $filter) => $filter($entry));
+        if ($this->usersResolver) {
+            return collect(($this->usersResolver)($ids));
+        } elseif (class_exists(\App\Models\User::class)) {
+            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
+        } elseif (class_exists(\App\User::class)) {
+            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
+        }
+
+        return $ids->map(fn (string|int $id) => [
+            'id' => $id,
+            'name' => "User ID: {$id}",
+        ]);
     }
 
     /**
@@ -279,117 +301,7 @@ class Pulse
     }
 
     /**
-     * Resolve the user's details using the given closure.
-     *
-     * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'extra'?: ?string}>
-     */
-    public function resolveUsers(Collection $ids): Collection
-    {
-        if ($this->usersResolver) {
-            return collect(($this->usersResolver)($ids));
-        }
-
-        if (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
-        }
-
-        if (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
-        }
-
-        return $ids->map(fn (string|int $id) => [
-            'id' => $id,
-            'name' => "User ID: {$id}",
-        ]);
-    }
-
-    /**
-     * Return the compiled CSS from the vendor directory.
-     */
-    public function css(): string
-    {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
-            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
-        }
-
-        return $content;
-    }
-
-    /**
-     * Return the compiled JavaScript from the vendor directory.
-     */
-    public function js(): string
-    {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
-            throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
-        }
-
-        return $content;
-    }
-
-    /**
-     * Determine if the given request can access the Pulse dashboard.
-     */
-    public function authorize(Request $request): bool|Response
-    {
-        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
-    }
-
-    /**
-     * Set the callback that should be used to authorize Pulse users.
-     *
-     * @param  callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)  $callback
-     */
-    public function authorizeUsing(callable $callback): self
-    {
-        $this->authorizeUsing = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Configure Pulse to not register its migrations.
-     */
-    public function ignoreMigrations(): self
-    {
-        $this->runsMigrations = false;
-
-        return $this;
-    }
-
-    /**
-     * Determine if Pulse may run migrations.
-     */
-    public function runsMigrations(): bool
-    {
-        return $this->runsMigrations;
-    }
-
-    /**
-     * Handle exceptions using the given callback.
-     *
-     * @param  (callable(\Throwable): mixed)  $callback
-     */
-    public function handleExceptionsUsing(callable $callback): self
-    {
-        $this->handleExceptionsUsing = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Resolve the authenticated user ID with the given callback.
-     */
-    public function resolveAuthenticatedUserIdUsing(callable $callback): self
-    {
-        $this->authenticatedUserIdResolver = $callback;
-
-        return $this;
-    }
-
-    /**
-     * The authenticated user ID resolver.
+     * Get the authenticated user ID resolver.
      *
      * @return (callable(): (int|string|null|(callable(): (int|string|null))))
      */
@@ -406,6 +318,16 @@ class Pulse
         }
 
         return fn () => $this->auth->id() ?? $this->rememberedUserId;
+    }
+
+    /**
+     * Resolve the authenticated user ID with the given callback.
+     */
+    public function resolveAuthenticatedUserIdUsing(callable $callback): self
+    {
+        $this->authenticatedUserIdResolver = $callback;
+
+        return $this;
     }
 
     /**
@@ -439,6 +361,80 @@ class Pulse
     public function rememberUser(Authenticatable $user): self
     {
         $this->rememberedUserId = $user->getAuthIdentifier();
+
+        return $this;
+    }
+
+    /**
+     * Determine if the given request can access the Pulse dashboard.
+     */
+    public function authorize(Request $request): bool|Response
+    {
+        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
+    }
+
+    /**
+     * Set the callback that should be used to authorize Pulse users.
+     *
+     * @param  callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)  $callback
+     */
+    public function authorizeUsing(callable $callback): self
+    {
+        $this->authorizeUsing = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Return the compiled CSS from the vendor directory.
+     */
+    public function css(): string
+    {
+        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
+            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
+        }
+
+        return $content;
+    }
+
+    /**
+     * Return the compiled JavaScript from the vendor directory.
+     */
+    public function js(): string
+    {
+        if (($content = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
+            throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
+        }
+
+        return $content;
+    }
+
+    /**
+     * Determine if Pulse may run migrations.
+     */
+    public function runsMigrations(): bool
+    {
+        return $this->runsMigrations;
+    }
+
+    /**
+     * Configure Pulse to not register its migrations.
+     */
+    public function ignoreMigrations(): self
+    {
+        $this->runsMigrations = false;
+
+        return $this;
+    }
+
+    /**
+     * Handle exceptions using the given callback.
+     *
+     * @param  (callable(\Throwable): mixed)  $callback
+     */
+    public function handleExceptionsUsing(callable $callback): self
+    {
+        $this->handleExceptionsUsing = $callback;
 
         return $this;
     }
