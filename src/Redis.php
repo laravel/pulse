@@ -86,7 +86,7 @@ class Redis
         }
 
         // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
-        return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->config, $this->connection, $client)));
+        return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->connection, $this->config, $client)));
     }
 
     /**
