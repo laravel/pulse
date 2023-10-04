@@ -31,16 +31,6 @@ parameters:
 			path: src/PulseServiceProvider.php
 
 		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/Queries/Queues.php
-
-		-
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
 			count: 1
 			path: src/Queries/Servers.php

@@ -31,9 +31,9 @@ class Queues
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Enumerable<int, array{connection: string, queue: string, size: int, failed: int}>
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, object{ date: string, queued: int, processing: int, failed: int }>>
      */
-    public function __invoke(Interval $interval): Enumerable
+    public function __invoke(Interval $interval): Collection
     {
         $now = new CarbonImmutable;
 
