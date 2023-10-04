@@ -75,6 +75,8 @@ class Jobs
             ]);
         }
 
+        // TODO: Store an entry per-retry?
+
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
             // TODO: Add update here?
