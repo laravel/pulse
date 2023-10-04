@@ -84,6 +84,7 @@ class Jobs
 
         $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
         $processingAt = $this->lastJobStartedProcessingAt?->toDateTimeString();
+        $slow = $duration >= $this->config->get('pulse.slow_job_threshold') ? 1 : 0;
 
         if ($event instanceof JobReleasedAfterException) {
             return tap(new Update(
@@ -92,7 +93,7 @@ class Jobs
                 fn (array $attributes) => [
                     'processing_at' => $attributes['processing_at'] ?? $processingAt,
                     'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + 1,
+                    'slow' => $attributes['slow'] + $slow,
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
@@ -105,7 +106,7 @@ class Jobs
                     'processing_at' => $attributes['processing_at'] ?? $processingAt,
                     'processed_at' => $now->toDateTimeString(),
                     'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + 1,
+                    'slow' => $attributes['slow'] + $slow,
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
@@ -118,22 +119,9 @@ class Jobs
                     'processing_at' => $attributes['processing_at'] ?? $processingAt,
                     'failed_at' => $now->toDateTimeString(),
                     'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + 1,
+                    'slow' => $attributes['slow'] + $slow,
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
-
-        // if ($duration < $this->config->get('pulse.slow_job_threshold')) {
-        //     return null;
-        // }
-
-        // return tap(new Update(
-        //     $this->table,
-        //     ['job_uuid' => (string) $event->job->uuid()],
-        //     fn (array $attributes) => [
-        //         'slowest' => max($attributes['slowest'] ?? 0, $duration),
-        //         'slow' => $attributes['slow'] + 1,
-        //     ],
-        // ), fn () => $this->lastJobStartedProcessingAt = null);
     }
 }
