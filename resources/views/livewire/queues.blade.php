@@ -32,9 +32,6 @@
                         @endif
                     </h3>
                     @php $latest = $readings->last() @endphp
-                    {{-- <p>Queued: {{ $latest->queued }} --}}
-                    {{-- Failed: {{ $latest->failed }} --}}
-                    {{-- Processed: {{ $latest->processed }}</p> --}}
                     <div
                         wire:ignore
                         class="h-12 mt-1"
@@ -119,6 +116,7 @@
                                     }
                                 )
                             }
+                            // TODO: Live update chart
                         }"
                     >
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/10 dark:ring-gray-100/10 bg-white dark:bg-gray-800 rounded-md shadow-sm"></canvas>
