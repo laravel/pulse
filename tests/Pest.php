@@ -69,12 +69,14 @@ function prependListener(string $event, callable $listener): void
 
 function captureRedisCommands(callable $callback)
 {
-    $process = Process::timeout(10)->start('redis-cli MONITOR');
+    $port = config('database.redis.default.port');
+
+    $process = Process::timeout(10)->start("redis-cli -p {$port} MONITOR");
 
     Sleep::for(50)->milliseconds();
 
     $beforeFlag = Str::random();
-    Process::timeout(1)->run("redis-cli ping {$beforeFlag}")->throw();
+    Process::timeout(1)->run("redis-cli -p {$port} ping {$beforeFlag}")->throw();
 
     $pingedAt = new CarbonImmutable;
 
@@ -90,7 +92,7 @@ function captureRedisCommands(callable $callback)
         $callback();
 
         $afterFlag = Str::random();
-        Process::timeout(1)->run("redis-cli ping {$afterFlag}")->throw();
+        Process::timeout(1)->run("redis-cli -p {$port} ping {$afterFlag}")->throw();
 
         $pingedAt = new CarbonImmutable;
 

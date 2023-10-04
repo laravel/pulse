@@ -9,7 +9,7 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\Redis;
 
-beforeEach(fn () => Process::timeout(1)->run('redis-cli DEL laravel_database_laravel:pulse:entries')->throw());
+beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' DEL laravel_database_laravel:pulse:entries')->throw());
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -40,7 +40,7 @@ it('runs the same commands while storing', function ($driver) {
         new Entry('pulse_table', ['another' => 'one']),
     ]));
     $output = Process::timeout(1)
-        ->run('redis-cli XINFO STREAM laravel_database_laravel:pulse:entries')
+        ->run('redis-cli -p '.config('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:entries')
         ->throw()
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
