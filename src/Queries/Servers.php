@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use stdClass;
 
 /**
- * @interval
+ * @internal
  */
 class Servers
 {

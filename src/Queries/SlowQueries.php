@@ -9,7 +9,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 
 /**
- * @interval
+ * @internal
  */
 class SlowQueries
 {

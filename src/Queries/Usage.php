@@ -12,7 +12,7 @@ use Laravel\Pulse\Pulse;
 use stdClass;
 
 /**
- * @interval
+ * @internal
  */
 class Usage
 {

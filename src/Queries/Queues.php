@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Enumerable;
 
 /**
- * @interval
+ * @internal
  */
 class Queues
 {

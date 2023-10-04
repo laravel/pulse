@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use stdClass;
 
 /**
- * @interval
+ * @internal
  */
 class SlowRoutes
 {

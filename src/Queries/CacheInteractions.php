@@ -8,7 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 
 /**
- * @interval
+ * @internal
  */
 class CacheInteractions
 {
