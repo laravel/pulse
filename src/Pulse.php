@@ -49,7 +49,7 @@ class Pulse
     /**
      * The users resolver.
      *
-     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'extra'?: ?string}>)
+     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)
      */
     protected $usersResolver = null;
 
@@ -270,7 +270,7 @@ class Pulse
      * Resolve the user details for the given user IDs.
      *
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, 'extra'?: ?string}>
+     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
      */
     public function resolveUsers(Collection $ids): Collection
     {
@@ -291,7 +291,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: int|string, name: string, 'extra'?: ?string}>)  $callback
+     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)  $callback
      */
     public function resolveUsersUsing(callable $callback): self
     {

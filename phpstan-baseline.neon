@@ -21,6 +21,11 @@ parameters:
 			path: src/Pulse.php
 
 		-
+			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:resolveUsers\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string, email\\?\\: string\\|null, avatar\\?\\: string\\|null, extra\\?\\: string\\|null\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{id\\: int\\|string, name\\: string\\}\\>\\.$#"
+			count: 1
+			path: src/Pulse.php
+
+		-
 			message: "#^Parameter \\#1 \\$value of function collect expects Illuminate\\\\Contracts\\\\Support\\\\Arrayable\\<int, class\\-string\\>\\|iterable\\<int, class\\-string\\>\\|null, array\\<int, class\\-string\\>\\|class\\-string given\\.$#"
 			count: 1
 			path: src/Pulse.php
@@ -76,22 +81,7 @@ parameters:
 			path: src/Queries/SlowRoutes.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: null\\}\\}\\|null\\>\\.$#"
-			count: 1
-			path: src/Queries/Usage.php
-
-		-
-			message: "#^Offset 'avatar' on array\\{id\\: int\\|string, name\\: string, extra\\?\\: string\\|null\\} on left side of \\?\\? does not exist\\.$#"
-			count: 1
-			path: src/Queries/Usage.php
-
-		-
-			message: "#^Offset 'email' on array\\{id\\: int\\|string, name\\: string, extra\\?\\: string\\|null\\} on left side of \\?\\? does not exist\\.$#"
-			count: 2
-			path: src/Queries/Usage.php
-
-		-
-			message: "#^Ternary operator condition is always false\\.$#"
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
 			count: 1
 			path: src/Queries/Usage.php
 
