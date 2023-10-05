@@ -4,9 +4,11 @@ namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
+use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Pulse;
 use Throwable;
 
@@ -37,6 +39,8 @@ class Exceptions
     public function register(callable $record, Application $app): void
     {
         $this->afterResolving($app, ExceptionHandler::class, fn (ExceptionHandler $handler) => $handler->reportable(fn (Throwable $e) => $record($e)));
+
+        $this->afterResolving($app, Dispatcher::class, fn (Dispatcher $events) => $events->listen(fn (ExceptionReported $event) => $record($event->exception)));
     }
 
     /**
