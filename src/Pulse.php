@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Recorders\Concerns\ConfiguresAfterResolving;
+use Laravel\Pulse\Recorders\Exceptions;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -142,6 +144,16 @@ class Pulse
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
         }
+
+        return $this;
+    }
+
+    /**
+     * Report the throwable exception to Pulse.
+     */
+    public function report(Throwable $e): self
+    {
+        $this->app['events']->dispatch(new ExceptionReported($e));
 
         return $this;
     }

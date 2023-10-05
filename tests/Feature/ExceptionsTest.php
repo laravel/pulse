@@ -133,3 +133,21 @@ it('handles multiple users being logged in', function () {
     expect($exceptions[1]->user_id)->toBe('567');
     expect($exceptions[2]->user_id)->toBe('789');
 });
+
+it('can manually report exceptions', function () {
+    Carbon::setTestNow('2000-01-01 00:00:00');
+
+    Pulse::report(new MyReportedException('Hello, Pulse!'));
+    Pulse::store(app(Ingest::class));
+
+    $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
+
+    expect($exceptions)->toHaveCount(1);
+    expect($exceptions[0]->date)->toBe('2000-01-01 00:00:00');
+    expect($exceptions[0]->class)->toBe('MyReportedException');
+});
+
+class MyReportedException extends Exception
+{
+    //
+}
