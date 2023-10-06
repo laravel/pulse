@@ -50,7 +50,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 </div>
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <x-pulse::icons.server class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400" />
-                    <span class="text-base font-bold text-gray-600 dark:text-gray-300">{{ $server->name }}</span>
+                    <span class="text-base font-bold text-gray-600 dark:text-gray-300" title="Time: {{ $time }}; Run at: {{ $runAt }};">{{ $server->name }}</span>
                 </div>
                 <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div class="text-xl font-bold text-gray-700 dark:text-gray-200 w-14 whitespace-nowrap tabular-nums">
