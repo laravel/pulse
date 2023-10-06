@@ -21,7 +21,7 @@ class Servers extends Card
         $servers = $query($this->periodAsInterval());
 
         if (request()->hasHeader('X-Livewire')) {
-            $this->dispatch('chart-update', servers: $servers);
+            $this->dispatch('servers-chart-update', servers: $servers);
         }
 
         return View::make('pulse::livewire.servers', [
