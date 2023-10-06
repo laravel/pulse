@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\SlowQueries as SlowQueriesQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -17,7 +18,7 @@ class SlowQueries extends Card
     /**
      * Render the component.
      */
-    public function render(callable $query): Renderable
+    public function render(SlowQueriesQuery $query): Renderable
     {
         [$slowQueries, $time, $runAt] = $this->remember($query);
 

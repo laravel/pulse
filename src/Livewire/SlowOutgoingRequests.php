@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\SlowOutgoingRequests as SlowOutgoingRequestsQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -18,7 +19,7 @@ class SlowOutgoingRequests extends Card
     /**
      * Render the component.
      */
-    public function render(callable $query): Renderable
+    public function render(SlowOutgoingRequestsQuery $query): Renderable
     {
         [$slowOutgoingRequests, $time, $runAt] = $this->remember($query);
 

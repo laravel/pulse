@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -26,7 +27,7 @@ class Exceptions extends Card
     /**
      * Render the component.
      */
-    public function render(callable $query): Renderable
+    public function render(ExceptionsQuery $query): Renderable
     {
         $orderBy = match ($this->orderBy) {
             'last_occurrence' => 'last_occurrence',

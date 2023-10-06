@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\Usage as UsageQuery;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -33,7 +34,7 @@ class Usage extends Card
     /**
      * Render the component.
      */
-    public function render(callable $query): Renderable
+    public function render(UsageQuery $query): Renderable
     {
         $type = $this->type ?? $this->usage;
 
