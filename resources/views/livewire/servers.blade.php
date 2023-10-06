@@ -120,7 +120,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                     }
                                 )
 
-                                Livewire.on('chart-update', ({ servers }) => {
+                                Livewire.on('servers-chart-update', ({ servers }) => {
                                     // TODO: Figure out how to destroy the Alpine instance and remove this listener.
 
                                     if (chart === undefined) {
@@ -220,7 +220,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                     }
                                 )
 
-                                Livewire.on('chart-update', ({ servers }) => {
+                                Livewire.on('servers-chart-update', ({ servers }) => {
                                     // TODO: Figure out how to destroy the Alpine instance and remove this listener.
 
                                     if (chart === undefined) {
@@ -300,7 +300,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                             }
                                         )
 
-                                        Livewire.on('chart-update', ({ servers }) => {
+                                        Livewire.on('servers-chart-update', ({ servers }) => {
                                             // TODO: Figure out how to destroy the Alpine instance and remove this listener.
 
                                             const storage = servers['{{ $server->slug }}']?.storage?.find(storage => storage.directory === '{{ $storage->directory }}')
