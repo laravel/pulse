@@ -1,5 +1,9 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
-    <x-pulse::card-header name="Queues">
+    <x-pulse::card-header
+        name="Queues"
+        title="Time: {{ $time }}; Run at: {{ $runAt }};"
+        details="past {{ $this->periodForHumans() }}"
+    >
         <x-slot:icon>
             <x-pulse::icons.queue-list />
         </x-slot:icon>
