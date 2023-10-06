@@ -9,6 +9,7 @@ use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Laravel\Pulse\Queries\CacheInteractions;
+use Laravel\Pulse\Queries\CacheKeyInteractions;
 use Laravel\Pulse\Queries\MonitoredCacheInteractions;
 use Livewire\Attributes\Lazy;
 
@@ -20,27 +21,19 @@ class Cache extends Card
     /**
      * Render the component.
      */
-    public function render(CacheInteractions $cacheInteractionsQuery, MonitoredCacheInteractions $monitoredCacheInteractionsQuery): Renderable
+    public function render(CacheInteractions $cacheInteractionsQuery, CacheKeyInteractions $cacheKeyInteractionsQuery): Renderable
     {
-        $monitoring = collect(Config::get('pulse.cache_keys'))
-            ->mapWithKeys(fn (string $value, int|string $key) => is_string($key)
-                ? [$key => $value]
-                : [$value => $value]);
+        [$cacheInteractions, $allTime, $allRunAt] = $this->remember($cacheInteractionsQuery, 'all');
 
-        [$cacheInteractions, $allTime, $allRunAt] = $this->remember($cacheInteractionsQuery);
-
-        [$monitoredCacheInteractions, $monitoredTime, $monitoredRunAt] = $this->remember(
-            fn ($interval) => $monitoredCacheInteractionsQuery($interval, $monitoring),
-            md5($monitoring->toJson())
-        );
+        [$cacheKeyInteractions, $keyTime, $keyRunAt] = $this->remember($cacheKeyInteractionsQuery, 'keys');
 
         return View::make('pulse::livewire.cache', [
             'allTime' => $allTime,
             'allRunAt' => $allRunAt,
-            'monitoredTime' => $monitoredTime,
-            'monitoredRunAt' => $monitoredRunAt,
             'allCacheInteractions' => $cacheInteractions,
-            'monitoredCacheInteractions' => $monitoredCacheInteractions,
+            'keyTime' => $keyTime,
+            'keyRunAt' => $keyRunAt,
+            'cacheKeyInteractions' => $cacheKeyInteractions,
         ]);
     }
 }

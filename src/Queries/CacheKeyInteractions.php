@@ -6,11 +6,14 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
+use stdClass;
 
 /**
  * @internal
  */
-class CacheInteractions
+class CacheKeyInteractions
 {
     use Concerns\InteractsWithConnection;
 
@@ -18,22 +21,27 @@ class CacheInteractions
      * Create a new query instance.
      */
     public function __construct(
-        protected Repository $config,
         protected DatabaseManager $db,
+        protected Repository $config,
     ) {
         //
     }
 
     /**
      * Run the query.
+     *
+     * @return \Illuminate\Support\Collection<string, object>
      */
-    public function __invoke(Interval $interval): object
+    public function __invoke(Interval $interval): Collection
     {
         $now = new CarbonImmutable();
 
         return $this->connection()->table('pulse_cache_interactions')
-            ->selectRaw('COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
+            ->selectRaw('`key`, COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->first() ?? (object) ['count' => 0, 'hits' => '0'];
+            ->groupBy('key')
+            ->orderByDesc('count')
+            ->limit(101)
+            ->get();
     }
 }
