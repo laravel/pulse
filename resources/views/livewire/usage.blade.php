@@ -60,10 +60,11 @@
                     })
                 }
             }"
+            class="min-h-full flex"
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (count($userRequestCounts) === 0)
-                <x-pulse::no-results />
+                <x-pulse::no-results class="flex-1" />
             @else
                 <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
                     @foreach ($userRequestCounts as $userRequestCount)

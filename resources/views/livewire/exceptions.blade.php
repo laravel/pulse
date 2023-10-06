@@ -37,10 +37,11 @@
                     })
                 }
             }"
+            class="min-h-full flex"
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (count($exceptions) === 0)
-                <x-pulse::no-results />
+                <x-pulse::no-results class="flex-1" :happy="true" />
             @else
                 <x-pulse::table>
                     <colgroup>
