@@ -44,7 +44,7 @@ class Usage
                 fn (Builder $query) => $query->from('pulse_requests'))
             ->selectRaw('user_id, COUNT(*) as count')
             ->whereNotNull('user_id')
-            ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
+            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->when($type === 'slow_endpoint_counts',
                 fn (Builder $query) => $query->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold')))
             ->groupBy('user_id')

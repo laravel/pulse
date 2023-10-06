@@ -67,7 +67,7 @@ class CacheInteractions
         foreach ($this->config->get('pulse.cache_keys') as $pattern => $replacement) {
             $normalized = preg_replace($pattern, $replacement, $key, count: $count);
 
-            if ($count > 0) {
+            if ($count > 0 && $normalized !== null) {
                 return $normalized;
             }
         }

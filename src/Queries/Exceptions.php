@@ -37,7 +37,7 @@ class Exceptions
 
         return $this->connection()->table('pulse_exceptions')
             ->selectRaw('class, location, COUNT(*) AS count, MAX(date) AS last_occurrence')
-            ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
+            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->groupBy('class', 'location')
             ->orderByDesc($orderBy)
             ->get();
