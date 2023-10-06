@@ -54,7 +54,6 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
         $this->registerIngest();
-        $this->registerComponentMethodBindings();
     }
 
     /**
@@ -67,30 +66,6 @@ class PulseServiceProvider extends ServiceProvider
             'redis' => $app[RedisIngest::class],
             default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
         });
-    }
-
-    /**
-     * Register the Livewire component method bindings.
-     */
-    protected function registerComponentMethodBindings(): void
-    {
-        foreach ([
-            Livewire\Usage::class => [Queries\Usage::class],
-            Livewire\Queues::class => [Queries\Queues::class],
-            Livewire\Servers::class => [Queries\Servers::class],
-            Livewire\SlowJobs::class => [Queries\SlowJobs::class],
-            Livewire\Exceptions::class => [Queries\Exceptions::class],
-            Livewire\SlowRoutes::class => [Queries\SlowRoutes::class],
-            Livewire\SlowQueries::class => [Queries\SlowQueries::class],
-            Livewire\SlowOutgoingRequests::class => [Queries\SlowOutgoingRequests::class],
-            Livewire\Cache::class => [Queries\CacheInteractions::class, Queries\MonitoredCacheInteractions::class],
-        ] as $card => $queries) {
-            $this->app->bindMethod(
-                [$card, 'render'],
-                fn (Component $instance, Application $app) =>
-                    $instance->render(...array_map($app->make(...), $queries))
-            );
-        }
     }
 
     /**

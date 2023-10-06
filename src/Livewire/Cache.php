@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\CacheInteractions;
+use Laravel\Pulse\Queries\MonitoredCacheInteractions;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -18,7 +20,7 @@ class Cache extends Card
     /**
      * Render the component.
      */
-    public function render(callable $cacheInteractionsQuery, callable $monitoredCacheInteractionsQuery): Renderable
+    public function render(CacheInteractions $cacheInteractionsQuery, MonitoredCacheInteractions $monitoredCacheInteractionsQuery): Renderable
     {
         $monitoring = collect(Config::get('pulse.cache_keys'))
             ->mapWithKeys(fn (string $value, int|string $key) => is_string($key)

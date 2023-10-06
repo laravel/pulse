@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Livewire\Concerns\HasPeriod;
 use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
 use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
+use Laravel\Pulse\Queries\Servers as ServersQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -17,7 +18,7 @@ class Servers extends Card
     /**
      * Render the component.
      */
-    public function render(callable $query): Renderable
+    public function render(ServersQuery $query): Renderable
     {
         [$servers, $time, $runAt] = $this->remember($query);
 
