@@ -39,7 +39,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                     })
                 }
             }"
-            class="min-h-full flex"
+            class="min-h-full flex flex-col"
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (count($slowQueries) === 0)

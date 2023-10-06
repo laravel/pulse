@@ -23,7 +23,7 @@
                     })
                 }
             }"
-            class="min-h-full flex"
+            class="min-h-full flex flex-col"
              :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (! $supported)
