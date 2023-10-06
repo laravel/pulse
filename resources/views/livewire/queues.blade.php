@@ -119,8 +119,25 @@
                                         },
                                     }
                                 )
+
+                                Livewire.on('queues-chart-update', ({ queues }) => {
+                                    if (chart === undefined) {
+                                        return
+                                    }
+
+                                    if (queues['{{ $queue }}'] === undefined && chart) {
+                                        chart.destroy()
+                                        chart = undefined
+                                        return
+                                    }
+
+                                    chart.data.labels = queues['{{ $queue }}'].map(reading => reading.date)
+                                    chart.data.datasets[0].data = queues['{{ $queue }}'].map(reading => reading.queued)
+                                    chart.data.datasets[1].data = queues['{{ $queue }}'].map(reading => reading.processed)
+                                    chart.data.datasets[2].data = queues['{{ $queue }}'].map(reading => reading.failed)
+                                    chart.update()
+                                })
                             }
-                            // TODO: Live update chart
                         }"
                     >
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/10 dark:ring-gray-100/10 bg-white dark:bg-gray-800 rounded-md shadow-sm"></canvas>

@@ -20,6 +20,10 @@ class Queues extends Card
     {
         [$queues, $time, $runAt] = $this->remember($query);
 
+        if (request()->hasHeader('X-Livewire')) {
+            $this->dispatch('queues-chart-update', queues: $queues);
+        }
+
         return View::make('pulse::livewire.queues', [
             'queues' => $queues,
             'showConnection' => $queues->keys()->map(fn ($queue) => Str::before($queue, ':'))->unique()->count() > 1,
