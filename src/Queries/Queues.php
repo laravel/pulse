@@ -122,6 +122,7 @@ class Queues
             ->get()
             ->reverse()
             ->groupBy(fn ($value) => "{$value->connection}:{$value->queue}")
+            ->sortKeys()
             ->map(function (Collection $readings) use ($secondsPerPeriod, $padding) {
                 $readings = $readings
                     ->mapWithKeys(function (stdClass $reading) use ($secondsPerPeriod) {
