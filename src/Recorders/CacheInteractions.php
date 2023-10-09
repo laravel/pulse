@@ -51,10 +51,12 @@ class CacheInteractions
             return null;
         }
 
+        $key = $event->key;
+
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
-            'key' => fn () => $this->normalize($event->key),
+            'key' => fn () => $this->normalize($key),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
     }
