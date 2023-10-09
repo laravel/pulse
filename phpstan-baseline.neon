@@ -41,11 +41,6 @@ parameters:
 			path: src/PulseServiceProvider.php
 
 		-
-			message: "#^Call to an undefined method Livewire\\\\Component\\:\\:render\\(\\)\\.$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
 			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
