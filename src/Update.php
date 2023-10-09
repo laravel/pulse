@@ -3,11 +3,10 @@
 namespace Laravel\Pulse;
 
 use Closure;
-use Laravel\Pulse\Concerns\SerializesClosures;
 
 class Update
 {
-    use SerializesClosures;
+    use Concerns\SerializesClosures;
 
     /**
      * @param  array<string, mixed>  $conditions

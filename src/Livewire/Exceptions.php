@@ -4,9 +4,6 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\HasPeriod;
-use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
-use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -14,7 +11,7 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Exceptions extends Card
 {
-    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
 
     /**
      * The view type

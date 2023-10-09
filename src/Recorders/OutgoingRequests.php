@@ -7,6 +7,7 @@ use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
@@ -18,7 +19,7 @@ use Throwable;
  */
 class OutgoingRequests
 {
-    use Concerns\ConfiguresAfterResolving;
+    use ConfiguresAfterResolving;
 
     /**
      * The table to record to.

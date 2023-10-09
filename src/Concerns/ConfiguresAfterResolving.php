@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse\Recorders\Concerns;
+namespace Laravel\Pulse\Concerns;
 
 use Closure;
 use Illuminate\Foundation\Application;
