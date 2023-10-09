@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
+use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
@@ -51,12 +52,10 @@ class CacheInteractions
             return null;
         }
 
-        $key = $event->key;
-
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
-            'key' => fn () => $this->normalize($key),
+            'key' => $this->normalizeKey($event),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
     }
@@ -64,16 +63,20 @@ class CacheInteractions
     /**
      * Normalize the cache key.
      */
-    protected function normalize(string $key): string
+    protected function normalizeKey(CacheHit|CacheMissed $event): Closure
     {
-        foreach ($this->config->get('pulse.cache_keys') as $pattern => $replacement) {
-            $normalized = preg_replace($pattern, $replacement, $key, count: $count);
+        $key = $event->key;
 
-            if ($count > 0 && $normalized !== null) {
-                return $normalized;
+        return function () use ($key) {
+            foreach ($this->config->get('pulse.cache_keys') as $pattern => $replacement) {
+                $normalized = preg_replace($pattern, $replacement, $key, count: $count);
+
+                if ($count > 0 && $normalized !== null) {
+                    return $normalized;
+                }
             }
-        }
 
-        return $key;
+            return $key;
+        };
     }
 }
