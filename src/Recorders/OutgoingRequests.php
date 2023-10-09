@@ -3,9 +3,12 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
+use Closure;
 use GuzzleHttp\Promise\RejectedPromise;
+use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
@@ -30,6 +33,7 @@ class OutgoingRequests
      */
     public function __construct(
         protected Pulse $pulse,
+        protected Repository $config,
     ) {
         //
     }
@@ -52,11 +56,33 @@ class OutgoingRequests
         $endedAt = new CarbonImmutable;
 
         return new Entry($this->table, [
-            'uri' => $request->getMethod().' '.Str::before($request->getUri(), '?'),
+            'uri' => $this->normalizeUri($request),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    /**
+     * Normalize the request URI.
+     */
+    protected function normalizeUri(RequestInterface $request): Closure
+    {
+        $method = $request->getMethod();
+
+        $uri = $request->getUri();
+
+        return function () use ($method, $uri) {
+            foreach ($this->config->get('pulse.outgoing_request_uri_map') as $pattern => $replacement) {
+                $normalized = preg_replace($pattern, $replacement, $uri, count: $count);
+
+                if ($count > 0 && $normalized !== null) {
+                    return "{$method} {$normalized}";
+                }
+            }
+
+            return "{$method} {$uri}";
+        };
     }
 
     /**

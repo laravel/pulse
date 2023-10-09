@@ -21,16 +21,11 @@ it('ingests outgoing http requests', function () {
     Http::fake(['https://laravel.com' => Http::response('ok')]);
 
     Http::get('https://laravel.com');
-
-    expect(Pulse::entries())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_outgoing_requests')->count())->toBe(0));
-
     Pulse::store(app(Ingest::class));
 
-    expect(Pulse::entries())->toHaveCount(0);
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
-    expect((array) $requests[0])->toEqual([
+    expect($requests[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'uri' => 'GET https://laravel.com',
@@ -47,24 +42,7 @@ it('captures failed requests', function () {
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
     expect($requests)->toHaveCount(1);
-    expect((array) $requests[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
-        'user_id' => null,
-        'uri' => 'GET https://laravel.com',
-        'duration' => 0,
-    ]);
-});
-
-it('doesnt include query parameters', function () {
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Http::fake(['https://laravel.com*' => Http::response('ok')]);
-
-    Http::get('https://laravel.com?v=123');
-    Pulse::store(app(Ingest::class));
-
-    $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
-    expect($requests)->toHaveCount(1);
-    expect((array) $requests[0])->toEqual([
+    expect($requests[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'uri' => 'GET https://laravel.com',
@@ -176,4 +154,82 @@ it('handles multiple users being logged in', function () {
     expect($requests[0]->user_id)->toBe(null);
     expect($requests[1]->user_id)->toBe('567');
     expect($requests[2]->user_id)->toBe('789');
+});
+
+it('stores the original URI by default', function () {
+    Carbon::setTestNow('2000-01-02 03:04:05');
+    Http::fake(['https://laravel.com*' => Http::response('ok')]);
+
+    Http::get('https://laravel.com?foo=123');
+    Pulse::store(app(Ingest::class));
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
+    expect($requests)->toHaveCount(1);
+    expect($requests[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:05',
+        'user_id' => null,
+        'uri' => 'GET https://laravel.com?foo=123',
+        'duration' => 0,
+    ]);
+});
+
+it('can normalize URI', function () {
+    Carbon::setTestNow('2000-01-02 03:04:05');
+    Http::fake(fn () => Http::response('ok'));
+
+    Config::set('pulse.outgoing_request_uri_map', [
+        '#^https://github\.com/([^/]+)/([^/]+)/commits/([^/]+)$#' => 'github.com/{user}/{repo}/commits/{branch}',
+    ]);
+    Http::get('https://github.com/laravel/pulse/commits/1.x');
+    Pulse::store(app(Ingest::class));
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
+    expect($requests)->toHaveCount(1);
+    expect($requests[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:05',
+        'user_id' => null,
+        'uri' => 'GET github.com/{user}/{repo}/commits/{branch}',
+        'duration' => 0,
+    ]);
+});
+
+it('can use back references in normalized URI', function () {
+    Carbon::setTestNow('2000-01-02 03:04:05');
+    Http::fake(fn () => Http::response('ok'));
+
+    Config::set('pulse.outgoing_request_uri_map', [
+        '#^https?://([^/]+).*$#' => '\1/*',
+    ]);
+    Http::get('https://github.com/laravel/pulse/commits/1.x');
+    Pulse::store(app(Ingest::class));
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
+    expect($requests)->toHaveCount(1);
+    expect($requests[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:05',
+        'user_id' => null,
+        'uri' => 'GET github.com/*',
+        'duration' => 0,
+    ]);
+});
+
+it('can provide regex flags in normalization key', function () {
+    Carbon::setTestNow('2000-01-02 03:04:05');
+    Http::fake(fn () => Http::response('ok'));
+
+    Config::set('pulse.outgoing_request_uri_map', [
+        '/parameter/i' => 'lowercase-parameter',
+        '/PARAMETER/i' => 'uppercase-parameter',
+    ]);
+    Http::get('https://github.com?PARAMETER=123');
+    Pulse::store(app(Ingest::class));
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->get());
+    expect($requests)->toHaveCount(1);
+    expect($requests[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:05',
+        'user_id' => null,
+        'uri' => 'GET https://github.com?lowercase-parameter=123',
+        'duration' => 0,
+    ]);
 });
