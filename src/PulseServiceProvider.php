@@ -31,7 +31,6 @@ use Laravel\Pulse\Recorders\Requests;
 use Laravel\Pulse\Recorders\SlowQueries;
 use Laravel\Pulse\Recorders\SystemStats;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
-use Livewire\Component;
 use Livewire\LivewireManager;
 use RuntimeException;
 
