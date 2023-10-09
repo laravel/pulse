@@ -14,21 +14,12 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
-use Laravel\Pulse\Commands\CheckCommand;
-use Laravel\Pulse\Commands\RestartCommand;
-use Laravel\Pulse\Commands\WorkCommand;
+use Laravel\Pulse\Commands;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Ingests\Redis as RedisIngest;
 use Laravel\Pulse\Ingests\Storage as StorageIngest;
-use Laravel\Pulse\Recorders\CacheInteractions;
-use Laravel\Pulse\Recorders\Exceptions;
-use Laravel\Pulse\Recorders\Jobs;
-use Laravel\Pulse\Recorders\OutgoingRequests;
-use Laravel\Pulse\Recorders\QueueSizes;
-use Laravel\Pulse\Recorders\Requests;
-use Laravel\Pulse\Recorders\SlowQueries;
-use Laravel\Pulse\Recorders\SystemStats;
+use Laravel\Pulse\Recorders;
 use Laravel\Pulse\Storage\Database as DatabaseStorage;
 use Livewire\LivewireManager;
 use RuntimeException;
@@ -76,14 +67,14 @@ class PulseServiceProvider extends ServiceProvider
         }
 
         $this->app[Pulse::class]->register([
-            CacheInteractions::class,
-            Exceptions::class,
-            Jobs::class,
-            OutgoingRequests::class,
-            QueueSizes::class,
-            Requests::class,
-            SlowQueries::class,
-            SystemStats::class,
+            Recorders\CacheInteractions::class,
+            Recorders\Exceptions::class,
+            Recorders\Jobs::class,
+            Recorders\OutgoingRequests::class,
+            Recorders\QueueSizes::class,
+            Recorders\Requests::class,
+            Recorders\SlowQueries::class,
+            Recorders\SystemStats::class,
         ]);
 
         $this->registerRoutes();
@@ -220,9 +211,9 @@ class PulseServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                WorkCommand::class,
-                CheckCommand::class,
-                RestartCommand::class,
+                Commands\WorkCommand::class,
+                Commands\CheckCommand::class,
+                Commands\RestartCommand::class,
             ]);
         }
     }
