@@ -4,14 +4,13 @@ namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
@@ -101,16 +100,18 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        $this->app->booted(function (Application $app) {
-            Route::group([
-                'domain' => $app['config']->get('pulse.domain', null),
-                'prefix' => $app['config']->get('pulse.path'),
-                'middleware' => $app['config']->get('pulse.middleware', 'web'),
-            ], function (Router $router) {
-                $router->get('/', function (Pulse $pulse, ViewFactory $view) {
-                    $pulse->stopRecording();
+        $this->app->booted(function () {
+            $this->callAfterResolving('router', function (Router $router, Application $app) {
+                $router->group([
+                    'domain' => $app['config']->get('pulse.domain', null),
+                    'prefix' => $app['config']->get('pulse.path'),
+                    'middleware' => $app['config']->get('pulse.middleware', 'web'),
+                ], function (Router $router) {
+                    $router->get('/', function (Pulse $pulse, ViewFactory $view) {
+                        $pulse->stopRecording();
 
-                    return $view->make('pulse::dashboard');
+                        return $view->make('pulse::dashboard');
+                    });
                 });
             });
         });
@@ -121,18 +122,20 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function listenForEvents(): void
     {
-        $this->app->booted(function (Application $app) {
-            Event::listen(function (Logout $event) use ($app) {
-                $pulse = $app[Pulse::class];
+        $this->app->booted(function () {
+            $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
+                $event->listen(function (Logout $event) use ($app) {
+                    $pulse = $app[Pulse::class];
 
-                $pulse->rescue(fn () => $pulse->rememberUser($event->user));
-            });
+                    $pulse->rescue(fn () => $pulse->rememberUser($event->user));
+                });
 
-            Event::listen([
-                Looping::class,
-                WorkerStopping::class,
-            ], function ($event) use ($app) {
-                $app[Pulse::class]->store($app[Ingest::class]);
+                $event->listen([
+                    Looping::class,
+                    WorkerStopping::class,
+                ], function ($event) use ($app) {
+                    $app[Pulse::class]->store($app[Ingest::class]);
+                });
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
