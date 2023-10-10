@@ -50,7 +50,7 @@ class Pulse
     /**
      * The users resolver.
      *
-     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)
+     * @var ?callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
      */
     protected $usersResolver = null;
 
@@ -81,7 +81,7 @@ class Pulse
     /**
      * Handle exceptions using the given callback.
      *
-     * @var ?(callable(\Throwable): mixed)
+     * @var ?callable(\Throwable): mixed
      */
     protected $handleExceptionsUsing = null;
 
