@@ -12,7 +12,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Events\ExceptionReported;
-use Laravel\Pulse\Recorders\Exceptions;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
