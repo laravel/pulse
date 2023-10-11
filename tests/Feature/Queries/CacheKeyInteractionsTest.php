@@ -13,42 +13,42 @@ it('can get the data', function () {
         [
             'date' => $date = now()->toDateTimeString(),
             'hit' => true,
-            'key' => 'users:{user}:avatar'
+            'key' => 'users:{user}:avatar',
         ],
         [
             'date' => $date,
             'hit' => true,
-            'key' => 'users:{user}:profile'
+            'key' => 'users:{user}:profile',
         ],
         [
             'date' => $date,
             'hit' => true,
-            'key' => 'users:{user}:profile'
+            'key' => 'users:{user}:profile',
         ],
         [
             'date' => $date,
             'hit' => true,
-            'key' => 'users:{user}:profile'
+            'key' => 'users:{user}:profile',
         ],
         [
             'date' => $date,
             'hit' => false,
-            'key' => 'users:{user}:avatar'
+            'key' => 'users:{user}:avatar',
         ],
         [
             'date' => $date,
             'hit' => false,
-            'key' => 'users:{user}:avatar'
+            'key' => 'users:{user}:avatar',
         ],
         [
             'date' => $date,
             'hit' => false,
-            'key' => 'users:{user}:avatar'
+            'key' => 'users:{user}:avatar',
         ],
         [
             'date' => $date = now()->toDateTimeString(),
             'hit' => true,
-            'key' => 'users:{user}:avatar'
+            'key' => 'users:{user}:avatar',
         ],
     ]);
 
@@ -58,12 +58,12 @@ it('can get the data', function () {
     expect($results[0])->toHaveProperties([
         'key' => 'users:{user}:avatar',
         'count' => 5,
-        'hits' => "2",
+        'hits' => '2',
     ]);
     expect($results[1])->toHaveProperties([
         'key' => 'users:{user}:profile',
         'count' => 3,
-        'hits' => "3",
+        'hits' => '3',
     ]);
 });
 
@@ -73,12 +73,12 @@ it('contains records to interval', function () {
         [
             'date' => '2000-01-01 00:00:05',
             'hit' => true,
-            'key' => 'before'
+            'key' => 'before',
         ],
         [
             'date' => '2000-01-01 00:00:06',
             'hit' => true,
-            'key' => 'after'
+            'key' => 'after',
         ],
     ]);
     Carbon::setTestNow('2000-01-01 01:00:05');
