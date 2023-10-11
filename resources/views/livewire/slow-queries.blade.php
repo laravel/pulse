@@ -43,7 +43,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (count($slowQueries) === 0)
-                <x-pulse::no-results class="flex-1" :happy="true" />
+                <x-pulse::no-results class="flex-1" />
             @else
                 <x-pulse::table>
                     <colgroup>

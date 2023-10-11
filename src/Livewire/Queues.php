@@ -5,14 +5,13 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Laravel\Pulse\Queries\Queues as QueuesQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
 class Queues extends Card
 {
-    use ShouldNotReportUsage;
+    use Concerns\ShouldNotReportUsage;
 
     /**
      * Render the component.

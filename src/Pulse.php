@@ -12,15 +12,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Events\ExceptionReported;
-use Laravel\Pulse\Recorders\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Recorders\Exceptions;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Pulse
 {
-    use ConfiguresAfterResolving;
+    use Concerns\ConfiguresAfterResolving;
 
     /**
      * The list of metric recorders.
@@ -51,7 +49,7 @@ class Pulse
     /**
      * The users resolver.
      *
-     * @var ?(callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)
+     * @var ?callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
      */
     protected $usersResolver = null;
 
@@ -82,7 +80,7 @@ class Pulse
     /**
      * Handle exceptions using the given callback.
      *
-     * @var ?(callable(\Throwable): mixed)
+     * @var ?callable(\Throwable): mixed
      */
     protected $handleExceptionsUsing = null;
 

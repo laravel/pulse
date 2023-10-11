@@ -7,6 +7,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Pulse;
@@ -17,7 +18,7 @@ use Throwable;
  */
 class Exceptions
 {
-    use Concerns\ConfiguresAfterResolving;
+    use ConfiguresAfterResolving;
 
     /**
      * The table to record to.

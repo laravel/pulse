@@ -4,16 +4,13 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Livewire\Concerns\HasPeriod;
-use Laravel\Pulse\Livewire\Concerns\RemembersQueries;
-use Laravel\Pulse\Livewire\Concerns\ShouldNotReportUsage;
 use Laravel\Pulse\Queries\Servers as ServersQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
 class Servers extends Card
 {
-    use HasPeriod, RemembersQueries, ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
 
     /**
      * Render the component.
