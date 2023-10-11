@@ -81,7 +81,7 @@ class Jobs
 
         $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
 
-        if ($duration < $this->config->get('pulse.slow_job_threshold')) {
+        if ($duration < $this->config->get('pulse.recorders.'.static::class.'.threshold')) {
             return null;
         }
 

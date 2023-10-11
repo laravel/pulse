@@ -105,7 +105,17 @@ class Pulse
      */
     public function register(string|array $recorders): self
     {
-        $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
+        $recorders = collect($recorders)->map(function ($recorder, $key) {
+            if (is_string($key) && $recorder === false) {
+                return;
+            }
+
+            if (is_array($recorder) && ! ($recorder['enabled'] ?? true)) {
+                return;
+            }
+
+            return $this->app->make(is_string($key) ? $key : $recorder);
+        });
 
         $this->afterResolving($this->app, 'events', fn (Dispatcher $event) => $recorders
             ->filter(fn ($recorder) => $recorder->listen ?? null)

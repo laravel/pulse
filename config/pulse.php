@@ -2,6 +2,7 @@
 
 use Carbon\CarbonInterval as Interval;
 use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Recorders;
 
 return [
 
@@ -116,57 +117,53 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pulse Server Name
+    | Pulse Recorders
     |--------------------------------------------------------------------------
     |
-    | The name that will appear in the dashboard after running the `pulse:check` command.
-    | This must be unique for each reporting server.
+    | The following array lists the "recorders" that will be registered with
+    | Pulse. The recorder gather the application's profile data when
+    | a request or task is executed. Feel free to customize this list.
     |
     */
 
-    'server_name' => env('PULSE_SERVER_NAME', gethostname()),
+    'recorders' => [
+        Recorders\CacheInteractions::class => [
+            'groups' => [
+                // '/^user:.\d+:(.*)/' => 'user:*:\1',
+                // '/^user:.+$/' => 'user:*',
+                '/(.*)/' => '\1',
+            ],
+        ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Storage Monitoring
-    |--------------------------------------------------------------------------
-    |
-    | The directories to monitor for storage usage when running the `pulse:check` command.
-    |
-    */
+        Recorders\Exceptions::class => [],
 
-    'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
+        Recorders\Jobs::class => [
+            'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
+        ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Graph Aggregation
-    |--------------------------------------------------------------------------
-    |
-    | When viewing graphs, the data is aggregated into buckets.
-    | This setting controls whether each point in the graph is the average or max value for that bucket.
-    |
-    | Supported: "avg", "max"
-    |
-    */
+        Recorders\OutgoingRequests::class => [
+            'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
+            'groups' => [
+                // '/^https://api.github.com/repos/.*$' => 'api.github.com/repos/*',
+                // '/^https?:\/\/([^\/]*).*$/' => '\1',
+                '/(.*)/' => '\1',
+            ],
+        ],
 
-    'graph_aggregation' => 'avg',
+        Recorders\Requests::class => [
+            'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
+        ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Thresholds
-    |--------------------------------------------------------------------------
-    |
-    | Here you may specify the number of milliseconds that need to elapse before an item is considered "slow".
-    |
-    */
+        Recorders\SlowQueries::class => [
+            'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
+        ],
 
-    'slow_endpoint_threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
-
-    'slow_query_threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
-
-    'slow_job_threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
-
-    'slow_outgoing_request_threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
+        Recorders\SystemStats::class => [
+            'server_name' => env('PULSE_SERVER_NAME', gethostname()),
+            'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
+            'graph_aggregation' => 'avg',
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -197,25 +194,6 @@ return [
         //     'queue-1',
         //     'queue-2'
         // ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Cache Key Monitoring
-    |--------------------------------------------------------------------------
-    |
-    | The cache keys to monitor. Keys are regular expressions and values are the label to show in the UI.
-    |
-    */
-
-    'cache_keys' => [
-        // '/^user:.\d+:(.*)/' => 'user:*:\1',
-        // '/^user:.+$/' => 'user:*',
-        '/(.*)/' => '\1',
-    ],
-
-    'outgoing_request_uri_map' => [
-        '/(.*)/' => '\1',
     ],
 
     /*

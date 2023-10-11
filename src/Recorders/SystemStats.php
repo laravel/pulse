@@ -44,7 +44,7 @@ class SystemStats
 
         return new Entry($this->table, [
             'date' => $event->time->toDateTimeString(),
-            'server' => $this->config->get('pulse.server_name'),
+            'server' => $this->config->get('pulse.recorders.'.static::class.'.server_name'),
             ...match (PHP_OS_FAMILY) {
                 'Darwin' => [
                     'cpu_percent' => (int) `top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5 }'`,
@@ -58,7 +58,7 @@ class SystemStats
                 ],
                 default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
             },
-            'storage' => collect($this->config->get('pulse.directories'))->map(fn (string $directory) => [
+            'storage' => collect($this->config->get('pulse.'.static::class.'.directories'))->map(fn (string $directory) => [
                 'directory' => $directory,
                 'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
                 'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB

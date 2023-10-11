@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Recorders\Jobs;
 
 it('ingests bus dispatched jobs', function () {
     Config::set('queue.default', 'database');
@@ -83,7 +84,7 @@ it('ingests jobs pushed to the queue', function () {
 
 it('handles a job throwing exceptions and failing', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.slow_job_threshold', 0);
+    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -163,7 +164,7 @@ it('handles a job throwing exceptions and failing', function () {
 
 it('only remembers the slowest duration', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.slow_job_threshold', 0);
+    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -243,7 +244,7 @@ it('only remembers the slowest duration', function () {
 
 it('handles a failure and then a successful job', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.slow_job_threshold', 0);
+    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -305,7 +306,7 @@ it('handles a failure and then a successful job', function () {
 
 it('handles a slow successful job', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.slow_job_threshold', 0);
+    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -349,7 +350,7 @@ it('handles a slow successful job', function () {
 
 it('handles a job that was manually failed', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.slow_job_threshold', 0);
+    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
