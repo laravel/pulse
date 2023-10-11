@@ -166,7 +166,7 @@
                                         }
                                     }"
                                 >
-                                    <canvas x-ref="canvas" class="ring-1 ring-gray-900/10 dark:ring-gray-100/10 bg-white dark:bg-gray-800 rounded-md shadow-sm"></canvas>
+                                    <canvas x-ref="canvas" class="ring-1 ring-gray-900/5 dark:ring-gray-100/10 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm"></canvas>
                                 </div>
                             </div>
                         </div>
