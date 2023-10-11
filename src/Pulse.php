@@ -143,10 +143,16 @@ class Pulse
     /**
      * Record the given entry.
      */
-    public function record(Entry|Update $entry): self
+    public function record(Entry|Update|array $entries): self
     {
+        if (! is_array($entries)) {
+            $entries = [$entries];
+        }
+
         if ($this->shouldRecord) {
-            $this->entries[] = $entry;
+            foreach ($entries as $entry) {
+                $this->entries[] = $entry;
+            }
         }
 
         return $this;

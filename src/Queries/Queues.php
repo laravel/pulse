@@ -50,8 +50,9 @@ class Queues
                 'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
                 'queued' => 0,
                 'processing' => 0,
-                'failed' => 0,
+                'released' => 0,
                 'processed' => 0,
+                'failed' => 0,
             ])
             ->reverse()
             ->keyBy('date');
@@ -60,6 +61,7 @@ class Queues
             ->select('bucket', 'connection', 'queue')
             ->selectRaw('COUNT(`queued_at`) AS `queued`')
             ->selectRaw('COUNT(`processing_at`) AS `processing`')
+            ->selectRaw('COUNT(`released_at`) AS `released`')
             ->selectRaw('COUNT(`processed_at`) AS `processed`')
             ->selectRaw('COUNT(`failed_at`) AS `failed`')
             ->fromSub(
@@ -69,6 +71,7 @@ class Queues
                     ->select('connection', 'queue')
                     ->selectRaw('`date` AS `queued_at`')
                     ->selectRaw('NULL AS `processing_at`')
+                    ->selectRaw('NULL AS `released_at`')
                     ->selectRaw('NULL AS `processed_at`')
                     ->selectRaw('NULL AS `failed_at`')
                     // Divide the data into buckets.
@@ -81,6 +84,7 @@ class Queues
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
                         ->addSelect('processing_at')
+                        ->selectRaw('NULL AS `released_at`')
                         ->selectRaw('NULL AS `processed_at`')
                         ->selectRaw('NULL AS `failed_at`')
                         // Divide the data into buckets.
@@ -88,12 +92,27 @@ class Queues
                         ->where('processing_at', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
                         ->whereNotNull('processing_at')
                     )
+                    // Released
+                    ->union(fn (Builder $query) => $query
+                        ->from('pulse_jobs')
+                        ->select('connection', 'queue')
+                        ->selectRaw('NULL AS `queued_at`')
+                        ->selectRaw('NULL AS `processing_at`')
+                        ->addSelect('released_at')
+                        ->selectRaw('NULL AS `processed_at`')
+                        ->selectRaw('NULL AS `failed_at`')
+                        // Divide the data into buckets.
+                        ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`released_at`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
+                        ->where('released_at', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
+                        ->whereNotNull('released_at')
+                    )
                     // Processed
                     ->union(fn (Builder $query) => $query
                         ->from('pulse_jobs')
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
                         ->selectRaw('NULL AS `processing_at`')
+                        ->selectRaw('NULL AS `released_at`')
                         ->addSelect('processed_at')
                         ->selectRaw('NULL AS `failed_at`')
                         // Divide the data into buckets.
@@ -107,6 +126,7 @@ class Queues
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
                         ->selectRaw('NULL AS `processing_at`')
+                        ->selectRaw('NULL AS `released_at`')
                         ->selectRaw('NULL AS `processed_at`')
                         ->addSelect('failed_at')
                         // Divide the data into buckets.
@@ -130,7 +150,8 @@ class Queues
                         return [$date => (object) [
                             'date' => $date,
                             'queued' => $reading->queued,
-                            'processing' => $reading->queued,
+                            'processing' => $reading->processing,
+                            'released' => $reading->released,
                             'processed' => $reading->processed,
                             'failed' => $reading->failed,
                         ]];

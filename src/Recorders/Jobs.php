@@ -54,7 +54,7 @@ class Jobs
     /**
      * Record the job.
      */
-    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|null
+    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|array|null
     {
         if ($event->connectionName === 'sync') {
             return null;
@@ -65,9 +65,7 @@ class Jobs
         if ($event instanceof JobQueued) {
             return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
-                'job' => is_string($event->job)
-                    ? $event->job
-                    : $event->job::class,
+                'job' => $event->job::class,
                 'job_uuid' => $event->payload()['uuid'],
                 'connection' => $event->connectionName,
                 'queue' => $event->job->queue ?? 'default',
@@ -75,40 +73,48 @@ class Jobs
             ]);
         }
 
-        // TODO: Store an entry per-retry?
-
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
-            // TODO: Add update here?
 
-            return null;
+            // TODO: Allow this to be ingested immediately?
+
+            return new Update(
+                $this->table,
+                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => null],
+                [
+                    'attempt' => $event->job->attempts(),
+                    'processing_at' => $this->lastJobStartedProcessingAt->toDateTimeString(),
+                ],
+            );
         }
 
-        $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
-        $processingAt = $this->lastJobStartedProcessingAt?->toDateTimeString();
-        $slow = $duration >= $this->config->get('pulse.slow_job_threshold') ? 1 : 0;
-
         if ($event instanceof JobReleasedAfterException) {
-            return tap(new Update(
-                $this->table,
-                ['job_uuid' => (string) $event->job->uuid()],
-                fn (array $attributes) => [
-                    'processing_at' => $attributes['processing_at'] ?? $processingAt,
-                    'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + $slow,
-                ],
-            ), fn () => $this->lastJobStartedProcessingAt = null);
+            return tap([
+                new Update(
+                    $this->table,
+                    ['job_uuid' => $event->job->uuid(), 'attempt' => $event->job->attempts()],
+                    [
+                        'released_at' => $now->toDateTimeString(),
+                        'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
+                    ],
+                ),
+                new Entry($this->table, [
+                    'date' => $now->toDateTimeString(),
+                    'job' => $event->job::class,
+                    'job_uuid' => $event->job->uuid(),
+                    'connection' => $event->connectionName,
+                    'queue' => $event->job->queue ?? 'default',
+                ]),
+            ], fn () => $this->lastJobStartedProcessingAt = null);
         }
 
         if ($event instanceof JobProcessed) {
             return tap(new Update(
                 $this->table,
-                ['job_uuid' => (string) $event->job->uuid()],
-                fn (array $attributes) => [
-                    'processing_at' => $attributes['processing_at'] ?? $processingAt,
+                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
+                [
                     'processed_at' => $now->toDateTimeString(),
-                    'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + $slow,
+                    'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
@@ -116,12 +122,10 @@ class Jobs
         if ($event instanceof JobFailed) {
             return tap(new Update(
                 $this->table,
-                ['job_uuid' => (string) $event->job->uuid()],
-                fn (array $attributes) => [
-                    'processing_at' => $attributes['processing_at'] ?? $processingAt,
+                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
+                [
                     'failed_at' => $now->toDateTimeString(),
-                    'slowest' => max($attributes['slowest'] ?? 0, $duration),
-                    'slow' => $attributes['slow'] + $slow,
+                    'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }

@@ -7,6 +7,7 @@ use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Recorders\Jobs;
 
 /**
  * @internal
@@ -35,10 +36,10 @@ class SlowJobs
         $now = new CarbonImmutable;
 
         return $this->connection()->table('pulse_jobs')
-            ->selectRaw('`job`, SUM(slow) as count, MAX(slowest) as slowest')
+            ->selectRaw('`job`, COUNT(*) AS count, MAX(duration) AS slowest')
             // TODO: processed_at or failed_at
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->where('slow', '>', 0)
+            ->where('duration', '>=', $this->config->get('pulse.recorders.'.Jobs::class.'.threshold'))
             ->groupBy('job')
             ->orderByDesc('slowest')
             ->get();

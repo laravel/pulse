@@ -10,15 +10,23 @@
         <x-slot:actions>
             <div class="flex gap-4">
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-5 rounded-full bg-[rgba(147,51,234,0.5)]"></div>
+                    <div class="h-0.5 w-4 rounded-full bg-[rgba(107,114,128,0.5)]"></div>
                     Queued
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-5 rounded-full bg-[#9333ea]"></div>
+                    <div class="h-0.5 w-4 rounded-full bg-[rgba(147,51,234,0.5)]"></div>
+                    Processing
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                    <div class="h-0.5 w-4 rounded-full bg-[#eab308]"></div>
+                    Released
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                    <div class="h-0.5 w-4 rounded-full bg-[#9333ea]"></div>
                     Processed
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-5 rounded-full bg-[#e11d48]"></div>
+                    <div class="h-0.5 w-4 rounded-full bg-[#e11d48]"></div>
                     Failed
                 </div>
             </div>
@@ -59,6 +67,8 @@
                             @php
                                 $highest = $readings->map(fn ($reading) => max(
                                     $reading->queued,
+                                    $reading->processing,
+                                    $reading->released,
                                     $reading->processed,
                                     $reading->failed,
                                 ))->max()
@@ -69,7 +79,7 @@
 
                                 <div
                                     wire:ignore
-                                    class="h-12"
+                                    class="h-14"
                                     x-data="{
                                         init() {
                                             let chart = new Chart(
@@ -81,10 +91,30 @@
                                                         datasets: [
                                                             {
                                                                 label: 'Queued',
-                                                                borderColor: 'rgba(147,51,234,0.5)',
+                                                                borderColor: 'rgba(107,114,128,0.5)',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
                                                                 data: @js(collect($readings)->pluck('queued')),
+                                                                pointStyle: false,
+                                                                tension: 0.2,
+                                                                spanGaps: false,
+                                                            },
+                                                            {
+                                                                label: 'Processing',
+                                                                borderColor: 'rgba(147,51,234,0.5)',
+                                                                borderWidth: 2,
+                                                                borderCapStyle: 'round',
+                                                                data: @js(collect($readings)->pluck('processing')),
+                                                                pointStyle: false,
+                                                                tension: 0.2,
+                                                                spanGaps: false,
+                                                            },
+                                                            {
+                                                                label: 'Released',
+                                                                borderColor: '#eab308',
+                                                                borderWidth: 2,
+                                                                borderCapStyle: 'round',
+                                                                data: @js(collect($readings)->pluck('released')),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -160,8 +190,10 @@
 
                                                 chart.data.labels = queues['{{ $queue }}'].map(reading => reading.date)
                                                 chart.data.datasets[0].data = queues['{{ $queue }}'].map(reading => reading.queued)
-                                                chart.data.datasets[1].data = queues['{{ $queue }}'].map(reading => reading.processed)
-                                                chart.data.datasets[2].data = queues['{{ $queue }}'].map(reading => reading.failed)
+                                                chart.data.datasets[1].data = queues['{{ $queue }}'].map(reading => reading.processing)
+                                                chart.data.datasets[2].data = queues['{{ $queue }}'].map(reading => reading.released)
+                                                chart.data.datasets[3].data = queues['{{ $queue }}'].map(reading => reading.processed)
+                                                chart.data.datasets[4].data = queues['{{ $queue }}'].map(reading => reading.failed)
                                                 chart.update()
                                             })
                                         }
