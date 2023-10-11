@@ -49,9 +49,10 @@
                     @foreach ($queues as $queue => $readings)
                         <div>
                             <h3 class="font-bold text-gray-700 dark:text-gray-300">
-                                {{ Str::after($queue, ':') }}
                                 @if ($showConnection)
-                                    ({{ Str::before($queue, ':') }})
+                                    {{ $queue }}
+                                @else
+                                    {{ Str::after($queue, ':') }}
                                 @endif
                             </h3>
                             @php $latest = $readings->last() @endphp
