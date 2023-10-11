@@ -25,7 +25,7 @@
             }"
             :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']"
         >
-            @if($allCacheInteractions->count === 0)
+            @if ($allCacheInteractions->count === 0)
                 <x-pulse::no-results />
             @else
                 <div class="grid grid-cols-3 gap-3 text-center">
