@@ -34,7 +34,7 @@ it('ingests queries', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
     expect($queries)->toHaveCount(1);
-    expect((array) $queries[0])->toEqual([
+    expect($queries[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:00',
         'user_id' => null,
         'sql' => 'select * from users',
