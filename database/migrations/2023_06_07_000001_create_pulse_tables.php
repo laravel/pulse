@@ -82,7 +82,7 @@ return new class extends Migration
             $table->string('key');
             $table->boolean('hit');
             $table->string('user_id')->nullable();
-            // TODO: indexes?
+            $table->index(['date', 'key']);
         });
 
         Schema::create('pulse_outgoing_requests', function (Blueprint $table) {

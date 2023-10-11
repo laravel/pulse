@@ -36,7 +36,7 @@ class SlowJobs
 
         return $this->connection()->table('pulse_jobs')
             ->selectRaw('`job`, SUM(slow) as count, MAX(slowest) as slowest')
-            ->where('date', '>=', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
+            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('slow', '>', 0)
             ->groupBy('job')
             ->orderByDesc('slowest')
