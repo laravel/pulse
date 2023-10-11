@@ -34,7 +34,7 @@
                 </div>
             @else
                 @if (count($slowOutgoingRequests) === 0)
-                    <x-pulse::no-results class="flex-1" :happy="true" />
+                    <x-pulse::no-results class="flex-1" />
                 @else
                     <x-pulse::table>
                         <colgroup>
