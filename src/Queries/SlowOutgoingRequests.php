@@ -40,6 +40,7 @@ class SlowOutgoingRequests
             ->where('duration', '>=', $this->config->get('pulse.slow_outgoing_request_threshold'))
             ->groupBy('uri')
             ->orderByDesc('slowest')
+            ->limit(101)
             ->get();
     }
 }

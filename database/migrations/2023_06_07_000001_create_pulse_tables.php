@@ -90,7 +90,7 @@ return new class extends Migration
             $table->string('uri');
             $table->unsignedInteger('duration');
             $table->string('user_id')->nullable();
-            // TODO: indexes?
+            $table->index(['uri', 'date', 'duration']);
         });
 
         Schema::create('pulse_queue_sizes', function (Blueprint $table) {

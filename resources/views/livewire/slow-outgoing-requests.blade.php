@@ -33,7 +33,7 @@
                     </div>
                 </div>
             @else
-                @if (count($slowOutgoingRequests) === 0)
+                @if ($slowOutgoingRequests->isEmpty())
                     <x-pulse::no-results class="flex-1" />
                 @else
                     <x-pulse::table>
@@ -52,7 +52,7 @@
                             </tr>
                         </x-pulse::thead>
                         <tbody>
-                            @foreach ($slowOutgoingRequests as $request)
+                            @foreach ($slowOutgoingRequests->take(100) as $request)
                                 @php
                                     [$method, $uri] = explode(' ', $request->uri, 2);
                                 @endphp
@@ -63,7 +63,9 @@
                                     </x-pulse::td>
                                     <x-pulse::td class="max-w-[1px]">
                                         <div class="flex items-center" title="{{ $uri }}">
-                                            <img wire:ignore src="https://unavatar.io/{{ parse_url($uri, PHP_URL_HOST) }}?fallback=false" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
+                                            @if ($host = parse_url($uri, PHP_URL_HOST))
+                                                <img src="https://unavatar.io/{{ $host }}?fallback=false" loading="lazy" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
+                                            @endif
                                             <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
                                                 {{ $uri }}
                                             </code>
