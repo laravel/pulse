@@ -2,7 +2,7 @@
 <header class="flex flex-wrap justify-between items-center gap-4 mb-3 @md:mb-6">
     <div class="flex-1 basis-0 flex-grow-[10000] max-w-full">
         <div class="flex overflow-hidden gap-2 items-start">
-            <div class="[&>svg]:flex-shrink-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:stroke-gray-500 [&>svg]:dark:stroke-gray-600">
+            <div class="[&>svg]:flex-shrink-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:stroke-gray-400 [&>svg]:dark:stroke-gray-600">
                 {{ $icon }}
             </div>
             <hgroup class="flex flex-wrap items-baseline gap-x-2 overflow-hidden">
