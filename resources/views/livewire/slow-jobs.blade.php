@@ -1,7 +1,7 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Slow Jobs"
-        title="Time: {{ $time }}; Run at: {{ $runAt }};"
+        title="Time: {{ number_format($time, 4) }}ms; Run at: {{ $runAt }};"
         details="{{ config('pulse.slow_job_threshold') }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>

@@ -6,7 +6,7 @@
             'dispatched_job_counts' => 'Top 10 Users Dispatching Jobs',
             default => 'Application Usage'
         }"
-        title="Time: {{ $time }}ms; Run At: {{ $runAt }};"
+        title="Time: {{ number_format($time, 4) }}ms; Run At: {{ $runAt }};"
         details="{{ $this->usage === 'slow_endpoint_counts' ? (config('pulse.slow_endpoint_threshold').'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>

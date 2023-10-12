@@ -17,7 +17,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Slow Queries"
-        title="Time: {{ $time }}; Run at: {{ $runAt }};"
+        title="Time: {{ number_format($time, 4) }}ms; Run at: {{ $runAt }};"
         details="{{ config('pulse.slow_query_threshold') }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
