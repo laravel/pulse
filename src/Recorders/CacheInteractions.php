@@ -48,7 +48,10 @@ class CacheInteractions
     {
         $now = new CarbonImmutable();
 
-        if (Str::startsWith($event->key, ['illuminate:', 'laravel:pulse:'])) {
+        if (
+            Str::startsWith($event->key, ['illuminate:', 'laravel:pulse:']) ||
+            Str::endsWith($event->key, ':timer')
+        ) {
             return null;
         }
 

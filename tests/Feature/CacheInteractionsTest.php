@@ -40,6 +40,14 @@ it('ignores internal illuminate cache interactions', function () {
     expect($interactions)->toHaveCount(0);
 });
 
+it('ignores internal illuminate timer interactions interactions', function () {
+    Cache::get('foo:timer');
+    Pulse::store(app(Ingest::class));
+
+    $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
+    expect($interactions)->toHaveCount(0);
+});
+
 it('ignores internal pulse cache interactions', function () {
     Cache::get('laravel:pulse:foo');
     Pulse::store(app(Ingest::class));
