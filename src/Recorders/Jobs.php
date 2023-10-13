@@ -65,8 +65,9 @@ class Jobs
         if ($event instanceof JobQueued) {
             return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
-                'job' => $event->job::class,
+                'job' => is_string($event->job) ? $event->job : $event->job::class,
                 'job_uuid' => $event->payload()['uuid'],
+                'attempt' => 1,
                 'connection' => $event->connectionName,
                 'queue' => $event->job->queue ?? 'default',
                 'user_id' => $this->pulse->authenticatedUserIdResolver(),
@@ -80,9 +81,8 @@ class Jobs
 
             return new Update(
                 $this->table,
-                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => null],
+                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
                 [
-                    'attempt' => $event->job->attempts(),
                     'processing_at' => $this->lastJobStartedProcessingAt->toDateTimeString(),
                 ],
             );
@@ -100,8 +100,9 @@ class Jobs
                 ),
                 new Entry($this->table, [
                     'date' => $now->toDateTimeString(),
-                    'job' => $event->job::class,
+                    'job' => $event->job->resolveName(),
                     'job_uuid' => $event->job->uuid(),
+                    'attempt' => $event->job->attempts() + 1,
                     'connection' => $event->connectionName,
                     'queue' => $event->job->queue ?? 'default',
                 ]),

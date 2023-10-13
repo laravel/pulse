@@ -68,7 +68,7 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->string('job');
             $table->uuid('job_uuid');
-            $table->unsignedInteger('attempt')->nullable();
+            $table->unsignedInteger('attempt');
             $table->string('connection');
             $table->string('queue');
             $table->datetime('processing_at')->nullable();
