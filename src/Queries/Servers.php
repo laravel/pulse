@@ -90,7 +90,7 @@ class Servers
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
                 $this->connection()->table('pulse_system_stats')
-                    ->selectRaw('server, MAX(date) AS date')
+                    ->selectRaw('`server`, MAX(`date`) AS `date`')
                     ->groupBy('server'),
                 'grouped',
                 fn (JoinClause $join) => $join

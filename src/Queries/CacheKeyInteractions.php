@@ -35,9 +35,9 @@ class CacheKeyInteractions
         $now = new CarbonImmutable();
 
         return $this->connection()->table('pulse_cache_interactions')
-            ->selectRaw('`key`, COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
+            ->selectRaw('MAX(`key`) AS `key`, COUNT(*) AS `count`, SUM(`hit`) AS `hits`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->groupBy('key')
+            ->groupBy('key_hash')
             ->orderByDesc('count')
             ->limit(101)
             ->get();

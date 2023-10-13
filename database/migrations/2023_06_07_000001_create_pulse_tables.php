@@ -20,10 +20,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // TODO:
-        // - Review column types. Most of these likely need to be a text column, even "route".
-        // - We may need to keep a hashed version of the text columns to index and group by.
-        // - Do another pass at the indexes to ensure that they are optimized correctly.
+        // TODO Do another pass at the indexes to ensure that they are optimized correctly.
         Schema::create('pulse_system_stats', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('server');
@@ -32,26 +29,28 @@ return new class extends Migration
             $table->unsignedInteger('memory_total');
             $table->json('storage');
 
-            $table->index(['server', 'date']);
+            $table->index(['server', 'date']); // todo review once Forge is cranking with this.
         });
 
         Schema::create('pulse_requests', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('user_id')->nullable();
-            $table->string('route');
+            $table->text('route');
+            $table->char('route_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`route`))');
             $table->unsignedInteger('duration');
 
             $table->index(['date', 'user_id']); // user_usage
-            $table->index(['date', 'route', 'duration']); // slow_endpoints
+            $table->index(['date', 'route_hash', 'duration']); // slow_endpoints
         });
 
         Schema::create('pulse_exceptions', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('user_id')->nullable();
-            $table->string('class');
-            $table->string('location');
+            $table->text('class');
+            $table->text('location');
+            $table->char('class_location_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(CONCAT(`class`, `location`)))');
 
-            $table->index(['date', 'class', 'location']);
+            $table->index(['date', 'class_location_hash']);
         });
 
         Schema::create('pulse_slow_queries', function (Blueprint $table) {
@@ -61,13 +60,14 @@ return new class extends Migration
             $table->char('sql_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`sql`))');
             $table->unsignedInteger('duration');
 
-            $table->index(['date', 'sql_hash', 'duration']); // slow_queries
+            $table->index(['date', 'sql_hash', 'duration']);
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('user_id')->nullable();
-            $table->string('job');
+            $table->text('job');
+            $table->char('job_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`job`))');
             $table->uuid('job_uuid');
             $table->unsignedInteger('attempt');
             $table->string('connection');
@@ -79,26 +79,29 @@ return new class extends Migration
             $table->datetime('failed_at')->nullable();
             $table->unsignedInteger('duration')->nullable();
 
-            // TODO: verify this update index. Needs to find job quickly.
+            // TODO: verify this update index. Needs to find job quickly. does attempts have any benefit here?
             $table->index(['job_uuid']);
-            // $table->index(['date', 'job', 'slowest']); // slow_jobs
-            // $table->index(['date', 'user_id']); // user_usage
+            $table->index(['date', 'job_hash', 'duration']); // slow_jobs
+            $table->index(['queued_at', 'user_id']); // user_usage
         });
 
         Schema::create('pulse_cache_interactions', function (Blueprint $table) {
             $table->datetime('date');
-            $table->string('key');
-            $table->boolean('hit');
             $table->string('user_id')->nullable();
-            $table->index(['date', 'key']);
+            $table->text('key');
+            $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
+            $table->boolean('hit');
+
+            $table->index(['date', 'key_hash', 'hit']);
         });
 
         Schema::create('pulse_outgoing_requests', function (Blueprint $table) {
             $table->datetime('date');
+            $table->string('user_id')->nullable();
             $table->text('uri');
             $table->char('uri_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`uri`))');
             $table->unsignedInteger('duration');
-            $table->string('user_id')->nullable();
+
             $table->index(['uri_hash', 'date', 'duration']);
         });
     }

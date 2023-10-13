@@ -39,10 +39,10 @@ class SlowRoutes
         $now = new CarbonImmutable;
 
         return $this->connection()->table('pulse_requests')
-            ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
+            ->selectRaw('MAX(`route`) AS `route`, COUNT(*) AS `count`, MAX(`duration`) AS `slowest`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.recorders.'.Requests::class.'.threshold'))
-            ->groupBy('route')
+            ->groupBy('route_hash')
             ->orderByDesc('slowest')
             ->get()
             ->map(fn (stdClass $row) => [

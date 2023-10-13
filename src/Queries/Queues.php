@@ -69,7 +69,7 @@ class Queues
                     // Queued
                     ->from('pulse_jobs')
                     ->select('connection', 'queue')
-                    ->selectRaw('`date` AS `queued_at`')
+                    ->addSelect('queued_at')
                     ->selectRaw('NULL AS `processing_at`')
                     ->selectRaw('NULL AS `released_at`')
                     ->selectRaw('NULL AS `processed_at`')

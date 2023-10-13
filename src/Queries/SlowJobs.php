@@ -36,10 +36,10 @@ class SlowJobs
         $now = new CarbonImmutable;
 
         return $this->connection()->table('pulse_jobs')
-            ->selectRaw('`job`, COUNT(*) AS count, MAX(duration) AS slowest')
+            ->selectRaw('MAX(`job`) AS `job`, COUNT(*) AS `count`, MAX(`duration`) AS `slowest`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.recorders.'.Jobs::class.'.threshold'))
-            ->groupBy('job')
+            ->groupBy('job_hash')
             ->orderByDesc('slowest')
             ->get();
     }
