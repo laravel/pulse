@@ -35,9 +35,9 @@ class SlowQueries
         $now = new CarbonImmutable;
 
         return $this->connection()->table('pulse_slow_queries')
-            ->selectRaw('`sql`, COUNT(*) as count, MAX(duration) AS slowest')
+            ->selectRaw('MAX(`sql`) AS `sql`, COUNT(*) AS count, MAX(duration) AS slowest')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->groupBy('sql')
+            ->groupBy('sql_hash')
             ->orderByDesc('slowest')
             ->get();
     }

@@ -57,10 +57,11 @@ return new class extends Migration
         Schema::create('pulse_slow_queries', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('user_id')->nullable();
-            $table->string('sql');
+            $table->text('sql');
+            $table->char('sql_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`sql`))');
             $table->unsignedInteger('duration');
 
-            $table->index(['date', 'sql', 'duration']); // slow_queries
+            $table->index(['date', 'sql_hash', 'duration']); // slow_queries
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
@@ -87,10 +88,11 @@ return new class extends Migration
 
         Schema::create('pulse_outgoing_requests', function (Blueprint $table) {
             $table->datetime('date');
-            $table->string('uri');
+            $table->text('uri');
+            $table->char('uri_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`uri`))');
             $table->unsignedInteger('duration');
             $table->string('user_id')->nullable();
-            $table->index(['uri', 'date', 'duration']);
+            $table->index(['uri_hash', 'date', 'duration']);
         });
 
         Schema::create('pulse_queue_sizes', function (Blueprint $table) {
