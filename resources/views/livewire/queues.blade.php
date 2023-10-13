@@ -8,25 +8,25 @@
             <x-pulse::icons.queue-list />
         </x-slot:icon>
         <x-slot:actions>
-            <div class="flex gap-4">
+            <div class="flex flex-wrap gap-4">
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-4 rounded-full bg-[rgba(107,114,128,0.5)]"></div>
+                    <div class="h-0.5 w-3 rounded-full bg-[rgba(107,114,128,0.5)]"></div>
                     Queued
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-4 rounded-full bg-[rgba(147,51,234,0.5)]"></div>
+                    <div class="h-0.5 w-3 rounded-full bg-[rgba(147,51,234,0.5)]"></div>
                     Processing
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-4 rounded-full bg-[#eab308]"></div>
-                    Released
-                </div>
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-4 rounded-full bg-[#9333ea]"></div>
+                    <div class="h-0.5 w-3 rounded-full bg-[#9333ea]"></div>
                     Processed
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    <div class="h-0.5 w-4 rounded-full bg-[#e11d48]"></div>
+                    <div class="h-0.5 w-3 rounded-full bg-[#eab308]"></div>
+                    Released
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                    <div class="h-0.5 w-3 rounded-full bg-[#e11d48]"></div>
                     Failed
                 </div>
             </div>
@@ -98,6 +98,7 @@
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
+                                                                order: 4,
                                                             },
                                                             {
                                                                 label: 'Processing',
@@ -108,6 +109,7 @@
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
+                                                                order: 3,
                                                             },
                                                             {
                                                                 label: 'Released',
@@ -118,6 +120,7 @@
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
+                                                                order: 2,
                                                             },
                                                             {
                                                                 label: 'Processed',
@@ -128,6 +131,7 @@
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
+                                                                order: 1,
                                                             },
                                                             {
                                                                 label: 'Failed',
@@ -138,6 +142,7 @@
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
+                                                                order: 0,
                                                             },
                                                         ],
                                                     },
@@ -167,10 +172,11 @@
                                                             },
                                                             tooltip: {
                                                                 callbacks: {
-                                                                    title: () => '',
-                                                                    label: (context) => `${context.label} - ${context.dataset.label}: ${context.formattedValue}`
+                                                                    beforeBody: (context) => context
+                                                                        .map(item => `${item.dataset.label}: ${item.formattedValue}`)
+                                                                        .join(', '),
+                                                                    label: () => null,
                                                                 },
-                                                                displayColors: false,
                                                             },
                                                         },
                                                     },
