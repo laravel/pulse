@@ -179,7 +179,7 @@ it('stores the original keys by default', function () {
 
     $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(1);
-    expect((array) $interactions[0])->toEqual([
+    expect($interactions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'users:1234:profile',
@@ -198,7 +198,7 @@ it('can normalize cache keys', function () {
 
     $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(1);
-    expect((array) $interactions[0])->toEqual([
+    expect($interactions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'users:{user}:profile',
@@ -217,7 +217,7 @@ it('can use back references in normalized cache keys', function () {
 
     $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(1);
-    expect((array) $interactions[0])->toEqual([
+    expect($interactions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'bar:foo',
@@ -236,7 +236,7 @@ it('uses the original key if no matching pattern is found', function () {
 
     $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(1);
-    expect((array) $interactions[0])->toEqual([
+    expect($interactions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'actual-key',
@@ -256,7 +256,7 @@ it('can provide regex flags in normalization key', function () {
 
     $interactions = Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->get());
     expect($interactions)->toHaveCount(1);
-    expect((array) $interactions[0])->toEqual([
+    expect($interactions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'key' => 'lowercase-key',

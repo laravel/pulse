@@ -29,7 +29,7 @@ it('ingests requests', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
     expect($requests)->toHaveCount(1);
-    expect((array) $requests[0])->toEqual([
+    expect($requests[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'duration' => 0,

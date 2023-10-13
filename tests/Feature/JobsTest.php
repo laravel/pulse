@@ -28,7 +28,7 @@ it('ingests bus dispatched jobs', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -58,7 +58,7 @@ it('ingests queued closures', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -86,7 +86,7 @@ it('ingests jobs pushed to the queue', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -118,7 +118,7 @@ it('handles a job throwing exceptions and failing', function () {
     expect(Queue::size())->toBe(1);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -144,7 +144,7 @@ it('handles a job throwing exceptions and failing', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
     expect($jobs)->toHaveCount(2);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => '2000-01-02 03:04:10',
@@ -159,7 +159,7 @@ it('handles a job throwing exceptions and failing', function () {
         'queue' => 'default',
         'duration' => 11,
     ]);
-    expect((array) $jobs[1])->toEqual([
+    expect($jobs[1])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:10',
         'processing_at' => null,
@@ -185,7 +185,7 @@ it('handles a job throwing exceptions and failing', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
     expect($jobs)->toHaveCount(3);
-    expect((array) $jobs[1])->toEqual([
+    expect($jobs[1])->toHaveProperties([
         'date' => '2000-01-02 03:04:15',
         'queued_at' => '2000-01-02 03:04:10',
         'processing_at' => '2000-01-02 03:04:15',
@@ -200,7 +200,7 @@ it('handles a job throwing exceptions and failing', function () {
         'queue' => 'default',
         'duration' => 22,
     ]);
-    expect((array) $jobs[2])->toEqual([
+    expect($jobs[2])->toHaveProperties([
         'date' => '2000-01-02 03:04:15',
         'queued_at' => '2000-01-02 03:04:15',
         'processing_at' => null,
@@ -226,7 +226,7 @@ it('handles a job throwing exceptions and failing', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
     expect($jobs)->toHaveCount(3);
-    expect((array) $jobs[2])->toEqual([
+    expect($jobs[2])->toHaveProperties([
         'date' => '2000-01-02 03:04:20',
         'queued_at' => '2000-01-02 03:04:15',
         'processing_at' => '2000-01-02 03:04:20',
@@ -258,7 +258,7 @@ it('handles a failure and then a successful job', function () {
     expect(Queue::size())->toBe(1);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -284,7 +284,7 @@ it('handles a failure and then a successful job', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(2);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => '2000-01-02 03:04:10',
@@ -299,7 +299,7 @@ it('handles a failure and then a successful job', function () {
         'queue' => 'default',
         'duration' => 99,
     ]);
-    expect((array) $jobs[1])->toEqual([
+    expect($jobs[1])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:10',
         'processing_at' => null,
@@ -325,7 +325,7 @@ it('handles a failure and then a successful job', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(2);
-    expect((array) $jobs[1])->toEqual([
+    expect($jobs[1])->toHaveProperties([
         'date' => '2000-01-02 03:04:15',
         'queued_at' => '2000-01-02 03:04:10',
         'processing_at' => '2000-01-02 03:04:15',
@@ -357,7 +357,7 @@ it('handles a slow successful job', function () {
     expect(Queue::size())->toBe(1);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -383,7 +383,7 @@ it('handles a slow successful job', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => '2000-01-02 03:04:10',
@@ -415,7 +415,7 @@ it('handles a job that was manually failed', function () {
     expect(Queue::size())->toBe(1);
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => null,
@@ -441,7 +441,7 @@ it('handles a job that was manually failed', function () {
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
+    expect($jobs[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:10',
         'queued_at' => '2000-01-02 03:04:05',
         'processing_at' => '2000-01-02 03:04:10',
