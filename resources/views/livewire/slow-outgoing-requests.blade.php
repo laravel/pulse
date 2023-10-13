@@ -91,6 +91,10 @@
                             @endforeach
                         </tbody>
                     </x-pulse::table>
+
+                    @if ($slowOutgoingRequests->count() > 100)
+                        <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+                    @endif
                 @endif
             @endif
         </div>

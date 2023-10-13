@@ -60,43 +60,49 @@
                         </span>
                     </div>
                 </div>
-                <x-pulse::table>
-                    <colgroup>
-                        <col width="100%" />
-                        <col width="0%" />
-                        <col width="0%" />
-                        <col width="0%" />
-                    </colgroup>
-                    <x-pulse::thead>
-                        <tr>
-                            <x-pulse::th class="text-left">Key</x-pulse::th>
-                            <x-pulse::th class="text-right">Hits</x-pulse::th>
-                            <x-pulse::th class="text-right">Misses</x-pulse::th>
-                            <x-pulse::th class="text-right whitespace-nowrap">Hit Rate</x-pulse::th>
-                        </tr>
-                    </x-pulse::thead>
-                    <tbody>
-                        @foreach ($cacheKeyInteractions->take(100) as $interaction)
-                            <tr class="h-2 first:h-0"></tr>
-                            <tr wire:key="{{ $interaction->key }}">
-                                <x-pulse::td>
-                                    <code class="block text-xs text-gray-900 dark:text-gray-100">
-                                        {{ $interaction->key }}
-                                    </code>
-                                </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                    <strong>{{ number_format($interaction->hits) }}</strong>
-                                </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                    <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
-                                </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                    <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
-                                </x-pulse::td>
+                <div>
+                    <x-pulse::table>
+                        <colgroup>
+                            <col width="100%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                        </colgroup>
+                        <x-pulse::thead>
+                            <tr>
+                                <x-pulse::th class="text-left">Key</x-pulse::th>
+                                <x-pulse::th class="text-right">Hits</x-pulse::th>
+                                <x-pulse::th class="text-right">Misses</x-pulse::th>
+                                <x-pulse::th class="text-right whitespace-nowrap">Hit Rate</x-pulse::th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </x-pulse::table>
+                        </x-pulse::thead>
+                        <tbody>
+                            @foreach ($cacheKeyInteractions->take(100) as $interaction)
+                                <tr class="h-2 first:h-0"></tr>
+                                <tr wire:key="{{ $interaction->key }}">
+                                    <x-pulse::td>
+                                        <code class="block text-xs text-gray-900 dark:text-gray-100">
+                                            {{ $interaction->key }}
+                                        </code>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
+                                        <strong>{{ number_format($interaction->hits) }}</strong>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                                        <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
+                                    </x-pulse::td>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                                        <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
+                                    </x-pulse::td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-pulse::table>
+
+                    @if ($cacheKeyInteractions->count() > 100)
+                        <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+                    @endif
+                </div>
             @endif
         </div>
     </x-pulse::card-body>
