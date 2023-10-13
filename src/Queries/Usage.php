@@ -41,11 +41,12 @@ class Usage
 
         $top10 = $this->connection()->query()
             ->when($type === 'dispatched_job_counts',
-                fn (Builder $query) => $query->from('pulse_jobs'),
-                fn (Builder $query) => $query->from('pulse_requests'))
-            ->selectRaw('user_id, COUNT(*) as count')
+                fn (Builder $query) => $query->from('pulse_jobs')
+                    ->where('queued_at', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()),
+                fn (Builder $query) => $query->from('pulse_requests')
+                    ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()))
+            ->selectRaw('`user_id`, COUNT(*) AS `count`')
             ->whereNotNull('user_id')
-            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->when($type === 'slow_endpoint_counts',
                 fn (Builder $query) => $query->where('duration', '>=', $this->config->get('pulse.recorders.'.Requests::class.'.threshold')))
             ->groupBy('user_id')

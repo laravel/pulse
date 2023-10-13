@@ -28,7 +28,7 @@ it('ingests exceptions', function () {
     expect(Pulse::entries())->toHaveCount(0);
     $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
     expect($exceptions)->toHaveCount(1);
-    expect((array) $exceptions[0])->toEqual([
+    expect($exceptions[0])->toHaveProperties([
         'date' => '2000-01-02 03:04:05',
         'user_id' => null,
         'class' => 'RuntimeException',

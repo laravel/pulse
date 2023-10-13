@@ -32,7 +32,7 @@ class CacheInteractions
         $now = new CarbonImmutable();
 
         return $this->connection()->table('pulse_cache_interactions')
-            ->selectRaw('COUNT(*) AS count, SUM(CASE WHEN `hit` = TRUE THEN 1 ELSE 0 END) as hits')
+            ->selectRaw('COUNT(*) AS `count`, SUM(`hit`) AS `hits`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->first() ?? (object) ['count' => 0, 'hits' => '0'];
     }

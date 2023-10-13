@@ -36,7 +36,7 @@ class SlowOutgoingRequests
         $now = new CarbonImmutable;
 
         return $this->connection()->table('pulse_outgoing_requests')
-            ->selectRaw('MAX(uri) AS uri, COUNT(*) AS count, MAX(duration) AS slowest')
+            ->selectRaw('MAX(`uri`) AS `uri`, COUNT(*) AS `count`, MAX(`duration`) AS `slowest`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.recorders.'.OutgoingRequests::class.'.threshold'))
             ->groupBy('uri_hash')
