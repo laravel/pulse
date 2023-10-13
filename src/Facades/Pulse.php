@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Laravel\Pulse\Pulse register(string|array $recorders)
+ * @method static \Laravel\Pulse\Pulse register(array $recorders)
  * @method static \Laravel\Pulse\Pulse record(\Laravel\Pulse\Entry|\Laravel\Pulse\Update $entry)
  * @method static \Laravel\Pulse\Pulse report(\Throwable $e)
  * @method static \Laravel\Pulse\Pulse startRecording()
