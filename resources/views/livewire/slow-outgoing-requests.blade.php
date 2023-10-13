@@ -33,7 +33,7 @@
              :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
             @if (! $supported)
-                <div class="flex flex-col items-center justify-center p-4 py-6">
+                <div class="flex-1 flex flex-col items-center justify-center p-4 py-6">
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-full text-xs leading-none px-2 py-1 text-gray-500 dark:text-gray-400">
                         Requires laravel/framework v10.14+
                     </div>
