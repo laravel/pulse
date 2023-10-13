@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Facade;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
+use Laravel\Pulse\Recorders\CacheInteractions;
 
 it('ingests cache interactions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -189,7 +190,7 @@ it('stores the original keys by default', function () {
 it('can normalize cache keys', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
-    Config::set('pulse.cache_keys', [
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.groups', [
         '/users:\d+:profile/' => 'users:{user}:profile',
     ]);
     Cache::get('users:1234:profile');
@@ -208,7 +209,7 @@ it('can normalize cache keys', function () {
 it('can use back references in normalized cache keys', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
-    Config::set('pulse.cache_keys', [
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.groups', [
         '/^([^:]+):([^:]+):baz/' => '\2:\1',
     ]);
     Cache::get('foo:bar:baz');
@@ -227,7 +228,7 @@ it('can use back references in normalized cache keys', function () {
 it('uses the original key if no matching pattern is found', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
-    Config::set('pulse.cache_keys', [
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.groups', [
         '/\d/' => 'foo',
     ]);
     Cache::get('actual-key');
@@ -246,7 +247,7 @@ it('uses the original key if no matching pattern is found', function () {
 it('can provide regex flags in normalization key', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
-    Config::set('pulse.cache_keys', [
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.groups', [
         '/foo/i' => 'lowercase-key',
         '/FOO/i' => 'uppercase-key',
     ]);

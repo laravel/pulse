@@ -10,6 +10,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Recorders\SystemStats;
 use stdClass;
 
 /**
@@ -57,7 +58,7 @@ class Servers
         $serverReadings = $this->connection()->query()
             ->select('bucket', 'server')
             ->selectRaw('MAX(`date`) AS `date`')
-            ->when(true, fn (Builder $query) => match ($this->config->get('pulse.graph_aggregation')) {
+            ->when(true, fn (Builder $query) => match ($this->config->get('pulse.recorders.'.SystemStats::class.'.graph_aggregation')) {
                 'max' => $query
                     ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
                     ->selectRaw('ROUND(MAX(`memory_used`)) AS `memory_used`'),

@@ -2,7 +2,7 @@
     <x-pulse::card-header
         name="Slow Outgoing Requests"
         title="Time: {{ number_format($time, 4) }}ms; Run at: {{ $runAt }};"
-        details="{{ config('pulse.slow_outgoing_request_threshold') }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.cloud-arrow-up />

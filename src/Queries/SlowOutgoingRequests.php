@@ -7,6 +7,7 @@ use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Recorders\OutgoingRequests;
 
 /**
  * @internal
@@ -37,7 +38,7 @@ class SlowOutgoingRequests
         return $this->connection()->table('pulse_outgoing_requests')
             ->selectRaw('`uri`, COUNT(*) as count, MAX(duration) AS slowest')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->where('duration', '>=', $this->config->get('pulse.slow_outgoing_request_threshold'))
+            ->where('duration', '>=', $this->config->get('pulse.recorders.'.OutgoingRequests::class.'.threshold'))
             ->groupBy('uri')
             ->orderByDesc('slowest')
             ->limit(101)

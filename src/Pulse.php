@@ -101,11 +101,17 @@ class Pulse
     /**
      * Register a recorder.
      *
-     * @param  class-string|list<class-string>  $recorders
+     * @param  array<class-string, array<mixed>|boolean>  $recorders
      */
-    public function register(string|array $recorders): self
+    public function register(array $recorders): self
     {
-        $recorders = collect($recorders)->map(fn ($recorder) => $this->app->make($recorder));
+        $recorders = collect($recorders)->map(function ($recorder, $key) {
+            if ($recorder === false || (is_array($recorder) && ! ($recorder['enabled'] ?? true))) {
+                return;
+            }
+
+            return $this->app->make($key);
+        })->values();
 
         $this->afterResolving($this->app, 'events', fn (Dispatcher $event) => $recorders
             ->filter(fn ($recorder) => $recorder->listen ?? null)

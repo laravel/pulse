@@ -64,16 +64,7 @@ class PulseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app[Pulse::class]->register([
-            Recorders\CacheInteractions::class,
-            Recorders\Exceptions::class,
-            Recorders\Jobs::class,
-            Recorders\OutgoingRequests::class,
-            Recorders\QueueSizes::class,
-            Recorders\Requests::class,
-            Recorders\SlowQueries::class,
-            Recorders\SystemStats::class,
-        ]);
+        $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders'));
 
         $this->registerRoutes();
         $this->listenForEvents();

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
+use Laravel\Pulse\Recorders\OutgoingRequests;
 
 it('ingests outgoing http requests', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -177,7 +178,7 @@ it('can normalize URI', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
     Http::fake(fn () => Http::response('ok'));
 
-    Config::set('pulse.outgoing_request_uri_map', [
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.groups', [
         '#^https://github\.com/([^/]+)/([^/]+)/commits/([^/]+)$#' => 'github.com/{user}/{repo}/commits/{branch}',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
@@ -197,7 +198,7 @@ it('can use back references in normalized URI', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
     Http::fake(fn () => Http::response('ok'));
 
-    Config::set('pulse.outgoing_request_uri_map', [
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.groups', [
         '#^https?://([^/]+).*$#' => '\1/*',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
@@ -217,7 +218,7 @@ it('can provide regex flags in normalization key', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
     Http::fake(fn () => Http::response('ok'));
 
-    Config::set('pulse.outgoing_request_uri_map', [
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.groups', [
         '/parameter/i' => 'lowercase-parameter',
         '/PARAMETER/i' => 'uppercase-parameter',
     ]);

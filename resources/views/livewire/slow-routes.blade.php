@@ -2,7 +2,7 @@
     <x-pulse::card-header
         name="Slow Routes"
         title="Time: {{ number_format($time, 4) }}ms; Run at: {{ $runAt }};"
-        details="{{ config('pulse.slow_endpoint_threshold') }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.arrows-left-right />

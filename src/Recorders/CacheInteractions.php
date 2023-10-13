@@ -68,7 +68,7 @@ class CacheInteractions
         $key = $event->key;
 
         return function () use ($key) {
-            foreach ($this->config->get('pulse.cache_keys') as $pattern => $replacement) {
+            foreach ($this->config->get('pulse.recorders.'.static::class.'.groups') as $pattern => $replacement) {
                 $normalized = preg_replace($pattern, $replacement, $key, count: $count);
 
                 if ($count > 0 && $normalized !== null) {

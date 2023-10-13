@@ -9,6 +9,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Recorders\Requests;
 use stdClass;
 
 /**
@@ -46,7 +47,7 @@ class Usage
             ->whereNotNull('user_id')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->when($type === 'slow_endpoint_counts',
-                fn (Builder $query) => $query->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold')))
+                fn (Builder $query) => $query->where('duration', '>=', $this->config->get('pulse.recorders.'.Requests::class.'.threshold')))
             ->groupBy('user_id')
             ->orderByDesc('count')
             ->limit(10)
