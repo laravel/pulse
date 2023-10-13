@@ -42,9 +42,9 @@ class Usage
         $top10 = $this->connection()->query()
             ->when($type === 'dispatched_job_counts',
                 fn (Builder $query) => $query->from('pulse_jobs')
-                    ->where('queued_at', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()))
+                    ->where('queued_at', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()),
                 fn (Builder $query) => $query->from('pulse_requests')
-                    ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()),
+                    ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString()))
             ->selectRaw('`user_id`, COUNT(*) AS `count`')
             ->whereNotNull('user_id')
             ->when($type === 'slow_endpoint_counts',
