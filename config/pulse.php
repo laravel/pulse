@@ -135,7 +135,9 @@ return [
             ],
         ],
 
-        Recorders\Exceptions::class => [],
+        Recorders\Exceptions::class => [
+            //
+        ],
 
         Recorders\Jobs::class => [
             'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
@@ -144,8 +146,8 @@ return [
         Recorders\OutgoingRequests::class => [
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
             'groups' => [
-                // '/^https://api.github.com/repos/.*$' => 'api.github.com/repos/*',
-                // '/^https?:\/\/([^\/]*).*$/' => '\1',
+                // '#^https://api.github.com/repos/.*$#' => 'api.github.com/repos/*',
+                // '#^https?://([^/]*).*$#' => '\1',
                 '/(.*)/' => '\1',
             ],
         ],
