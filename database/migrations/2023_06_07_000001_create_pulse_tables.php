@@ -69,13 +69,20 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->string('job');
             $table->uuid('job_uuid');
-            $table->unsignedInteger('slow')->default(0);
-            $table->unsignedInteger('slowest')->nullable();
+            $table->unsignedInteger('attempt');
+            $table->string('connection');
+            $table->string('queue');
+            $table->datetime('queued_at');
+            $table->datetime('processing_at')->nullable();
+            $table->datetime('released_at')->nullable();
+            $table->datetime('processed_at')->nullable();
+            $table->datetime('failed_at')->nullable();
+            $table->unsignedInteger('duration')->nullable();
 
             // TODO: verify this update index. Needs to find job quickly.
             $table->index(['job_uuid']);
-            $table->index(['date', 'job', 'slowest']); // slow_jobs
-            $table->index(['date', 'user_id']); // user_usage
+            // $table->index(['date', 'job', 'slowest']); // slow_jobs
+            // $table->index(['date', 'user_id']); // user_usage
         });
 
         Schema::create('pulse_cache_interactions', function (Blueprint $table) {
@@ -94,15 +101,6 @@ return new class extends Migration
             $table->string('user_id')->nullable();
             $table->index(['uri_hash', 'date', 'duration']);
         });
-
-        Schema::create('pulse_queue_sizes', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('connection');
-            $table->string('queue');
-            $table->unsignedInteger('size');
-            $table->unsignedInteger('failed');
-            // TODO: indexes?
-        });
     }
 
     /**
@@ -117,6 +115,5 @@ return new class extends Migration
         Schema::dropIfExists('pulse_jobs');
         Schema::dropIfExists('pulse_cache_interactions');
         Schema::dropIfExists('pulse_outgoing_requests');
-        Schema::dropIfExists('pulse_queue_sizes');
     }
 };

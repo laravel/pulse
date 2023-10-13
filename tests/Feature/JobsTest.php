@@ -30,11 +30,18 @@ it('ingests bus dispatched jobs', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 });
 
@@ -53,11 +60,18 @@ it('ingests queued closures', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'Illuminate\Queue\CallQueuedClosure',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 });
 
@@ -74,11 +88,18 @@ it('ingests jobs pushed to the queue', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 });
 
@@ -99,11 +120,18 @@ it('handles a job throwing exceptions and failing', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
@@ -114,131 +142,104 @@ it('handles a job throwing exceptions and failing', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
+    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
+    expect($jobs)->toHaveCount(2);
     expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => '2000-01-02 03:04:10',
+        'released_at' => '2000-01-02 03:04:10',
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 1,
-        'slowest' => 11,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 11,
+    ]);
+    expect((array) $jobs[1])->toEqual([
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:10',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
+        'user_id' => null,
+        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
+        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'attempt' => 2,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
      * Work the job for the second time.
      */
 
+    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
+    expect($jobs)->toHaveCount(3);
+    expect((array) $jobs[1])->toEqual([
+        'date' => '2000-01-02 03:04:15',
+        'queued_at' => '2000-01-02 03:04:10',
+        'processing_at' => '2000-01-02 03:04:15',
+        'released_at' => '2000-01-02 03:04:15',
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 2,
-        'slowest' => 22,
+        'attempt' => 2,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 22,
+    ]);
+    expect((array) $jobs[2])->toEqual([
+        'date' => '2000-01-02 03:04:15',
+        'queued_at' => '2000-01-02 03:04:15',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
+        'user_id' => null,
+        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
+        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'attempt' => 3,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
      * Work the job for the third time.
      */
 
+    Carbon::setTestNow('2000-01-02 03:04:20');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
+    expect($jobs)->toHaveCount(3);
+    expect((array) $jobs[2])->toEqual([
+        'date' => '2000-01-02 03:04:20',
+        'queued_at' => '2000-01-02 03:04:15',
+        'processing_at' => '2000-01-02 03:04:20',
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => '2000-01-02 03:04:20',
         'user_id' => null,
         'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 3,
-        'slowest' => 33,
-    ]);
-});
-
-it('only remembers the slowest duration', function () {
-    Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
-
-    /*
-     * Dispatch the job.
-     */
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Bus::dispatchToQueue(new MyJobWithMultipleAttemptsThatGetQuicker);
-    Pulse::store(app(Ingest::class));
-
-    expect(Queue::size())->toBe(1);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
-    ]);
-
-    /*
-     * Work the job for the first time.
-     */
-
-    Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(1);
-
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 1,
-        'slowest' => 99,
-    ]);
-
-    /*
-     * Work the job for the second time.
-     */
-
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(1);
-
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 2,
-        'slowest' => 99,
-    ]);
-
-    /*
-     * Work the job for the third time.
-     */
-
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(0);
-
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatGetQuicker',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 3,
-        'slowest' => 99,
+        'attempt' => 3,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 33,
     ]);
 });
 
@@ -259,11 +260,18 @@ it('handles a failure and then a successful job', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
@@ -275,32 +283,62 @@ it('handles a failure and then a successful job', function () {
     expect(Queue::size())->toBe(1);
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
+    expect($jobs)->toHaveCount(2);
     expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => '2000-01-02 03:04:10',
+        'released_at' => '2000-01-02 03:04:10',
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 1,
-        'slowest' => 99,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 99,
+    ]);
+    expect((array) $jobs[1])->toEqual([
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:10',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
+        'user_id' => null,
+        'job' => 'MyJobThatPassesOnTheSecondAttempt',
+        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
+        'attempt' => 2,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
      * Work the job for the second time.
      */
 
+    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+    expect($jobs)->toHaveCount(2);
+    expect((array) $jobs[1])->toEqual([
+        'date' => '2000-01-02 03:04:15',
+        'queued_at' => '2000-01-02 03:04:10',
+        'processing_at' => '2000-01-02 03:04:15',
+        'released_at' => null,
+        'processed_at' => '2000-01-02 03:04:15',
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobThatPassesOnTheSecondAttempt',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 2,
-        'slowest' => 99,
+        'attempt' => 2,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 98,
     ]);
 });
 
@@ -321,11 +359,18 @@ it('handles a slow successful job', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MySlowJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
@@ -339,12 +384,19 @@ it('handles a slow successful job', function () {
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => '2000-01-02 03:04:10',
+        'released_at' => null,
+        'processed_at' => '2000-01-02 03:04:10',
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MySlowJob',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 1,
-        'slowest' => 100,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 100,
     ]);
 });
 
@@ -365,11 +417,18 @@ it('handles a job that was manually failed', function () {
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
         'date' => '2000-01-02 03:04:05',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => null,
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => null,
         'user_id' => null,
         'job' => 'MyJobThatManuallyFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 0,
-        'slowest' => null,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => null,
     ]);
 
     /*
@@ -383,12 +442,19 @@ it('handles a job that was manually failed', function () {
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect($jobs)->toHaveCount(1);
     expect((array) $jobs[0])->toEqual([
-        'date' => '2000-01-02 03:04:05',
+        'date' => '2000-01-02 03:04:10',
+        'queued_at' => '2000-01-02 03:04:05',
+        'processing_at' => '2000-01-02 03:04:10',
+        'released_at' => null,
+        'processed_at' => null,
+        'failed_at' => '2000-01-02 03:04:10',
         'user_id' => null,
         'job' => 'MyJobThatManuallyFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'slow' => 1,
-        'slowest' => 100,
+        'attempt' => 1,
+        'connection' => 'database',
+        'queue' => 'default',
+        'duration' => 100,
     ]);
 });
 
