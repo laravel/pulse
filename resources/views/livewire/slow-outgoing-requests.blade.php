@@ -57,14 +57,14 @@
                                     [$method, $uri] = explode(' ', $request->uri, 2);
                                 @endphp
                                 <tr class="h-2 first:h-0"></tr>
-                                <tr>
+                                <tr wire:key="{{ $uri }}">
                                     <x-pulse::td>
                                         <x-pulse::http-method-badge :method="$method" />
                                     </x-pulse::td>
                                     <x-pulse::td class="max-w-[1px]">
                                         <div class="flex items-center" title="{{ $uri }}">
                                             @if ($host = parse_url($uri, PHP_URL_HOST))
-                                                <img src="https://unavatar.io/{{ $host }}?fallback=false" loading="lazy" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
+                                                <img wire:ignore src="https://unavatar.io/{{ $host }}?fallback=false" loading="lazy" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
                                             @endif
                                             <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
                                                 {{ $uri }}
