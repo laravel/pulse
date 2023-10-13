@@ -128,6 +128,12 @@ return [
 
     'recorders' => [
         Recorders\CacheInteractions::class => [
+            'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
+            'ignore' => [
+                '/^illuminate:/',
+                '/^laravel:pulse:/',
+                '/:timer$/',
+            ],
             'groups' => [
                 // '/^user:.\d+:(.*)/' => 'user:*:\1',
                 // '/^user:.+$/' => 'user:*',
@@ -136,15 +142,26 @@ return [
         ],
 
         Recorders\Exceptions::class => [
-            //
+            'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
+            'ignore' => [
+                //
+            ],
         ],
 
         Recorders\Jobs::class => [
+            'enabled' => env('PULSE_JOBS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
+            'ignore' => [
+                //
+            ],
         ],
 
         Recorders\OutgoingRequests::class => [
+            'enabled' => env('PULSE_OUTGOING_REQUESTS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
+            'ignore' => [
+                'http://127.0.0.1/render',
+            ],
             'groups' => [
                 // '#^https://api.github.com/repos/.*$#' => 'api.github.com/repos/*',
                 // '#^https?://([^/]*).*$#' => '\1',
@@ -153,11 +170,20 @@ return [
         ],
 
         Recorders\Requests::class => [
+            'enabled' => env('PULSE_REQUESTS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
+            'ignore' => [
+                '#^/pulse$#',
+                '/^pulse\./',
+            ],
         ],
 
         Recorders\SlowQueries::class => [
+            'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
+            'ignore' => [
+                '"pulse_.+?"',
+            ],
         ],
 
         Recorders\SystemStats::class => [

@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Recorders;
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class Requests
      */
     public function __construct(
         protected Pulse $pulse,
+        protected Repository $config,
     ) {
         //
     }
@@ -44,13 +46,57 @@ class Requests
     /**
      * Record the request.
      */
-    public function record(Carbon $startedAt, Request $request, Response $response): Entry
+    public function record(Carbon $startedAt, Request $request, Response $response): ?Entry
     {
+        $route = Str::start(($request->route()?->uri() ?? $request->path()), '/');
+
+        if ($this->shouldIgnoreRoute($route) || $this->shouldIgnoreLivewireComponent($request)) {
+            return null;
+        }
+
         return new Entry($this->table, [
             'date' => $startedAt->toDateTimeString(),
-            'route' => $request->method().' '.Str::start(($request->route()?->uri() ?? $request->path()), '/'),
+            'route' => $request->method().' '.$route,
             'duration' => $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    /**
+     * Should the given route be ignored.
+     */
+    protected function shouldIgnoreRoute($route): bool
+    {
+        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
+
+        foreach ($ignore as $pattern) {
+            if (preg_match($pattern, $route) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Should any Livewire component updates in the route cause the request to be ignored.
+     */
+    protected function shouldIgnoreLivewireComponent($request): bool
+    {
+        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
+
+        if ($request->route()?->getName() === 'livewire.update') {
+            $components = $request->collect('components.*.snapshot')->map(fn ($snapshot) => json_decode($snapshot))->pluck('memo.name');
+
+            foreach ($components as $component) {
+                foreach ($ignore as $pattern) {
+                    if (preg_match($pattern, $component) === 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

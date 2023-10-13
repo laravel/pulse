@@ -11,6 +11,6 @@ trait ShouldNotReportUsage
      */
     public function bootShouldNotReportUsage(): void
     {
-        Pulse::stopRecording();
+        // Pulse::stopRecording();
     }
 }
