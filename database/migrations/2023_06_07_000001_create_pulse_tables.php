@@ -71,6 +71,7 @@ return new class extends Migration
             $table->unsignedInteger('attempt');
             $table->string('connection');
             $table->string('queue');
+            $table->datetime('queued_at');
             $table->datetime('processing_at')->nullable();
             $table->datetime('released_at')->nullable();
             $table->datetime('processed_at')->nullable();

@@ -37,7 +37,6 @@ class SlowJobs
 
         return $this->connection()->table('pulse_jobs')
             ->selectRaw('`job`, COUNT(*) AS count, MAX(duration) AS slowest')
-            // TODO: processed_at or failed_at
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->where('duration', '>=', $this->config->get('pulse.recorders.'.Jobs::class.'.threshold'))
             ->groupBy('job')

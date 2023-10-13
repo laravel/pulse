@@ -67,6 +67,7 @@ class Jobs
         if ($event instanceof JobQueued) {
             return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
+                'queued_at' => $now->toDateTimeString(),
                 'job' => is_string($event->job) ? $event->job : $event->job::class,
                 'job_uuid' => $event->payload()['uuid'],
                 'attempt' => 1,
@@ -85,6 +86,7 @@ class Jobs
                 $this->table,
                 ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
                 [
+                    'date' => $this->lastJobStartedProcessingAt->toDateTimeString(),
                     'processing_at' => $this->lastJobStartedProcessingAt->toDateTimeString(),
                 ],
             );
@@ -96,12 +98,14 @@ class Jobs
                     $this->table,
                     ['job_uuid' => $event->job->uuid(), 'attempt' => $event->job->attempts()],
                     [
+                        'date' => $now->toDateTimeString(),
                         'released_at' => $now->toDateTimeString(),
                         'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                     ],
                 ),
                 new Entry($this->table, [
                     'date' => $now->toDateTimeString(),
+                    'queued_at' => $now->toDateTimeString(),
                     'job' => $event->job->resolveName(),
                     'job_uuid' => $event->job->uuid(),
                     'attempt' => $event->job->attempts() + 1,
@@ -116,6 +120,7 @@ class Jobs
                 $this->table,
                 ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
                 [
+                    'date' => $now->toDateTimeString(),
                     'processed_at' => $now->toDateTimeString(),
                     'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                 ],
@@ -127,6 +132,7 @@ class Jobs
                 $this->table,
                 ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
                 [
+                    'date' => $now->toDateTimeString(),
                     'failed_at' => $now->toDateTimeString(),
                     'duration' => $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                 ],
