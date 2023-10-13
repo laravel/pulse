@@ -26,6 +26,7 @@ class SlowOutgoingRequests extends Card
             'time' => $time,
             'runAt' => $runAt,
             'threshold' => Config::get('pulse.recorders.'.OutgoingRequests::class.'.threshold'),
+            'groups' => Config::get('pulse.recorders.'.OutgoingRequests::class.'.groups'),
             'slowOutgoingRequests' => $slowOutgoingRequests,
             'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);

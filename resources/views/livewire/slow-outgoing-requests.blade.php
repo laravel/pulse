@@ -7,6 +7,12 @@
         <x-slot:icon>
             <x-pulse::icons.cloud-arrow-up />
         </x-slot:icon>
+        <x-slot:actions>
+            @php $message = 'URI groups: '.count($groups); @endphp
+            <button title="{{ $message }}" @click="alert('{{ $message }}')">
+                <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
+            </button>
+        </x-slot:actions>
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">

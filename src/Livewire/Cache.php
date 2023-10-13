@@ -3,9 +3,11 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Queries\CacheInteractions;
 use Laravel\Pulse\Queries\CacheKeyInteractions;
+use Laravel\Pulse\Recorders\CacheInteractions as CacheInteractionsRecorder;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -29,6 +31,7 @@ class Cache extends Card
             'keyTime' => $keyTime,
             'keyRunAt' => $keyRunAt,
             'cacheKeyInteractions' => $cacheKeyInteractions,
+            'groups' => Config::get('pulse.recorders.'.CacheInteractionsRecorder::class.'.groups'),
         ]);
     }
 }
