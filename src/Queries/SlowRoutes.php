@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Recorders\Requests;
 use stdClass;
 
 /**
@@ -40,7 +41,7 @@ class SlowRoutes
         return $this->connection()->table('pulse_requests')
             ->selectRaw('route, COUNT(*) as count, MAX(duration) AS slowest')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->where('duration', '>=', $this->config->get('pulse.slow_endpoint_threshold'))
+            ->where('duration', '>=', $this->config->get('pulse.recorders.'.Requests::class.'.threshold'))
             ->groupBy('route')
             ->orderByDesc('slowest')
             ->get()

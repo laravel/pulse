@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
+use Laravel\Pulse\Recorders\Requests;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -37,7 +38,7 @@ it('ingests requests', function () {
 });
 
 it('ingests requests under the slow endpoint threshold', function () {
-    Config::set('pulse.slow_endpoint_threshold', PHP_INT_MAX);
+    Config::set('pulse.recorders.'.Requests::class.'.threshold', PHP_INT_MAX);
     Route::get('users', fn () => []);
 
     get('users');
