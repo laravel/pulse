@@ -142,6 +142,8 @@ class Pulse
 
     /**
      * Record the given entry.
+     *
+     * @param  \Laravel\Pulse\Entry|\Laravel\Pulse\Update|list<\Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $entries
      */
     public function record(Entry|Update|array $entries): self
     {

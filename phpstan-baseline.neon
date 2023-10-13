@@ -67,7 +67,7 @@ parameters:
 
 		-
 			message: "#^Cannot call method diffInMilliseconds\\(\\) on Carbon\\\\CarbonImmutable\\|null\\.$#"
-			count: 1
+			count: 3
 			path: src/Recorders/Jobs.php
 
 		-

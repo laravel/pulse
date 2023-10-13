@@ -53,6 +53,8 @@ class Jobs
 
     /**
      * Record the job.
+     *
+     * @return \Laravel\Pulse\Entry|\Laravel\Pulse\Update|list<\Laravel\Pulse\Entry|\Laravel\Pulse\Update>|null
      */
     public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|array|null
     {
