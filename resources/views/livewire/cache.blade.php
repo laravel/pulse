@@ -1,7 +1,7 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Cache"
-        title="Global Time: {{ number_format($allTime, 4) }}ms; Global run at: {{ $allRunAt }}; Key Time: {{ number_format($keyTime, 4) }}ms; Key run at: {{ $keyRunAt }};"
+        title="Global Time: {{ number_format($allTime) }}ms; Global run at: {{ $allRunAt }}; Key Time: {{ number_format($keyTime) }}ms; Key run at: {{ $keyRunAt }};"
         details="past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
