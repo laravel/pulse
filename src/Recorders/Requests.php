@@ -63,6 +63,9 @@ class Requests
         ]);
     }
 
+    /**
+     * Get the path from the request.
+     */
     protected function getPath(Request $request): string
     {
         $route = $request->route();
@@ -75,7 +78,7 @@ class Requests
     }
 
     /**
-     * Should the given path be ignored.
+     * Determine if the path should be ignored.
      */
     protected function shouldIgnorePath(string $path): bool
     {
@@ -92,7 +95,7 @@ class Requests
     }
 
     /**
-     * Should any Livewire component updates in the route cause the request to be ignored.
+     * Determine whether any Livewire component updates should be ignored.
      */
     protected function shouldIgnoreLivewireRequest(Request $request): bool
     {
