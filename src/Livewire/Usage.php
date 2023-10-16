@@ -13,7 +13,7 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Usage extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
      * The type of usage to show.

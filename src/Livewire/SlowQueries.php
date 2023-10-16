@@ -12,7 +12,7 @@ use Livewire\Attributes\Lazy;
 #[Lazy]
 class SlowQueries extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
      * Render the component.
