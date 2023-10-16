@@ -24,18 +24,18 @@
     {{-- <livewire:pulse.usage type="slow_endpoint_counts" /> --}}
     {{-- <livewire:pulse.usage type="request_counts" /> --}}
 
-    <livewire:pulse.exceptions cols="8" />
+    <livewire:pulse.queues cols="4" />
+
+    <livewire:pulse.cache cols="4" />
 
     <livewire:pulse.slow-queries cols="8" />
 
-    <livewire:pulse.slow-routes cols="4" />
+    <livewire:pulse.exceptions cols="6" />
 
-    <livewire:pulse.slow-jobs cols="4" />
+    <livewire:pulse.slow-routes cols="6" />
 
-    <livewire:pulse.slow-outgoing-requests cols="4" />
+    <livewire:pulse.slow-jobs cols="6" />
 
-    <livewire:pulse.cache cols="6" />
-
-    <livewire:pulse.queues cols="6" />
+    <livewire:pulse.slow-outgoing-requests cols="6" />
 
 </x-pulse>
