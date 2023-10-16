@@ -8,8 +8,16 @@
             <x-pulse::icons.rocket-launch />
         </x-slot:icon>
         <x-slot:actions>
-            @php $message = 'Key groups: '.count($groups); @endphp
-            <button title="{{ $message }}" @click="alert('{{ $message }}')">
+            @php
+                $count = count($groups);
+                $message = sprintf(
+                    "Keys may be normalized using groups.\n\nThere %s currently %d %s configured.",
+                    $count === 1 ? 'is' : 'are',
+                    $count,
+                    Str::plural('group', $count)
+                );
+            @endphp
+            <button title="{{ $message }}" @click="alert('{{ str_replace("\n", '\n', $message) }}')">
                 <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
             </button>
         </x-slot:actions>
