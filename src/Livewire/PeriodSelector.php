@@ -9,8 +9,6 @@ use Livewire\Component;
 
 class PeriodSelector extends Component
 {
-    use Concerns\ShouldNotReportUsage;
-
     /**
      * The selected period.
      *

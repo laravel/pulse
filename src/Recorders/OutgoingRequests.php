@@ -8,7 +8,6 @@ use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
-use Illuminate\Http\Request;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
@@ -21,6 +20,7 @@ use Throwable;
  */
 class OutgoingRequests
 {
+    use Concerns\Ignores;
     use ConfiguresAfterResolving;
 
     /**
@@ -51,9 +51,13 @@ class OutgoingRequests
     /**
      * Record the outgoing request.
      */
-    public function record(RequestInterface $request, CarbonImmutable $startedAt): Entry
+    public function record(RequestInterface $request, CarbonImmutable $startedAt): ?Entry
     {
         $endedAt = new CarbonImmutable;
+
+        if ($this->shouldIgnore($request->getUri())) {
+            return null;
+        }
 
         return new Entry($this->table, [
             'uri' => $this->normalizeUri($request),

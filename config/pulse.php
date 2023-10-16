@@ -128,36 +128,61 @@ return [
 
     'recorders' => [
         Recorders\CacheInteractions::class => [
+            'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
+            'ignore' => [
+                '/^illuminate:/', // Framework internal keys
+                '/^laravel:pulse:/', // Pulse keys
+            ],
             'groups' => [
-                // '/^user:.\d+:(.*)/' => 'user:*:\1',
-                // '/^user:.+$/' => 'user:*',
+                // '/^user:\d+:/' => 'user:*:\1',
+                // '/^user:.+/' => 'user:*',
+                '/:timer$/' => '*:timer',
                 '/(.*)/' => '\1',
             ],
         ],
 
         Recorders\Exceptions::class => [
-            //
+            'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
+            'ignore' => [
+                // '/^Package\\\\Exceptions\\\\/',
+            ],
         ],
 
         Recorders\Jobs::class => [
+            'enabled' => env('PULSE_JOBS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
+            'ignore' => [
+                // '/^Package\\\\Jobs\\\\/',
+            ],
         ],
 
         Recorders\OutgoingRequests::class => [
+            'enabled' => env('PULSE_OUTGOING_REQUESTS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
+            'ignore' => [
+                '#^http://127\.0\.0\.1:13714#', // Inertia SSR
+            ],
             'groups' => [
-                // '#^https://api.github.com/repos/.*$#' => 'api.github.com/repos/*',
+                // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
                 // '#^https?://([^/]*).*$#' => '\1',
                 '/(.*)/' => '\1',
             ],
         ],
 
         Recorders\Requests::class => [
+            'enabled' => env('PULSE_REQUESTS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
+            'ignore' => [
+                '#^/pulse$#', // Pulse dashboard
+            ],
         ],
 
         Recorders\SlowQueries::class => [
+            'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
+            'ignore' => [
+                '/(["`])pulse_[\w]+?\1/', // Pulse tables
+            ],
         ],
 
         Recorders\SystemStats::class => [

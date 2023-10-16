@@ -11,7 +11,7 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Exceptions extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
      * The view type

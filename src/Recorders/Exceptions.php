@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ use Throwable;
  */
 class Exceptions
 {
+    use Concerns\Ignores;
     use ConfiguresAfterResolving;
 
     /**
@@ -30,6 +32,7 @@ class Exceptions
      */
     public function __construct(
         protected Pulse $pulse,
+        protected Repository $config,
     ) {
         //
     }
@@ -47,11 +50,15 @@ class Exceptions
     /**
      * Record the exception.
      */
-    public function record(Throwable $e): Entry
+    public function record(Throwable $e): ?Entry
     {
         $now = new CarbonImmutable();
 
         [$class, $location] = $this->getDetails($e);
+
+        if ($this->shouldIgnore($class)) {
+            return null;
+        }
 
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),

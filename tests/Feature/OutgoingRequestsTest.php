@@ -234,3 +234,14 @@ it('can provide regex flags in normalization key', function () {
         'duration' => 0,
     ]);
 });
+
+it('can ignore outgoing requests', function () {
+    Http::fake(fn () => Http::response('ok'));
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.ignore', [
+        '#^http://127\.0\.0\.1:13714#', // Inertia SSR
+    ]);
+
+    Http::get('http://127.0.0.1:13714/render');
+
+    expect(Pulse::entries())->toHaveCount(0);
+});

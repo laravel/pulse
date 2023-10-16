@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
+use Laravel\Pulse\Recorders\Exceptions;
 
 it('ingests exceptions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -145,6 +146,16 @@ it('can manually report exceptions', function () {
     expect($exceptions)->toHaveCount(1);
     expect($exceptions[0]->date)->toBe('2000-01-01 00:00:00');
     expect($exceptions[0]->class)->toBe('MyReportedException');
+});
+
+it('can ignore exceptions', function () {
+    Config::set('pulse.recorders.'.Exceptions::class.'.ignore', [
+        '/^Tests\\\\Feature\\\\Exceptions/',
+    ]);
+
+    report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
+
+    expect(Pulse::entries())->toHaveCount(0);
 });
 
 class MyReportedException extends Exception

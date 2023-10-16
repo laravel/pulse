@@ -76,11 +76,6 @@ parameters:
 			path: src/Recorders/Requests.php
 
 		-
-			message: "#^Cannot call method uri\\(\\) on object\\|string\\.$#"
-			count: 1
-			path: src/Recorders/Requests.php
-
-		-
 			message: "#^Unable to resolve the template type TKey in call to function collect$#"
 			count: 1
 			path: src/Recorders/SystemStats.php

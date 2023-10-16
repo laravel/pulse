@@ -13,7 +13,7 @@ use Livewire\Attributes\Lazy;
 #[Lazy]
 class Cache extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries, Concerns\ShouldNotReportUsage;
+    use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
      * Render the component.

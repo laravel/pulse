@@ -13,6 +13,8 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
+    use Concerns\Ignores;
+
     /**
      * The table to record to.
      */
@@ -43,6 +45,10 @@ class SlowQueries
         $now = new CarbonImmutable();
 
         if ($event->time < $this->config->get('pulse.recorders.'.static::class.'.threshold')) {
+            return null;
+        }
+
+        if ($this->shouldIgnore($event->sql)) {
             return null;
         }
 

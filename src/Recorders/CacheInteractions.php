@@ -7,7 +7,6 @@ use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
@@ -16,6 +15,8 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
+    use Concerns\Ignores;
+
     /**
      * The table to record to.
      */
@@ -48,14 +49,14 @@ class CacheInteractions
     {
         $now = new CarbonImmutable();
 
-        if (Str::startsWith($event->key, ['illuminate:', 'laravel:pulse:'])) {
+        if ($this->shouldIgnore($event->key)) {
             return null;
         }
 
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
-            'key' => $this->normalizeKey($event),
+            'key' => $this->normalizeKey($event->key),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
     }
@@ -63,10 +64,8 @@ class CacheInteractions
     /**
      * Normalize the cache key.
      */
-    protected function normalizeKey(CacheHit|CacheMissed $event): Closure
+    protected function normalizeKey(string $key): Closure
     {
-        $key = $event->key;
-
         return function () use ($key) {
             foreach ($this->config->get('pulse.recorders.'.static::class.'.groups') as $pattern => $replacement) {
                 $normalized = preg_replace($pattern, $replacement, $key, count: $count);

@@ -458,6 +458,33 @@ it('handles a job that was manually failed', function () {
     ]);
 });
 
+it('can ignore jobs', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.ignore', [
+        '/My/',
+    ]);
+    MyJobThatPassesOnTheSecondAttempt::$attempts = 0;
+    Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
+    expect(Queue::size())->toBe(1);
+    expect(Pulse::entries())->toHaveCount(0);
+
+    /*
+     * Work the job for the first time.
+     */
+
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    expect(Queue::size())->toBe(1);
+    expect(Pulse::entries())->toHaveCount(0);
+
+    /*
+     * Work the job for the second time.
+     */
+
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    expect(Queue::size())->toBe(0);
+    expect(Pulse::entries())->toHaveCount(0);
+});
+
 class MyJob implements ShouldQueue
 {
     public function handle()
@@ -502,15 +529,15 @@ class MyJobThatPassesOnTheSecondAttempt implements ShouldQueue
 {
     public $tries = 3;
 
+    public static $attempts = 0;
+
     public function handle()
     {
-        static $attempts = 0;
+        static::$attempts++;
 
-        $attempts++;
+        Carbon::setTestNow(Carbon::now()->addMilliseconds(100 - static::$attempts));
 
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(100 - $attempts));
-
-        if ($attempts === 1) {
+        if (static::$attempts === 1) {
             throw new RuntimeException('Nope');
         }
     }
