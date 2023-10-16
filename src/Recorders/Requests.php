@@ -50,7 +50,7 @@ class Requests
     {
         $route = Str::start(($request->route()?->uri() ?? $request->path()), '/');
 
-        if ($this->shouldIgnoreRoute($route) || $this->shouldIgnoreLivewireComponent($request)) {
+        if ($this->shouldIgnorePath($route) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
         }
 
@@ -63,14 +63,15 @@ class Requests
     }
 
     /**
-     * Should the given route be ignored.
+     * Should the given path be ignored.
      */
-    protected function shouldIgnoreRoute($route): bool
+    protected function shouldIgnorePath(string $path): bool
     {
+        $path = Str::start($path, '/');
         $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
 
         foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $route) === 1) {
+            if (preg_match($pattern, $path) === 1) {
                 return true;
             }
         }
@@ -81,22 +82,18 @@ class Requests
     /**
      * Should any Livewire component updates in the route cause the request to be ignored.
      */
-    protected function shouldIgnoreLivewireComponent($request): bool
+    protected function shouldIgnoreLivewireRequest(Request $request): bool
     {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        if ($request->route()?->getName() === 'livewire.update') {
-            $components = $request->collect('components.*.snapshot')->map(fn ($snapshot) => json_decode($snapshot))->pluck('memo.name');
-
-            foreach ($components as $component) {
-                foreach ($ignore as $pattern) {
-                    if (preg_match($pattern, $component) === 1) {
-                        return true;
-                    }
-                }
-            }
+        if (($request->route()?->getName() ?? '') !== 'livewire.update') {
+            return false;
         }
 
-        return false;
+        $request
+            ->collect('components.*.snapshot')
+            ->each(fn ($snapshot) => ray(json_decode($snapshot)->memo->path));
+
+        return $request
+            ->collect('components.*.snapshot')
+            ->contains(fn ($snapshot) => $this->shouldIgnorePath(json_decode($snapshot)->memo->path));
     }
 }

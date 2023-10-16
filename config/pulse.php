@@ -174,7 +174,6 @@ return [
             'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
             'ignore' => [
                 '#^/pulse$#',
-                '/^pulse\./',
             ],
         ],
 
