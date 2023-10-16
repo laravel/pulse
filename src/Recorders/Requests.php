@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
@@ -48,18 +49,29 @@ class Requests
      */
     public function record(Carbon $startedAt, Request $request, Response $response): ?Entry
     {
-        $route = Str::start(($request->route()?->uri() ?? $request->path()), '/');
+        $path = Str::start($this->getPath($request), '/');
 
-        if ($this->shouldIgnorePath($route) || $this->shouldIgnoreLivewireRequest($request)) {
+        if ($this->shouldIgnorePath($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
         }
 
         return new Entry($this->table, [
             'date' => $startedAt->toDateTimeString(),
-            'route' => $request->method().' '.$route,
+            'route' => $request->method().' '.$path,
             'duration' => $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    protected function getPath(Request $request): string
+    {
+        $route = $request->route();
+
+        if ($route instanceof Route) {
+            return $route->uri();
+        }
+
+        return $request->path();
     }
 
     /**
@@ -84,13 +96,11 @@ class Requests
      */
     protected function shouldIgnoreLivewireRequest(Request $request): bool
     {
-        if (($request->route()?->getName() ?? '') !== 'livewire.update') {
+        $route = $request->route();
+
+        if (! $route instanceof Route || ! $route->named('*.livewire.update')) {
             return false;
         }
-
-        $request
-            ->collect('components.*.snapshot')
-            ->each(fn ($snapshot) => ray(json_decode($snapshot)->memo->path));
 
         return $request
             ->collect('components.*.snapshot')
