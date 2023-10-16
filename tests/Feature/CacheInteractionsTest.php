@@ -263,3 +263,12 @@ it('can provide regex flags in normalization key', function () {
         'hit' => 0,
     ]);
 });
+
+it('can ignore keys', function () {
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.ignore', [
+        '/foo/i',
+    ]);
+
+    Cache::get('FOO');
+    expect(Pulse::entries())->toHaveCount(0);
+});

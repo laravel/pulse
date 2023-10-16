@@ -182,3 +182,14 @@ it('handles multiple users being logged in', function () {
     expect($queries[1]->user_id)->toBe('567');
     expect($queries[2]->user_id)->toBe('789');
 });
+
+it('can ignore queries', function () {
+    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowQueries::class.'.ignore', [
+        '/(["`])pulse_[\w]+?\1/', // Pulse tables
+    ]);
+
+    DB::table('pulse_slow_queries')->count();
+
+    expect(Pulse::entries())->toHaveCount(0);
+});

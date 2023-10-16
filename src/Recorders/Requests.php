@@ -98,7 +98,7 @@ class Requests
     {
         $route = $request->route();
 
-        if (! $route instanceof Route || ! $route->named('*.livewire.update')) {
+        if (! $route instanceof Route || ! $route->named('*livewire.update')) {
             return false;
         }
 

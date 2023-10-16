@@ -125,3 +125,34 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 
     Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
 });
+
+it('can ignore requests', function () {
+    Config::set('pulse.recorders.'.Requests::class.'.ignore', [
+        '#^/pulse$#', // Pulse dashboard
+    ]);
+
+    get('pulse');
+
+    Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
+});
+
+it('ignores livewire update requests from an ignored path', function () {
+    Route::post('livewire/update', fn () => [])->name('livewire.update');
+    Config::set('pulse.recorders.'.Requests::class.'.ignore', [
+        '#^/pulse$#', // Pulse dashboard
+    ]);
+
+    post('/livewire/update', [
+        'components' => [
+            [
+                'snapshot' => json_encode([
+                    'memo' => [
+                        'path' => 'pulse',
+                    ],
+                ]),
+            ],
+        ],
+    ]);
+
+    Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
+});
