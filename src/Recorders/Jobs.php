@@ -109,8 +109,8 @@ class Jobs
                     'job' => $event->job->resolveName(),
                     'job_uuid' => $event->job->uuid(),
                     'attempt' => $event->job->attempts() + 1,
-                    'connection' => $event->connectionName,
-                    'queue' => $event->job->queue ?? 'default',
+                    'connection' => $event->job->getConnectionName(),
+                    'queue' => $event->job->getQueue(),
                 ]),
             ], fn () => $this->lastJobStartedProcessingAt = null);
         }
