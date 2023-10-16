@@ -19,6 +19,7 @@ use Throwable;
  */
 class Exceptions
 {
+    use Concerns\Ignores;
     use ConfiguresAfterResolving;
 
     /**
@@ -55,7 +56,7 @@ class Exceptions
 
         [$class, $location] = $this->getDetails($e);
 
-        if ($this->shouldIgnoreException($class)) {
+        if ($this->shouldIgnore($class)) {
             return null;
         }
 
@@ -133,21 +134,5 @@ class Exceptions
     protected function formatLocation(string $file, ?int $line): string
     {
         return Str::replaceFirst(base_path('/'), '', $file).(is_int($line) ? (':'.$line) : '');
-    }
-
-    /**
-     * Determine if the exception should be ignored.
-     */
-    protected function shouldIgnoreException(string $class): bool
-    {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $class)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

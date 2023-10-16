@@ -20,6 +20,7 @@ use Throwable;
  */
 class OutgoingRequests
 {
+    use Concerns\Ignores;
     use ConfiguresAfterResolving;
 
     /**
@@ -54,7 +55,7 @@ class OutgoingRequests
     {
         $endedAt = new CarbonImmutable;
 
-        if ($this->shouldIgnoreUri($request->getUri())) {
+        if ($this->shouldIgnore($request->getUri())) {
             return null;
         }
 
@@ -64,22 +65,6 @@ class OutgoingRequests
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
-    }
-
-    /**
-     * Determine if the request URI should be ignored.
-     */
-    protected function shouldIgnoreUri(string $uri): bool
-    {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $uri) === 1) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

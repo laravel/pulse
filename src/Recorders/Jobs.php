@@ -18,6 +18,8 @@ use Laravel\Pulse\Update;
  */
 class Jobs
 {
+    use Concerns\Ignores;
+
     /**
      * The table to record to.
      */
@@ -65,7 +67,7 @@ class Jobs
         $now = new CarbonImmutable();
 
         if ($event instanceof JobQueued) {
-            if ($this->shouldIgnoreJob(is_string($event->job) ? $event->job : $event->job::class)) {
+            if ($this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)) {
                 return null;
             }
 
@@ -81,7 +83,7 @@ class Jobs
             ]);
         }
 
-        if ($this->shouldIgnoreJob($event->job->resolveName())) {
+        if ($this->shouldIgnore($event->job->resolveName())) {
             return null;
         }
 
@@ -146,21 +148,5 @@ class Jobs
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
-    }
-
-    /**
-     * Determine if the job should be ignored.
-     */
-    protected function shouldIgnoreJob(string $class): bool
-    {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $class)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

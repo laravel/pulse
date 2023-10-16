@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Requests
 {
+    use Concerns\Ignores;
     use ConfiguresAfterResolving;
 
     /**
@@ -51,7 +52,7 @@ class Requests
     {
         $path = Str::start($this->getPath($request), '/');
 
-        if ($this->shouldIgnorePath($path) || $this->shouldIgnoreLivewireRequest($request)) {
+        if ($this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
         }
 
@@ -70,28 +71,7 @@ class Requests
     {
         $route = $request->route();
 
-        if ($route instanceof Route) {
-            return $route->uri();
-        }
-
-        return $request->path();
-    }
-
-    /**
-     * Determine if the path should be ignored.
-     */
-    protected function shouldIgnorePath(string $path): bool
-    {
-        $path = Str::start($path, '/');
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $path) === 1) {
-                return true;
-            }
-        }
-
-        return false;
+        return $route instanceof Route ? $route->uri() : $request->path();
     }
 
     /**
@@ -107,6 +87,6 @@ class Requests
 
         return $request
             ->collect('components.*.snapshot')
-            ->contains(fn ($snapshot) => $this->shouldIgnorePath(json_decode($snapshot)->memo->path));
+            ->contains(fn ($snapshot) => $this->shouldIgnore(Str::start(json_decode($snapshot)->memo->path, '/')));
     }
 }

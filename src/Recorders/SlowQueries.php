@@ -13,6 +13,8 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
+    use Concerns\Ignores;
+
     /**
      * The table to record to.
      */
@@ -46,7 +48,7 @@ class SlowQueries
             return null;
         }
 
-        if ($this->shouldIgnoreSql($event->sql)) {
+        if ($this->shouldIgnore($event->sql)) {
             return null;
         }
 
@@ -56,21 +58,5 @@ class SlowQueries
             'duration' => (int) $event->time,
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
-    }
-
-    /**
-     * Determine if the query SQL should be ignored.
-     */
-    protected function shouldIgnoreSql(string $sql): bool
-    {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $sql)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

@@ -15,6 +15,8 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
+    use Concerns\Ignores;
+
     /**
      * The table to record to.
      */
@@ -47,7 +49,7 @@ class CacheInteractions
     {
         $now = new CarbonImmutable();
 
-        if ($this->shouldIgnoreKey($event->key)) {
+        if ($this->shouldIgnore($event->key)) {
             return null;
         }
 
@@ -57,22 +59,6 @@ class CacheInteractions
             'key' => $this->normalizeKey($event->key),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
-    }
-
-    /**
-     * Determine if the key should be ignored.
-     */
-    protected function shouldIgnoreKey(string $key): bool
-    {
-        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
-
-        foreach ($ignore as $pattern) {
-            if (preg_match($pattern, $key)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
