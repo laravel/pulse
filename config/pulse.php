@@ -134,7 +134,7 @@ return [
                 '/^laravel:pulse:/', // Pulse keys
             ],
             'groups' => [
-                // '/^user:\d+:(.*)/' => 'user:*:\1',
+                // '/^user:\d+:/' => 'user:*:\1',
                 // '/^user:.+/' => 'user:*',
                 '/:timer$/' => '*:timer',
                 '/(.*)/' => '\1',
