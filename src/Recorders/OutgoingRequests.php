@@ -8,7 +8,6 @@ use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
-use Illuminate\Http\Request;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
@@ -51,9 +50,13 @@ class OutgoingRequests
     /**
      * Record the outgoing request.
      */
-    public function record(RequestInterface $request, CarbonImmutable $startedAt): Entry
+    public function record(RequestInterface $request, CarbonImmutable $startedAt): ?Entry
     {
         $endedAt = new CarbonImmutable;
+
+        if ($this->shouldIgnoreUri($request->getUri())) {
+            return null;
+        }
 
         return new Entry($this->table, [
             'uri' => $this->normalizeUri($request),
@@ -61,6 +64,22 @@ class OutgoingRequests
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
+    }
+
+    /**
+     * Determine if the request URI should be ignored.
+     */
+    protected function shouldIgnoreUri(string $uri): bool
+    {
+        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
+
+        foreach ($ignore as $pattern) {
+            if (preg_match($pattern, $uri) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

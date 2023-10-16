@@ -65,6 +65,10 @@ class Jobs
         $now = new CarbonImmutable();
 
         if ($event instanceof JobQueued) {
+            if ($this->shouldIgnoreJob(is_string($event->job) ? $event->job : $event->job::class)) {
+                return null;
+            }
+
             return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
                 'queued_at' => $now->toDateTimeString(),
@@ -75,6 +79,10 @@ class Jobs
                 'queue' => $event->job->queue ?? 'default',
                 'user_id' => $this->pulse->authenticatedUserIdResolver(),
             ]);
+        }
+
+        if ($this->shouldIgnoreJob($event->job->resolveName())) {
+            return null;
         }
 
         if ($event instanceof JobProcessing) {
@@ -138,5 +146,21 @@ class Jobs
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
+    }
+
+    /**
+     * Determine if the job should be ignored.
+     */
+    protected function shouldIgnoreJob(string $class): bool
+    {
+        $ignore = $this->config->get('pulse.recorders.'.static::class.'.ignore');
+
+        foreach ($ignore as $pattern) {
+            if (preg_match($pattern, $class)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
