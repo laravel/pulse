@@ -46,7 +46,7 @@ class SlowRoutes
             ->orderByDesc('slowest')
             ->get()
             ->map(fn (stdClass $row) => [
-                'uri' => $row->route,
+                'uri' => (string) $row->route,
                 'action' => with(explode(' ', $row->route, 2), function (array $parts) {
                     [$method, $path] = $parts;
 

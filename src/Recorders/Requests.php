@@ -42,7 +42,7 @@ class Requests
      */
     public function register(callable $record, Application $app): void
     {
-        $this->afterResolving($app, Kernel::class, fn (Kernel $kernel) => $kernel->whenRequestLifecycleIsLongerThan(-1, $record));
+        $this->afterResolving($app, Kernel::class, fn (Kernel $kernel) => $kernel->whenRequestLifecycleIsLongerThan(-1, $record)); // @phpstan-ignore method.notFound
     }
 
     /**

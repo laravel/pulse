@@ -32,6 +32,26 @@ class Servers
 
     /**
      * Run the query.
+     *
+     * @return \Illuminate\Support\Collection<string, object{
+     *     name: string,
+     *     slug: string,
+     *     cpu_percent: int,
+     *     memory_used: int,
+     *     memory_total: int,
+     *     storage: list<object{
+     *         directory: string,
+     *         total: int,
+     *         used: int,
+     *     }>,
+     *     readings: list<object{
+     *         date: string,
+     *         cpu_percent: int,
+     *         memory_used: int,
+     *     }>,
+     *     updated_at: \Carbon\CarbonImmutable,
+     *     recently_reported: bool,
+     * }>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -99,19 +119,19 @@ class Servers
             )
             ->get()
             ->map(fn (stdClass $server) => (object) [
-                'name' => $server->server,
+                'name' => (string) $server->server,
                 'slug' => Str::slug($server->server),
-                'cpu_percent' => $server->cpu_percent,
-                'memory_used' => $server->memory_used,
-                'memory_total' => $server->memory_total,
+                'cpu_percent' => (int) $server->cpu_percent,
+                'memory_used' => (int) $server->memory_used,
+                'memory_total' => (int) $server->memory_total,
                 'storage' => json_decode($server->storage, flags: JSON_THROW_ON_ERROR),
                 'readings' => $serverReadings->get($server->server)?->map(fn (stdClass $reading) => (object) [
                     'date' => CarbonImmutable::parse($reading->date)->format('Y-m-d H:i:s'),
-                    'cpu_percent' => $reading->cpu_percent,
-                    'memory_used' => $reading->memory_used,
+                    'cpu_percent' => (int) $reading->cpu_percent,
+                    'memory_used' => (int) $reading->memory_used,
                 ])->all() ?? [],
                 'updated_at' => $updatedAt = CarbonImmutable::parse($server->date),
-                'recently_reported' => $updatedAt->isAfter($now->subSeconds(30)),
+                'recently_reported' => (bool) $updatedAt->isAfter($now->subSeconds(30)),
             ])
             ->keyBy('slug');
     }

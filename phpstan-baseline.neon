@@ -6,21 +6,6 @@ parameters:
 			path: src/Pulse.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Pulse\\:\\:authenticatedUserIdResolver\\(\\) should return callable\\(\\)\\: \\(callable\\(\\)\\: \\(int\\|string\\|null\\)\\|int\\|string\\|null\\) but returns \\(callable\\(\\)\\: int\\)\\|string\\.$#"
-			count: 1
-			path: src/Pulse.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Console\\\\Kernel\\:\\:whenCommandLifecycleIsLongerThan\\(\\)\\.$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
 			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
@@ -31,81 +16,16 @@ parameters:
 			path: src/PulseServiceProvider.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) return type with generic class Illuminate\\\\Support\\\\Collection does not specify its types\\: TKey, TValue$#"
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<string, object\\{name\\: string, slug\\: string, cpu_percent\\: int, memory_used\\: int, memory_total\\: int, storage\\: array\\<int, object\\{directory\\: string, total\\: int, used\\: int\\}\\>, readings\\: array\\<int, object\\{date\\: string, cpu_percent\\: int, memory_used\\: int\\}\\>, updated_at\\: Carbon\\\\CarbonImmutable, recently_reported\\: bool\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), object\\{name\\: string, slug\\: string, cpu_percent\\: int, memory_used\\: int, memory_total\\: int, storage\\: mixed, readings\\: array\\<int, object\\{date\\: string, cpu_percent\\: int, memory_used\\: int\\}&stdClass\\>, updated_at\\: Carbon\\\\CarbonImmutable, recently_reported\\: bool\\}&stdClass\\>\\.$#"
 			count: 1
 			path: src/Queries/Servers.php
 
 		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\SlowRoutes\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{uri\\: string, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), array\\{uri\\: mixed, action\\: string\\|null, request_count\\: int, slowest_duration\\: int\\}\\>\\.$#"
-			count: 1
-			path: src/Queries/SlowRoutes.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
+			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
 			count: 1
 			path: src/Queries/Usage.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Debug\\\\ExceptionHandler\\:\\:reportable\\(\\)\\.$#"
-			count: 1
-			path: src/Recorders/Exceptions.php
 
 		-
 			message: "#^Method Laravel\\\\Pulse\\\\Recorders\\\\Exceptions\\:\\:getDetails\\(\\) should return array\\{class\\-string\\<Throwable\\>, string\\} but returns array\\{class\\-string\\<Throwable\\>\\|false, string\\}\\.$#"
 			count: 1
 			path: src/Recorders/Exceptions.php
-
-		-
-			message: "#^Offset 'file' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
-			count: 1
-			path: src/Recorders/Exceptions.php
-
-		-
-			message: "#^Offset 'line' does not exist on array\\{function\\: string, line\\?\\: int, file\\?\\: string, class\\?\\: class\\-string, type\\?\\: string, args\\?\\: array, object\\?\\: object\\}\\.$#"
-			count: 1
-			path: src/Recorders/Exceptions.php
-
-		-
-			message: "#^Cannot call method diffInMilliseconds\\(\\) on Carbon\\\\CarbonImmutable\\|null\\.$#"
-			count: 3
-			path: src/Recorders/Jobs.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Http\\\\Kernel\\:\\:whenRequestLifecycleIsLongerThan\\(\\)\\.$#"
-			count: 1
-			path: src/Recorders/Requests.php
-
-		-
-			message: "#^Unable to resolve the template type TKey in call to function collect$#"
-			count: 1
-			path: src/Recorders/SystemStats.php
-
-		-
-			message: "#^Unable to resolve the template type TValue in call to function collect$#"
-			count: 1
-			path: src/Recorders/SystemStats.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Redis\\\\Connections\\\\Connection\\:\\:pipeline\\(\\)\\.$#"
-			count: 1
-			path: src/Redis.php
-
-		-
-			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\:\\:xadd\\(\\)\\.$#"
-			count: 1
-			path: src/Redis.php
-
-		-
-			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\:\\:xtrim\\(\\)\\.$#"
-			count: 1
-			path: src/Redis.php
-
-		-
-			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\|Redis\\:\\:xdel\\(\\)\\.$#"
-			count: 1
-			path: src/Redis.php
-
-		-
-			message: "#^Call to an undefined method Predis\\\\Client\\|Predis\\\\Pipeline\\\\Pipeline\\|Redis\\:\\:xrange\\(\\)\\.$#"
-			count: 1
-			path: src/Redis.php

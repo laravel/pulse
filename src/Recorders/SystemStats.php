@@ -58,11 +58,13 @@ class SystemStats
                 ],
                 default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
             },
-            'storage' => collect($this->config->get('pulse.recorders.'.static::class.'.directories'))->map(fn (string $directory) => [
-                'directory' => $directory,
-                'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
-                'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
-            ])->toJson(),
+            'storage' => collect($this->config->get('pulse.recorders.'.static::class.'.directories')) // @phpstan-ignore argument.templateType, argument.templateType
+                ->map(fn (string $directory) => [
+                    'directory' => $directory,
+                    'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
+                    'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
+                ])
+                ->toJson(),
         ]);
     }
 }
