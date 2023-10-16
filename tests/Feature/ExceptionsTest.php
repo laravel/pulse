@@ -150,10 +150,10 @@ it('can manually report exceptions', function () {
 
 it('can ignore exceptions', function () {
     Config::set('pulse.recorders.'.Exceptions::class.'.ignore', [
-        '/My/',
+        '/^Tests\\\\Feature\\\\Exceptions/',
     ]);
 
-    report(new MyReportedException('Ignored exception'));
+    report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
 
     expect(Pulse::entries())->toHaveCount(0);
 });

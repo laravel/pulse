@@ -266,9 +266,9 @@ it('can provide regex flags in normalization key', function () {
 
 it('can ignore keys', function () {
     Config::set('pulse.recorders.'.CacheInteractions::class.'.ignore', [
-        '/foo/i',
+        '/^laravel:pulse:/', // Pulse keys
     ]);
 
-    Cache::get('FOO');
+    Cache::get('laravel:pulse:foo:bar');
     expect(Pulse::entries())->toHaveCount(0);
 });

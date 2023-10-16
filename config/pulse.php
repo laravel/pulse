@@ -134,8 +134,8 @@ return [
                 '/^laravel:pulse:/', // Pulse keys
             ],
             'groups' => [
-                // '/^user:.\d+:(.*)/' => 'user:*:\1',
-                // '/^user:.+$/' => 'user:*',
+                // '/^user:\d+:(.*)/' => 'user:*:\1',
+                // '/^user:.+/' => 'user:*',
                 '/:timer$/' => '*:timer',
                 '/(.*)/' => '\1',
             ],
@@ -144,7 +144,7 @@ return [
         Recorders\Exceptions::class => [
             'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
             'ignore' => [
-                // '/^Package\\Exceptions\\.*$#',
+                // '/^Package\\\\Exceptions\\\\/',
             ],
         ],
 
@@ -152,7 +152,7 @@ return [
             'enabled' => env('PULSE_JOBS_ENABLED', true),
             'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
             'ignore' => [
-                // '/^Package\\Jobs\\.*$#',
+                // '/^Package\\\\Jobs\\\\/',
             ],
         ],
 
@@ -163,7 +163,7 @@ return [
                 '#^http://127\.0\.0\.1:13714#', // Inertia SSR
             ],
             'groups' => [
-                // '#^https://api.github.com/repos/.*$#' => 'api.github.com/repos/*',
+                // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
                 // '#^https?://([^/]*).*$#' => '\1',
                 '/(.*)/' => '\1',
             ],
