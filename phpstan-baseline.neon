@@ -1,11 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined method Illuminate\\\\Support\\\\HigherOrderCollectionProxy\\:\\:resolve\\(\\)\\.$#"
-			count: 1
-			path: src/Pulse.php
-
-		-
 			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
