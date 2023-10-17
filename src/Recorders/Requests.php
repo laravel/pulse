@@ -50,7 +50,11 @@ class Requests
      */
     public function record(Carbon $startedAt, Request $request, Response $response): ?Entry
     {
-        $path = Str::start($this->getPath($request), '/');
+        if (! ($route = $request->route()) instanceof Route) {
+            return null;
+        }
+
+        $path = Str::start($route->uri(), '/');
 
         if ($this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
@@ -65,23 +69,11 @@ class Requests
     }
 
     /**
-     * Get the path from the request.
-     */
-    protected function getPath(Request $request): string
-    {
-        $route = $request->route();
-
-        return $route instanceof Route ? $route->uri() : $request->path();
-    }
-
-    /**
      * Determine whether any Livewire component updates should be ignored.
      */
     protected function shouldIgnoreLivewireRequest(Request $request): bool
     {
-        $route = $request->route();
-
-        if (! $route instanceof Route || ! $route->named('*livewire.update')) {
+        if (! ($route = $request->route()) instanceof Route || ! $route->named('*livewire.update')) {
             return false;
         }
 

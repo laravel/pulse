@@ -156,3 +156,10 @@ it('ignores livewire update requests from an ignored path', function () {
 
     Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
 });
+
+it('only records known routes', function () {
+    $response = get('some-route-that-does-not-exit');
+
+    $response->assertNotFound();
+    Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
+});
