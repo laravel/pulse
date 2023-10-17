@@ -36,7 +36,7 @@ class Redis
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
             $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xadd($key, $dictionary),
+            $this->client() instanceof Pipeline => $this->client()->xadd($key, $dictionary), // @phpstan-ignore method.notFound
         };
     }
 
@@ -47,7 +47,7 @@ class Redis
      */
     public function xrange(string $key, string $start, string $end, int $count = null): array
     {
-        return $this->client()->xrange(...array_filter(func_get_args()));
+        return $this->client()->xrange(...array_filter(func_get_args())); // @phpstan-ignore method.notFound
     }
 
     /**
@@ -59,7 +59,7 @@ class Redis
             // PHP Redis does not support the minid strategy....
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
             $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold),
+            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound
         };
     }
 
@@ -70,7 +70,7 @@ class Redis
      */
     public function xdel(string $stream, Collection|array $keys): int
     {
-        return $this->client()->xdel($stream, Collection::unwrap($keys));
+        return $this->client()->xdel($stream, Collection::unwrap($keys)); // @phpstan-ignore method.notFound
     }
 
     /**
@@ -86,7 +86,7 @@ class Redis
         }
 
         // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
-        return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->connection, $this->config, $client)));
+        return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->connection, $this->config, $client))); // @phpstan-ignore method.notFound
     }
 
     /**

@@ -117,13 +117,13 @@ class PulseServiceProvider extends ServiceProvider
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
-                $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
+                $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
                     $app[Pulse::class]->store($app[Ingest::class]);
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
-                $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) {
+                $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
                     $app[Pulse::class]->store($app[Ingest::class]);
                 });
             });

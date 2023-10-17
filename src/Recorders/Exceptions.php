@@ -42,7 +42,7 @@ class Exceptions
      */
     public function register(callable $record, Application $app): void
     {
-        $this->afterResolving($app, ExceptionHandler::class, fn (ExceptionHandler $handler) => $handler->reportable(fn (Throwable $e) => $record($e)));
+        $this->afterResolving($app, ExceptionHandler::class, fn (ExceptionHandler $handler) => $handler->reportable(fn (Throwable $e) => $record($e))); // @phpstan-ignore method.notFound
 
         $this->afterResolving($app, Dispatcher::class, fn (Dispatcher $events) => $events->listen(fn (ExceptionReported $event) => $record($event->exception)));
     }
@@ -117,7 +117,7 @@ class Exceptions
             return $this->formatLocation($e->getFile(), $e->getLine());
         }
 
-        return $this->formatLocation($firstNonVendorFrame['file'], $firstNonVendorFrame['line']);
+        return $this->formatLocation($firstNonVendorFrame['file'] ?? 'unknown', $firstNonVendorFrame['line'] ?? null);
     }
 
     /**

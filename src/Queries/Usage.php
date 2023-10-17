@@ -33,7 +33,7 @@ class Usage
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, extra: string, avatar: string}}>
+     * @return \Illuminate\Support\Collection<int, array{count: int, user: array{name: string, extra: string, avatar: string|null}}>
      */
     public function __invoke(Interval $interval, string $type): Collection
     {

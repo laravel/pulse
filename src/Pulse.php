@@ -56,7 +56,7 @@ class Pulse
     /**
      * The authenticated user ID resolver.
      *
-     * @var (callable(): int|string|null)
+     * @var callable(): (int|string|null)
      */
     protected $authenticatedUserIdResolver = null;
 
@@ -319,7 +319,7 @@ class Pulse
     /**
      * Get the authenticated user ID resolver.
      *
-     * @return (callable(): (int|string|null|(callable(): (int|string|null))))
+     * @return callable(): (int|string|null)
      */
     public function authenticatedUserIdResolver(): callable
     {
