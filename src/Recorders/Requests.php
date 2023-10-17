@@ -73,9 +73,7 @@ class Requests
      */
     protected function shouldIgnoreLivewireRequest(Request $request): bool
     {
-        $route = $request->route();
-
-        if (! $route instanceof Route || ! $route->named('*livewire.update')) {
+        if (! ($route = $request->route()) instanceof Route || ! $route->named('*livewire.update')) {
             return false;
         }
 
