@@ -50,7 +50,11 @@ class Requests
      */
     public function record(Carbon $startedAt, Request $request, Response $response): ?Entry
     {
-        $path = Str::start($this->getPath($request), '/');
+        if (! ($route = $request->route()) instanceof Route) {
+            return null;
+        }
+
+        $path = Str::start($route->uri(), '/');
 
         if ($this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
@@ -62,16 +66,6 @@ class Requests
             'duration' => $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
-    }
-
-    /**
-     * Get the path from the request.
-     */
-    protected function getPath(Request $request): string
-    {
-        $route = $request->route();
-
-        return $route instanceof Route ? $route->uri() : $request->path();
     }
 
     /**
