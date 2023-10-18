@@ -474,7 +474,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_jobs')->count()))->toBe(0);
 
     /*
      * Work the job for the second time.
@@ -482,7 +482,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_jobs')->count()))->toBe(0);
 });
 
 class MyJob implements ShouldQueue
