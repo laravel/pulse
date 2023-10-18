@@ -45,15 +45,16 @@ class SlowRoutes
             ->groupBy('route_hash')
             ->orderByDesc('slowest')
             ->get()
-            ->map(fn (stdClass $row) => [
-                'uri' => (string) $row->route,
+            ->map(fn (stdClass $row) => (object) [
+                'route' => (string) $row->route,
                 'action' => with(explode(' ', $row->route, 2), function (array $parts) {
                     [$method, $path] = $parts;
+                    $path = ltrim($path, '/');
 
                     return ($this->router->getRoutes()->get($method)[$path] ?? null)?->getActionName();
                 }),
-                'request_count' => (int) $row->count,
-                'slowest_duration' => (int) $row->slowest,
+                'count' => (int) $row->count,
+                'slowest' => (int) $row->slowest,
             ]);
     }
 }

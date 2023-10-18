@@ -47,7 +47,7 @@
                     <tbody>
                         @foreach ($slowRoutes as $route)
                             @php
-                                [$method, $uri] = explode(' ', $route['uri'], 2);
+                                [$method, $uri] = explode(' ', $route->route, 2);
                             @endphp
                             <tr class="h-2 first:h-0"></tr>
                             <tr>
@@ -58,20 +58,20 @@
                                     <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $uri }}">
                                         {{ $uri }}
                                     </code>
-                                    @if ($route['action'])
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $route['action'] }}">
-                                            {{ $route['action'] }}
+                                    @if ($route->action)
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $route->action }}">
+                                            {{ $route->action }}
                                         </p>
                                     @endif
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                    <strong>{{ number_format($route['request_count']) }}</strong>
+                                    <strong>{{ number_format($route->count) }}</strong>
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                    @if ($route['slowest_duration'] === null)
+                                    @if ($route->slowest === null)
                                         <strong>Unknown</strong>
                                     @else
-                                        <strong>{{ number_format($route['slowest_duration']) ?: '<1' }}</strong> ms
+                                        <strong>{{ number_format($route->slowest) ?: '<1' }}</strong> ms
                                     @endif
                                 </x-pulse::td>
                             </tr>
