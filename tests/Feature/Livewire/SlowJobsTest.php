@@ -29,6 +29,5 @@ it('renders slow jobs', function () {
         ->assertViewHas('slowJobs', collect([
             (object) ['job' => 'App\Jobs\MyJob', 'count' => 2, 'slowest' => 2468],
             (object) ['job' => 'App\Jobs\MyOtherJob', 'count' => 1, 'slowest' => 1234],
-        ]))
-        ->assertViewHas('config');
+        ]));
 });

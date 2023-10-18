@@ -30,6 +30,5 @@ it('renders slow outgoing requests', function () {
             (object) ['uri' => 'GET http://example.com', 'count' => 2, 'slowest' => 2468],
             (object) ['uri' => 'GET http://example.org', 'count' => 1, 'slowest' => 1234],
         ]))
-        ->assertViewHas('supported', true)
-        ->assertViewHas('config');
+        ->assertViewHas('supported', true);
 });

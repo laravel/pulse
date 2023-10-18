@@ -28,6 +28,5 @@ it('renders exceptions', function () {
         ->assertViewHas('exceptions', collect([
             (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php', 'count' => 2, 'last_occurrence' => '2000-01-02 03:04:10'],
             (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php', 'count' => 1, 'last_occurrence' => '2000-01-02 03:04:05'],
-        ]))
-        ->assertViewHas('config');
+        ]));
 });

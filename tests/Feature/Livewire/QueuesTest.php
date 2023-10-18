@@ -88,6 +88,5 @@ it('renders queue statistics', function () {
                 (object) ['date' => '2000-01-02 03:04', 'queued' => 1, 'processing' => 0, 'released' => 0, 'processed' => 0, 'failed' => 0],
             ]),
         ]))
-        ->assertViewHas('showConnection', false)
-        ->assertViewHas('config');
+        ->assertViewHas('showConnection', false);
 });

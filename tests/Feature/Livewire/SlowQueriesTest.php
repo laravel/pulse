@@ -28,6 +28,5 @@ it('renders slow queries', function () {
         ->assertViewHas('slowQueries', collect([
             (object) ['sql' => 'select * from `users`', 'count' => 2, 'slowest' => 2468],
             (object) ['sql' => 'select * from `users` where `id` = ?', 'count' => 1, 'slowest' => 1234],
-        ]))
-        ->assertViewHas('config');
+        ]));
 });

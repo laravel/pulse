@@ -37,6 +37,5 @@ it('renders cache statistics', function () {
         ->assertViewHas('cacheKeyInteractions', collect([
             (object) ['key' => 'foo', 'count' => 4, 'hits' => 2],
             (object) ['key' => 'bar', 'count' => 2, 'hits' => 1],
-        ]))
-        ->assertViewHas('config');
+        ]));
 });

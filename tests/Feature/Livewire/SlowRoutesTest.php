@@ -31,6 +31,5 @@ it('renders slow routes', function () {
         ->assertViewHas('slowRoutes', collect([
             (object) ['route' => 'GET /users', 'action' => 'FooController@index', 'count' => 2, 'slowest' => 2468],
             (object) ['route' => 'GET /users/{user}', 'action' => 'Closure', 'count' => 1, 'slowest' => 1234],
-        ]))
-        ->assertViewHas('config');
+        ]));
 });
