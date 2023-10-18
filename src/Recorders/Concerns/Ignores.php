@@ -7,7 +7,7 @@ trait Ignores
     /**
      * Determine if the given value should be ignored.
      */
-    public function shouldIgnore(string $value): bool
+    protected function shouldIgnore(string $value): bool
     {
         // @phpstan-ignore argument.templateType, argument.templateType
         return collect($this->config->get('pulse.recorders.'.static::class.'.ignore'))
