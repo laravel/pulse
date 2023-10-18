@@ -30,7 +30,14 @@ class Queues
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, object{ date: string, queued: int, processing: int, failed: int }>>
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, object{
+     *     date: string,
+     *     queued: int|null,
+     *     processing: int|null,
+     *     released: int|null,
+     *     processed: int|null,
+     *     failed: int|null,
+     * }>>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -48,11 +55,11 @@ class Queues
             ->pad(60, null)
             ->map(fn (mixed $value, int $i) => (object) [
                 'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
-                'queued' => 0,
-                'processing' => 0,
-                'released' => 0,
-                'processed' => 0,
-                'failed' => 0,
+                'queued' => null,
+                'processing' => null,
+                'released' => null,
+                'processed' => null,
+                'failed' => null,
             ])
             ->reverse()
             ->keyBy('date');
@@ -149,15 +156,15 @@ class Queues
 
                         return [$date => (object) [
                             'date' => $date,
-                            'queued' => $reading->queued,
-                            'processing' => $reading->processing,
-                            'released' => $reading->released,
-                            'processed' => $reading->processed,
-                            'failed' => $reading->failed,
+                            'queued' => (int) $reading->queued,
+                            'processing' => (int) $reading->processing,
+                            'released' => (int) $reading->released,
+                            'processed' => (int) $reading->processed,
+                            'failed' => (int) $reading->failed,
                         ]];
                     });
 
-                return $padding->merge($readings)->values();
+                return $padding->merge($readings)->values(); // @phpstan-ignore argument.type
             });
 
         return $readings;
