@@ -18,7 +18,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
     <x-pulse::card-header
         name="Slow Queries"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.circle-stack />
@@ -70,8 +70,12 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                                         <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-gray-800 pointer-events-none"></div>
                                     </div>
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                    <strong>{{ number_format($query->count) }}</strong>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                    @if ($config['sample_rate'] < 1)
+                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($query->count) }}">~{{ number_format($query->count * (1 / $config['sample_rate'])) }}</span>
+                                    @else
+                                        {{ number_format($query->count) }}
+                                    @endif
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
                                     @if ($query->slowest === null)

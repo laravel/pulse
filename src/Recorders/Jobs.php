@@ -19,6 +19,7 @@ use Laravel\Pulse\Update;
 class Jobs
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
 
     /**
      * The table to record to.
@@ -67,7 +68,10 @@ class Jobs
         $now = new CarbonImmutable();
 
         if ($event instanceof JobQueued) {
-            if ($this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)) {
+            if (
+                $this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)
+                    || ! $this->shouldSampleDeterministically($event->payload()['uuid'])
+            ) {
                 return null;
             }
 
@@ -83,7 +87,7 @@ class Jobs
             ]);
         }
 
-        if ($this->shouldIgnore($event->job->resolveName())) {
+        if ($this->shouldIgnore($event->job->resolveName()) || ! $this->shouldSampleDeterministically((string) $event->job->uuid())) {
             return null;
         }
 

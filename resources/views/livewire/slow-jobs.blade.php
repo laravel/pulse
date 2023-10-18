@@ -2,7 +2,7 @@
     <x-pulse::card-header
         name="Slow Jobs"
         title="Time: {{ number_format($time, 0) }}ms; Run at: {{ $runAt }};"
-        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.command-line />
@@ -51,10 +51,14 @@
                                         {{ $job->job }}
                                     </code>
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm w-24 tabular-nums">
-                                    <strong>{{ number_format($job->count) }}</strong>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                    @if ($config['sample_rate'] < 1)
+                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($job->count) }}">~{{ number_format($job->count * (1 / $config['sample_rate'])) }}</span>
+                                    @else
+                                        {{ number_format($job->count) }}
+                                    @endif
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm w-24 whitespace-nowrap tabular-nums">
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
                                     @if ($job->slowest === null)
                                         <strong>Unknown</strong>
                                     @else

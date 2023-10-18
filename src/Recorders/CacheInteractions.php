@@ -16,6 +16,7 @@ use Laravel\Pulse\Pulse;
 class CacheInteractions
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
 
     /**
      * The table to record to.
@@ -49,7 +50,7 @@ class CacheInteractions
     {
         $now = new CarbonImmutable();
 
-        if ($this->shouldIgnore($event->key)) {
+        if ($this->shouldIgnore($event->key) || ! $this->shouldSample()) {
             return null;
         }
 

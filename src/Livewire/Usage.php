@@ -6,6 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Queries\Usage as UsageQuery;
+use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\Requests;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -42,7 +43,8 @@ class Usage extends Card
         return View::make('pulse::livewire.usage', [
             'time' => $time,
             'runAt' => $runAt,
-            'threshold' => Config::get('pulse.recorders.'.Requests::class.'.threshold'),
+            'requestsConfig' => Config::get('pulse.recorders.'.Requests::class),
+            'jobsConfig' => Config::get('pulse.recorders.'.Jobs::class),
             'userRequestCounts' => $userRequestCounts,
         ]);
     }

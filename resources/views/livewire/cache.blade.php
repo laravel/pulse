@@ -9,7 +9,7 @@
         </x-slot:icon>
         <x-slot:actions>
             @php
-                $count = count($groups);
+                $count = count($config['groups']);
                 $message = sprintf(
                     "Keys may be normalized using groups.\n\nThere %s currently %d %s configured.",
                     $count === 1 ? 'is' : 'are',
@@ -45,7 +45,11 @@
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ number_format($allCacheInteractions->hits) }}
+                            @if ($config['sample_rate'] < 1)
+                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->hits) }}">~{{ number_format($allCacheInteractions->hits * (1 / $config['sample_rate'])) }}</span>
+                            @else
+                                {{ number_format($allCacheInteractions->hits) }}
+                            @endif
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Hits
@@ -53,7 +57,11 @@
                     </div>
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
+                            @if ($config['sample_rate'] < 1)
+                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}">~{{ number_format(($allCacheInteractions->count - $allCacheInteractions->hits) * (1 / $config['sample_rate'])) }}</span>
+                            @else
+                                {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
+                            @endif
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Misses
@@ -93,14 +101,22 @@
                                             {{ $interaction->key }}
                                         </code>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                        <strong>{{ number_format($interaction->hits) }}</strong>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                        @if ($config['sample_rate'] < 1)
+                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->hits) }}">~{{ number_format($interaction->hits * (1 / $config['sample_rate'])) }}</span>
+                                        @else
+                                            {{ number_format($interaction->hits) }}
+                                        @endif
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                        <strong>{{ number_format($interaction->count - $interaction->hits) }}</strong>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                        @if ($config['sample_rate'] < 1)
+                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->count - $interaction->hits) }}">~{{ number_format(($interaction->count - $interaction->hits) * (1 / $config['sample_rate'])) }}</span>
+                                        @else
+                                            {{ number_format($interaction->count - $interaction->hits) }}
+                                        @endif
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                        <strong>{{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}</strong>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                        {{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}
                                     </x-pulse::td>
                                 </tr>
                             @endforeach

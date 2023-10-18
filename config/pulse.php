@@ -129,6 +129,7 @@ return [
     'recorders' => [
         Recorders\CacheInteractions::class => [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
+            'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
             'ignore' => [
                 '/^illuminate:/', // Framework internal keys
                 '/^laravel:pulse:/', // Pulse keys
@@ -143,6 +144,7 @@ return [
 
         Recorders\Exceptions::class => [
             'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
+            'sample_rate' => env('PULSE_EXCEPTIONS_SAMPLE_RATE', 1),
             'ignore' => [
                 // '/^Package\\\\Exceptions\\\\/',
             ],
@@ -150,6 +152,7 @@ return [
 
         Recorders\Jobs::class => [
             'enabled' => env('PULSE_JOBS_ENABLED', true),
+            'sample_rate' => env('PULSE_JOBS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
             'ignore' => [
                 // '/^Package\\\\Jobs\\\\/',
@@ -158,6 +161,7 @@ return [
 
         Recorders\OutgoingRequests::class => [
             'enabled' => env('PULSE_OUTGOING_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
             'ignore' => [
                 '#^http://127\.0\.0\.1:13714#', // Inertia SSR
@@ -171,6 +175,7 @@ return [
 
         Recorders\Requests::class => [
             'enabled' => env('PULSE_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard
@@ -179,6 +184,7 @@ return [
 
         Recorders\SlowQueries::class => [
             'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
+            'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables
@@ -186,26 +192,12 @@ return [
         ],
 
         Recorders\SystemStats::class => [
+            // TODO: frequency config?
             'server_name' => env('PULSE_SERVER_NAME', gethostname()),
             'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
             'graph_aggregation' => 'avg', // Supported: "avg", "max"
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Sample Rate
-    |--------------------------------------------------------------------------
-    |
-    | NOTE: This feature doesn't exist yet.
-    | For metrics such as request counts, you may want to sample the data to reduce what is captured and stored.
-    | The dashboard would scale the data to account for the sampling rate, potentially showing a "~" to indicate that it is an approximation.
-    | The more traffic you receive, the lower you could set this number, without losing too much accuracy.
-    | This setting should probably not be used for capturing problems like "slow" metrics, which already have a mechanism to reduce the data captured, as well as exceptions.
-    |
-    */
-
-    'sample_rate' => env('PULSE_SAMPLE_RATE', 1),
 
     // ---
     // TODO:

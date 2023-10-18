@@ -24,7 +24,7 @@ class SlowQueries extends Card
         return View::make('pulse::livewire.slow-queries', [
             'time' => $time,
             'runAt' => $runAt,
-            'threshold' => Config::get('pulse.recorders.'.SlowQueriesRecorder::class.'.threshold'),
+            'config' => Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             'slowQueries' => $slowQueries,
         ]);
     }

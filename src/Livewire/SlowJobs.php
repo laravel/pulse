@@ -24,7 +24,7 @@ class SlowJobs extends Card
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
-            'threshold' => Config::get('pulse.recorders.'.Jobs::class.'.threshold'),
+            'config' => Config::get('pulse.recorders.'.Jobs::class),
             'slowJobs' => $slowJobs,
         ]);
     }

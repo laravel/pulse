@@ -245,3 +245,23 @@ it('can ignore outgoing requests', function () {
 
     expect(Pulse::entries())->toHaveCount(0);
 });
+
+it('can sample', function () {
+    Http::fake(fn () => Http::response('ok'));
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.sample_rate', 0.1);
+
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+
+    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+
+    Pulse::flushEntries();
+});
