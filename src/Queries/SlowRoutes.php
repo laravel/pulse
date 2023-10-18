@@ -32,7 +32,12 @@ class SlowRoutes
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, array{uri: string, action: ?string, request_count: int, slowest_duration: int}>
+     * @return \Illuminate\Support\Collection<int, object{
+     *     route: string,
+     *     action: ?string,
+     *     count: int,
+     *     slowest: int
+     * }>
      */
     public function __invoke(Interval $interval): Collection
     {
