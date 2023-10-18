@@ -48,7 +48,7 @@ class WorkCommand extends Command
                 return self::SUCCESS;
             }
 
-            if ($now->subMinute()->greaterThan($lastTrimmedStorageAt)) {
+            if ($now->subHour()->greaterThan($lastTrimmedStorageAt)) {
                 $storage->trim($pulse->tables());
 
                 $lastTrimmedStorageAt = $now;
