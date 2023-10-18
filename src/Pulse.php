@@ -240,12 +240,6 @@ class Pulse
      */
     public function store(Ingest $ingest): self
     {
-        if (! $this->shouldRecord) {
-            $this->rememberedUserId = null;
-
-            return $this->flushEntries();
-        }
-
         $this->rescue(fn () => $ingest->ingest(
             $this->entries->map(fn ($entry) => $entry->resolve())->filter($this->shouldRecord(...)),
         ));
