@@ -19,9 +19,10 @@ it('renders slow routes', function () {
     Route::get('/users', ['FooController', 'index']);
     Route::get('/users/{user}', fn () => 'users');
     Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 2468],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users/{user}', 'duration' => 1234],
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 500, 'reached_threshold' => false],
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 1234, 'reached_threshold' => true],
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 2468, 'reached_threshold' => true],
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users/{user}', 'duration' => 1234, 'reached_threshold' => true],
     ]));
     Carbon::setTestNow('2000-01-02 03:04:15');
 

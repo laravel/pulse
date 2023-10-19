@@ -63,8 +63,9 @@ class Requests
         return new Entry($this->table, [
             'date' => $startedAt->toDateTimeString(),
             'route' => $request->method().' '.$path,
-            'duration' => $startedAt->diffInMilliseconds(),
+            'duration' => $duration = $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
+            'reached_threshold' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
         ]);
     }
 
