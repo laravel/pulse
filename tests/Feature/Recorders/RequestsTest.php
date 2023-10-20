@@ -45,7 +45,7 @@ it('ingests requests under the slow endpoint threshold', function () {
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
     expect($requests)->toHaveCount(1);
-    expect($requests[0]->reached_threshold)->toBe(0);
+    expect($requests[0]->slow)->toBe(0);
 });
 
 it('ingests requests over the slow endpoint threshold', function () {
@@ -56,7 +56,7 @@ it('ingests requests over the slow endpoint threshold', function () {
 
     $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
     expect($requests)->toHaveCount(1);
-    expect($requests[0]->reached_threshold)->toBe(1);
+    expect($requests[0]->slow)->toBe(1);
 });
 
 it('captures the authenticated user', function () {

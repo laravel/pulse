@@ -52,7 +52,7 @@ class SlowRoutes
                 ->limit(1),
         ])->fromSub(fn (Builder $query) => $query->selectRaw('`route_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
             ->from('pulse_requests')
-            ->where('reached_threshold', true)
+            ->where('slow', true)
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->groupBy('route_hash')
             ->orderByDesc('slowest')

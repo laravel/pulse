@@ -65,7 +65,7 @@ class Requests
             'route' => $request->method().' '.$path,
             'duration' => $duration = $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            'reached_threshold' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
+            'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
         ]);
     }
 
