@@ -305,4 +305,3 @@ it('can sample at one', function () {
 
     Pulse::flushEntries();
 });
-
