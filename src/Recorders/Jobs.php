@@ -74,7 +74,11 @@ class Jobs
             return new Entry($this->table, [
                 'date' => $now->toDateTimeString(),
                 'queued_at' => $now->toDateTimeString(),
-                'job' => is_string($event->job) ? $event->job : $event->job::class,
+                'job' => match (true) {
+                    is_string($event->job) => $event->job,
+                    method_exists($event->job, 'displayName') => $event->job->displayName(),
+                    default => $event->job::class,
+                },
                 'job_uuid' => $event->payload()['uuid'],
                 'attempt' => 1,
                 'connection' => $event->connectionName,
