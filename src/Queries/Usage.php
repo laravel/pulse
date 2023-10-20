@@ -9,7 +9,6 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Recorders\Requests;
 use stdClass;
 
 /**
