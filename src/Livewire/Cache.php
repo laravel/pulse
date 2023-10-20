@@ -31,7 +31,7 @@ class Cache extends Card
             'keyTime' => $keyTime,
             'keyRunAt' => $keyRunAt,
             'cacheKeyInteractions' => $cacheKeyInteractions,
-            'groups' => Config::get('pulse.recorders.'.CacheInteractionsRecorder::class.'.groups'),
+            'config' => Config::get('pulse.recorders.'.CacheInteractionsRecorder::class),
         ]);
     }
 }

@@ -946,6 +946,103 @@ it('can ignore jobs', function () {
     expect(Pulse::ignore(fn () => DB::table('pulse_jobs')->count()))->toBe(0);
 });
 
+it('can sample', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 0.1);
+
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+
+    expect(Queue::size())->toBe(10);
+    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at zero', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 0);
+
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+
+    expect(Queue::size())->toBe(10);
+    expect(count(Pulse::entries()))->toBe(0);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at one', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 1);
+
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+
+    expect(Queue::size())->toBe(10);
+    expect(count(Pulse::entries()))->toBe(10);
+
+    Pulse::flushEntries();
+});
+
+it("doesn't sample subsequent events for jobs that aren't initially sampled", function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 0.5);
+    Str::createUuidsUsingSequence([
+        '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3', // Always sampled
+        '9a656a13-c0b0-48e9-bc6e-bce99deb48f5', // Never sampled
+    ]);
+
+    Bus::dispatchToQueue(new MyJobThatAlwaysFails);
+    Bus::dispatchToQueue(new MyJobThatAlwaysFails);
+    Pulse::store(app(Ingest::class));
+
+    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
+    expect(Queue::size())->toBe(2);
+    expect($jobs)->toHaveCount(1);
+    expect($jobs[0])->toHaveProperties([
+        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
+        'attempt' => 1,
+    ]);
+
+    Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true]);
+    expect(Queue::size())->toBe(0);
+    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
+    expect($jobs)->toHaveCount(2);
+    expect($jobs[0])->toHaveProperties([
+        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
+        'attempt' => 1,
+    ]);
+    expect($jobs[1])->toHaveProperties([
+        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
+        'attempt' => 2,
+    ]);
+});
+
 class MyJob implements ShouldQueue
 {
     public function handle()
@@ -1053,6 +1150,14 @@ class MySlowJob implements ShouldQueue
     public function handle()
     {
         Carbon::setTestNow(Carbon::now()->addMilliseconds(100));
+    }
+}
+
+class MyJobThatAlwaysFails implements ShouldQueue
+{
+    public function handle()
+    {
+        throw new RuntimeException('Nope');
     }
 }
 

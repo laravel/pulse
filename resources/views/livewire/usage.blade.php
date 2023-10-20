@@ -7,7 +7,7 @@
             default => 'Application Usage'
         }"
         title="Time: {{ number_format($time) }}ms; Run At: {{ $runAt }};"
-        details="{{ $this->usage === 'slow_endpoint_counts' ? ($threshold.'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
+        details="{{ $this->usage === 'slow_endpoint_counts' ? ($requestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {
@@ -84,7 +84,17 @@
                             </div>
                             <div>
                                 <b class="text-xl text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                    {{ number_format($userRequestCount['count']) }}
+                                    @php
+                                        $sampleRate = match($this->usage) {
+                                            'dispatched_job_counts' => $jobsConfig['sample_rate'],
+                                            default => $requestsConfig['sample_rate'],
+                                        };
+                                    @endphp
+                                    @if ($sampleRate < 1)
+                                        <span title="Sample rate: {{ $sampleRate }}, Raw value: {{ number_format($userRequestCount['count']) }}">~{{ number_format($userRequestCount['count'] * (1 / $sampleRate)) }}</span>
+                                    @else
+                                        {{ number_format($userRequestCount['count']) }}
+                                    @endif
                                 </b>
                             </div>
                         </div>

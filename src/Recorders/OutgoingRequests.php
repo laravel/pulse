@@ -21,6 +21,7 @@ use Throwable;
 class OutgoingRequests
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
     use ConfiguresAfterResolving;
 
     /**
@@ -55,7 +56,7 @@ class OutgoingRequests
     {
         $endedAt = new CarbonImmutable;
 
-        if ($this->shouldIgnore($request->getUri())) {
+        if (! $this->shouldSample() || $this->shouldIgnore($request->getUri())) {
             return null;
         }
 

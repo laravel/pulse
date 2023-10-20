@@ -3,8 +3,10 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
+use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -37,6 +39,7 @@ class Exceptions extends Card
             'time' => $time,
             'runAt' => $runAt,
             'exceptions' => $exceptions,
+            'config' => Config::get('pulse.recorders.'.ExceptionsRecorder::class),
         ]);
     }
 }

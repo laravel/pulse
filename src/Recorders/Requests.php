@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 class Requests
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
     use ConfiguresAfterResolving;
 
     /**
@@ -56,7 +57,7 @@ class Requests
 
         $path = Str::start($route->uri(), '/');
 
-        if ($this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
+        if (! $this->shouldSample() || $this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
         }
 

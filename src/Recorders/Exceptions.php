@@ -20,6 +20,7 @@ use Throwable;
 class Exceptions
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
     use ConfiguresAfterResolving;
 
     /**
@@ -56,7 +57,7 @@ class Exceptions
 
         [$class, $location] = $this->getDetails($e);
 
-        if ($this->shouldIgnore($class)) {
+        if (! $this->shouldSample() || $this->shouldIgnore($class)) {
             return null;
         }
 

@@ -2,14 +2,14 @@
     <x-pulse::card-header
         name="Slow Outgoing Requests"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.cloud-arrow-up />
         </x-slot:icon>
         <x-slot:actions>
             @php
-                $count = count($groups);
+                $count = count($config['groups']);
                 $message = sprintf(
                     "URIs may be normalized using groups.\n\nThere %s currently %d %s configured.",
                     $count === 1 ? 'is' : 'are',
@@ -85,10 +85,14 @@
                                             </code>
                                         </div>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm w-24 tabular-nums">
-                                        <strong>{{ number_format($request->count) }}</strong>
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                        @if ($config['sample_rate'] < 1)
+                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($request->count) }}">~{{ number_format($request->count * (1 / $config['sample_rate'])) }}</span>
+                                        @else
+                                            {{ number_format($request->count) }}
+                                        @endif
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm w-24 whitespace-nowrap tabular-nums">
+                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
                                         @if ($request->slowest === null)
                                             <strong>Unknown</strong>
                                         @else

@@ -24,7 +24,7 @@ class SlowRoutes extends Card
         return View::make('pulse::livewire.slow-routes', [
             'time' => $time,
             'runAt' => $runAt,
-            'threshold' => Config::get('pulse.recorders.'.Requests::class.'.threshold'),
+            'config' => Config::get('pulse.recorders.'.Requests::class),
             'slowRoutes' => $slowRoutes,
         ]);
     }

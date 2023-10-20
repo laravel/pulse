@@ -3,9 +3,11 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Queries\Queues as QueuesQuery;
+use Laravel\Pulse\Recorders\Jobs;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -29,6 +31,7 @@ class Queues extends Card
             'showConnection' => $queues->keys()->map(fn ($queue) => Str::before($queue, ':'))->unique()->count() > 1,
             'time' => $time,
             'runAt' => $runAt,
+            'config' => Config::get('pulse.recorders.'.Jobs::class),
         ]);
     }
 }

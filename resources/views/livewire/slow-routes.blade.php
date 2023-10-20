@@ -2,7 +2,7 @@
     <x-pulse::card-header
         name="Slow Routes"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $threshold }}ms threshold, past {{ $this->periodForHumans() }}"
+        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-pulse::icons.arrows-left-right />
@@ -64,8 +64,12 @@
                                         </p>
                                     @endif
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm tabular-nums">
-                                    <strong>{{ number_format($route->count) }}</strong>
+                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                    @if ($config['sample_rate'] < 1)
+                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($route->count) }}">~{{ number_format($route->count * (1 / $config['sample_rate'])) }}</span>
+                                    @else
+                                        {{ number_format($route->count) }}
+                                    @endif
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
                                     @if ($route->slowest === null)

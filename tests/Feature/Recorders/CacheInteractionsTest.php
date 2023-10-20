@@ -272,3 +272,22 @@ it('can ignore keys', function () {
     Cache::get('laravel:pulse:foo:bar');
     expect(Pulse::entries())->toHaveCount(0);
 });
+
+it('can sample', function () {
+    Config::set('pulse.recorders.'.CacheInteractions::class.'.sample_rate', 0.1);
+
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+    Cache::get('foo');
+
+    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+
+    Pulse::flushEntries();
+});

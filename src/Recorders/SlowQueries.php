@@ -14,6 +14,7 @@ use Laravel\Pulse\Pulse;
 class SlowQueries
 {
     use Concerns\Ignores;
+    use Concerns\Sampling;
 
     /**
      * The table to record to.
@@ -48,7 +49,7 @@ class SlowQueries
             return null;
         }
 
-        if ($this->shouldIgnore($event->sql)) {
+        if (! $this->shouldSample() || $this->shouldIgnore($event->sql)) {
             return null;
         }
 

@@ -25,8 +25,7 @@ class SlowOutgoingRequests extends Card
         return View::make('pulse::livewire.slow-outgoing-requests', [
             'time' => $time,
             'runAt' => $runAt,
-            'threshold' => Config::get('pulse.recorders.'.OutgoingRequests::class.'.threshold'),
-            'groups' => Config::get('pulse.recorders.'.OutgoingRequests::class.'.groups'),
+            'config' => Config::get('pulse.recorders.'.OutgoingRequests::class),
             'slowOutgoingRequests' => $slowOutgoingRequests,
             'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);
