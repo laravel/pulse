@@ -265,3 +265,44 @@ it('can sample', function () {
 
     Pulse::flushEntries();
 });
+
+it('can sample at zero', function () {
+    Http::fake(fn () => Http::response('ok'));
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.sample_rate', 0);
+
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+
+    expect(count(Pulse::entries()))->toBe(0);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at one', function () {
+    Http::fake(fn () => Http::response('ok'));
+    Config::set('pulse.recorders.'.OutgoingRequests::class.'.sample_rate', 1);
+
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+    Http::get('http://example.com');
+
+    expect(count(Pulse::entries()))->toBe(10);
+
+    Pulse::flushEntries();
+});
+

@@ -506,6 +506,48 @@ it('can sample', function () {
     Pulse::flushEntries();
 });
 
+it('can sample at zero', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 0);
+
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+
+    expect(Queue::size())->toBe(10);
+    expect(count(Pulse::entries()))->toBe(0);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at one', function () {
+    Config::set('queue.default', 'database');
+    Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 1);
+
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+    Bus::dispatchToQueue(new MyJob);
+
+    expect(Queue::size())->toBe(10);
+    expect(count(Pulse::entries()))->toBe(10);
+
+    Pulse::flushEntries();
+});
+
 it("doesn't sample subsequent events for jobs that aren't initially sampled", function () {
     Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Jobs::class.'.sample_rate', 0.5);

@@ -195,6 +195,7 @@ it('can ignore queries', function () {
 });
 
 it('can sample', function () {
+    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowQueries::class.'.sample_rate', 0.1);
 
     DB::table('users')->count();
@@ -209,6 +210,46 @@ it('can sample', function () {
     DB::table('users')->count();
 
     expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at zero', function () {
+    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowQueries::class.'.sample_rate', 0);
+
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+
+    expect(count(Pulse::entries()))->toBe(0);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at one', function () {
+    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowQueries::class.'.sample_rate', 1);
+
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+    DB::table('users')->count();
+
+    expect(count(Pulse::entries()))->toBe(10);
 
     Pulse::flushEntries();
 });

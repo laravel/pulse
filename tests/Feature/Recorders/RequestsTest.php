@@ -163,3 +163,63 @@ it('only records known routes', function () {
     $response->assertNotFound();
     Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
 });
+
+it('can sample', function () {
+    Config::set('pulse.recorders.'.Requests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.Requests::class.'.sample_rate', 0.1);
+    Route::get('users', fn () => []);
+
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
+    expect(count($requests))->toEqualWithDelta(1, 4);
+});
+
+it('can sample at zero', function () {
+    Config::set('pulse.recorders.'.Requests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.Requests::class.'.sample_rate', 0);
+    Route::get('users', fn () => []);
+
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
+    expect(count($requests))->toBe(0);
+});
+
+it('can sample at one', function () {
+    Config::set('pulse.recorders.'.Requests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.Requests::class.'.sample_rate', 1);
+    Route::get('users', fn () => []);
+
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
+    expect(count($requests))->toBe(10);
+});

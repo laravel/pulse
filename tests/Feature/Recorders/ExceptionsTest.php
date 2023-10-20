@@ -177,6 +177,44 @@ it('can sample', function () {
     Pulse::flushEntries();
 });
 
+it('can sample at zero', function () {
+    Config::set('pulse.recorders.'.Exceptions::class.'.sample_rate', 0);
+
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+
+    expect(count(Pulse::entries()))->toBe(0);
+
+    Pulse::flushEntries();
+});
+
+it('can sample at one', function () {
+    Config::set('pulse.recorders.'.Exceptions::class.'.sample_rate', 1);
+
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+    report(new MyReportedException());
+
+    expect(count(Pulse::entries()))->toBe(10);
+
+    Pulse::flushEntries();
+});
+
 class MyReportedException extends Exception
 {
     //
