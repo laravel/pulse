@@ -49,7 +49,7 @@ it('renders top 10 users experiencing slow endpoints', function () {
         ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
         ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
         ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
     ]));
 
     Carbon::setTestNow('2000-01-02 03:04:15');
