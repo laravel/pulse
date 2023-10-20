@@ -22,12 +22,12 @@ it('renders top 10 users making requests', function () {
     $users = User::factory(3)->create();
     Pulse::resolveUsersUsing(fn () => $users);
     Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[2]->id, 'route' => 'GET /', 'duration' => 123],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[2]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
     ]));
 
     Carbon::setTestNow('2000-01-02 03:04:15');
@@ -46,10 +46,10 @@ it('renders top 10 users experiencing slow endpoints', function () {
     $users = User::factory(2)->create();
     Pulse::resolveUsersUsing(fn () => $users);
     Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[0]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'user_id' => $users[1]->id, 'route' => 'GET /', 'duration' => 123, 'slow' => false],
     ]));
 
     Carbon::setTestNow('2000-01-02 03:04:15');

@@ -38,9 +38,14 @@ return new class extends Migration
             $table->text('route');
             $table->char('route_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`route`))');
             $table->unsignedInteger('duration');
+            $table->boolean('slow');
 
-            $table->index(['date', 'user_id']); // user_usage
-            $table->index(['date', 'route_hash', 'duration']); // slow_endpoints
+            $table->index([
+                'date',    // user_usage, trim
+                'user_id', // user_usage
+            ]);
+            $table->index(['route_hash']); // slow_endpoints
+            $table->index(['slow', 'date', 'route_hash', 'duration']); // slow_endpoints
         });
 
         Schema::create('pulse_exceptions', function (Blueprint $table) {
