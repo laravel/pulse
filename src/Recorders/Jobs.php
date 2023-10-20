@@ -69,8 +69,8 @@ class Jobs
 
         if ($event instanceof JobQueued) {
             if (
-                $this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)
-                    || ! $this->shouldSampleDeterministically($event->payload()['uuid'])
+                ! $this->shouldSampleDeterministically($event->payload()['uuid'])
+                    || $this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)
             ) {
                 return null;
             }
@@ -87,7 +87,7 @@ class Jobs
             ]);
         }
 
-        if ($this->shouldIgnore($event->job->resolveName()) || ! $this->shouldSampleDeterministically((string) $event->job->uuid())) {
+        if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) || $this->shouldIgnore($event->job->resolveName())) {
             return null;
         }
 

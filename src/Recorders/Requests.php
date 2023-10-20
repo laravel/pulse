@@ -57,7 +57,7 @@ class Requests
 
         $path = Str::start($route->uri(), '/');
 
-        if ($this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request) || ! $this->shouldSample()) {
+        if (! $this->shouldSample() || $this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;
         }
 

@@ -57,7 +57,7 @@ class Exceptions
 
         [$class, $location] = $this->getDetails($e);
 
-        if ($this->shouldIgnore($class) || ! $this->shouldSample()) {
+        if (! $this->shouldSample() || $this->shouldIgnore($class)) {
             return null;
         }
 

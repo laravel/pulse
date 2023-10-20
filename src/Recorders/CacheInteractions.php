@@ -50,7 +50,7 @@ class CacheInteractions
     {
         $now = new CarbonImmutable();
 
-        if ($this->shouldIgnore($event->key) || ! $this->shouldSample()) {
+        if (! $this->shouldSample() || $this->shouldIgnore($event->key)) {
             return null;
         }
 

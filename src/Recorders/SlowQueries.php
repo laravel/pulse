@@ -49,7 +49,7 @@ class SlowQueries
             return null;
         }
 
-        if ($this->shouldIgnore($event->sql) || ! $this->shouldSample()) {
+        if (! $this->shouldSample() || $this->shouldIgnore($event->sql)) {
             return null;
         }
 

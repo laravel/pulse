@@ -56,7 +56,7 @@ class OutgoingRequests
     {
         $endedAt = new CarbonImmutable;
 
-        if ($this->shouldIgnore($request->getUri()) || ! $this->shouldSample()) {
+        if (! $this->shouldSample() || $this->shouldIgnore($request->getUri())) {
             return null;
         }
 
