@@ -25,6 +25,6 @@ trait Sampling
 
         $value = hexdec(md5($seed)) / pow(16, 32); // Scale to 0-1
 
-        return $value < $rate;
+        return $value <= $rate;
     }
 }
