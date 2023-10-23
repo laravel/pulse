@@ -27,8 +27,8 @@ it('renders slow outgoing requests', function () {
         ->assertViewHas('time')
         ->assertViewHas('runAt', '2000-01-02 03:04:15')
         ->assertViewHas('slowOutgoingRequests', collect([
-            (object) ['uri' => 'GET http://example.com', 'count' => 2, 'slowest' => 2468],
-            (object) ['uri' => 'GET http://example.org', 'count' => 1, 'slowest' => 1234],
+            (object) ['method' => 'GET', 'uri' => 'http://example.com', 'count' => 2, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 1, 'slowest' => 1234],
         ]))
         ->assertViewHas('supported', true);
 });

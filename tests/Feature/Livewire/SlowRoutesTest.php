@@ -30,7 +30,7 @@ it('renders slow routes', function () {
         ->assertViewHas('time')
         ->assertViewHas('runAt', '2000-01-02 03:04:15')
         ->assertViewHas('slowRoutes', collect([
-            (object) ['route' => 'GET /users', 'action' => 'FooController@index', 'count' => 2, 'slowest' => 2468],
-            (object) ['route' => 'GET /users/{user}', 'action' => 'Closure', 'count' => 1, 'slowest' => 1234],
+            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 2, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 1, 'slowest' => 1234],
         ]));
 });

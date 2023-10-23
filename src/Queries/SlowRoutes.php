@@ -44,6 +44,8 @@ class SlowRoutes
     {
         $now = new CarbonImmutable;
 
+        $routes = $this->router->getRoutes()->getRoutesByMethod();
+
         return $this->connection()->query()->select([
             'count',
             'slowest',
@@ -60,15 +62,15 @@ class SlowRoutes
             ->orderByDesc('count')
             ->limit(101), as: 'parent')
             ->get()
-            ->map(function (stdClass $row) {
+            ->map(function (stdClass $row) use ($routes) {
                 [$method, $uri] = explode(' ', $row->route, 2);
 
-                $uri = $uri === '/' ? $uri : ltrim($uri, '/');
+                $path = $uri === '/' ? $uri : ltrim($uri, '/');
 
                 return (object) [
                     'uri' => $uri,
                     'method' => $method,
-                    'action' => ($this->router->getRoutes()->get($method)[$uri] ?? null)?->getActionName(),
+                    'action' => ($route = $routes[$method][$path] ?? null) ? (string) $route->getActionName() : null,
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
                 ];

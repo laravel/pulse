@@ -17,22 +17,22 @@
 
 <x-pulse :full-width="false" cols="12">
 
-    {{-- <livewire:pulse.servers cols="full" /> --}}
+    <livewire:pulse.servers cols="full" />
 
-    {{-- <livewire:pulse.usage cols="4" rows="2" /> --}}
+    <livewire:pulse.usage cols="4" rows="2" />
     {{-- <livewire:pulse.usage type="dispatched_job_counts" /> --}}
     {{-- <livewire:pulse.usage type="slow_endpoint_counts" /> --}}
     {{-- <livewire:pulse.usage type="request_counts" /> --}}
 
-    {{-- <livewire:pulse.queues cols="4" /> --}}
+    <livewire:pulse.queues cols="4" />
 
-    {{-- <livewire:pulse.cache cols="4" /> --}}
+    <livewire:pulse.cache cols="4" />
 
-    {{-- <livewire:pulse.slow-queries cols="8" /> --}}
+    <livewire:pulse.slow-queries cols="8" />
 
-    {{-- <livewire:pulse.exceptions cols="6" /> --}}
+    <livewire:pulse.exceptions cols="6" />
 
-    {{-- <livewire:pulse.slow-routes cols="6" /> --}}
+    <livewire:pulse.slow-routes cols="6" />
 
     <livewire:pulse.slow-jobs cols="6" />
 
