@@ -62,7 +62,7 @@ class SlowOutgoingRequests
 
                 return (object) [
                     'method' => (string) $method,
-                    'uri' => (string) $row->uri,
+                    'uri' => (string) $uri,
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
                 ];
