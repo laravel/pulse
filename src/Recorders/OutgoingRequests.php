@@ -65,6 +65,7 @@ class OutgoingRequests
             'date' => $startedAt->toDateTimeString(),
             'duration' => $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
+            'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
         ]);
     }
 
