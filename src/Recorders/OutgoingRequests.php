@@ -63,8 +63,9 @@ class OutgoingRequests
         return new Entry($this->table, [
             'uri' => $this->normalizeUri($request),
             'date' => $startedAt->toDateTimeString(),
-            'duration' => $startedAt->diffInMilliseconds($endedAt),
+            'duration' => $duration = $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
+            'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
         ]);
     }
 

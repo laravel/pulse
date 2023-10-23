@@ -16,10 +16,10 @@ it('includes the card on the dashboard', function () {
 
 it('renders slow outgoing requests', function () {
     Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 2468],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 123],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 1234],
+        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 2468, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 123, 'slow' => false],
+        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 1234, 'slow' => true],
     ]));
     Carbon::setTestNow('2000-01-02 03:04:15');
 

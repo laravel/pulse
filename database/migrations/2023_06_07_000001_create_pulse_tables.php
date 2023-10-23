@@ -106,8 +106,11 @@ return new class extends Migration
             $table->text('uri');
             $table->char('uri_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`uri`))');
             $table->unsignedInteger('duration');
+            $table->boolean('slow');
 
-            $table->index(['uri_hash', 'date', 'duration']);
+            $table->index(['date']); // trim
+            $table->index(['uri_hash']); // slow_outgoing_requests
+            $table->index(['slow', 'date', 'uri_hash', 'duration']); // slow_outgoing_requests
         });
     }
 

@@ -57,7 +57,7 @@ class SlowRoutes
             ->groupBy('route_hash')
             ->orderByDesc('slowest')
             ->orderByDesc('count')
-            ->limit(100), as: 'parent')
+            ->limit(101), as: 'parent')
             ->get()
             ->map(fn (stdClass $row) => (object) [
                 'route' => (string) $row->route,
