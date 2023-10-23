@@ -34,7 +34,7 @@ class SlowRoutes
      *
      * @return \Illuminate\Support\Collection<int, object{
      *     method: string,
-     *     route: string,
+     *     uri: string,
      *     action: ?string,
      *     count: int,
      *     slowest: int
@@ -68,7 +68,6 @@ class SlowRoutes
                 return (object) [
                     'uri' => $uri,
                     'method' => $method,
-                    'route' => (string) $row->route,
                     'action' => ($this->router->getRoutes()->get($method)[$uri] ?? null)?->getActionName(),
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
