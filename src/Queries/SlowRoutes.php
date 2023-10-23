@@ -63,11 +63,13 @@ class SlowRoutes
             ->map(function (stdClass $row) {
                 [$method, $uri] = explode(' ', $row->route, 2);
 
+                $uri = $uri === '/' ? $uri : ltrim($uri, '/');
+
                 return (object) [
                     'uri' => $uri,
                     'method' => $method,
                     'route' => (string) $row->route,
-                    'action' => ($this->router->getRoutes()->get($method)[ltrim($uri, '/')] ?? null)?->getActionName(),
+                    'action' => ($this->router->getRoutes()->get($method)[$uri] ?? null)?->getActionName(),
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
                 ];
