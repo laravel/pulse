@@ -8,7 +8,6 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Recorders\OutgoingRequests;
 
 /**
  * @internal
