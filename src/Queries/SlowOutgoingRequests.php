@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use stdClass;
 
 /**
  * @internal
@@ -29,7 +30,12 @@ class SlowOutgoingRequests
     /**
      * Run the query.
      *
-     * @return \Illuminate\Support\Collection<int, \stdClass>
+     * @return \Illuminate\Support\Collection<int, object{
+     *     method: string,
+     *     uri: string,
+     *     count: int,
+     *     slowest: int
+     * }>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -50,6 +56,16 @@ class SlowOutgoingRequests
             ->orderByDesc('slowest')
             ->orderByDesc('count')
             ->limit(101), as: 'parent')
-            ->get();
+            ->get()
+            ->map(function (stdClass $row) {
+                [$method, $uri] = explode(' ', $row->uri, 2);
+
+                return (object) [
+                    'method' => (string) $method,
+                    'uri' => (string) $row->uri,
+                    'count' => (int) $row->count,
+                    'slowest' => (int) $row->slowest,
+                ];
+            });
     }
 }

@@ -33,6 +33,7 @@ class SlowRoutes
      * Run the query.
      *
      * @return \Illuminate\Support\Collection<int, object{
+     *     method: string,
      *     route: string,
      *     action: ?string,
      *     count: int,
@@ -59,16 +60,17 @@ class SlowRoutes
             ->orderByDesc('count')
             ->limit(101), as: 'parent')
             ->get()
-            ->map(fn (stdClass $row) => (object) [
-                'route' => (string) $row->route,
-                'action' => with(explode(' ', $row->route, 2), function (array $parts) {
-                    [$method, $path] = $parts;
-                    $path = ltrim($path, '/');
+            ->map(function (stdClass $row) {
+                [$method, $uri] = explode(' ', $row->route, 2);
 
-                    return ($this->router->getRoutes()->get($method)[$path] ?? null)?->getActionName();
-                }),
-                'count' => (int) $row->count,
-                'slowest' => (int) $row->slowest,
-            ]);
+                return (object) [
+                    'uri' => $uri,
+                    'method' => $method,
+                    'route' => (string) $row->route,
+                    'action' => ($this->router->getRoutes()->get($method)[ltrim($uri, '/')] ?? null)?->getActionName(),
+                    'count' => (int) $row->count,
+                    'slowest' => (int) $row->slowest,
+                ];
+            });
     }
 }

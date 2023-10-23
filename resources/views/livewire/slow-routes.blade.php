@@ -45,18 +45,15 @@
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($slowRoutes as $route)
-                            @php
-                                [$method, $uri] = explode(' ', $route->route, 2);
-                            @endphp
+                        @foreach ($slowRoutes->take(100) as $route)
                             <tr class="h-2 first:h-0"></tr>
                             <tr>
                                 <x-pulse::td>
-                                    <x-pulse::http-method-badge :method="$method" />
+                                    <x-pulse::http-method-badge :method="$route->method" />
                                 </x-pulse::td>
                                 <x-pulse::td class="overflow-hidden max-w-[1px]">
-                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $uri }}">
-                                        {{ $uri }}
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $route->uri }}">
+                                        {{ $route->uri }}
                                     </code>
                                     @if ($route->action)
                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $route->action }}">
@@ -82,6 +79,10 @@
                         @endforeach
                     </tbody>
                 </x-pulse::table>
+
+                @if ($slowRoutes->count() > 100)
+                    <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+                @endif
             @endif
         </div>
     </x-pulse::card-body>
