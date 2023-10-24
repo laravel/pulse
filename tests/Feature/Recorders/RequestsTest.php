@@ -177,6 +177,18 @@ it('only records known routes', function () {
     Pulse::ignore(fn () => expect(DB::table('pulse_requests')->count())->toBe(0));
 });
 
+it('handles routes with domains', function () {
+    Route::domain('{account}.example.com')->get('users', fn () => 'account users');
+    Route::get('users', fn () => 'global users');
+
+    get('http://foo.example.com/users')->assertContent('account users');
+    get('http://example.com/users')->assertContent('global users');
+
+    $requests = Pulse::ignore(fn () => DB::table('pulse_requests')->get());
+    expect($requests[0])->toHaveProperty('route', 'GET {account}.example.com/users');
+    expect($requests[1])->toHaveProperty('route', 'GET /users');
+});
+
 it('can sample', function () {
     Config::set('pulse.recorders.'.Requests::class.'.threshold', 0);
     Config::set('pulse.recorders.'.Requests::class.'.sample_rate', 0.1);

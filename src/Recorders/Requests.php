@@ -55,7 +55,7 @@ class Requests
             return null;
         }
 
-        $path = Str::start($route->uri(), '/');
+        $path = $route->getDomain().Str::start($route->uri(), '/');
 
         if (! $this->shouldSample() || $this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
             return null;

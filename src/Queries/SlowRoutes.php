@@ -9,6 +9,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use stdClass;
 
 /**
@@ -65,12 +66,18 @@ class SlowRoutes
             ->map(function (stdClass $row) use ($routes) {
                 [$method, $uri] = explode(' ', $row->route, 2);
 
+                $domain = Str::before($uri, '/');
+
+                if ($domain) {
+                    $uri = '/'.Str::after($uri, '/');
+                }
+
                 $path = $uri === '/' ? $uri : ltrim($uri, '/');
 
                 return (object) [
-                    'uri' => $uri,
+                    'uri' => $domain.$uri,
                     'method' => $method,
-                    'action' => ($route = $routes[$method][$path] ?? null) ? (string) $route->getActionName() : null,
+                    'action' => ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null,
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
                 ];
