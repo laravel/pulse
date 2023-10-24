@@ -17,9 +17,10 @@ it('includes the card on the dashboard', function () {
 
 it('renders slow jobs', function () {
     Pulse::ignore(fn () => DB::table('pulse_jobs')->insert([
-        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 1234],
-        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 2468],
-        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyOtherJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 1234],
+        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 2468, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\MyOtherJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 1234, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'job' => 'App\Jobs\AnotherJob', 'job_uuid' => Str::uuid(), 'attempt' => 1, 'connection' => 'database', 'queue' => 'default', 'queued_at' => '2000-01-02 03:04:05', 'duration' => 900, 'slow' => false],
     ]));
     Carbon::setTestNow('2000-01-02 03:04:15');
 
