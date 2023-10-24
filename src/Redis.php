@@ -5,10 +5,12 @@ namespace Laravel\Pulse;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Exceptions\RedisVersionException;
 use Predis\Client as Predis;
 use Predis\Pipeline\Pipeline;
 use Redis as PhpRedis;
 use RuntimeException;
+use Throwable;
 
 /**
  * @internal
@@ -55,12 +57,29 @@ class Redis
      */
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
-        return match (true) {
-            // PHP Redis does not support the minid strategy....
-            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
-            $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound
-        };
+        try {
+            return match (true) {
+                $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
+                $this->client() instanceof Predis ||
+                $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound
+            };
+        } catch (Throwable $e) {
+            try {
+                $version = match (true) {
+                    $this->client() instanceof PhpRedis => $this->client()->info('Server')['redis_version'],
+                    $this->client() instanceof Predis ||
+                    $this->client() instanceof Pipeline => $this->client()->info('Server')['Server']['redis_version'], //@phpstan-ignore offsetAccess.nonOffsetAccessible
+                };
+            } catch (Throwable $e) {
+                throw $e;
+            }
+
+            if (version_compare($version, '6.2.0', '<')) {
+                throw new RedisVersionException('XTRIM', '6.2.0', $version);
+            }
+
+            throw $e;
+        }
     }
 
     /**
