@@ -65,7 +65,8 @@ return new class extends Migration
             $table->char('sql_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`sql`))');
             $table->unsignedInteger('duration');
 
-            $table->index(['date', 'sql_hash', 'duration']);
+            $table->index(['sql_hash']); // slow_queries
+            $table->index(['date', 'sql_hash', 'duration']); // slow_queries
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
