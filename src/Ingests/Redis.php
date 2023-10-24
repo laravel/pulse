@@ -46,7 +46,7 @@ class Redis implements Ingest
             $items->each(fn (Entry|Update $entry) => $pipeline->xadd($this->stream, [
                 'data' => serialize($entry),
             ]));
-        });
+        }, 'XADD');
     }
 
     /**

@@ -35,7 +35,7 @@ class Redis
      */
     public function xadd(string $key, array $dictionary): string|Pipeline|PhpRedis
     {
-        return $this->ensureVersionOnException(fn () => match (true) {
+        return $this->ensureVersionOnException('XADD', fn () => match (true) {
             $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
             $this->client() instanceof Predis ||
             $this->client() instanceof Pipeline => $this->client()->xadd($key, $dictionary), // @phpstan-ignore method.notFound
@@ -49,8 +49,11 @@ class Redis
      */
     public function xrange(string $key, string $start, string $end, int $count = null): array
     {
+        $args = array_filter(func_get_args());
+
         return $this->ensureVersionOnException(
-            fn () => $this->client()->xrange(...array_filter(func_get_args())) // @phpstan-ignore method.notFound
+            'XRANGE',
+            fn () => $this->client()->xrange(...$args) // @phpstan-ignore method.notFound
         );
     }
 
@@ -59,7 +62,7 @@ class Redis
      */
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
-        return $this->ensureVersionOnException(fn () => match (true) {
+        return $this->ensureVersionOnException('XTRIM', fn () => match (true) {
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
             $this->client() instanceof Predis ||
             $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound
@@ -74,6 +77,7 @@ class Redis
     public function xdel(string $stream, Collection|array $keys): int
     {
         return $this->ensureVersionOnException(
+            'XDEL',
             fn () => $this->client()->xdel($stream, Collection::unwrap($keys)) // @phpstan-ignore method.notFound
         );
     }
@@ -82,9 +86,10 @@ class Redis
      * Run commands within a pipeline.
      *
      * @param  (callable(self): void)  $closure
+     * @param  string|list<string>  $commands
      * @return array<int, mixed>
      */
-    public function pipeline(callable $closure): array
+    public function pipeline(callable $closure, string|array $commands): array
     {
         if ($this->client() instanceof Pipeline) {
             throw new RuntimeException('Pipelines are not able to be nested.');
@@ -92,6 +97,7 @@ class Redis
 
         // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
         return $this->ensureVersionOnException(
+            $commands,
             fn () => $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->connection, $this->config, $client))) // @phpstan-ignore method.notFound
         );
     }
@@ -106,8 +112,10 @@ class Redis
 
     /**
      * Ensure the version is supported if a command fails to run.
+     *
+     * @param  string|list<string>  $commands
      */
-    protected function ensureVersionOnException(callable $callback): mixed
+    protected function ensureVersionOnException(string|array $commands, callable $callback): mixed
     {
         try {
             return $callback();
@@ -118,12 +126,12 @@ class Redis
                     $this->client() instanceof Predis ||
                     $this->client() instanceof Pipeline => $this->client()->info('Server')['Server']['redis_version'], //@phpstan-ignore offsetAccess.nonOffsetAccessible
                 };
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 throw $e;
             }
 
             if (version_compare($version, '6.2.0', '<')) {
-                throw new RedisVersionException('6.2.0', $version);
+                throw new RedisVersionException($commands, '6.2.0', $version);
             }
 
             throw $e;
