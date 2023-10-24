@@ -66,7 +66,11 @@ return new class extends Migration
             $table->unsignedInteger('duration');
 
             $table->index(['sql_hash']); // slow_queries
-            $table->index(['date', 'sql_hash', 'duration']); // slow_queries
+            $table->index([
+                'date',     // trim, slow_queries
+                'sql_hash', // slow_queries
+                'duration', // slow_queries
+            ]);
         });
 
         Schema::create('pulse_jobs', function (Blueprint $table) {
