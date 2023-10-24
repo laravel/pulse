@@ -34,3 +34,22 @@ it('renders slow routes', function () {
             (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 1, 'slowest' => 1234],
         ]));
 });
+
+it('handles routes with domains', function () {
+    Route::domain('{account}.example.com')->group(function () {
+        Route::get('users', ['AccountUserController', 'index']);
+    });
+    Route::get('users', ['GlobalUserController', 'index']);
+
+    Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 2468, 'slow' => true],
+        ['date' => '2000-01-02 03:04:05', 'route' => 'GET {account}.example.com/users', 'duration' => 1234, 'slow' => true],
+    ]));
+    Carbon::setTestNow('2000-01-02 03:04:15');
+
+    Livewire::test(SlowRoutes::class, ['lazy' => false])
+        ->assertViewHas('slowRoutes', collect([
+            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'GlobalUserController@index', 'count' => 1, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => '{account}.example.com/users', 'action' => 'AccountUserController@index', 'count' => 1, 'slowest' => 1234],
+        ]));
+});
