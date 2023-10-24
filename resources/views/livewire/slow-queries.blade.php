@@ -59,7 +59,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($slowQueries as $query)
+                        @foreach ($slowQueries->take(100) as $query)
                             <tr class="h-2 first:h-0"></tr>
                             <tr wire:key="{{ md5($query->sql) }}">
                                 <x-pulse::td class="!p-0 truncate max-w-[1px]">
@@ -88,6 +88,10 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                         @endforeach
                     </tbody>
                 </x-pulse::table>
+            @endif
+
+            @if ($slowQueries->count() > 100)
+                <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
             @endif
         </div>
     </x-pulse::card-body>

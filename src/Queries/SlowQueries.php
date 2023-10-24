@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -34,11 +35,20 @@ class SlowQueries
     {
         $now = new CarbonImmutable;
 
-        return $this->connection()->table('pulse_slow_queries')
-            ->selectRaw('MAX(`sql`) AS `sql`, COUNT(*) AS `count`, MAX(`duration`) AS `slowest`')
+        return $this->connection()->query()->select([
+            'count',
+            'slowest',
+            'sql' => fn (Builder $query) => $query->select('sql')
+                ->from('pulse_slow_queries', as: 'child')
+                ->whereRaw('`child`.`sql_hash` = `parent`.`sql_hash`')
+                ->limit(1),
+        ])->fromSub(fn (Builder $query) => $query->selectRaw('`sql_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
+            ->from('pulse_slow_queries')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->groupBy('sql_hash')
             ->orderByDesc('slowest')
+            ->orderByDesc('count')
+            ->limit(101), as: 'parent')
             ->get();
     }
 }
