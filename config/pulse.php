@@ -47,7 +47,7 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION'),
-            'chunk' => env('PULSE_DB_CHUNK_SIZE', 1000),
+            'chunk' => 1000,
         ],
     ],
 
@@ -63,13 +63,13 @@ return [
     */
 
     'ingest' => [
-        'driver' => env('PULSE_INGEST_DRIVER', 'pulse::storage'),
+        'trim_rate' => 1 / 1000,
 
-        'trim' => env('PULSE_INGEST_TRIM_RATE', 1 / 1000),
+        'driver' => env('PULSE_INGEST_DRIVER', 'pulse::storage'),
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
-            'chunk' => env('PULSE_REDIS_CHUNK_SIZE', 1000),
+            'chunk' => 1000,
         ],
     ],
 
