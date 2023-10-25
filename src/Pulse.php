@@ -157,7 +157,7 @@ class Pulse
      */
     public function report(Throwable $e): self
     {
-        $this->app['events']->dispatch(new ExceptionReported($e));
+        $this->rescue(fn () => $this->app['events']->dispatch(new ExceptionReported($e)));
 
         return $this;
     }
