@@ -515,7 +515,7 @@ it('ingests queued commands', function () {
         'processed_at' => null,
         'failed_at' => null,
         'user_id' => null,
-        'job' => 'Illuminate\Foundation\Console\QueuedCommand', // Currently unable to determine the underlying command name.
+        'job' => 'MyCommandThatFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 1,
         'connection' => 'database',
@@ -530,7 +530,7 @@ it('ingests queued commands', function () {
         'processed_at' => null,
         'failed_at' => null,
         'user_id' => null,
-        'job' => 'Illuminate\Foundation\Console\QueuedCommand', // Currently unable to determine the underlying command name.
+        'job' => 'MyCommandThatFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 2,
         'connection' => 'database',
@@ -555,7 +555,7 @@ it('ingests queued commands', function () {
         'processed_at' => null,
         'failed_at' => '2000-01-02 03:04:15',
         'user_id' => null,
-        'job' => 'Illuminate\Foundation\Console\QueuedCommand', // Currently unable to determine the underlying command name.
+        'job' => 'MyCommandThatFails',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 2,
         'connection' => 'database',
