@@ -67,7 +67,7 @@ return [
     'ingest' => [
         'driver' => env('PULSE_INGEST_DRIVER', 'pulse::storage'),
 
-        'trim' => env('PULSE_INGEST_TRIM_RATE', 1 / 1000)
+        'trim' => env('PULSE_INGEST_TRIM_RATE', 1 / 1000),
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
