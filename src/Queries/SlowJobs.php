@@ -6,8 +6,8 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Recorders\Jobs;
 
 /**
  * @internal
@@ -35,12 +35,21 @@ class SlowJobs
     {
         $now = new CarbonImmutable;
 
-        return $this->connection()->table('pulse_jobs')
-            ->selectRaw('MAX(`job`) AS `job`, COUNT(*) AS `count`, MAX(`duration`) AS `slowest`')
+        return $this->connection()->query()->select([
+            'count',
+            'slowest',
+            'job' => fn (Builder $query) => $query->select('job')
+                ->from('pulse_jobs', as: 'child')
+                ->whereRaw('`child`.`job_hash` = `parent`.`job_hash`')
+                ->limit(1),
+        ])->fromSub(fn (Builder $query) => $query->selectRaw('`job_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
+            ->from('pulse_jobs')
+            ->where('slow', true)
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->where('duration', '>=', $this->config->get('pulse.recorders.'.Jobs::class.'.threshold'))
             ->groupBy('job_hash')
             ->orderByDesc('slowest')
+            ->orderByDesc('count')
+            ->limit(101), as: 'parent')
             ->get();
     }
 }

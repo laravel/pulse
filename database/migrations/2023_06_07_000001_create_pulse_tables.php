@@ -67,7 +67,7 @@ return new class extends Migration
 
             $table->index(['sql_hash']); // slow_queries
             $table->index([
-                'date',     // trim, slow_queries
+                'date',     // slow_queries, trim
                 'sql_hash', // slow_queries
                 'duration', // slow_queries
             ]);
@@ -88,10 +88,14 @@ return new class extends Migration
             $table->datetime('processed_at')->nullable();
             $table->datetime('failed_at')->nullable();
             $table->unsignedInteger('duration')->nullable();
+            $table->boolean('slow')->default(false);
 
             // TODO: verify this update index. Needs to find job quickly. does attempts have any benefit here?
             $table->index(['job_uuid']);
-            $table->index(['date', 'job_hash', 'duration']); // slow_jobs
+
+            $table->index(['date']); // trim
+            $table->index(['job_hash']); // slow_jobs
+            $table->index(['slow', 'date', 'job_hash', 'duration']); // slow_jobs
             $table->index(['queued_at', 'user_id']); // user_usage
         });
 

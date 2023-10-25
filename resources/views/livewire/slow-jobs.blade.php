@@ -43,7 +43,7 @@
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($slowJobs as $job)
+                        @foreach ($slowJobs->take(100) as $job)
                             <tr class="h-2 first:h-0"></tr>
                             <tr wire:key="{{ $job->job }}">
                                 <x-pulse::td class="max-w-[1px]">
@@ -69,6 +69,10 @@
                         @endforeach
                     </tbody>
                 </x-pulse::table>
+            @endif
+
+            @if ($slowJobs->count() > 100)
+                <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
             @endif
         </div>
     </x-pulse::card-body>
