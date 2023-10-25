@@ -84,7 +84,9 @@ class Redis implements Ingest
      */
     protected function trimAfter(): Interval
     {
-        return new Interval($this->config->get('pulse.retain'));
+        return str_starts_with($value = $this->config->get('pulse.retain'), 'P')
+            ? new Interval($value)
+            : Interval::createFromDateString($value);
     }
 
     /**
