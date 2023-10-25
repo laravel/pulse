@@ -49,7 +49,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerIngest(): void
     {
         $this->app->bind(Ingest::class, fn (Application $app) => match ($app['config']->get('pulse.ingest.driver')) {
-            'storage' => $app[StorageIngest::class],
+            'pulse::storage' => $app[StorageIngest::class],
             'redis' => $app[RedisIngest::class],
             default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
         });

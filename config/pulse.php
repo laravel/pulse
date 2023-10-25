@@ -64,7 +64,7 @@ return [
     */
 
     'ingest' => [
-        'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
+        'driver' => env('PULSE_INGEST_DRIVER', 'pulse::storage'),
 
         'trim_lottery' => [1, 1_000],
 
