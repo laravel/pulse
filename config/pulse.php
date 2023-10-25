@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\CarbonInterval as Interval;
+use Illuminate\Support\Lottery;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Recorders;
 
@@ -48,7 +49,7 @@ return [
 
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION'),
-            'chunk' => 1000,
+            'chunk' => env('PULSE_DB_CHUNK_SIZE', 1000),
         ],
     ],
 
@@ -66,11 +67,11 @@ return [
     'ingest' => [
         'driver' => env('PULSE_INGEST_DRIVER', 'pulse::storage'),
 
-        'trim_lottery' => [1, 1_000],
+        'trim' => Lottery::odds(1, 1000),
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
-            'chunk' => 1000,
+            'chunk' => env('PULSE_REDIS_CHUNK_SIZE', 1000),
         ],
     ],
 
