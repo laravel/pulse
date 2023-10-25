@@ -1,7 +1,5 @@
 <?php
 
-use Carbon\CarbonInterval as Interval;
-use Illuminate\Support\Lottery;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Recorders;
 
