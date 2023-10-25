@@ -244,9 +244,9 @@ class Pulse
             $this->entries->map(fn ($entry) => $entry->resolve())->filter($this->shouldRecord(...)),
         ));
 
-        Lottery::odds(...$this->config->get('pulse.ingest.trim_lottery'))
-            ->winner(fn () => $this->rescue($ingest->trim(...)))
-            ->choose();
+        $this->rescue(fn () => Lottery::odds($this->config->get('pulse.ingest.trim_lottery'))
+            ->winner($ingest->trim(...))
+            ->choose());
 
         $this->rememberedUserId = null;
 
