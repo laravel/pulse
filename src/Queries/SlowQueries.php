@@ -39,13 +39,17 @@ class SlowQueries
             'count',
             'slowest',
             'sql' => fn (Builder $query) => $query->select('sql')
-                ->from('pulse_slow_queries', as: 'child')
-                ->whereRaw('`child`.`sql_hash` = `parent`.`sql_hash`')
+                ->from('pulse_slow_queries', as: 'child1')
+                ->whereRaw('`child1`.`sql_location_hash` = `parent`.`sql_location_hash`')
                 ->limit(1),
-        ])->fromSub(fn (Builder $query) => $query->selectRaw('`sql_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
+            'location' => fn (Builder $query) => $query->select('location')
+                ->from('pulse_slow_queries', as: 'child2')
+                ->whereRaw('`child2`.`sql_location_hash` = `parent`.`sql_location_hash`')
+                ->limit(1),
+        ])->fromSub(fn (Builder $query) => $query->selectRaw('`sql_location_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
             ->from('pulse_slow_queries')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->groupBy('sql_hash')
+            ->groupBy('sql_location_hash')
             ->orderByDesc('slowest')
             ->orderByDesc('count')
             ->limit(101), as: 'parent')

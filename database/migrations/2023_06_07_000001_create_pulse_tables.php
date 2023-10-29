@@ -62,13 +62,14 @@ return new class extends Migration
             $table->datetime('date');
             $table->string('user_id')->nullable();
             $table->text('sql');
-            $table->char('sql_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`sql`))');
+            $table->text('location');
+            $table->char('sql_location_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(CONCAT(`sql`, `location`)))');
             $table->unsignedInteger('duration');
 
-            $table->index(['sql_hash']); // slow_queries
+            $table->index(['sql_location_hash']); // slow_queries
             $table->index([
-                'date',     // slow_queries, trim
-                'sql_hash', // slow_queries
+                'date', // slow_queries, trim
+                'sql_location_hash', // slow_queries
                 'duration', // slow_queries
             ]);
         });
