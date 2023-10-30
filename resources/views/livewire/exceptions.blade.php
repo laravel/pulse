@@ -57,7 +57,7 @@
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($exceptions as $exception)
+                        @foreach ($exceptions->take(100) as $exception)
                             <tr class="h-2 first:h-0"></tr>
                             <tr wire:key="{{ $exception->class.$exception->location }}">
                                 <x-pulse::td class="break-words overflow-hidden">
@@ -82,6 +82,10 @@
                         @endforeach
                     </tbody>
                 </x-pulse::table>
+            @endif
+
+            @if ($exceptions->count() > 100)
+                <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
             @endif
         </div>
     </x-pulse::card-body>

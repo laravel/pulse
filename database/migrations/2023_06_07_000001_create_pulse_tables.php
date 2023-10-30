@@ -55,7 +55,11 @@ return new class extends Migration
             $table->text('location');
             $table->char('class_location_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(CONCAT(`class`, `location`)))');
 
-            $table->index(['date', 'class_location_hash']);
+            $table->index(['class_location_hash']); // exceptions
+            $table->index([
+                'date',                // exceptions, trim
+                'class_location_hash', // exceptions
+            ]);
         });
 
         Schema::create('pulse_slow_queries', function (Blueprint $table) {
