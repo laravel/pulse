@@ -66,18 +66,27 @@ class SlowRoutes
             ->map(function (stdClass $row) use ($routes) {
                 [$method, $uri] = explode(' ', $row->route, 2);
 
+                preg_match('/(.*?)(?:\s\((.*)\))?$/', $uri, $matches);
+
+                [$uri, $via] = [$matches[1], $matches[2] ?? null];
+
                 $domain = Str::before($uri, '/');
 
                 if ($domain) {
                     $uri = '/'.Str::after($uri, '/');
                 }
 
-                $path = $uri === '/' ? $uri : ltrim($uri, '/');
+                if ($via) {
+                    $action = 'via '.$via;
+                } else {
+                    $path = $uri === '/' ? $uri : ltrim($uri, '/');
+                    $action = ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null;
+                }
 
                 return (object) [
                     'uri' => $domain.$uri,
                     'method' => $method,
-                    'action' => ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null,
+                    'action' => $action,
                     'count' => (int) $row->count,
                     'slowest' => (int) $row->slowest,
                 ];
