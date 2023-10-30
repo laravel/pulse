@@ -54,7 +54,12 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->connection()->xtrim($this->stream, 'MINID', '~', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs());
+        $this->connection()->xtrim(
+            $this->stream,
+            'MINID',
+            '~',
+            (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs()
+        );
     }
 
     /**
@@ -62,7 +67,12 @@ class Redis implements Ingest
      */
     public function store(Storage $storage): int
     {
-        $entries = collect($this->connection()->xrange($this->stream, '-', '+', $this->config->get('pulse.ingest.redis.chunk')));
+        $entries = collect($this->connection()->xrange(
+            $this->stream,
+            '-',
+            '+',
+            $this->config->get('pulse.ingest.redis.chunk')
+        ));
 
         if ($entries->isEmpty()) {
             return 0;
