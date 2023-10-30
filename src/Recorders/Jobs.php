@@ -91,7 +91,8 @@ class Jobs
             ]);
         }
 
-        if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) || $this->shouldIgnore($event->job->resolveName())) {
+        if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) ||
+            $this->shouldIgnore($event->job->resolveName())) {
             return null;
         }
 
