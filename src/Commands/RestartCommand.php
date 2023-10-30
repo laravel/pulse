@@ -24,7 +24,7 @@ class RestartCommand extends Command
      *
      * @var string
      */
-    public $description = 'Restart running pulse work and check commands';
+    public $description = 'Restart any running "work" and "check" commands';
 
     /**
      * Handle the command.

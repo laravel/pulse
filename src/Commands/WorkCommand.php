@@ -26,7 +26,7 @@ class WorkCommand extends Command
      *
      * @var string
      */
-    public $description = 'Process the data from the stream.';
+    public $description = 'Process incoming Pulse data from the ingest stream';
 
     /**
      * Handle the command.
