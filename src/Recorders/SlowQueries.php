@@ -86,6 +86,7 @@ class SlowQueries
     {
         return Str::startsWith($file, base_path('vendor/laravel/pulse'))
             || Str::startsWith($file, base_path('vendor/laravel/framework'))
+            || $file === base_path('artisan')
             || $file === public_path('index.php');
     }
 

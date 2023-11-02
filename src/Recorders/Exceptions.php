@@ -112,9 +112,9 @@ class Exceptions
     protected function getLocation(Throwable $e): string
     {
         $firstNonVendorFrame = collect($e->getTrace())
-            ->firstWhere(fn (array $frame) => isset($frame['file']) && $this->isNonVendorFile($frame['file']));
+            ->firstWhere(fn (array $frame) => isset($frame['file']) && ! $this->isInternalFile($frame['file']));
 
-        if ($this->isNonVendorFile($e->getFile()) || $firstNonVendorFrame === null) {
+        if (! $this->isInternalFile($e->getFile()) || $firstNonVendorFrame === null) {
             return $this->formatLocation($e->getFile(), $e->getLine());
         }
 
@@ -122,11 +122,13 @@ class Exceptions
     }
 
     /**
-     * Determine whether a file is in the vendor directory.
+     * Determine whether a file should be considered internal.
      */
-    protected function isNonVendorFile(string $file): bool
+    protected function isInternalFile(string $file): bool
     {
-        return ! Str::startsWith($file, base_path('vendor'));
+        return Str::startsWith($file, base_path('vendor'))
+            || $file === base_path('artisan')
+            || $file === public_path('index.php');
     }
 
     /**
