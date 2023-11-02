@@ -138,7 +138,6 @@ return [
                 // '/^user:\d+:/' => 'user:*:\1',
                 // '/^user:.+/' => 'user:*',
                 '/:timer$/' => '*:timer',
-                '/(.*)/' => '\1',
             ],
         ],
 
@@ -169,7 +168,6 @@ return [
             'groups' => [
                 // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
                 // '#^https?://([^/]*).*$#' => '\1',
-                '/(.*)/' => '\1',
             ],
         ],
 
