@@ -60,31 +60,27 @@ class Requests
         }
 
         $path = $route->getDomain().Str::start($route->uri(), '/');
+        $via = null;
 
-        if (! $this->shouldSample() || $this->shouldIgnore($path) || $this->shouldIgnoreLivewireRequest($request)) {
+        if ($route->named('*livewire.update')) {
+            $snapshot = json_decode($request->input('components.0.snapshot'));
+
+            if (isset($snapshot->memo->path)) {
+                $via = $path;
+                $path = Str::start($snapshot->memo->path, '/');
+            }
+        }
+
+        if (! $this->shouldSample() || $this->shouldIgnore($path)) {
             return null;
         }
 
         return new Entry($this->table, [
             'date' => $startedAt->toDateTimeString(),
-            'route' => $request->method().' '.$path,
+            'route' => $request->method().' '.$path.($via ? " ($via)" : ''),
             'duration' => $duration = $startedAt->diffInMilliseconds(),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
             'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
         ]);
-    }
-
-    /**
-     * Determine whether any Livewire component updates should be ignored.
-     */
-    protected function shouldIgnoreLivewireRequest(Request $request): bool
-    {
-        if (! ($route = $request->route()) instanceof Route || ! $route->named('*livewire.update')) {
-            return false;
-        }
-
-        return $request
-            ->collect('components.*.snapshot')
-            ->contains(fn ($snapshot) => $this->shouldIgnore(Str::start(json_decode($snapshot)->memo->path, '/')));
     }
 }
