@@ -64,9 +64,14 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                             <tr wire:key="{{ md5($query->sql) }}">
                                 <x-pulse::td class="!p-0 truncate max-w-[1px]">
                                     <div class="relative">
-                                        <code class="bg-gray-700 dark:bg-gray-800 py-4 rounded-md text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
-                                            <span class="px-3">{!! $sqlFormatter->highlight($query->sql) !!}</span>
-                                        </code>
+                                        <div class="bg-gray-700 dark:bg-gray-800 py-4 rounded-md text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
+                                            <code class="px-3">{!! $sqlFormatter->highlight($query->sql) !!}</code>
+                                            @if ($query->location)
+                                                <p class="px-3 mt-3 text-xs leading-none text-gray-400 dark:text-gray-500">
+                                                    {{ $query->location }}
+                                                </p>
+                                            @endif
+                                        </div>
                                         <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-gray-800 pointer-events-none"></div>
                                     </div>
                                 </x-pulse::td>
