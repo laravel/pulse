@@ -97,7 +97,7 @@
                                 <tr class="h-2 first:h-0"></tr>
                                 <tr wire:key="{{ $interaction->key }}">
                                     <x-pulse::td class="max-w-[1px]">
-                                        <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $interaction-key }}">
+                                        <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $interaction->key }}">
                                             {{ $interaction->key }}
                                         </code>
                                     </x-pulse::td>
