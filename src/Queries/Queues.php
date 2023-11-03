@@ -82,9 +82,9 @@ class Queues
                     ->selectRaw('NULL AS `processed_at`')
                     ->selectRaw('NULL AS `failed_at`')
                     // Divide the data into buckets.
-                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
-                    ->where('date', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
-                    ->whereNotNull('date')
+                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`queued_at`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
+                    ->where('queued_at', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
+                    ->whereNotNull('queued_at')
                     // Processing
                     ->union(fn (Builder $query) => $query
                         ->from('pulse_jobs')
