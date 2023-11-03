@@ -68,7 +68,7 @@
                         <tbody>
                             @foreach ($slowOutgoingRequests->take(100) as $request)
                                 <tr class="h-2 first:h-0"></tr>
-                                <tr wire:key="{{ $request->uri }}">
+                                <tr wire:key="{{ $request->method.$request->uri }}">
                                     <x-pulse::td>
                                         <x-pulse::http-method-badge :method="$request->method" />
                                     </x-pulse::td>
