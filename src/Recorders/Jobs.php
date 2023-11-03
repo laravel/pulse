@@ -131,6 +131,7 @@ class Jobs
                     'attempt' => $event->job->attempts() + 1,
                     'connection' => $event->job->getConnectionName(),
                     'queue' => $event->job->getQueue(),
+                    'user_id' => null,
                 ]),
             ], fn () => $this->lastJobStartedProcessingAt = null);
         }
