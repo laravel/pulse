@@ -7,6 +7,9 @@ use Illuminate\Console\Command;
 use Illuminate\Support\InteractsWithTime;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'pulse:restart')]
 class RestartCommand extends Command
 {

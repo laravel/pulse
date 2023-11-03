@@ -5,20 +5,22 @@ namespace Laravel\Pulse\Storage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Update;
 
 class Database implements Storage
 {
+    use InteractsWithDatabaseConnection;
+
     /**
      * Create a new Database storage instance.
      */
     public function __construct(
-        protected DatabaseManager $manager,
+        protected DatabaseManager $db,
         protected Repository $config,
     ) {
         //
@@ -37,20 +39,20 @@ class Database implements Storage
 
         [$inserts, $updates] = $items->partition(fn (Entry|Update $entry) => $entry instanceof Entry);
 
-        $this->connection()->transaction(function () use ($inserts, $updates) {
+        $this->db()->transaction(function () use ($inserts, $updates) {
             $inserts->groupBy('table')
                 ->each(fn (Collection $rows, string $table) => $rows->chunk($this->config->get('pulse.storage.database.chunk'))
                     ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
-                    ->each($this->connection()->table($table)->insert(...)));
+                    ->each($this->db()->table($table)->insert(...)));
 
             $updates->each(function (Update $update) {
                 if (is_array($update->attributes)) {
-                    $this->connection()
+                    $this->db()
                         ->table($update->table)
                         ->where($update->conditions)
                         ->update($update->attributes);
                 } else {
-                    $existing = $this->connection()
+                    $existing = $this->db()
                         ->table($update->table)
                         ->where($update->conditions)
                         ->first();
@@ -59,7 +61,7 @@ class Database implements Storage
                         return;
                     }
 
-                    $this->connection()
+                    $this->db()
                         ->table($update->table)
                         ->where($update->conditions)
                         ->update(($update->attributes)((array) $existing));
@@ -75,7 +77,7 @@ class Database implements Storage
      */
     public function trim(Collection $tables): void
     {
-        $tables->each(fn (string $table) => $this->connection()
+        $tables->each(fn (string $table) => $this->db()
             ->table($table)
             ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
             ->delete());
@@ -88,7 +90,7 @@ class Database implements Storage
      */
     public function purge(Collection $tables): void
     {
-        $tables->each(fn (string $table) => $this->connection()
+        $tables->each(fn (string $table) => $this->db()
             ->table($table)
             ->truncate());
     }
@@ -99,15 +101,5 @@ class Database implements Storage
     protected function trimAfter(): Interval
     {
         return new Interval($this->config->get('pulse.retain'));
-    }
-
-    /**
-     * Get the database connection.
-     */
-    protected function connection(): Connection
-    {
-        return $this->manager->connection(
-            $this->config->get('pulse.storage.database.connection') ?? $this->config->get('database.default')
-        );
     }
 }

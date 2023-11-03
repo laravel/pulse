@@ -1,15 +1,18 @@
 <?php
 
+use Carbon\CarbonInterval;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Redis as FacadesRedis;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\Redis;
+use Laravel\Pulse\Redis as RedisAdapter;
 
-beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' DEL laravel_database_laravel:pulse:entries')->throw());
+beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' FLUSHALL')->throw());
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -49,6 +52,70 @@ it('runs the same commands while storing', function ($driver) {
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:entries" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:entries" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same zincrby command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->zincrby('MYKEY', '55', 'my-member'));
+    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "55" "my-member"');
+
+    $commands = captureRedisCommands(fn () => $redis->zincrby('MYKEY', '-55', 'my-member'));
+    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "-55" "my-member"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same zrange command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: false, withScores: false));
+    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3"');
+
+    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: true, withScores: false));
+    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV"');
+
+    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: false, withScores: true));
+    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "WITHSCORES"');
+
+    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: true, withScores: true));
+    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV" "WITHSCORES"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same get command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->get('MYKEY'));
+
+    expect($commands)->toContain('"GET" "laravel_database_MYKEY"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same set command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->set('MYKEY', 'myvalue', CarbonInterval::seconds(5)));
+
+    expect($commands)->toContain('"SET" "laravel_database_MYKEY" "myvalue" "PX" "5000"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same del command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->del(['MYKEY', 'MYOTHERKEY']));
+
+    expect($commands)->toContain('"DEL" "laravel_database_MYKEY" "laravel_database_MYOTHERKEY"');
+})->with(['predis', 'phpredis']);
+
+it('runs the same expire command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->expire('MYKEY', CarbonInterval::day()));
+
+    expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
 })->with(['predis', 'phpredis']);
 
 class NullStorage implements Storage

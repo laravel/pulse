@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use stdClass;
 
 /**
@@ -15,7 +16,7 @@ use stdClass;
  */
 class SlowOutgoingRequests
 {
-    use Concerns\InteractsWithConnection;
+    use InteractsWithDatabaseConnection;
 
     /**
      * Create a new query instance.
@@ -41,7 +42,7 @@ class SlowOutgoingRequests
     {
         $now = new CarbonImmutable;
 
-        return $this->connection()->query()->select([
+        return $this->db()->query()->select([
             'count',
             'slowest',
             'uri' => fn (Builder $query) => $query->select('uri')

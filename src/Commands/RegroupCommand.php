@@ -7,16 +7,15 @@ use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\Config;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use Laravel\Pulse\Contracts\Grouping;
-use Laravel\Pulse\Queries\Concerns\InteractsWithConnection;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:regroup')]
 class RegroupCommand extends Command
 {
-    use ConfirmableTrait;
-    use InteractsWithConnection;
+    use ConfirmableTrait, InteractsWithDatabaseConnection;
 
     /**
      * The command's signature.
@@ -57,7 +56,7 @@ class RegroupCommand extends Command
             ->each(function ($recorder) {
                 $this->info("Re-grouping {$recorder->table}...");
 
-                $this->connection()->query()
+                $this->db()->query()
                     ->from($recorder->table)
                     ->select($recorder->groupColumn())
                     ->distinct()
@@ -71,7 +70,7 @@ class RegroupCommand extends Command
 
                         $this->info(" - [{$value}] => [{$newValue}]");
 
-                        $this->connection()->query()
+                        $this->db()->query()
                             ->from($recorder->table)
                             ->where($recorder->groupColumn(), $value)
                             ->update([

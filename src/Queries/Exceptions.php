@@ -8,13 +8,14 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 
 /**
  * @internal
  */
 class Exceptions
 {
-    use Concerns\InteractsWithConnection;
+    use InteractsWithDatabaseConnection;
 
     /**
      * Create a new query instance.
@@ -36,7 +37,7 @@ class Exceptions
     {
         $now = new CarbonImmutable;
 
-        return $this->connection()->query()->select([
+        return $this->db()->query()->select([
             'count',
             'last_occurrence',
             'class' => fn (Builder $query) => $query->select('class')

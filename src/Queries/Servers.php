@@ -10,6 +10,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use Laravel\Pulse\Recorders\SystemStats;
 use stdClass;
 
@@ -18,7 +19,7 @@ use stdClass;
  */
 class Servers
 {
-    use Concerns\InteractsWithConnection;
+    use InteractsWithDatabaseConnection;
 
     /**
      * Create a new query instance.
@@ -75,7 +76,7 @@ class Servers
             ->reverse()
             ->keyBy('date');
 
-        $serverReadings = $this->connection()->query()
+        $serverReadings = $this->db()->query()
             ->select('bucket', 'server')
             ->selectRaw('MAX(`date`) AS `date`')
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.recorders.'.SystemStats::class.'.graph_aggregation')) {
@@ -106,10 +107,10 @@ class Servers
                 return $padding->merge($readings)->values();
             });
 
-        return $this->connection()->table('pulse_system_stats')
+        return $this->db()->table('pulse_system_stats')
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
-                $this->connection()->table('pulse_system_stats')
+                $this->db()->table('pulse_system_stats')
                     ->selectRaw('`server`, MAX(`date`) AS `date`')
                     ->groupBy('server'),
                 'grouped',

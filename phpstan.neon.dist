@@ -2,5 +2,3 @@ parameters:
   paths:
     - src
   level: 8
-includes:
-  - phpstan-baseline.neon

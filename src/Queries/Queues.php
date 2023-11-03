@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use stdClass;
 
 /**
@@ -15,7 +16,7 @@ use stdClass;
  */
 class Queues
 {
-    use Concerns\InteractsWithConnection;
+    use InteractsWithDatabaseConnection;
 
     /**
      * Create a new query instance.
@@ -64,7 +65,7 @@ class Queues
             ->reverse()
             ->keyBy('date');
 
-        $readings = $this->connection()->query()
+        $readings = $this->db()->query()
             ->select('bucket', 'connection', 'queue')
             ->selectRaw('COUNT(`queued_at`) AS `queued`')
             ->selectRaw('COUNT(`processing_at`) AS `processing`')
