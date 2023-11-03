@@ -68,7 +68,7 @@ class CacheInteractions
     protected function normalizeKey(string $key): Closure
     {
         return function () use ($key) {
-            foreach ($this->config->get('pulse.recorders.'.static::class.'.groups') as $pattern => $replacement) {
+            foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
                 $normalized = preg_replace($pattern, $replacement, $key, count: $count);
 
                 if ($count > 0 && $normalized !== null) {

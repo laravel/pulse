@@ -46,7 +46,7 @@ class SlowQueries
     {
         $now = new CarbonImmutable();
 
-        if ($event->time < $this->config->get('pulse.recorders.'.static::class.'.threshold')) {
+        if ($event->time < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
             return null;
         }
 

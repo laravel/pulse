@@ -120,7 +120,7 @@ class Jobs
                         'date' => $now->toDateTimeString(),
                         'released_at' => $now->toDateTimeString(),
                         'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
-                        'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
+                        'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
                     ],
                 ),
                 new Entry($this->table, [
@@ -143,7 +143,7 @@ class Jobs
                     'date' => $now->toDateTimeString(),
                     'processed_at' => $now->toDateTimeString(),
                     'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
-                    'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
+                    'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
@@ -156,7 +156,7 @@ class Jobs
                     'date' => $now->toDateTimeString(),
                     'failed_at' => $now->toDateTimeString(),
                     'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
-                    'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
+                    'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
         }
