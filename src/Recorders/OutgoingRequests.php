@@ -65,7 +65,7 @@ class OutgoingRequests
             'date' => $startedAt->toDateTimeString(),
             'duration' => $duration = $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            'slow' => $duration >= $this->config->get('pulse.recorders.'.static::class.'.threshold'),
+            'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
         ]);
     }
 
@@ -79,7 +79,7 @@ class OutgoingRequests
         $uri = $request->getUri();
 
         return function () use ($method, $uri) {
-            foreach ($this->config->get('pulse.recorders.'.static::class.'.groups') as $pattern => $replacement) {
+            foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
                 $normalized = preg_replace($pattern, $replacement, $uri, count: $count);
 
                 if ($count > 0 && $normalized !== null) {
