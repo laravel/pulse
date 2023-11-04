@@ -55,7 +55,7 @@
             @else
                 <div class="grid gap-3 mx-px mb-px">
                     @foreach ($queues as $queue => $readings)
-                        <div>
+                        <div wire:key="{{ $queue }}">
                             <h3 class="font-bold text-gray-700 dark:text-gray-300">
                                 @if ($showConnection)
                                     {{ $queue }}
