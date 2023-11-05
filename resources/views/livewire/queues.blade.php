@@ -9,23 +9,23 @@
         </x-slot:icon>
         <x-slot:actions>
             <div class="flex flex-wrap gap-4">
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                     <div class="h-0.5 w-3 rounded-full bg-[rgba(107,114,128,0.5)]"></div>
                     Queued
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                     <div class="h-0.5 w-3 rounded-full bg-[rgba(147,51,234,0.5)]"></div>
                     Processing
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                     <div class="h-0.5 w-3 rounded-full bg-[#9333ea]"></div>
                     Processed
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                     <div class="h-0.5 w-3 rounded-full bg-[#eab308]"></div>
                     Released
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                     <div class="h-0.5 w-3 rounded-full bg-[#e11d48]"></div>
                     Failed
                 </div>
