@@ -73,10 +73,10 @@
                                     <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">
                                 @endif
                                 <div class="overflow-hidden">
-                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate" title="{{ $userRequestCount['user']['name'] }}">
                                         {{ $userRequestCount['user']['name'] }}
                                     </div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $userRequestCount['user']['extra'] }}">
                                         {{ $userRequestCount['user']['extra'] }}
                                     </div>
                                 </div>
