@@ -74,7 +74,7 @@
                                     </x-pulse::td>
                                     <x-pulse::td class="max-w-[1px]">
                                         <div class="flex items-center" title="{{ $request->uri }}">
-                                        @if ($host = parse_url($request->uri, PHP_URL_HOST))
+                                            @if ($host = parse_url($request->uri, PHP_URL_HOST))
                                                 <img wire:ignore src="https://unavatar.io/{{ $host }}?fallback=false" loading="lazy" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
                                             @endif
                                             <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
