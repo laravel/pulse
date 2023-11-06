@@ -86,7 +86,7 @@ class Queues
                     ->where('queued_at', '>=', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
                     ->whereNotNull('queued_at')
                     // Processing
-                    ->union(fn (Builder $query) => $query
+                    ->unionAll(fn (Builder $query) => $query
                         ->from('pulse_jobs')
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
@@ -100,7 +100,7 @@ class Queues
                         ->whereNotNull('processing_at')
                     )
                     // Released
-                    ->union(fn (Builder $query) => $query
+                    ->unionAll(fn (Builder $query) => $query
                         ->from('pulse_jobs')
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
@@ -114,7 +114,7 @@ class Queues
                         ->whereNotNull('released_at')
                     )
                     // Processed
-                    ->union(fn (Builder $query) => $query
+                    ->unionAll(fn (Builder $query) => $query
                         ->from('pulse_jobs')
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
@@ -128,7 +128,7 @@ class Queues
                         ->whereNotNull('processed_at')
                     )
                     // Failed
-                    ->union(fn (Builder $query) => $query
+                    ->unionAll(fn (Builder $query) => $query
                         ->from('pulse_jobs')
                         ->select('connection', 'queue')
                         ->selectRaw('NULL AS `queued_at`')
