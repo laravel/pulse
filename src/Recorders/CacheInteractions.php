@@ -79,7 +79,7 @@ class CacheInteractions implements Grouping
                 }
             }
 
-            return $group;
+            return $value;
         };
     }
 

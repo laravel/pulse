@@ -50,7 +50,7 @@ class ClearCommand extends Command
         }
 
         collect(array_keys(Config::get('pulse.recorders')))
-            ->map(fn ($recorder) => app($recorder)->table)
+            ->map(fn ($recorder) => app($recorder)->table) // @phpstan-ignore argument.type
             ->each(function ($table) {
                 $this->info("Clearing {$table}...");
 

@@ -52,8 +52,8 @@ class RegroupCommand extends Command
         }
 
         collect(array_keys(Config::get('pulse.recorders')))
-            ->filter(fn ($recorder) => (new ReflectionClass($recorder))->implementsInterface(Grouping::class))
-            ->map(fn ($recorder) => app($recorder))
+            ->filter(fn ($recorder) => (new ReflectionClass($recorder))->implementsInterface(Grouping::class)) // @phpstan-ignore argument.type
+            ->map(fn ($recorder) => app($recorder)) // @phpstan-ignore argument.type
             ->each(function ($recorder) {
                 $this->info("Re-grouping {$recorder->table}...");
 
