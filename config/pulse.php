@@ -121,7 +121,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The following array lists the "recorders" that will be registered with
-    | Pulse. The recorder gather the application's profile data when
+    | Pulse. The recorders gather the application's profile data when
     | a request or task is executed. Feel free to customize this list.
     |
     */
@@ -131,13 +131,12 @@ return [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
             'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
             'ignore' => [
-                '/^illuminate:/', // Framework internal keys
-                '/^laravel:pulse:/', // Pulse keys
+                '/^laravel:pulse:/', // Internal Pulse keys
+                '/^illuminate:/', // Internal Laravel keys
+                '/:timer$/', // Internal Laravel rate-limiting keys
             ],
             'groups' => [
-                // '/^user:\d+:/' => 'user:*:\1',
-                // '/^user:.+/' => 'user:*',
-                '/:timer$/' => '*:timer',
+                // '/:\d+/' => ':*',
             ],
         ],
 
@@ -163,11 +162,12 @@ return [
             'sample_rate' => env('PULSE_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
             'ignore' => [
-                '#^http://127\.0\.0\.1:13714#', // Inertia SSR
+                // '#^http://127\.0\.0\.1:13714#', // Inertia SSR
             ],
             'groups' => [
                 // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
                 // '#^https?://([^/]*).*$#' => '\1',
+                // '#/\d+#' => '/*',
             ],
         ],
 
@@ -190,15 +190,9 @@ return [
         ],
 
         Recorders\SystemStats::class => [
-            // TODO: frequency config?
             'server_name' => env('PULSE_SERVER_NAME', gethostname()),
             'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
             'graph_aggregation' => 'avg', // Supported: "avg", "max"
         ],
     ],
-
-    // ---
-    // TODO:
-    // - env variable to not run migrations on certain environments?
-    // - filter configuration?
 ];
