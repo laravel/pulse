@@ -32,11 +32,11 @@ class Queues
      *
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, object{
      *     date: string,
-     *     queued: int|null,
-     *     processing: int|null,
-     *     released: int|null,
-     *     processed: int|null,
-     *     failed: int|null,
+     *     queued: int,
+     *     processing: int,
+     *     released: int,
+     *     processed: int,
+     *     failed: int,
      * }>>
      */
     public function __invoke(Interval $interval): Collection
@@ -55,11 +55,11 @@ class Queues
             ->pad(60, null)
             ->map(fn (mixed $value, int $i) => (object) [
                 'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
-                'queued' => null,
-                'processing' => null,
-                'released' => null,
-                'processed' => null,
-                'failed' => null,
+                'queued' => 0,
+                'processing' => 0,
+                'released' => 0,
+                'processed' => 0,
+                'failed' => 0,
             ])
             ->reverse()
             ->keyBy('date');
