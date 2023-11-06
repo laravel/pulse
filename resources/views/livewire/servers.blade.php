@@ -30,7 +30,7 @@ $rows = ! empty($rows) ? $rows : 1;
     }"
 >
     @if ($servers->count() > 0)
-        <div class="min-w-[42rem] grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(0,2fr),max-content,minmax(0,2fr),minmax(max-content,1fr)]">
+        <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(min-content,2fr),max-content,minmax(min-content,2fr),minmax(max-content,1fr)]">
             <div></div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">CPU</div>
@@ -60,7 +60,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
-                        class="w-full max-w-xs h-9 relative"
+                        class="w-full min-w-[5rem] max-w-xs h-9 relative"
                         x-data="{
                             init() {
                                 let chart = new Chart(
@@ -155,7 +155,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
-                        class="w-full max-w-xs h-9 relative"
+                        class="w-full min-w-[5rem] max-w-xs h-9 relative"
                         x-data="{
                             init() {
                                 let chart = new Chart(
