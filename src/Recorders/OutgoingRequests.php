@@ -9,6 +9,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
+use Laravel\Pulse\Contracts\Grouping;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
@@ -18,7 +19,7 @@ use Throwable;
 /**
  * @internal
  */
-class OutgoingRequests
+class OutgoingRequests implements Grouping
 {
     use Concerns\Ignores;
     use Concerns\Sampling;
@@ -61,7 +62,7 @@ class OutgoingRequests
         }
 
         return new Entry($this->table, [
-            'uri' => $this->normalizeUri($request),
+            'uri' => $this->group($request->getMethod().' '.$request->getUri()),
             'date' => $startedAt->toDateTimeString(),
             'duration' => $duration = $startedAt->diffInMilliseconds($endedAt),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
@@ -70,25 +71,33 @@ class OutgoingRequests
     }
 
     /**
-     * Normalize the request URI.
+     * Return a closure that groups the given value.
+     *
+     * @return Closure(): string
      */
-    protected function normalizeUri(RequestInterface $request): Closure
+    public function group(string $value): Closure
     {
-        $method = $request->getMethod();
-
-        $uri = $request->getUri();
+        [$method, $uri] = explode(' ', $value, 2);
 
         return function () use ($method, $uri) {
             foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-                $normalized = preg_replace($pattern, $replacement, $uri, count: $count);
+                $group = preg_replace($pattern, $replacement, $uri, count: $count);
 
-                if ($count > 0 && $normalized !== null) {
-                    return "{$method} {$normalized}";
+                if ($count > 0 && $group !== null) {
+                    return "{$method} {$group}";
                 }
             }
 
             return "{$method} {$uri}";
         };
+    }
+
+    /**
+     * Return the column that grouping should be applied to.
+     */
+    public function groupColumn(): string
+    {
+        return 'uri';
     }
 
     /**
