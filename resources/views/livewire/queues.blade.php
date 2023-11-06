@@ -100,7 +100,7 @@
                                                                 borderColor: 'rgba(107,114,128,0.5)',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
-                                                                data: @js(collect($readings)->pluck('queued')->map(fn ($reading) => $reading * (1 / $config['sample_rate']))),
+                                                                data: @js(collect($readings)->pluck('queued')->map(fn ($reading) => $reading !== null ? $reading * (1 / $config['sample_rate']) : null)),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -111,7 +111,7 @@
                                                                 borderColor: 'rgba(147,51,234,0.5)',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
-                                                                data: @js(collect($readings)->pluck('processing')->map(fn ($reading) => $reading * (1 / $config['sample_rate']))),
+                                                                data: @js(collect($readings)->pluck('processing')->map(fn ($reading) => $reading !== null ? $reading * (1 / $config['sample_rate']) : null)),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -122,7 +122,7 @@
                                                                 borderColor: '#eab308',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
-                                                                data: @js(collect($readings)->pluck('released')->map(fn ($reading) => $reading * (1 / $config['sample_rate']))),
+                                                                data: @js(collect($readings)->pluck('released')->map(fn ($reading) => $reading !== null ? $reading * (1 / $config['sample_rate']) : null)),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -133,7 +133,7 @@
                                                                 borderColor: '#9333ea',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
-                                                                data: @js(collect($readings)->pluck('processed')->map(fn ($reading) => $reading * (1 / $config['sample_rate']))),
+                                                                data: @js(collect($readings)->pluck('processed')->map(fn ($reading) => $reading !== null ? $reading * (1 / $config['sample_rate']) : null)),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -144,7 +144,7 @@
                                                                 borderColor: '#e11d48',
                                                                 borderWidth: 2,
                                                                 borderCapStyle: 'round',
-                                                                data: @js(collect($readings)->pluck('failed')->map(fn ($reading) => $reading * (1 / $config['sample_rate']))),
+                                                                data: @js(collect($readings)->pluck('failed')->map(fn ($reading) => $reading !== null ? $reading * (1 / $config['sample_rate']) : null)),
                                                                 pointStyle: false,
                                                                 tension: 0.2,
                                                                 spanGaps: false,
@@ -201,11 +201,11 @@
                                                 }
 
                                                 chart.data.labels = queues['{{ $queue }}'].map(reading => reading.date)
-                                                chart.data.datasets[0].data = queues['{{ $queue }}'].map(reading => reading.queued * (1 / {{ $config['sample_rate']}}))
-                                                chart.data.datasets[1].data = queues['{{ $queue }}'].map(reading => reading.processing * (1 / {{ $config['sample_rate']}}))
-                                                chart.data.datasets[2].data = queues['{{ $queue }}'].map(reading => reading.released * (1 / {{ $config['sample_rate']}}))
-                                                chart.data.datasets[3].data = queues['{{ $queue }}'].map(reading => reading.processed * (1 / {{ $config['sample_rate']}}))
-                                                chart.data.datasets[4].data = queues['{{ $queue }}'].map(reading => reading.failed * (1 / {{ $config['sample_rate']}}))
+                                                chart.data.datasets[0].data = queues['{{ $queue }}'].map(reading => reading.queued !== null ? reading.queued * (1 / {{ $config['sample_rate']}}) : null)
+                                                chart.data.datasets[1].data = queues['{{ $queue }}'].map(reading => reading.processing !== null ? reading.processing * (1 / {{ $config['sample_rate']}}) : null)
+                                                chart.data.datasets[2].data = queues['{{ $queue }}'].map(reading => reading.released !== null ? reading.released * (1 / {{ $config['sample_rate']}}) : null)
+                                                chart.data.datasets[3].data = queues['{{ $queue }}'].map(reading => reading.processed !== null ? reading.processed * (1 / {{ $config['sample_rate']}}) : null)
+                                                chart.data.datasets[4].data = queues['{{ $queue }}'].map(reading => reading.failed !== null ? reading.failed * (1 / {{ $config['sample_rate']}}) : null)
                                                 chart.update()
                                             })
                                         }
