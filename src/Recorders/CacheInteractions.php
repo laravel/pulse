@@ -7,13 +7,14 @@ use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
+use Laravel\Pulse\Contracts\Grouping;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class CacheInteractions
+class CacheInteractions implements Grouping
 {
     use Concerns\Ignores;
     use Concerns\Sampling;
@@ -57,26 +58,36 @@ class CacheInteractions
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'hit' => $event instanceof CacheHit,
-            'key' => $this->normalizeKey($event->key),
+            'key' => $this->group($event->key),
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
     }
 
     /**
-     * Normalize the cache key.
+     * Return a closure that groups the given value.
+     *
+     * @return Closure(): string
      */
-    protected function normalizeKey(string $key): Closure
+    public function group(string $value): Closure
     {
-        return function () use ($key) {
+        return function () use ($value) {
             foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-                $normalized = preg_replace($pattern, $replacement, $key, count: $count);
+                $group = preg_replace($pattern, $replacement, $value, count: $count);
 
-                if ($count > 0 && $normalized !== null) {
-                    return $normalized;
+                if ($count > 0 && $group !== null) {
+                    return $group;
                 }
             }
 
-            return $key;
+            return $value;
         };
+    }
+
+    /**
+     * Return the column that grouping should be applied to.
+     */
+    public function groupColumn(): string
+    {
+        return 'key';
     }
 }
