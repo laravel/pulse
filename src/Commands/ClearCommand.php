@@ -2,8 +2,8 @@
 
 namespace Laravel\Pulse\Commands;
 
-use Illuminate\Console\Command;
 use Illuminate\Config\Repository;
+use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\Config;
@@ -43,7 +43,8 @@ class ClearCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(): int {
+    public function handle(): int
+    {
         if (! $this->confirmToProceed()) {
             return Command::FAILURE;
         }
