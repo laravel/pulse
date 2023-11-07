@@ -135,6 +135,7 @@ return [
                 '/^laravel:pulse:/', // Internal Pulse keys
                 '/^illuminate:/', // Internal Laravel keys
                 '/:timer$/', // Internal Laravel rate-limiting keys
+                '/^[a-zA-Z0-9]{40}$/', // Hashed keys
             ],
             'groups' => [
                 // '/:\d+/' => ':*',
