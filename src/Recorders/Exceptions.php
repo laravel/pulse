@@ -55,7 +55,7 @@ class Exceptions
     {
         $now = new CarbonImmutable();
 
-        [$class, $location] = $this->getDetails($e);
+        $class = $this->getClass($e);
 
         if (! $this->shouldSample() || $this->shouldIgnore($class)) {
             return null;
@@ -64,35 +64,35 @@ class Exceptions
         return new Entry($this->table, [
             'date' => $now->toDateTimeString(),
             'class' => $class,
-            'location' => $location,
+            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation($e) : '',
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
     }
 
     /**
-     * Get the exception details.
+     * Get the exception class to record.
      *
-     * @return array{0: class-string<Throwable>, 1: string}
+     * @return class-string<Throwable>
      */
-    protected function getDetails(Throwable $e): array
+    protected function getClass(Throwable $e): string
+    {
+        return match (true) { // @phpstan-ignore return.type
+            $e instanceof \Illuminate\View\ViewException,
+            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => get_class($e->getPrevious()), // @phpstan-ignore class.notFound class.notFound argument.type
+            default => get_class($e),
+        };
+    }
+
+    /**
+     * Get the exception location to record.
+     */
+    protected function getLocation(Throwable $e): string
     {
         return match (true) {
-            $e instanceof \Illuminate\View\ViewException => [
-                get_class($e->getPrevious()), // @phpstan-ignore argument.type
-                $this->getLocationFromViewException($e),
-            ],
-
-            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => [ // @phpstan-ignore class.notFound
-                get_class($e->getPrevious()), // @phpstan-ignore argument.type, class.notFound
-                $this->formatLocation($e->getFile(), $e->getLine()), // @phpstan-ignore class.notFound, class.notFound
-            ],
-
-            default => [
-                get_class($e),
-                $this->getLocation($e),
-            ]
+            $e instanceof \Illuminate\View\ViewException => $this->getLocationFromViewException($e),
+            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => $this->formatLocation($e->getFile(), $e->getLine()), // @phpstan-ignore class.notFound class.notFound class.notFound
+            default => $this->getLocationFromTrace($e)
         };
-
     }
 
     /*
@@ -109,7 +109,7 @@ class Exceptions
     /**
      * Get the location for the given exception.
      */
-    protected function getLocation(Throwable $e): string
+    protected function getLocationFromTrace(Throwable $e): string
     {
         $firstNonVendorFrame = collect($e->getTrace())
             ->firstWhere(fn (array $frame) => isset($frame['file']) && ! $this->isInternalFile($frame['file']));

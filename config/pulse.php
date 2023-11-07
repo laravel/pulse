@@ -143,6 +143,7 @@ return [
         Recorders\Exceptions::class => [
             'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
             'sample_rate' => env('PULSE_EXCEPTIONS_SAMPLE_RATE', 1),
+            'location' => env('PULSE_EXCEPTIONS_LOCATION', true),
             'ignore' => [
                 // '/^Package\\\\Exceptions\\\\/',
             ],
@@ -184,6 +185,7 @@ return [
             'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
+            'location' => env('PULSE_SLOW_QUERY_LOCATION', true),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables
             ],

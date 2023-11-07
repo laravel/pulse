@@ -57,7 +57,7 @@ class SlowQueries
         return new Entry($this->table, [
             'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
             'sql' => $event->sql,
-            'location' => $this->getLocation(),
+            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : '',
             'duration' => (int) $event->time,
             'user_id' => $this->pulse->authenticatedUserIdResolver(),
         ]);
