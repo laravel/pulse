@@ -61,7 +61,7 @@ class ClearCommand extends Command
         $pulse->tables()->each(function ($table) use ($db) {
             $this->info("Clearing {$table}...");
 
-            $this->connection($db)->table($table)->truncate();
+            $this->connection()->table($table)->truncate();
         });
 
         return Command::SUCCESS;
