@@ -109,6 +109,9 @@ $rows = ! empty($rows) ? $rows : 1;
                                                     display: false,
                                                 },
                                                 tooltip: {
+                                                    mode: 'index',
+                                                    position: 'nearest',
+                                                    intersect: false,
                                                     callbacks: {
                                                         title: () => '',
                                                         label: (context) => `${context.label} - ${context.formattedValue}%`
@@ -205,6 +208,9 @@ $rows = ! empty($rows) ? $rows : 1;
                                                     display: false,
                                                 },
                                                 tooltip: {
+                                                    mode: 'index',
+                                                    position: 'nearest',
+                                                    intersect: false,
                                                     callbacks: {
                                                         title: () => '',
                                                         label: (context) => `${context.label} - ${context.formattedValue} MB`

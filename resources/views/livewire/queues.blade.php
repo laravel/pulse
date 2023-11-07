@@ -165,6 +165,9 @@
                                                                 display: false,
                                                             },
                                                             tooltip: {
+                                                                mode: 'index',
+                                                                position: 'nearest',
+                                                                intersect: false,
                                                                 callbacks: {
                                                                     beforeBody: (context) => context
                                                                         .map(item => `${item.dataset.label}: {{ $config['sample_rate'] < 1 ? '~' : ''}}${item.formattedValue}`)
