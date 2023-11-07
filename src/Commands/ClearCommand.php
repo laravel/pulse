@@ -21,7 +21,7 @@ class ClearCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:clear';
+    public $signature = 'pulse:clear {--force : Force the operation to run when in production}';
 
     /**
      * The command's description.

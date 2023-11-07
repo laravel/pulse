@@ -23,7 +23,7 @@ class RegroupCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:regroup';
+    public $signature = 'pulse:regroup {--force : Force the operation to run when in production}';
 
     /**
      * The command's description.
