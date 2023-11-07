@@ -40,6 +40,29 @@ it('ingests queries', function () {
         'sql' => 'select * from users',
         'duration' => 5000,
     ]);
+    expect($queries[0]->location)->not->toBe('');
+});
+
+it('can disable capturing the location', function () {
+    Config::set('pulse.recorders.'.SlowQueries::class.'.location', false);
+    Carbon::setTestNow('2000-01-02 03:04:05');
+    prependListener(QueryExecuted::class, function (QueryExecuted $event) {
+        $event->time = 5000;
+    });
+
+    DB::connection()->statement('select * from users');
+    Pulse::store(app(Ingest::class));
+
+    expect(Pulse::entries())->toHaveCount(0);
+    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
+    expect($queries)->toHaveCount(1);
+    expect($queries[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:00',
+        'user_id' => null,
+        'sql' => 'select * from users',
+        'location' => '',
+        'duration' => 5000,
+    ]);
 });
 
 it('does not ingest queries under the slow query threshold', function () {

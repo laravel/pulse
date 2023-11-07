@@ -37,6 +37,23 @@ it('ingests exceptions', function () {
     ]);
 });
 
+it('can disable capturing the location', function () {
+    Config::set('pulse.recorders.'.Exceptions::class.'.location', false);
+    Carbon::setTestNow('2000-01-02 03:04:05');
+
+    report(new RuntimeException('Expected exception.'));
+    Pulse::store(app(Ingest::class));
+
+    $exceptions = Pulse::ignore(fn () => DB::table('pulse_exceptions')->get());
+    expect($exceptions)->toHaveCount(1);
+    expect($exceptions[0])->toHaveProperties([
+        'date' => '2000-01-02 03:04:05',
+        'user_id' => null,
+        'class' => 'RuntimeException',
+        'location' => '',
+    ]);
+});
+
 it('captures the authenticated user', function () {
     Auth::login(User::make(['id' => '567']));
 
