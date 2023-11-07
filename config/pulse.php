@@ -11,9 +11,9 @@ return [
     | Pulse Domain
     |--------------------------------------------------------------------------
     |
-    | This is the subdomain where Pulse will be accessible from. If the
-    | setting is null, Pulse will reside under the same domain as the
-    | application. Otherwise, this value will be used as the subdomain.
+    | This is the subdomain which the Pulse dashboard will be accessible from.
+    | When set to null, the dashboard will reside under the same domain as
+    | the application. Remember to configure your DNS entries correctly.
     |
     */
 
@@ -24,9 +24,9 @@ return [
     | Pulse Path
     |--------------------------------------------------------------------------
     |
-    | This is the URI path where Pulse will be accessible from. Feel free
-    | to change this path to anything you like. Note that the URI will not
-    | affect the paths of its internal API that aren't exposed to users.
+    | This is the path which the Pulse dashboard will be accessible from. Feel
+    | free to change this path to anything you'd like. Note that this won't
+    | affect the path of the internal API that is not exposed to users.
     |
     */
 
@@ -37,9 +37,9 @@ return [
     | Pulse Storage Driver
     |--------------------------------------------------------------------------
     |
-    | This configuration options determines the storage driver that will
-    | be used to store Pulse's data. In addition, you may set any
-    | custom options as needed by the particular driver you choose.
+    | This configuration option determines the storage driver that will be used
+    | to store entries from Pulse's recorders. In addition, you may specify
+    | any options to configure the particular storage driver you choose.
     |
     */
 
@@ -57,9 +57,9 @@ return [
     | Pulse Ingest Driver
     |--------------------------------------------------------------------------
     |
-    | This configuration options determines the ingest driver that will
-    | be used to capture Pulse's data. In addition, you may set any
-    | custom options as needed by the particular driver you choose.
+    | This configuration options determines the ingest driver that will be used
+    | to capture entries from Pulse's recorders. Ingest drivers are great to
+    | free up your request workers quicker by offloading the data storage.
     |
     */
 
@@ -79,8 +79,9 @@ return [
     | Pulse Data Retention
     |--------------------------------------------------------------------------
     |
-    | Determines how long Pulse will retain data in both the ingest
-    | and storage before removing old records.
+    | The configuration option determines how long Pulse will retain data in both
+    | the ingest and storage locations before removing old records. Increasing
+    | this value will not increase what is visible in the Pulse dashboard.
     |
     */
 
@@ -91,9 +92,9 @@ return [
     | Pulse Master Switch
     |--------------------------------------------------------------------------
     |
-    | This option may be used to disable all Pulse's watchers regardless
-    | of their individual configuration, which simply provides a single
-    | and convenient way to enable or disable Pulse data storage.
+    | This configuraiton option may be used to completely disable all Pulse data
+    | recorders regardless of their individual configuration. This provides a
+    | simple and convenient way to disable Pulse entry recording entirely.
     |
     */
 
@@ -104,9 +105,9 @@ return [
     | Pulse Route Middleware
     |--------------------------------------------------------------------------
     |
-    | These middleware will be assigned to every Pulse route, giving you
-    | the chance to add your own middleware to this list or change any of
-    | the existing middleware. Or, you can simply stick with this list.
+    | These middleware will be assigned to every Pulse route, giving you the
+    | chance to add your own middleware to this list or change any of the
+    | existing middleware. Feel free to stick with the existing items.
     |
     */
 
@@ -121,8 +122,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | The following array lists the "recorders" that will be registered with
-    | Pulse. The recorders gather the application's profile data when
-    | a request or task is executed. Feel free to customize this list.
+    | Pulse, along with their configuration. Recorders gather application
+    | event data from requests and task to pass to your ingest driver.
     |
     */
 
