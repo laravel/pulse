@@ -64,7 +64,7 @@ class PurgeCommand extends Command
             return Command::FAILURE;
         }
 
-        $recorders = match(true) {
+        $recorders = match (true) {
             count($this->option('exclude')) > 0 => $this->exclude($pulse->recorders(), $this->option('exclude')), // @phpstan-ignore argument.type argument.type
             count($this->option('only')) > 0 => $this->only($pulse->recorders(), $this->option('only')), // @phpstan-ignore argument.type argument.type
             default => $pulse->recorders(),
