@@ -68,7 +68,7 @@ class SlowQueries
      */
     protected function getLocation(): string
     {
-        $backtrace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+        $backtrace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))->skip(2);
 
         $frame = $backtrace->firstWhere(fn (array $frame) => isset($frame['file']) && ! $this->isInternalFile($frame['file']));
 
