@@ -111,7 +111,7 @@ class Pulse
             }
 
             return $this->app->make($key);
-        })->values();
+        })->filter()->values();
 
         $this->afterResolving($this->app, 'events', fn (Dispatcher $event) => $recorders
             ->filter(fn ($recorder) => $recorder->listen ?? null)
