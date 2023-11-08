@@ -79,9 +79,9 @@ return [
     | Pulse Data Retention
     |--------------------------------------------------------------------------
     |
-    | The configuration option determines how long Pulse will retain data in both
-    | the ingest and storage locations before removing old records. Increasing
-    | this value will not increase what is visible in the Pulse dashboard.
+    | The configuration option determines how long Pulse will retain data in
+    | both ingest and storage locations before removing old records. This
+    | will not increase what period is visible in the Pulse dashboard.
     |
     */
 
@@ -92,9 +92,9 @@ return [
     | Pulse Master Switch
     |--------------------------------------------------------------------------
     |
-    | This configuraiton option may be used to completely disable all Pulse data
-    | recorders regardless of their individual configuration. This provides a
-    | simple and convenient way to disable Pulse entry recording entirely.
+    | This configuration option may be used to completely disable all Pulse
+    | data recorders regardless of their individual configurations. This
+    | provides a simple and convenient way to disable Pulse entirely.
     |
     */
 
