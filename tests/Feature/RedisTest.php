@@ -62,4 +62,14 @@ class NullStorage implements Storage
     {
         //
     }
+
+    public function purge(Collection $tables): void
+    {
+        //
+    }
+
+    public function regroup(Collection $recorders): void
+    {
+        //
+    }
 }

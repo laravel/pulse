@@ -8,6 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Update;
@@ -91,6 +92,38 @@ class Database implements Storage
         $tables->each(fn (string $table) => $this->connection()
             ->table($table)
             ->truncate());
+    }
+
+    /**
+     * Regroup the recorders.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Contracts\Groupable&object{table: string}>  $recorders
+     */
+    public function regroup(Collection $recorders): void
+    {
+        $recorders->each(function (Groupable $recorder) {
+            $this->connection()
+                ->table($recorder->table)
+                ->select($recorder->groupColumn())
+                ->distinct()
+                ->orderBy('date')
+                ->each(function ($record) use ($recorder) {
+                    $value = $record->{$recorder->groupColumn()};
+
+                    $newValue = $recorder->group($value)();
+
+                    if ($newValue === $value) {
+                        return;
+                    }
+
+                    $this->connection()
+                        ->table($recorder->table)
+                        ->where($recorder->groupColumn(), $value)
+                        ->update([
+                            $recorder->groupColumn() => $newValue,
+                        ]);
+                });
+        });
     }
 
     /**

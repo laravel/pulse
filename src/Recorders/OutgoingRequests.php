@@ -9,7 +9,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Contracts\Grouping;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
@@ -19,7 +19,7 @@ use Throwable;
 /**
  * @internal
  */
-class OutgoingRequests implements Grouping
+class OutgoingRequests implements Groupable
 {
     use Concerns\Ignores;
     use Concerns\Sampling;

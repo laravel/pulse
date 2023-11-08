@@ -23,7 +23,7 @@ class Pulse
     /**
      * The list of metric recorders.
      *
-     * @var \Illuminate\Support\Collection<int, object>
+     * @var \Illuminate\Support\Collection<int, object{table: string}>
      */
     protected Collection $recorders;
 
@@ -259,6 +259,16 @@ class Pulse
     protected function shouldRecord(Entry|Update $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
+    }
+
+    /**
+     * Get the recorders.
+     *
+     * @return \Illuminate\Support\Collection<int, object{table: string}>
+     */
+    public function recorders(): Collection
+    {
+        return $this->recorders;
     }
 
     /**

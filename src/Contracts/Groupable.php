@@ -4,7 +4,7 @@ namespace Laravel\Pulse\Contracts;
 
 use Closure;
 
-interface Grouping
+interface Groupable
 {
     /**
      * Return a closure that groups the given value.

@@ -7,14 +7,14 @@ use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
-use Laravel\Pulse\Contracts\Grouping;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class CacheInteractions implements Grouping
+class CacheInteractions implements Groupable
 {
     use Concerns\Ignores;
     use Concerns\Sampling;

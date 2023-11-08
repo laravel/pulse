@@ -1,6 +1,16 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Instanceof between object\\{table\\: string\\} and Laravel\\\\Pulse\\\\Contracts\\\\Groupable will always evaluate to false\\.$#"
+			count: 1
+			path: src/Commands/RegroupCommand.php
+
+		-
+			message: "#^Parameter \\#1 \\$callback of method Illuminate\\\\Support\\\\Collection\\<int,object\\{table\\: string\\}\\>\\:\\:tap\\(\\) expects callable\\(Illuminate\\\\Support\\\\Collection\\<int, object\\{table\\: string\\}\\>\\)\\: mixed, Closure\\(Illuminate\\\\Support\\\\Collection\\<int, Laravel\\\\Pulse\\\\Contracts\\\\Groupable&object\\{table\\: string\\}\\>\\)\\: void given\\.$#"
+			count: 1
+			path: src/Commands/RegroupCommand.php
+
+		-
 			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
 			count: 1
 			path: src/PulseServiceProvider.php
@@ -19,8 +29,3 @@ parameters:
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
 			count: 1
 			path: src/Queries/Usage.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Recorders\\\\Exceptions\\:\\:getDetails\\(\\) should return array\\{class\\-string\\<Throwable\\>, string\\} but returns array\\{class\\-string\\<Throwable\\>\\|false, string\\}\\.$#"
-			count: 1
-			path: src/Recorders/Exceptions.php

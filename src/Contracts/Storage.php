@@ -26,4 +26,11 @@ interface Storage
      * @param  \Illuminate\Support\Collection<int, string>  $tables
      */
     public function purge(Collection $tables): void;
+
+    /**
+     * Regroup the recorders.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Contracts\Groupable&object{table: string}>  $recorders
+     */
+    public function regroup(Collection $recorders): void;
 }
