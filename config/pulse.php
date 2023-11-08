@@ -134,8 +134,8 @@ return [
             'ignore' => [
                 '/^laravel:pulse:/', // Internal Pulse keys
                 '/^illuminate:/', // Internal Laravel keys
-                '/:timer$/', // Internal Laravel rate-limiting keys
-                '/^[a-zA-Z0-9]{40}$/', // Hashed keys
+                '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze/Jetstream authentication rate limiting
+                '/^[a-zA-Z0-9]{40}$/', // Session IDs
             ],
             'groups' => [
                 // '/:\d+/' => ':*',
