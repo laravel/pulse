@@ -202,7 +202,7 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
                 Commands\RegroupCommand::class,
-                Commands\ClearCommand::class,
+                Commands\PurgeCommand::class,
             ]);
         }
     }
