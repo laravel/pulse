@@ -5,10 +5,8 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Config\Repository;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Illuminate\Database\DatabaseManager;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Queries\Concerns\InteractsWithConnection;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pulse:purge')]
@@ -57,7 +55,7 @@ class PurgeCommand extends Command
 
         $storage->purge($pulse->tables());
 
-        $this->components->info("Tables purged.");
+        $this->components->info('Tables purged.');
 
         return Command::SUCCESS;
     }
