@@ -34,4 +34,14 @@ class StorageFake implements Storage
     {
         //
     }
+
+    /**
+     * Purge the stored entries from the given tables.
+     *
+     * @param  \Illuminate\Support\Collection<int, string>  $tables
+     */
+    public function purge(Collection $tables): void
+    {
+        //
+    }
 }
