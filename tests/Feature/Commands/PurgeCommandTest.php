@@ -89,10 +89,13 @@ it('can exclude recorders', function () {
     expect(DB::table('pulse_outgoing_requests')->count())->toBe(0);
     expect(DB::table('pulse_slow_queries')->count())->toBe(1);
     expect(DB::table('pulse_requests')->count())->toBe(0);
+
+    Pulse::ignore(fn () => Artisan::call('pulse:purge'));
 });
 
 it('can specify recorders', function () {
     Pulse::ignore(function () {
+        Artisan::call('pulse:purge');
         DB::table('pulse_cache_interactions')->insert([
             ['date' => '2000-01-02 03:04:05', 'key' => 'foo', 'hit' => true],
         ]);
@@ -132,4 +135,6 @@ it('can specify recorders', function () {
     expect(DB::table('pulse_outgoing_requests')->count())->toBe(1);
     expect(DB::table('pulse_slow_queries')->count())->toBe(0);
     expect(DB::table('pulse_requests')->count())->toBe(1);
+
+    Pulse::ignore(fn () => Artisan::call('pulse:purge'));
 });
