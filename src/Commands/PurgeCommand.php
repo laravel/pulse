@@ -5,15 +5,14 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Config\Repository;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Illuminate\Database\DatabaseManager;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Queries\Concerns\InteractsWithConnection;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'pulse:clear')]
-class ClearCommand extends Command
+#[AsCommand(name: 'pulse:purge')]
+class PurgeCommand extends Command
 {
-    use ConfirmableTrait, InteractsWithConnection;
+    use ConfirmableTrait;
 
     /**
      * The database mananger.
@@ -34,35 +33,29 @@ class ClearCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:clear {--force : Force the operation to run when in production}';
+    public $signature = 'pulse:purge {--force : Force the operation to run when in production}';
 
     /**
      * The command's description.
      *
      * @var string
      */
-    public $description = 'Clear Pulse data';
+    public $description = 'Purge Pulse data';
 
     /**
      * Handle the command.
      */
     public function handle(
         Pulse $pulse,
-        Repository $config,
-        DatabaseManager $db,
+        Storage $storage,
     ): int {
-        $this->db = $db;
-        $this->config = $config;
-
         if (! $this->confirmToProceed()) {
             return Command::FAILURE;
         }
 
-        $pulse->tables()->each(function ($table) {
-            $this->info("Clearing {$table}...");
+        $storage->purge($pulse->tables());
 
-            $this->connection()->table($table)->truncate();
-        });
+        $this->components->info('Tables purged.');
 
         return Command::SUCCESS;
     }

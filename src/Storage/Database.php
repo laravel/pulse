@@ -69,7 +69,9 @@ class Database implements Storage
     }
 
     /**
-     * Trim the stored entries.
+     * Trim the stored entries from the given tables.
+     *
+     * @param  \Illuminate\Support\Collection<int, string>  $tables
      */
     public function trim(Collection $tables): void
     {
@@ -77,6 +79,18 @@ class Database implements Storage
             ->table($table)
             ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
             ->delete());
+    }
+
+    /**
+     * Purge the stored entries from the given tables.
+     *
+     * @param  \Illuminate\Support\Collection<int, string>  $tables
+     */
+    public function purge(Collection $tables): void
+    {
+        $tables->each(fn (string $table) => $this->connection()
+            ->table($table)
+            ->truncate());
     }
 
     /**
