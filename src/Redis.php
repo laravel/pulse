@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse;
 
+use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;
@@ -24,6 +25,70 @@ class Redis
         protected Pipeline|PhpRedis|null $client = null,
     ) {
         //
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function zrange(string $key, int $start, int $stop, bool $reversed = false, bool $withScores = false): array
+    {
+        return match (true) {
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('ZRANGE', $this->config->get('database.redis.options.prefix').$key, $start, $stop, ...array_filter([
+                $reversed ? 'REV' : null,
+                $withScores ? 'WITHSCORES' : null,
+            ])),
+            $this->client() instanceof Predis ||
+            $this->client() instanceof Pipeline => $this->client()->executeRaw(['ZRANGE', $this->config->get('database.redis.options.prefix').$key, $start, $stop, ...array_filter([ // @phpstan-ignore method.notFound
+                $reversed ? 'REV' : null,
+                $withScores ? 'WITHSCORES' : null,
+            ])]),
+        };
+    }
+
+    /**
+     * Get the key.
+     */
+    public function get(string $key): null|string|Pipeline|PhpRedis
+    {
+        return $this->client()->get($key); // @phpstan-ignore return.type
+    }
+
+    /**
+     * Put the value.
+     */
+    public function set(string $key, string $value, CarbonInterval $ttl): null|string|Pipeline|PhpRedis
+    {
+        return match (true) {
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('SET', $this->config->get('database.redis.options.prefix').$key, $value, 'PX', (int) $ttl->totalMilliseconds),
+            $this->client() instanceof Predis ||
+            $this->client() instanceof Pipeline => $this->client()->set($key, $value, 'PX', (int) $ttl->totalMilliseconds),
+        };
+    }
+
+    /**
+     * Expire the key at the given time.
+     */
+    public function expire(string $key, CarbonInterval $interval): int|Pipeline|PhpRedis
+    {
+        return $this->client()->expire($key, (int) $interval->totalSeconds); // @phpstan-ignore return.type
+    }
+
+    /**
+     * Delete the key.
+     *
+     * @param  list<string>  $keys
+     */
+    public function del(array $keys): int|Pipeline|PhpRedis
+    {
+        return $this->client()->del(...$keys); // @phpstan-ignore return.type
+    }
+
+    /**
+     * Increment the given members value.
+     */
+    public function zincrby(string $key, int $increment, string $member): string|float|Pipeline|PhpRedis
+    {
+        return $this->client()->zincrby($key, $increment, $member); // @phpstan-ignore return.type
     }
 
     /**

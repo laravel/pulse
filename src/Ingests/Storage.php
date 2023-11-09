@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage as StorageContract;
 use Laravel\Pulse\Pulse;
-use RuntimeException;
 
 class Storage implements Ingest
 {
@@ -41,6 +40,6 @@ class Storage implements Ingest
      */
     public function store(StorageContract $store): int
     {
-        throw new RuntimeException('The storage ingest driver does not need to process entries.');
+        return 0;
     }
 }

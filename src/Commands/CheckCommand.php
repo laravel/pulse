@@ -13,6 +13,9 @@ use Laravel\Pulse\Events\Beat;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'pulse:check')]
 class CheckCommand extends Command
 {

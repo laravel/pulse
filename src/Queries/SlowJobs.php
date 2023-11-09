@@ -8,13 +8,14 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 
 /**
  * @internal
  */
 class SlowJobs
 {
-    use Concerns\InteractsWithConnection;
+    use InteractsWithDatabaseConnection;
 
     /**
      * Create a new query instance.
@@ -35,7 +36,7 @@ class SlowJobs
     {
         $now = new CarbonImmutable;
 
-        return $this->connection()->query()->select([
+        return $this->db()->query()->select([
             'count',
             'slowest',
             'job' => fn (Builder $query) => $query->select('job')
