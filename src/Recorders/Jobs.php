@@ -137,13 +137,17 @@ class Jobs
         }
 
         if ($event instanceof JobProcessed) {
+            if ($this->lastJobStartedProcessingAt === null) {
+                return null;
+            }
+
             return tap(new Update(
                 $this->table,
                 ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
                 [
                     'date' => $now->toDateTimeString(),
                     'processed_at' => $now->toDateTimeString(),
-                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
+                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                     'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);

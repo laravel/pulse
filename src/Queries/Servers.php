@@ -43,7 +43,7 @@ class Servers
      *         directory: string,
      *         total: int,
      *         used: int,
-     *     }>,
+     *     }>|mixed,
      *     readings: list<object{
      *         date: string,
      *         cpu_percent: int|null,

@@ -33,7 +33,7 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app['config']->get('pulse.enabled')) {
+        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
             return;
         }
 
@@ -60,11 +60,11 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app['config']->get('pulse.enabled')) {
+        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
             return;
         }
 
-        $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders'));
+        $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders')); // @phpstan-ignore offsetAccess.nonOffsetAccessible offsetAccess.nonOffsetAccessible
 
         $this->registerRoutes();
         $this->listenForEvents();
