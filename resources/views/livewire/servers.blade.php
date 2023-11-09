@@ -39,7 +39,7 @@ $rows = ! empty($rows) ? $rows : 1;
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Storage</div>
             @foreach ($servers as $server)
-                <div wire:key="{{ $server->name }}" class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''" title="{{ $server->updated_at->fromNow() }}">
+                <div wire:key="{{ $server->name }}-indicator" class="flex items-center [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
                         <div class="w-5 flex justify-center mr-1">
                             <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>
@@ -48,16 +48,16 @@ $rows = ! empty($rows) ? $rows : 1;
                         <x-pulse::icons.signal-slash class="w-5 h-5 stroke-red-500 mr-1" />
                     @endif
                 </div>
-                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $server->name }}-name" class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <x-pulse::icons.server class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400" />
                     <span class="text-base font-bold text-gray-600 dark:text-gray-300" title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};">{{ $server->name }}</span>
                 </div>
-                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $server->name }}-cpu" class="flex items-center [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div class="text-xl font-bold text-gray-700 dark:text-gray-200 w-14 whitespace-nowrap tabular-nums">
                         {{ $server->cpu_percent }}%
                     </div>
                 </div>
-                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $server->name }}-cpu-graph" class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
@@ -146,7 +146,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div class="flex items-center [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $server->name }}-memory" class="flex items-center [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div class="w-36 flex-shrink-0 whitespace-nowrap tabular-nums">
                         <span class="text-xl font-bold text-gray-700 dark:text-gray-200">
                             {{ $friendlySize($server->memory_used, 1) }}
@@ -156,7 +156,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         </span>
                     </div>
                 </div>
-                <div class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $server->name }}-memory-graph" class="flex items-center pr-8 xl:pr-12 [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
@@ -245,7 +245,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div class="flex items-center gap-8 [&:nth-child(1n+15)]:border-t {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                <div wire:key="{{ $server->name }}-storage" class="flex items-center gap-8 [&:nth-child(1n+15)]:border-t dark:border-gray-800 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
                         <div class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
                             <div class="whitespace-nowrap tabular-nums">
