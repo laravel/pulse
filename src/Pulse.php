@@ -277,6 +277,16 @@ class Pulse
     }
 
     /**
+     * Get the registered recorders.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public function recorders(): Collection
+    {
+        return collect($this->recorders);
+    }
+
+    /**
      * Resolve the user details for the given user IDs.
      *
      * @param  \Illuminate\Support\Collection<int, string|int>  $ids
