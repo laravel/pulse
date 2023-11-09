@@ -61,10 +61,10 @@
                             <tr class="h-2 first:h-0"></tr>
                             <tr wire:key="{{ $exception->class.$exception->location }}">
                                 <x-pulse::td class="break-words overflow-hidden">
-                                    <code class="block text-xs text-gray-900 dark:text-gray-100 overflow-ellipsis">
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
                                         {{ $exception->class }}
                                     </code>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 overflow-ellipsis">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
                                         {{ $exception->location }}
                                     </p>
                                 </x-pulse::td>
