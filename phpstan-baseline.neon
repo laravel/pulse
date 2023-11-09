@@ -1,21 +1,2 @@
 parameters:
-	ignoreErrors:
-		-
-			message: "#^Cannot access offset 'Laravel\\\\\\\\Pulse\\\\\\\\Pulse' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
-			count: 1
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Cannot access offset 'config' on Illuminate\\\\Contracts\\\\Foundation\\\\Application\\.$#"
-			count: 3
-			path: src/PulseServiceProvider.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Servers\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<string, object\\{name\\: string, slug\\: string, cpu_percent\\: int, memory_used\\: int, memory_total\\: int, storage\\: array\\<int, object\\{directory\\: string, total\\: int, used\\: int\\}\\>, readings\\: array\\<int, object\\{date\\: string, cpu_percent\\: int\\|null, memory_used\\: int\\|null\\}\\>, updated_at\\: Carbon\\\\CarbonImmutable, recently_reported\\: bool\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<\\(int\\|string\\), object\\{name\\: string, slug\\: string, cpu_percent\\: int, memory_used\\: int, memory_total\\: int, storage\\: mixed, readings\\: array\\<int, object\\{date\\: string, cpu_percent\\: int\\|null, memory_used\\: int\\|null\\}&stdClass\\>, updated_at\\: Carbon\\\\CarbonImmutable, recently_reported\\: bool\\}&stdClass\\>\\.$#"
-			count: 1
-			path: src/Queries/Servers.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
-			count: 1
-			path: src/Queries/Usage.php
+	ignoreErrors: []
