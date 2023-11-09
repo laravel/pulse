@@ -69,18 +69,18 @@ class Redis implements Ingest
      */
     public function store(Storage $storage): int
     {
-        $count = 0;
+        $total = 0;
 
         while (true) {
             $entries = collect($this->redis()->xrange(
                 $this->stream,
                 '-',
                 '+',
-                $this->config->get('pulse.ingest.redis.chunk')
+                $chunk = $this->config->get('pulse.ingest.redis.chunk')
             ));
 
             if ($entries->isEmpty()) {
-                return $count;
+                return $total;
             }
 
             $keys = $entries->keys();
@@ -91,7 +91,11 @@ class Redis implements Ingest
 
             $this->redis()->xdel($this->stream, $keys);
 
-            $count = $count + $entries->count();
+            if ($entries->count() < $chunk) {
+                return $total + $entries->count();
+            }
+
+            $total = $total + $entries->count();
         }
     }
 
