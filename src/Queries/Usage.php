@@ -211,9 +211,14 @@ class Usage
      */
     protected function incrementUsage(Redis $redis, string $type, CarbonImmutable $from, CarbonImmutable $till, array $periods): void
     {
+        $chunk = 1;
         $this->query($type, $from, $till)
             ->orderBy('user_id')
-            ->each(function ($record) use ($redis, $type, $periods) {
+            ->each(function ($record) use ($redis, $type, $periods, &$chunk) {
+                $chunk++;
+
+                echo "Incrementing chunk [{$chunk}]\n.";
+
                 foreach ($periods as $period) {
                     $redis->zincrby("laravel:pulse:usage:{$type}:{$period}", $record->count, $record->user_id);
                 }
@@ -230,6 +235,7 @@ class Usage
         $this->query($type, $from, $till)
             ->orderBy('user_id')
             ->each(function ($record) use ($redis, $type, $period) {
+                echo 'Decrementing chunk.'.PHP_EOL;
                 $redis->zincrby("laravel:pulse:usage:{$type}:{$period}", $record->count * -1, $record->user_id);
             });
     }
