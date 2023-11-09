@@ -164,7 +164,7 @@ class Queues
                         ]];
                     });
 
-                return $padding->merge($readings)->values(); // @phpstan-ignore argument.type
+                return $padding->merge($readings)->values();
             });
 
         return $readings;

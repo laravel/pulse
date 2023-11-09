@@ -19,8 +19,3 @@ parameters:
 			message: "#^Method Laravel\\\\Pulse\\\\Queries\\\\Usage\\:\\:__invoke\\(\\) should return Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\> but returns Illuminate\\\\Support\\\\Collection\\<int, array\\{count\\: int, user\\: array\\{name\\: string, extra\\: string, avatar\\: string\\|null\\}\\}\\|null\\>\\.$#"
 			count: 1
 			path: src/Queries/Usage.php
-
-		-
-			message: "#^Method Laravel\\\\Pulse\\\\Recorders\\\\Exceptions\\:\\:getDetails\\(\\) should return array\\{class\\-string\\<Throwable\\>, string\\} but returns array\\{class\\-string\\<Throwable\\>\\|false, string\\}\\.$#"
-			count: 1
-			path: src/Recorders/Exceptions.php

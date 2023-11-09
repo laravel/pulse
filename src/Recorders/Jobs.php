@@ -147,7 +147,7 @@ class Jobs
                 [
                     'date' => $now->toDateTimeString(),
                     'processed_at' => $now->toDateTimeString(),
-                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
+                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
                     'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
                 ],
             ), fn () => $this->lastJobStartedProcessingAt = null);
