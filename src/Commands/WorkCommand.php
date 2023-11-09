@@ -54,23 +54,37 @@ class WorkCommand extends Command
             $now = new CarbonImmutable;
 
             if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
+                $this->info('Pulse restart signal detected. Goodbye.', 'v');
+
                 return self::SUCCESS;
             }
 
-            $ingest->store($storage);
+            $this->info('Storing data.', 'v');
+
+            $count = $ingest->store($storage);
+
+            $this->info("Stored [$count] entries.", 'v');
 
             if ($lastWarmedAt === null || $now->subSeconds(10)->greaterThan($lastWarmedAt)) {
+                $this->info('Warming queries.', 'v');
+
                 $usage->warm($now, $lastWarmedAt);
 
                 $cache->put('laravel:pulse:work:warmed_at', $now->timestamp);
 
                 $lastWarmedAt = $now;
+
+                $this->info('Queries warmed.', 'v');
             }
 
             if ($now->subHour()->greaterThan($lastTrimmedStorageAt)) {
+                $this->info('Trimming tables.', 'v');
+
                 $storage->trim($pulse->tables());
 
                 $lastTrimmedStorageAt = $now;
+
+                $this->info('Tables trimmed.', 'v');
             }
 
             Sleep::for(1)->second();
