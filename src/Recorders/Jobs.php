@@ -137,6 +137,10 @@ class Jobs
         }
 
         if ($event instanceof JobProcessed) {
+            if ($this->lastJobStartedProcessingAt === null) {
+                return null;
+            }
+
             return tap(new Update(
                 $this->table,
                 ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],

@@ -2,6 +2,7 @@
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Mail\Mailable;
@@ -74,7 +75,7 @@ it('ingests queued closures', function () {
         'processed_at' => null,
         'failed_at' => null,
         'user_id' => null,
-        'job' => 'Closure (JobsTest.php:61)',
+        'job' => 'Closure (JobsTest.php:62)',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 1,
         'connection' => 'database',
@@ -99,7 +100,7 @@ it('ingests queued closures', function () {
         'processed_at' => null,
         'failed_at' => null,
         'user_id' => null,
-        'job' => 'Closure (JobsTest.php:61)',
+        'job' => 'Closure (JobsTest.php:62)',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 1,
         'connection' => 'database',
@@ -114,7 +115,7 @@ it('ingests queued closures', function () {
         'processed_at' => null,
         'failed_at' => null,
         'user_id' => null,
-        'job' => 'Closure (JobsTest.php:61)',
+        'job' => 'Closure (JobsTest.php:62)',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 2,
         'connection' => 'database',
@@ -139,7 +140,7 @@ it('ingests queued closures', function () {
         'processed_at' => null,
         'failed_at' => '2000-01-02 03:04:15',
         'user_id' => null,
-        'job' => 'Closure (JobsTest.php:61)',
+        'job' => 'Closure (JobsTest.php:62)',
         'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
         'attempt' => 2,
         'connection' => 'database',
@@ -897,7 +898,9 @@ it('handles a job that was manually failed', function () {
      */
 
     Carbon::setTestNow('2000-01-02 03:04:10');
+    app(ExceptionHandler::class)->reportable(fn (\Throwable $e) => throw $e);
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    app()->forgetInstance(ExceptionHandler::class);
     expect(Queue::size())->toBe(0);
 
     $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
