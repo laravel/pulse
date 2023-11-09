@@ -283,7 +283,7 @@ class Pulse
      */
     public function recorders(): Collection
     {
-        return $this->recorders;
+        return collect($this->recorders);
     }
 
     /**

@@ -59,7 +59,7 @@ class PurgeCommand extends Command
         }
 
         if (count($this->option('exclude')) > 0 && count($this->option('only')) > 0) { // @phpstan-ignore argument.type argument.type
-            $this->error("You can't use both the --exclude and --only options together.");
+            $this->error('You cannot use both the --exclude and --only options together.');
 
             return Command::FAILURE;
         }
