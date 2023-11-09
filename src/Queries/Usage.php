@@ -132,7 +132,7 @@ class Usage
                         [$lastWarmedAt, ['1_hour', '6_hours', '24_hours', '7_days']],
                     ] as [$from, $periods]) {
                         echo "Type: {$type}\n";
-                        echo "Incremeting periods: ".implode(',', $periods).PHP_EOL;
+                        echo 'Incremeting periods: '.implode(',', $periods).PHP_EOL;
 
                         $this->incrementUsage($redis, $type, $from, $now, $periods);
                     }
@@ -157,7 +157,7 @@ class Usage
                     }
                 }
 
-                echo "Marking as warmed.";
+                echo 'Marking as warmed.';
                 $redis->set('laravel:pulse:usage:warm', '1', Interval::seconds(30));
             });
 
