@@ -118,8 +118,6 @@ class Usage
             $this->redis()->pipeline(function (Redis $redis) use ($now, $lastWarmedAt) {
                 foreach (['request_counts', 'slow_endpoint_counts', 'dispatched_job_counts'] as $type) {
                     if ($lastWarmedAt === null) {
-                        echo "Clearing usage\n";
-
                         $this->clearUsage($redis, $type);
                     }
 
@@ -131,9 +129,6 @@ class Usage
                     ] : [
                         [$lastWarmedAt, ['1_hour', '6_hours', '24_hours', '7_days']],
                     ] as [$from, $periods]) {
-                        echo "Type: {$type}\n";
-                        echo 'Incremeting periods: '.implode(',', $periods).PHP_EOL;
-
                         $this->incrementUsage($redis, $type, $from, $now, $periods);
                     }
 
@@ -144,20 +139,15 @@ class Usage
                             [$lastWarmedAt->subHours(24), $now->subHours(24), '24_hours'],
                             [$lastWarmedAt->subDays(7), $now->subDays(7), '7_days'],
                         ] as [$from, $till, $period]) {
-                            echo "Type: {$type}\n";
-                            echo "Decrementing period: {$period}\n";
-
                             $this->decrementUsage($redis, $type, $from, $till, $period);
                         }
                     }
 
                     foreach (['1_hour', '6_hours', '24_hours', '7_days'] as $period) {
-                        echo "Setting expiry: {$type} {$period}\n";
                         $redis->expire("laravel:pulse:usage:{$type}:{$period}", CarbonInterval::days(7));
                     }
                 }
 
-                echo 'Marking as warmed.';
                 $redis->set('laravel:pulse:usage:warm', '1', Interval::seconds(30));
             });
 
@@ -194,7 +184,6 @@ class Usage
      */
     protected function clearUsage(Redis $redis, string $type): void
     {
-        echo 'clearning usage';
         $redis->del([
             "laravel:pulse:usage:{$type}:1_hour",
             "laravel:pulse:usage:{$type}:6_hours",
@@ -211,14 +200,9 @@ class Usage
      */
     protected function incrementUsage(Redis $redis, string $type, CarbonImmutable $from, CarbonImmutable $till, array $periods): void
     {
-        $chunk = 1;
         $this->query($type, $from, $till)
             ->orderBy('user_id')
-            ->each(function ($record) use ($redis, $type, $periods, &$chunk) {
-                $chunk++;
-
-                echo "Incrementing chunk [{$chunk}]\n.";
-
+            ->each(function ($record) use ($redis, $type, $periods) {
                 foreach ($periods as $period) {
                     $redis->zincrby("laravel:pulse:usage:{$type}:{$period}", $record->count, $record->user_id);
                 }
@@ -235,7 +219,6 @@ class Usage
         $this->query($type, $from, $till)
             ->orderBy('user_id')
             ->each(function ($record) use ($redis, $type, $period) {
-                echo 'Decrementing chunk.'.PHP_EOL;
                 $redis->zincrby("laravel:pulse:usage:{$type}:{$period}", $record->count * -1, $record->user_id);
             });
     }
