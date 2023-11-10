@@ -29,7 +29,7 @@ return new class extends Migration
             $table->unsignedInteger('memory_total');
             $table->json('storage');
 
-            $table->index(['server', 'date']); // todo review once Forge is cranking with this.
+            $table->index(['date']); // stats + trim
         });
 
         Schema::create('pulse_requests', function (Blueprint $table) {

@@ -97,9 +97,8 @@ class Servers
                 'grouped'
             )
             ->groupBy('server', 'bucket')
-            ->orderByDesc('bucket')
+            ->orderBy('bucket')
             ->get()
-            ->reverse()
             ->groupBy('server')
             ->map(function (Collection $readings) use ($secondsPerPeriod, $padding) {
                 $readings = $readings->keyBy(fn (stdClass $reading) => CarbonImmutable::createFromTimestamp($reading->bucket * $secondsPerPeriod)->format('Y-m-d H:i'));
