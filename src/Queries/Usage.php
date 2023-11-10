@@ -114,7 +114,6 @@ class Usage
         }
 
         try {
-
             $this->redis()->pipeline(function (Redis $redis) use ($now, $lastWarmedAt) {
                 foreach (['request_counts', 'slow_endpoint_counts', 'dispatched_job_counts'] as $type) {
                     if ($lastWarmedAt === null) {
@@ -150,7 +149,6 @@ class Usage
 
                 $redis->set('laravel:pulse:usage:warm', '1', Interval::seconds(30));
             });
-
         } catch (RedisException|ConnectionException) {
             //
         }

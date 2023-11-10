@@ -40,11 +40,12 @@ return new class extends Migration
             $table->unsignedInteger('duration');
             $table->boolean('slow');
 
-            $table->index(['slow', 'date', 'user_id']); // user_slow_endpoints
             $table->index([
-                'date',    // user_usage, trim
-                'user_id', // user_usage
+                'date',    // usage:request_counts + trim
+                'user_id', // usage:request_counts
             ]);
+            $table->index(['user_id', 'date']); // usage:request_counts
+            $table->index(['slow', 'date', 'user_id']); // usage:slow_endpoint_counts
             $table->index(['route_hash']); // slow_endpoints
             $table->index(['slow', 'date', 'route_hash', 'duration']); // slow_endpoints
         });
