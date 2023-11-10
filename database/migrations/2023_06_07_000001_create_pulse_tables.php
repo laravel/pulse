@@ -59,7 +59,7 @@ return new class extends Migration
 
             $table->index(['class_location_hash']); // exceptions
             $table->index([
-                'date',                // exceptions, trim
+                'date',                // exceptions + trim
                 'class_location_hash', // exceptions
             ]);
         });
@@ -74,9 +74,9 @@ return new class extends Migration
 
             $table->index(['sql_location_hash']); // slow_queries
             $table->index([
-                'date', // slow_queries, trim
+                'date',              // slow_queries + trim
                 'sql_location_hash', // slow_queries
-                'duration', // slow_queries
+                'duration',          // slow_queries
             ]);
         });
 
