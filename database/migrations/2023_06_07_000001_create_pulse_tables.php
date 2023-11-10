@@ -101,9 +101,10 @@ return new class extends Migration
             $table->index(['job_uuid']);
 
             $table->index(['date']); // trim
+            $table->index(['queued_at', 'user_id']); // usage:dispatched_job_counts
+            $table->index(['user_id', 'queued_at']); // usage:dispatched_job_counts
             $table->index(['job_hash']); // slow_jobs
             $table->index(['slow', 'date', 'job_hash', 'duration']); // slow_jobs
-            $table->index(['queued_at', 'user_id']); // user_usage
         });
 
         Schema::create('pulse_cache_interactions', function (Blueprint $table) {
