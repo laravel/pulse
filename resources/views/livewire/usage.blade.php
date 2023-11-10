@@ -70,7 +70,7 @@
                         <div wire:key="{{ $userRequestCount['user']['name'] }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 dark:bg-gray-800/50 rounded">
                             <div class="flex items-center gap-3 overflow-hidden">
                                 @if ($userRequestCount['user']['avatar'] ?? false)
-                                    <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full">
+                                    <img height="32" width="32" src="{{ $userRequestCount['user']['avatar'] }}" loading="lazy" class="rounded-full bg-purple-100">
                                 @endif
                                 <div class="overflow-hidden">
                                     <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate" title="{{ $userRequestCount['user']['name'] }}">
