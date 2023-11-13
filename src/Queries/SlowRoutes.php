@@ -4,8 +4,6 @@ namespace Laravel\Pulse\Queries;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
-use Illuminate\Config\Repository;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;

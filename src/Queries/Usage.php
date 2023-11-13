@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;

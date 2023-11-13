@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Storage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;

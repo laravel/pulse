@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
