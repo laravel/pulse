@@ -32,7 +32,7 @@ class Redis
      *
      * @return list<string>
      */
-    public function zrange(string $key, int $start, int $stop, bool $reversed = false, bool $withScores = false): array
+    public function zrange(string $key, int $start, int $stop, bool $reversed = false, bool $withScores = false): array|PhpRedis|Pipeline
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('ZRANGE', $this->config->get('database.redis.options.prefix').$key, $start, $stop, ...array_filter([
@@ -40,22 +40,22 @@ class Redis
                 $withScores ? 'WITHSCORES' : null,
             ])),
             $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->executeRaw(['ZRANGE', $this->config->get('database.redis.options.prefix').$key, $start, $stop, ...array_filter([ // @phpstan-ignore method.notFound
+            $this->client() instanceof Pipeline => $this->client()->zrange($key, $start, $stop, ...array_filter([
                 $reversed ? 'REV' : null,
                 $withScores ? 'WITHSCORES' : null,
-            ])]),
+            ])),
         };
     }
 
     /**
      * Remove sorted set range by score.
      */
-    public function zremrangebyscore(string $key, int|string $start, int|string $stop): int
+    public function zremrangebyscore(string $key, int|string $start, int|string $stop): int|PhpRedis|Pipeline
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('ZREMRANGEBYSCORE', $this->config->get('database.redis.options.prefix').$key, $start, $stop),
             $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->executeRaw(['ZREMRANGEBYSCORE', $this->config->get('database.redis.options.prefix').$key, $start, $stop]), // @phpstan-ignore method.notFound
+            $this->client() instanceof Pipeline => $this->client()->zremrangebyscore($key, $start, $stop),
         };
     }
 
@@ -68,7 +68,7 @@ class Redis
     }
 
     /**
-     * Put the value.
+     * Set the value.
      */
     public function set(string $key, string $value, CarbonInterval $ttl): null|string|Pipeline|PhpRedis
     {
@@ -135,7 +135,6 @@ class Redis
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
         return match (true) {
-            // PHP Redis does not support the minid strategy....
             $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
             $this->client() instanceof Predis ||
             $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound

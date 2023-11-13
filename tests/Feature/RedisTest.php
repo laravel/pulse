@@ -63,6 +63,9 @@ it('runs the same zincrby command', function ($driver) {
 
     $commands = captureRedisCommands(fn () => $redis->zincrby('MYKEY', '-55', 'my-member'));
     expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "-55" "my-member"');
+
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zincrby('MYKEY', '-55', 'my-member')));
+    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "-55" "my-member"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same zrange command', function ($driver) {
@@ -80,6 +83,9 @@ it('runs the same zrange command', function ($driver) {
 
     $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: true, withScores: true));
     expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV" "WITHSCORES"');
+
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zrange('MYKEY', 2, 3, reversed: true, withScores: true)));
+    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV" "WITHSCORES"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same get command', function ($driver) {
@@ -87,7 +93,9 @@ it('runs the same get command', function ($driver) {
     $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
 
     $commands = captureRedisCommands(fn () => $redis->get('MYKEY'));
+    expect($commands)->toContain('"GET" "laravel_database_MYKEY"');
 
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $redis->get('MYKEY')));
     expect($commands)->toContain('"GET" "laravel_database_MYKEY"');
 })->with(['predis', 'phpredis']);
 
@@ -96,7 +104,9 @@ it('runs the same set command', function ($driver) {
     $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
 
     $commands = captureRedisCommands(fn () => $redis->set('MYKEY', 'myvalue', CarbonInterval::seconds(5)));
+    expect($commands)->toContain('"SET" "laravel_database_MYKEY" "myvalue" "PX" "5000"');
 
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->set('MYKEY', 'myvalue', CarbonInterval::seconds(5))));
     expect($commands)->toContain('"SET" "laravel_database_MYKEY" "myvalue" "PX" "5000"');
 })->with(['predis', 'phpredis']);
 
@@ -105,7 +115,9 @@ it('runs the same del command', function ($driver) {
     $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
 
     $commands = captureRedisCommands(fn () => $redis->del(['MYKEY', 'MYOTHERKEY']));
+    expect($commands)->toContain('"DEL" "laravel_database_MYKEY" "laravel_database_MYOTHERKEY"');
 
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->del(['MYKEY', 'MYOTHERKEY'])));
     expect($commands)->toContain('"DEL" "laravel_database_MYKEY" "laravel_database_MYOTHERKEY"');
 })->with(['predis', 'phpredis']);
 
@@ -114,7 +126,9 @@ it('runs the same expire command', function ($driver) {
     $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
 
     $commands = captureRedisCommands(fn () => $redis->expire('MYKEY', CarbonInterval::day()));
+    expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
 
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->expire('MYKEY', CarbonInterval::day())));
     expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
 })->with(['predis', 'phpredis']);
 
@@ -123,7 +137,9 @@ it('runs the same remrangebyscore command', function ($driver) {
     $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
 
     $commands = captureRedisCommands(fn () => $redis->zremrangebyscore('MYKEY', 0, 10));
+    expect($commands)->toContain('"ZREMRANGEBYSCORE" "laravel_database_MYKEY" "0" "10"');
 
+    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zremrangebyscore('MYKEY', 0, 10)));
     expect($commands)->toContain('"ZREMRANGEBYSCORE" "laravel_database_MYKEY" "0" "10"');
 })->with(['predis', 'phpredis']);
 
