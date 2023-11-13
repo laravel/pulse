@@ -49,10 +49,10 @@ class Servers
      *         date: string,
      *         cpu_percent: int|null,
      *         memory_used: int|null,
-     *     }>,
+     *     }&stdClass>,
      *     updated_at: \Carbon\CarbonImmutable,
      *     recently_reported: bool,
-     * }>
+     * }&stdClass>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -69,16 +69,17 @@ class Servers
         $padding = collect([])
             ->pad(60, null)
             ->map(fn (mixed $value, int $i) => (object) [
-                'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i'),
+                'date' => $currentBucket->subSeconds($i * $secondsPerPeriod)->format('Y-m-d H:i:s'),
                 'cpu_percent' => null,
                 'memory_used' => null,
             ])
             ->reverse()
-            ->keyBy('date');
+            ->keyBy(fn ($padding) => CarbonImmutable::parse($padding->date)->format('Y-m-d H:i'));
 
         $serverReadings = $this->db()->query()
-            ->select('bucket', 'server')
-            ->selectRaw('MAX(`date`) AS `date`')
+            ->from('pulse_system_stats')
+            ->select('server')
+            ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.recorders.'.SystemStats::class.'.graph_aggregation')) {
                 'max' => $query
                     ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
@@ -87,26 +88,26 @@ class Servers
                     ->selectRaw('ROUND(AVG(`cpu_percent`)) AS `cpu_percent`')
                     ->selectRaw('ROUND(AVG(`memory_used`)) AS `memory_used`')
             })
-            ->fromSub(
-                fn (Builder $query) => $query
-                    ->from('pulse_system_stats')
-                    ->select(['server', 'cpu_percent', 'memory_used', 'date'])
-                    // Divide the data into buckets.
-                    ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
-                    ->where('date', '>', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds)),
-                'grouped'
-            )
+            ->where('date', '>', $now->ceilSeconds($interval->totalSeconds / $maxDataPoints)->subSeconds((int) $interval->totalSeconds))
             ->groupBy('server', 'bucket')
             ->orderBy('bucket')
             ->get()
             ->groupBy('server')
             ->map(function (Collection $readings) use ($secondsPerPeriod, $padding) {
-                $readings = $readings->keyBy(fn (stdClass $reading) => CarbonImmutable::createFromTimestamp($reading->bucket * $secondsPerPeriod)->format('Y-m-d H:i'));
+                $readings = $readings->mapWithKeys(function (stdClass $reading) use ($secondsPerPeriod) {
+                    $date = CarbonImmutable::createFromTimestamp($reading->bucket * $secondsPerPeriod);
 
-                return $padding->merge($readings)->values();
+                    $reading->date = $date->format('Y-m-d H:i:s');
+
+                    return [
+                        $date->format('Y-m-d H:i') => $reading,
+                    ];
+                });
+
+                return $padding->merge($readings)->values(); // @phpstan-ignore argument.type
             });
 
-        return $this->db()->table('pulse_system_stats')
+        return $this->db()->table('pulse_system_stats') // @phpstan-ignore return.type
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
                 $this->db()->table('pulse_system_stats')
@@ -126,7 +127,7 @@ class Servers
                 'memory_total' => (int) $server->memory_total,
                 'storage' => json_decode($server->storage, flags: JSON_THROW_ON_ERROR),
                 'readings' => $serverReadings->get($server->server)?->map(fn (stdClass $reading) => (object) [
-                    'date' => CarbonImmutable::parse($reading->date)->format('Y-m-d H:i:s'),
+                    'date' => $reading->date,
                     'cpu_percent' => $reading->cpu_percent !== null ? (int) $reading->cpu_percent : null,
                     'memory_used' => $reading->memory_used !== null ? (int) $reading->memory_used : null,
                 ])->all() ?? [],

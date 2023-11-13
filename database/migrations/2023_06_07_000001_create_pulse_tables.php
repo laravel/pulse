@@ -20,7 +20,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // TODO Do another pass at the indexes to ensure that they are optimized correctly.
         Schema::create('pulse_system_stats', function (Blueprint $table) {
             $table->datetime('date');
             $table->string('server');
@@ -29,7 +28,10 @@ return new class extends Migration
             $table->unsignedInteger('memory_total');
             $table->json('storage');
 
-            $table->index(['date']); // stats + trim
+            $table->index([
+                'date',   // stats + trim
+                'server', // stats
+            ]);
         });
 
         Schema::create('pulse_requests', function (Blueprint $table) {
