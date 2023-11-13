@@ -28,6 +28,8 @@ class Redis
     }
 
     /**
+     * Get a range from a sorted set.
+     *
      * @return list<string>
      */
     public function zrange(string $key, int $start, int $stop, bool $reversed = false, bool $withScores = false): array
@@ -42,6 +44,18 @@ class Redis
                 $reversed ? 'REV' : null,
                 $withScores ? 'WITHSCORES' : null,
             ])]),
+        };
+    }
+
+    /**
+     * Remove sorted set range by score.
+     */
+    public function zremrangebyscore(string $key, int|string $start, int|string $stop): int
+    {
+        return match (true) {
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand('ZREMRANGEBYSCORE', $this->config->get('database.redis.options.prefix').$key, $start, $stop),
+            $this->client() instanceof Predis ||
+            $this->client() instanceof Pipeline => $this->client()->executeRaw(['ZREMRANGEBYSCORE', $this->config->get('database.redis.options.prefix').$key, $start, $stop]), // @phpstan-ignore method.notFound
         };
     }
 

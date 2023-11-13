@@ -118,6 +118,15 @@ it('runs the same expire command', function ($driver) {
     expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
 })->with(['predis', 'phpredis']);
 
+it('runs the same remrangebyscore command', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+
+    $commands = captureRedisCommands(fn () => $redis->zremrangebyscore('MYKEY', 0, 10));
+
+    expect($commands)->toContain('"ZREMRANGEBYSCORE" "laravel_database_MYKEY" "0" "10"');
+})->with(['predis', 'phpredis']);
+
 class NullStorage implements Storage
 {
     public function store(Collection $items): void

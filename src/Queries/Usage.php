@@ -143,6 +143,8 @@ class Usage
                     }
 
                     foreach (['1_hour', '6_hours', '24_hours', '7_days'] as $period) {
+                        $redis->zremrangebyscore("laravel:pulse:usage:{$type}:{$period}", start: '-INF', stop: 0);
+
                         $redis->expire("laravel:pulse:usage:{$type}:{$period}", CarbonInterval::days(7));
                     }
                 }
