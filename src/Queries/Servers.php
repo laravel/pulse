@@ -49,10 +49,10 @@ class Servers
      *         date: string,
      *         cpu_percent: int|null,
      *         memory_used: int|null,
-     *     }>,
+     *     }&stdClass>,
      *     updated_at: \Carbon\CarbonImmutable,
      *     recently_reported: bool,
-     * }>
+     * }&stdClass>
      */
     public function __invoke(Interval $interval): Collection
     {
@@ -104,10 +104,10 @@ class Servers
                     ];
                 });
 
-                return $padding->merge($readings)->values();
+                return $padding->merge($readings)->values(); // @phpstan-ignore argument.type
             });
 
-        return $this->db()->table('pulse_system_stats')
+        return $this->db()->table('pulse_system_stats') // @phpstan-ignore return.type
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
                 $this->db()->table('pulse_system_stats')
