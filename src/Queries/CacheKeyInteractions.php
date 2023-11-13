@@ -7,21 +7,18 @@ use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
+use Laravel\Pulse\Support\DatabaseConnectionResolver;
 
 /**
  * @internal
  */
 class CacheKeyInteractions
 {
-    use InteractsWithDatabaseConnection;
-
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected DatabaseManager $db,
-        protected Repository $config,
+        protected DatabaseConnectionResolver $db,
     ) {
         //
     }
@@ -35,7 +32,8 @@ class CacheKeyInteractions
     {
         $now = new CarbonImmutable();
 
-        return $this->db()->table('pulse_cache_interactions')
+        return $this->db->connection()
+            ->table('pulse_cache_interactions')
             ->selectRaw('MAX(`key`) AS `key`, COUNT(*) AS `count`, SUM(`hit`) AS `hits`')
             ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
             ->groupBy('key_hash')

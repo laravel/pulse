@@ -10,10 +10,10 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use Laravel\Pulse\Concerns\InteractsWithRedisConnection;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Redis;
+use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use Predis\Connection\ConnectionException;
 use RedisException;
 use stdClass;
@@ -23,14 +23,14 @@ use stdClass;
  */
 class Usage
 {
-    use InteractsWithDatabaseConnection, InteractsWithRedisConnection;
+    use InteractsWithRedisConnection;
 
     /**
      * Create a new query instance.
      */
     public function __construct(
+        protected DatabaseConnectionResolver $db,
         protected Repository $config,
-        protected DatabaseManager $db,
         protected RedisManager $redis,
         protected Pulse $pulse,
     ) {
@@ -163,7 +163,7 @@ class Usage
      */
     protected function query(string $type, CarbonImmutable $from, CarbonImmutable $till): Builder
     {
-        return $this->db()->query()
+        return $this->db->connection()->query()
             ->when($type === 'dispatched_job_counts',
                 fn (Builder $query) => $query->from('pulse_jobs')
                     ->where('queued_at', '>=', $from->toDateTimeString())

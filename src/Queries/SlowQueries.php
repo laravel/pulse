@@ -8,21 +8,18 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
+use Laravel\Pulse\Support\DatabaseConnectionResolver;
 
 /**
  * @internal
  */
 class SlowQueries
 {
-    use InteractsWithDatabaseConnection;
-
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Repository $config,
-        protected DatabaseManager $db,
+        protected DatabaseConnectionResolver $db,
     ) {
         //
     }
@@ -36,7 +33,7 @@ class SlowQueries
     {
         $now = new CarbonImmutable;
 
-        return $this->db()->query()->select([
+        return $this->db->connection()->query()->select([
             'count',
             'slowest',
             'sql' => fn (Builder $query) => $query->select('sql')

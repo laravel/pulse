@@ -10,7 +10,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
+use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use stdClass;
 
 /**
@@ -18,14 +18,11 @@ use stdClass;
  */
 class SlowRoutes
 {
-    use InteractsWithDatabaseConnection;
-
     /**
      * Create a new query instance.
      */
     public function __construct(
-        protected Repository $config,
-        protected DatabaseManager $db,
+        protected DatabaseConnectionResolver $db,
         protected Router $router,
     ) {
         //
@@ -48,7 +45,7 @@ class SlowRoutes
 
         $routes = $this->router->getRoutes()->getRoutesByMethod();
 
-        return $this->db()->query()->select([
+        return $this->db->connection()->query()->select([
             'count',
             'slowest',
             'route' => fn (Builder $query) => $query->select('route')

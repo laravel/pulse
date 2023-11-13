@@ -70,7 +70,7 @@ class WorkCommand extends Command
 
                 $usage->warm($now, $lastWarmedAt);
 
-                $cache->put('laravel:pulse:work:warmed_at', $now->timestamp);
+                $cache->forever('laravel:pulse:work:warmed_at', $now->timestamp);
 
                 $lastWarmedAt = $now;
 

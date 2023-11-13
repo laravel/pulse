@@ -10,8 +10,8 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Concerns\InteractsWithDatabaseConnection;
 use Laravel\Pulse\Recorders\SystemStats;
+use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use stdClass;
 
 /**
@@ -19,14 +19,12 @@ use stdClass;
  */
 class Servers
 {
-    use InteractsWithDatabaseConnection;
-
     /**
      * Create a new query instance.
      */
     public function __construct(
         protected Repository $config,
-        protected DatabaseManager $db,
+        protected DatabaseConnectionResolver $db,
     ) {
         //
     }
@@ -76,8 +74,8 @@ class Servers
             ->reverse()
             ->keyBy(fn ($padding) => CarbonImmutable::parse($padding->date)->format('Y-m-d H:i'));
 
-        $serverReadings = $this->db()->query()
-            ->from('pulse_system_stats')
+        $serverReadings = $this->db->connection()
+            ->table('pulse_system_stats')
             ->select('server')
             ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.recorders.'.SystemStats::class.'.graph_aggregation')) {
@@ -107,10 +105,10 @@ class Servers
                 return $padding->merge($readings)->values(); // @phpstan-ignore argument.type
             });
 
-        return $this->db()->table('pulse_system_stats') // @phpstan-ignore return.type
+        return $this->db->connection()->table('pulse_system_stats') // @phpstan-ignore return.type
             // Get the latest row for every server, even if it hasn't reported in the selected period.
             ->joinSub(
-                $this->db()->table('pulse_system_stats')
+                $this->db->connection()->table('pulse_system_stats')
                     ->selectRaw('`server`, MAX(`date`) AS `date`')
                     ->groupBy('server'),
                 'grouped',
