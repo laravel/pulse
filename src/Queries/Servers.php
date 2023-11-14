@@ -79,8 +79,8 @@ class Servers
             ->selectRaw('FLOOR(UNIX_TIMESTAMP(CONVERT_TZ(`date`, ?, @@session.time_zone)) / ?) AS `bucket`', [$now->format('P'), $secondsPerPeriod])
             ->when(true, fn (Builder $query) => match ($this->config->get('pulse.recorders.'.SystemStats::class.'.graph_aggregation')) {
                 'max' => $query
-                    ->selectRaw('ROUND(MAX(`cpu_percent`)) AS `cpu_percent`')
-                    ->selectRaw('ROUND(MAX(`memory_used`)) AS `memory_used`'),
+                    ->selectRaw('MAX(`cpu_percent`) AS `cpu_percent`')
+                    ->selectRaw('MAX(`memory_used`) AS `memory_used`'),
                 default => $query
                     ->selectRaw('ROUND(AVG(`cpu_percent`)) AS `cpu_percent`')
                     ->selectRaw('ROUND(AVG(`memory_used`)) AS `memory_used`')
