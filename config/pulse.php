@@ -26,7 +26,7 @@ return [
     |
     | This is the path which the Pulse dashboard will be accessible from. Feel
     | free to change this path to anything you'd like. Note that this won't
-    | affect the path of the internal API that is not exposed to users.
+    | affect the path of the internal API that is never exposed to users.
     |
     */
 
@@ -34,12 +34,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pulse Master Switch
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option may be used to completely disable all Pulse
+    | data recorders regardless of their individual configurations. This
+    | provides a single option to quickly disable all Pulse recording.
+    |
+    */
+
+    'enabled' => env('PULSE_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Pulse Storage Driver
     |--------------------------------------------------------------------------
     |
-    | This configuration option determines the storage driver that will be used
-    | to store entries from Pulse's recorders. In addition, you may specify
-    | any options to configure the particular storage driver you choose.
+    | This configuration option determines which storage driver will be used
+    | while storing entries from Pulse's recorders. In addition, you also
+    | may provide any options to configure the selected storage driver.
     |
     */
 
@@ -59,7 +72,7 @@ return [
     |
     | This configuration options determines the ingest driver that will be used
     | to capture entries from Pulse's recorders. Ingest drivers are great to
-    | free up your request workers quicker by offloading the data storage.
+    | free up your request workers quickly by offloading the data storage.
     |
     */
 
@@ -81,24 +94,11 @@ return [
     |
     | The configuration option determines how long Pulse will retain data in
     | both ingest and storage locations before removing old records. This
-    | will not increase what period is visible in the Pulse dashboard.
+    | will not increase which periods are visible in Pulse's dashboard.
     |
     */
 
     'retain' => Interval::days(7),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pulse Master Switch
-    |--------------------------------------------------------------------------
-    |
-    | This configuration option may be used to completely disable all Pulse
-    | data recorders regardless of their individual configurations. This
-    | provides a simple and convenient way to disable Pulse entirely.
-    |
-    */
-
-    'enabled' => env('PULSE_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -107,7 +107,7 @@ return [
     |
     | These middleware will be assigned to every Pulse route, giving you the
     | chance to add your own middleware to this list or change any of the
-    | existing middleware. Feel free to stick with the existing items.
+    | existing middleware. Of course, reasonable defaults are provided.
     |
     */
 
@@ -123,7 +123,7 @@ return [
     |
     | The following array lists the "recorders" that will be registered with
     | Pulse, along with their configuration. Recorders gather application
-    | event data from requests and task to pass to your ingest driver.
+    | event data from requests and tasks to pass to your ingest driver.
     |
     */
 
@@ -132,10 +132,10 @@ return [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
             'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
             'ignore' => [
-                '/^laravel:pulse:/', // Internal Pulse keys
-                '/^illuminate:/', // Internal Laravel keys
-                '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze/Jetstream authentication rate limiting
-                '/^[a-zA-Z0-9]{40}$/', // Session IDs
+                '/^laravel:pulse:/', // Internal Pulse keys...
+                '/^illuminate:/', // Internal Laravel keys...
+                '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze / Jetstream authentication rate limiting...
+                '/^[a-zA-Z0-9]{40}$/', // Session IDs...
             ],
             'groups' => [
                 // '/:\d+/' => ':*',
@@ -165,7 +165,7 @@ return [
             'sample_rate' => env('PULSE_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
             'ignore' => [
-                // '#^http://127\.0\.0\.1:13714#', // Inertia SSR
+                // '#^http://127\.0\.0\.1:13714#', // Inertia SSR...
             ],
             'groups' => [
                 // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
@@ -179,7 +179,7 @@ return [
             'sample_rate' => env('PULSE_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
             'ignore' => [
-                '#^/pulse$#', // Pulse dashboard
+                '#^/pulse$#', // Pulse dashboard...
             ],
         ],
 
@@ -189,7 +189,7 @@ return [
             'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
             'location' => env('PULSE_SLOW_QUERY_LOCATION', true),
             'ignore' => [
-                '/(["`])pulse_[\w]+?\1/', // Pulse tables
+                '/(["`])pulse_[\w]+?\1/', // Pulse tables...
             ],
         ],
 
