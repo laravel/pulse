@@ -5,14 +5,12 @@ namespace Laravel\Pulse\Queries;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Carbon\CarbonInterval as Interval;
-use Illuminate\Config\Repository;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Concerns\InteractsWithRedisConnection;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Redis;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
+use Laravel\Pulse\Support\RedisConnectionResolver;
 use Predis\Connection\ConnectionException;
 use RedisException;
 use stdClass;
@@ -22,15 +20,12 @@ use stdClass;
  */
 class Usage
 {
-    use InteractsWithRedisConnection;
-
     /**
      * Create a new query instance.
      */
     public function __construct(
         protected DatabaseConnectionResolver $db,
-        protected Repository $config,
-        protected RedisManager $redis,
+        protected RedisConnectionResolver $redis,
         protected Pulse $pulse,
     ) {
         //
@@ -80,18 +75,20 @@ class Usage
         $now = new CarbonImmutable;
 
         try {
-            if ($this->redis()->get('laravel:pulse:usage:warm') === '1') {
-                $results = $this->redis()->zrange(match ((int) $interval->totalHours) { // @phpstan-ignore match.unhandled
+            if ($this->redis->connection()->get('laravel:pulse:usage:warm') === '1') {
+                $results = $this->redis->connection()->zrange(match ((int) $interval->totalHours) { // @phpstan-ignore match.unhandled
                     1 => "laravel:pulse:usage:{$type}:1_hour",
                     6 => "laravel:pulse:usage:{$type}:6_hours",
                     24 => "laravel:pulse:usage:{$type}:24_hours",
                     168 => "laravel:pulse:usage:{$type}:7_days",
                 }, start: 0, stop: 9, reversed: true, withScores: true);
 
-                return collect($results)->chunk(2)->mapSpread(fn ($member, $score) => (object) [ // @phpstan-ignore argument.type argument.type
-                    'user_id' => $member,
-                    'count' => (int) $score,
-                ]);
+                return collect($results) // @phpstan-ignore argument.type
+                    ->chunk(2)
+                    ->mapSpread(fn ($member, $score) => (object) [ // @phpstan-ignore argument.type
+                        'user_id' => $member,
+                        'count' => (int) $score,
+                    ]);
             }
         } catch (RedisException|ConnectionException) {
             //
@@ -113,7 +110,7 @@ class Usage
         }
 
         try {
-            $this->redis()->pipeline(function (Redis $redis) use ($now, $lastWarmedAt) {
+            $this->redis->connection()->pipeline(function (Redis $redis) use ($now, $lastWarmedAt) {
                 foreach (['request_counts', 'slow_endpoint_counts', 'dispatched_job_counts'] as $type) {
                     if ($lastWarmedAt === null) {
                         $this->clearUsage($redis, $type);
