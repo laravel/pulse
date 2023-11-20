@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Ingests;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
-use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
