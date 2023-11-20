@@ -88,7 +88,7 @@ class Usage
                     168 => "laravel:pulse:usage:{$type}:7_days",
                 }, start: 0, stop: 9, reversed: true, withScores: true);
 
-                return collect($results)->chunk(2)->mapSpread(fn ($member, $score) => (object) [ // @phpstan-ignore argument.type
+                return collect($results)->chunk(2)->mapSpread(fn ($member, $score) => (object) [ // @phpstan-ignore argument.type argument.type
                     'user_id' => $member,
                     'count' => (int) $score,
                 ]);
