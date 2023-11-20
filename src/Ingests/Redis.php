@@ -7,17 +7,15 @@ use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
-use Laravel\Pulse\Concerns\InteractsWithRedisConnection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Redis as RedisAdapter;
+use Laravel\Pulse\Support\RedisConnectionResolver;
 use Laravel\Pulse\Update;
 
 class Redis implements Ingest
 {
-    use InteractsWithRedisConnection;
-
     /**
      * The redis stream.
      */
@@ -28,7 +26,7 @@ class Redis implements Ingest
      */
     public function __construct(
         protected Repository $config,
-        protected RedisManager $redis,
+        protected RedisConnectionResolver $redis,
     ) {
         //
     }
@@ -44,7 +42,7 @@ class Redis implements Ingest
             return;
         }
 
-        $this->redis()->pipeline(function (RedisAdapter $pipeline) use ($items) {
+        $this->redis->connection()->pipeline(function (RedisAdapter $pipeline) use ($items) {
             $items->each(fn (Entry|Update $entry) => $pipeline->xadd($this->stream, [
                 'data' => serialize($entry),
             ]));
@@ -56,7 +54,7 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->redis()->xtrim(
+        $this->redis->connection()->xtrim(
             $this->stream,
             'MINID',
             '~',
@@ -72,7 +70,7 @@ class Redis implements Ingest
         $total = 0;
 
         while (true) {
-            $entries = collect($this->redis()->xrange(
+            $entries = collect($this->redis->connection()->xrange(
                 $this->stream,
                 '-',
                 '+',
@@ -89,7 +87,7 @@ class Redis implements Ingest
                 $entries->map(fn (array $payload): Entry|Update => unserialize($payload['data']))->values()
             );
 
-            $this->redis()->xdel($this->stream, $keys);
+            $this->redis->connection()->xdel($this->stream, $keys);
 
             if ($entries->count() < $chunk) {
                 return $total + $entries->count();
