@@ -55,6 +55,8 @@ After installing Pulse, you should run the `migrate` command in order to create 
 php artisan migrate
 ```
 
+It is also possible to [configure a dedicated database connection](#using-a-different-database) for Pulse's data.
+
 <a name="configuration"></a>
 ### Configuration
 
