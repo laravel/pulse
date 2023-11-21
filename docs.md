@@ -84,14 +84,23 @@ php artisan pulse:check
 <a name="dashboard-authorization"></a>
 ### Dashboard Authorization
 
-The Pulse dashboard may be accessed at the `/pulse` route. By default, you will only be able to access this dashboard in the local environment, so you will need to configure authorization for your production environments using the `authorizeUsing` method. You are free to determine your own logic and return either `true` or `false`:
+The Pulse dashboard may be accessed at the `/pulse` route. By default, you will only be able to access this dashboard in the `local` environment, so you will need to configure authorization for your production environments by customising the `'viewPulse'` authorization gate. You can do this within your `app/Providers/AppServiceProvider.php` file:
 
 ```php
-Pulse::authorizeUsing(function ($request) {
-    return in_array($request->user()?->email, [
-        'taylor@example.com',
-    ]);
-});
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+
+/**
+ * Bootstrap any application services.
+ */
+public function boot(): void
+{
+    Gate::define('viewPulse', function (User $user) {
+        return $user->isAdmin();
+    });
+
+    // ...
+}
 ```
 
 <a name="dashboard-customization"></a>
