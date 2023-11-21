@@ -69,7 +69,7 @@ php artisan vendor:publish --tag pulse-config
 <a name="capturing-entries"></a>
 ## Capturing Entries
 
-Most Pulse recorders will automatically capture entries based on events fired by Laravel. However, the [system stats recorder](#system-stats-recorder) and some third-party cards must poll for information regularly. To use these card, you must run the `pulse:check` daemon command:
+Most Pulse recorders will automatically capture entries based on events fired by Laravel. However, the [system stats recorder](#system-stats-recorder) and some third-party cards must poll for information regularly. To use these card, you must run the `pulse:check` daemon command on all your individual application servers:
 
 ```php
 php artisan pulse:check
