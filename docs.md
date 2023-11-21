@@ -40,9 +40,6 @@ For in-depth debugging of individual events, check out [Laravel Telescope](/docs
 <a name="installation"></a>
 ## Installation
 
-> **Warning**  
-> Pulse currently requires a MySQL database for storing entries. See [using a different database](#using-a-different-database) for more information.
-
 You may use the Composer package manager to install Pulse into your Laravel project:
 
 ```sh
@@ -56,6 +53,9 @@ php artisan migrate
 ```
 
 It is also possible to [configure a dedicated database connection](#using-a-different-database) for Pulse's data.
+
+> **Warning**  
+> The first-party storage mechanism currently requires a MySQL database for storing entries.
 
 <a name="configuration"></a>
 ### Configuration
