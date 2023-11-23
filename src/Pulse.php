@@ -30,7 +30,7 @@ class Pulse
     /**
      * The list of queued entries or updates.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>
      */
     protected Collection $entries;
 
@@ -42,7 +42,7 @@ class Pulse
     /**
      * The entry filters.
      *
-     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)>
+     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry): bool)>
      */
     protected Collection $filters;
 
@@ -143,7 +143,7 @@ class Pulse
     /**
      * Record the given entry.
      */
-    public function record(Entry|Update $entry): self
+    public function record(Entry $entry): self
     {
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
@@ -206,7 +206,7 @@ class Pulse
     /**
      * The pending entries to be recorded.
      *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>
      */
     public function entries()
     {
@@ -226,7 +226,7 @@ class Pulse
     /**
      * Filter incoming entries using the provided filter.
      *
-     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)  $filter
+     * @param  (callable(\Laravel\Pulse\Entry): bool)  $filter
      */
     public function filter(callable $filter): self
     {
@@ -256,7 +256,7 @@ class Pulse
     /**
      * Determine if the given entry should be recorded.
      */
-    protected function shouldRecord(Entry|Update $entry): bool
+    protected function shouldRecord(Entry $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
     }

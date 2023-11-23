@@ -16,7 +16,7 @@
                     class="overflow-ellipsis w-full border-0 pl-3 pr-8 py-1 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs sm:text-sm shadow-none focus:ring-0"
                 >
                     <option value="count">count</option>
-                    <option value="last_occurrence">recent</option>
+                    <option value="latest">latest</option>
                 </select>
             </div>
         </x-slot:actions>
@@ -69,7 +69,7 @@
                                     </p>
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold whitespace-nowrap tabular-nums">
-                                    {{ $exception->last_occurrence !== null ? Carbon\CarbonImmutable::parse($exception->last_occurrence)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
+                                    {{ $exception->latest !== null ? Carbon\CarbonImmutable::parse($exception->latest)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold tabular-nums">
                                     @if ($config['sample_rate'] < 1)

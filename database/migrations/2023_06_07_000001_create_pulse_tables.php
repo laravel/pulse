@@ -20,116 +20,38 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pulse_system_stats', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('server');
-            $table->unsignedTinyInteger('cpu_percent');
-            $table->unsignedInteger('memory_used');
-            $table->unsignedInteger('memory_total');
-            $table->json('storage');
+        Schema::create('pulse_values', function (Blueprint $table) {
+            $table->string('key');
+            $table->text('value');
+            // $table->unsignedInteger('updated');
+            // $table->unsignedInteger('expires')->nullable();
 
-            $table->index([
-                'date',   // stats + trim
-                'server', // stats
-            ]);
+            $table->unique('key');
+            // $table->index('expires');
         });
 
-        Schema::create('pulse_requests', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
-            $table->text('route');
-            $table->char('route_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`route`))');
-            $table->unsignedInteger('duration');
-            $table->boolean('slow');
-
-            $table->index([
-                'date',    // usage:request_counts + trim
-                'user_id', // usage:request_counts
-            ]);
-            $table->index(['user_id', 'date']); // usage:request_counts
-            $table->index(['slow', 'date', 'user_id']); // usage:slow_endpoint_counts
-            $table->index(['route_hash']); // slow_endpoints
-            $table->index(['slow', 'date', 'route_hash', 'duration']); // slow_endpoints
-        });
-
-        Schema::create('pulse_exceptions', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
-            $table->text('class');
-            $table->text('location');
-            $table->char('class_location_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(CONCAT(`class`, `location`)))');
-
-            $table->index(['class_location_hash']); // exceptions
-            $table->index([
-                'date',                // exceptions + trim
-                'class_location_hash', // exceptions
-            ]);
-        });
-
-        Schema::create('pulse_slow_queries', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
-            $table->text('sql');
-            $table->text('location');
-            $table->char('sql_location_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(CONCAT(`sql`, `location`)))');
-            $table->unsignedInteger('duration');
-
-            $table->index(['sql_location_hash']); // slow_queries
-            $table->index([
-                'date',              // slow_queries + trim
-                'sql_location_hash', // slow_queries
-                'duration',          // slow_queries
-            ]);
-        });
-
-        Schema::create('pulse_jobs', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
-            $table->text('job');
-            $table->char('job_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`job`))');
-            $table->uuid('job_uuid');
-            $table->unsignedInteger('attempt');
-            $table->string('connection');
-            $table->string('queue');
-            $table->datetime('queued_at');
-            $table->datetime('processing_at')->nullable();
-            $table->datetime('released_at')->nullable();
-            $table->datetime('processed_at')->nullable();
-            $table->datetime('failed_at')->nullable();
-            $table->unsignedInteger('duration')->nullable();
-            $table->boolean('slow')->default(false);
-
-            // TODO: verify this update index. Needs to find job quickly. does attempts have any benefit here?
-            $table->index(['job_uuid']);
-
-            $table->index(['date']); // trim
-            $table->index(['queued_at', 'user_id']); // usage:dispatched_job_counts
-            $table->index(['user_id', 'queued_at']); // usage:dispatched_job_counts
-            $table->index(['job_hash']); // slow_jobs
-            $table->index(['slow', 'date', 'job_hash', 'duration']); // slow_jobs
-        });
-
-        Schema::create('pulse_cache_interactions', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
+        Schema::create('pulse_entries', function (Blueprint $table) {
+            $table->unsignedInteger('timestamp');
+            $table->string('type');
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
-            $table->boolean('hit');
+            $table->unsignedInteger('value')->nullable();
 
-            $table->index(['date', 'key_hash', 'hit']);
+            $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
         });
 
-        Schema::create('pulse_outgoing_requests', function (Blueprint $table) {
-            $table->datetime('date');
-            $table->string('user_id')->nullable();
-            $table->text('uri');
-            $table->char('uri_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`uri`))');
-            $table->unsignedInteger('duration');
-            $table->boolean('slow');
+        Schema::create('pulse_aggregates', function (Blueprint $table) {
+            $table->unsignedInteger('bucket');
+            $table->unsignedMediumInteger('period');
+            $table->string('type');
+            $table->text('key');
+            $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
+            $table->unsignedInteger('value');
+            $table->unsignedInteger('count')->nullable();
 
-            $table->index(['date']); // trim
-            $table->index(['uri_hash']); // slow_outgoing_requests
-            $table->index(['slow', 'date', 'uri_hash', 'duration']); // slow_outgoing_requests
+            $table->unique(['bucket', 'period', 'type', 'key_hash']);
+
+            $table->index(['period', 'bucket', 'type']); // TODO: This is a guess.
         });
     }
 
@@ -138,12 +60,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pulse_system_stats');
-        Schema::dropIfExists('pulse_requests');
-        Schema::dropIfExists('pulse_exceptions');
-        Schema::dropIfExists('pulse_slow_queries');
-        Schema::dropIfExists('pulse_jobs');
-        Schema::dropIfExists('pulse_cache_interactions');
-        Schema::dropIfExists('pulse_outgoing_requests');
+        Schema::dropIfExists('pulse_values');
+        Schema::dropIfExists('pulse_entries');
+        Schema::dropIfExists('pulse_aggregates');
     }
 };

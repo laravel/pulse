@@ -18,10 +18,10 @@ it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
 
     $commands = captureRedisCommands(fn () => App::make(Redis::class)->ingest(collect([
-        new Entry('pulse_table', ['entry' => 'data']),
+        new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
     ])));
 
-    expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:entries" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":2:{s:5:\"table\";s:11:\"pulse_table\";s:10:\"attributes\";a:1:{s:5:\"entry\";s:4:\"data\";}}"');
+    expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:entries" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":5:{s:15:\"\x00*\x00aggregations\";a:0:{}s:9:\"timestamp\";i:1700752211;s:4:\"type\";s:3:\"foo\";s:3:\"key\";s:3:\"bar\";s:5:\"value\";i:123;}"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same commands while triming the stream', function ($driver) {
@@ -39,8 +39,8 @@ it('runs the same commands while storing', function ($driver) {
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
     $ingest = App::make(Redis::class);
     $ingest->ingest(collect([
-        new Entry('pulse_table', ['entry' => 'data']),
-        new Entry('pulse_table', ['another' => 'one']),
+        new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
+        new Entry(timestamp: 1700752211, type: 'foo', key: 'baz', value: 456),
     ]));
     $output = Process::timeout(1)
         ->run('redis-cli -p '.config('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:entries')

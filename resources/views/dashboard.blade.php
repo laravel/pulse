@@ -20,9 +20,9 @@
     <livewire:pulse.servers cols="full" />
 
     <livewire:pulse.usage cols="4" rows="2" />
-    {{-- <livewire:pulse.usage type="dispatched_job_counts" /> --}}
-    {{-- <livewire:pulse.usage type="slow_endpoint_counts" /> --}}
-    {{-- <livewire:pulse.usage type="request_counts" /> --}}
+    {{-- <livewire:pulse.usage type="requests" /> --}}
+    {{-- <livewire:pulse.usage type="slow_requests" /> --}}
+    {{-- <livewire:pulse.usage type="slow_jobs" /> --}}
 
     <livewire:pulse.queues cols="4" />
 

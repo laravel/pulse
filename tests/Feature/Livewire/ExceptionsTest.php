@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Exceptions;
@@ -15,18 +14,23 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders exceptions', function () {
-    Pulse::ignore(fn () => DB::table('pulse_exceptions')->insert([
-        ['date' => '2000-01-02 03:04:05', 'class' => 'RuntimeException', 'location' => 'app/Foo.php'],
-        ['date' => '2000-01-02 03:04:05', 'class' => 'RuntimeException', 'location' => 'app/Bar.php'],
-        ['date' => '2000-01-02 03:04:10', 'class' => 'RuntimeException', 'location' => 'app/Foo.php'],
+    $timestamp = now()->timestamp;
+    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123'],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Bar.php:123'],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123'],
     ]));
-    Carbon::setTestNow('2000-01-02 03:04:15');
+    $currentBucket = (int) floor($timestamp / 60) * 60;
+    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:max', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:max', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp],
+    ]));
 
     Livewire::test(Exceptions::class, ['lazy' => false])
-        ->assertViewHas('time')
-        ->assertViewHas('runAt', '2000-01-02 03:04:15')
         ->assertViewHas('exceptions', collect([
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php', 'count' => 2, 'last_occurrence' => '2000-01-02 03:04:10'],
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php', 'count' => 1, 'last_occurrence' => '2000-01-02 03:04:05'],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => $timestamp],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => $timestamp],
         ]));
 });

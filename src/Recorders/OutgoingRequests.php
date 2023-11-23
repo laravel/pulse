@@ -19,16 +19,11 @@ use Throwable;
 /**
  * @internal
  */
-class OutgoingRequests implements Grouping
+class OutgoingRequests implements Grouping // TODO: Rename to SlowOutgoingRequests
 {
     use Concerns\Ignores;
     use Concerns\Sampling;
     use ConfiguresAfterResolving;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_outgoing_requests';
 
     /**
      * Create a new recorder instance.
@@ -61,13 +56,19 @@ class OutgoingRequests implements Grouping
             return null;
         }
 
-        return new Entry($this->table, [
-            'uri' => $this->group($request->getMethod().' '.$request->getUri()),
-            'date' => $startedAt->toDateTimeString(),
-            'duration' => $duration = $startedAt->diffInMilliseconds($endedAt),
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
-        ]);
+        $duration = $startedAt->diffInMilliseconds($endedAt);
+        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
+
+        if ($slow) {
+            return (new Entry(
+                timestamp: (int) $startedAt->timestamp,
+                type: 'slow_outgoing_request',
+                key: $this->group($request->getMethod().' '.$request->getUri()),
+                value: $duration
+            ))->count()->max();
+        }
+
+        return null;
     }
 
     /**

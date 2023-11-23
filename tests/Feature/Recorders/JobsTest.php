@@ -30,27 +30,27 @@ it('ingests bus dispatched jobs', function () {
     Bus::dispatchToQueue(new MyJob);
 
     expect(Pulse::entries())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_jobs')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJob',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates[0])->toHaveProperties([
+        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'period' => 60,
+        'type' => 'queued:count',
+        'key' => 'database:default',
+        'value' => 1,
     ]);
 });
 
@@ -65,22 +65,13 @@ it('ingests queued closures', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'Closure (JobsTest.php:62)',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -90,37 +81,19 @@ it('ingests queued closures', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'Closure (JobsTest.php:62)',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'Closure (JobsTest.php:62)',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -130,22 +103,19 @@ it('ingests queued closures', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:15',
-        'user_id' => null,
-        'job' => 'Closure (JobsTest.php:62)',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -158,22 +128,13 @@ it('ingests jobs pushed to the queue', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJob',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -190,22 +151,13 @@ it('ingests queued listeners', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyListenerThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -215,37 +167,19 @@ it('ingests queued listeners', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyListenerThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyListenerThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -255,22 +189,19 @@ it('ingests queued listeners', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:15',
-        'user_id' => null,
-        'job' => 'MyListenerThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -286,22 +217,13 @@ it('ingests queued mail', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyMailThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -311,37 +233,19 @@ it('ingests queued mail', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyMailThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyMailThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -351,22 +255,19 @@ it('ingests queued mail', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:15',
-        'user_id' => null,
-        'job' => 'MyMailThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -385,22 +286,13 @@ it('ingests queued notifications', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyNotificationThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -410,37 +302,19 @@ it('ingests queued notifications', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyNotificationThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyNotificationThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -450,22 +324,19 @@ it('ingests queued notifications', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:15',
-        'user_id' => null,
-        'job' => 'MyNotificationThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -481,22 +352,13 @@ it('ingests queued commands', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyCommandThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -506,37 +368,19 @@ it('ingests queued commands', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyCommandThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyCommandThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -546,22 +390,19 @@ it('ingests queued commands', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:15',
-        'user_id' => null,
-        'job' => 'MyCommandThatFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -578,22 +419,13 @@ it('handles a job throwing exceptions and failing', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -604,37 +436,19 @@ it('handles a job throwing exceptions and failing', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 11,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -645,37 +459,19 @@ it('handles a job throwing exceptions and failing', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(3);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => '2000-01-02 03:04:15',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 22,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[2])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:15',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 3,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -686,22 +482,19 @@ it('handles a job throwing exceptions and failing', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->orderBy('date')->get());
-    expect($jobs)->toHaveCount(3);
-    expect($jobs[2])->toHaveProperties([
-        'date' => '2000-01-02 03:04:20',
-        'queued_at' => '2000-01-02 03:04:15',
-        'processing_at' => '2000-01-02 03:04:20',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:20',
-        'user_id' => null,
-        'job' => 'MyJobWithMultipleAttemptsThatAlwaysThrows',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 3,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 33,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(7);
+    expect($entries[5])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[6])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -718,22 +511,13 @@ it('handles a failure and then a successful job', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobThatPassesOnTheSecondAttempt',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -744,37 +528,19 @@ it('handles a failure and then a successful job', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => '2000-01-02 03:04:10',
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobThatPassesOnTheSecondAttempt',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 99,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(3);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
     ]);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobThatPassesOnTheSecondAttempt',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'released',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -785,22 +551,19 @@ it('handles a failure and then a successful job', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[1])->toHaveProperties([
-        'date' => '2000-01-02 03:04:15',
-        'queued_at' => '2000-01-02 03:04:10',
-        'processing_at' => '2000-01-02 03:04:15',
-        'released_at' => null,
-        'processed_at' => '2000-01-02 03:04:15',
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobThatPassesOnTheSecondAttempt',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 2,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 98,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(5);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[4])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processed',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -817,22 +580,13 @@ it('handles a slow successful job', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MySlowJob',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -843,22 +597,25 @@ it('handles a slow successful job', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => null,
-        'processed_at' => '2000-01-02 03:04:10',
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MySlowJob',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 100,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(4);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processed',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'slow_job',
+        'key' => 'MySlowJob',
+        'value' => 100,
     ]);
 });
 
@@ -875,22 +632,13 @@ it('handles a job that was manually failed', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:05',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => null,
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => null,
-        'user_id' => null,
-        'job' => 'MyJobThatManuallyFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => null,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'queued',
+        'key' => 'database:default',
+        'value' => null,
     ]);
 
     /*
@@ -903,22 +651,25 @@ it('handles a job that was manually failed', function () {
     app()->forgetInstance(ExceptionHandler::class);
     expect(Queue::size())->toBe(0);
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:10',
-        'queued_at' => '2000-01-02 03:04:05',
-        'processing_at' => '2000-01-02 03:04:10',
-        'released_at' => null,
-        'processed_at' => null,
-        'failed_at' => '2000-01-02 03:04:10',
-        'user_id' => null,
-        'job' => 'MyJobThatManuallyFails',
-        'job_uuid' => 'e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd',
-        'attempt' => 1,
-        'connection' => 'database',
-        'queue' => 'default',
-        'duration' => 100,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(4);
+    expect($entries[1])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processing',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[2])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'failed',
+        'key' => 'database:default',
+        'value' => null,
+    ]);
+    expect($entries[3])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'processed', // TODO: Should this actually be captured when manually failed?
+        'key' => 'database:default',
+        'value' => null,
     ]);
 });
 
@@ -938,7 +689,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-    expect(Pulse::ignore(fn () => DB::table('pulse_jobs')->count()))->toBe(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->count()))->toBe(0);
 
     /*
      * Work the job for the second time.
@@ -946,7 +697,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-    expect(Pulse::ignore(fn () => DB::table('pulse_jobs')->count()))->toBe(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->count()))->toBe(0);
 });
 
 it('can sample', function () {
@@ -1024,25 +775,19 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     Bus::dispatchToQueue(new MyJobThatAlwaysFails);
     Pulse::store(app(Ingest::class));
 
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
     expect(Queue::size())->toBe(2);
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0])->toHaveProperties([
-        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
-        'attempt' => 1,
-    ]);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
 
     Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-    $jobs = Pulse::ignore(fn () => DB::table('pulse_jobs')->get());
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0])->toHaveProperties([
-        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
-        'attempt' => 1,
-    ]);
-    expect($jobs[1])->toHaveProperties([
-        'job_uuid' => '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3',
-        'attempt' => 2,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['processing', 'processed', 'released', 'failed'])->get());
+    expect($entries)->toHaveCount(4);
+    expect($entries->pluck('type')->all())->toBe([
+        'processing',
+        'released',
+        'processing',
+        'failed',
     ]);
 });
 

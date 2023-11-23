@@ -1,9 +1,9 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         :name="match ($this->type) {
-            'request_counts' => 'Top 10 Users Making Requests',
-            'slow_endpoint_counts' => 'Top 10 Users Experiencing Slow Endpoints',
-            'dispatched_job_counts' => 'Top 10 Users Dispatching Jobs',
+            'requests' => 'Top 10 Users Making Requests',
+            'slow_requests' => 'Top 10 Users Experiencing Slow Endpoints',
+            'slow_jobs' => 'Top 10 Users Dispatching Jobs',
             default => 'Application Usage'
         }"
         title="Time: {{ number_format($time) }}ms; Run At: {{ $runAt }};"
@@ -11,9 +11,9 @@
     >
         <x-slot:icon>
             <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {
-                'request_counts' => 'arrow-trending-up',
-                'slow_endpoint_counts' => 'clock',
-                'dispatched_job_counts' => 'scale',
+                'requests' => 'arrow-trending-up',
+                'slow_requests' => 'clock',
+                'slow_jobs' => 'scale',
                 default => 'cursor-arrow-rays'
             }" />
         </x-slot:icon>
@@ -26,13 +26,13 @@
                         wire:change="$dispatch('usage-changed', { usage: $event.target.value })"
                         class="overflow-ellipsis w-full border-0 pl-3 pr-8 py-1 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs sm:text-sm shadow-none focus:ring-0"
                     >
-                        <option value="request_counts">
+                        <option value="requests">
                             making requests
                         </option>
-                        <option value="slow_endpoint_counts">
+                        <option value="slow_requests">
                             experiencing slow endpoints
                         </option>
-                        <option value="dispatched_job_counts">
+                        <option value="slow_jobs">
                             dispatching jobs
                         </option>
                     </select>

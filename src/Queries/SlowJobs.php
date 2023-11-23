@@ -31,21 +31,53 @@ class SlowJobs
     {
         $now = new CarbonImmutable;
 
-        return $this->db->connection()->query()->select([
-            'count',
-            'slowest',
-            'job' => fn (Builder $query) => $query->select('job')
-                ->from('pulse_jobs', as: 'child')
-                ->whereRaw('`child`.`job_hash` = `parent`.`job_hash`')
-                ->limit(1),
-        ])->fromSub(fn (Builder $query) => $query->selectRaw('`job_hash`, MAX(`duration`) as `slowest`, COUNT(*) as `count`')
-            ->from('pulse_jobs')
-            ->where('slow', true)
-            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->groupBy('job_hash')
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / 60) * 60; // TODO: Fix for all periods
+        $oldestBucket = $currentBucket - $interval->totalSeconds + 60; // TODO: fix for all periods
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        return $this->db->connection()->query()
+            ->select('job', $this->db->connection()->raw('max(`slowest`) as `slowest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
+            ->fromSub(fn (Builder $query) => $query
+                // duration tail
+                ->select('key as job', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                ->from('pulse_entries')
+                ->where('type', 'slow_job')
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->groupBy('key')
+                // count tail
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key as job', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('count(*) as `count`'))
+                    ->from('pulse_entries')
+                    ->where('type', 'slow_job')
+                    ->where('timestamp', '>=', $tailStart)
+                    ->where('timestamp', '<=', $tailEnd)
+                    ->groupBy('key')
+                )
+                // duration buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key as job', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                    ->from('pulse_aggregates')
+                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('type', 'slow_job:max')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                )
+                // count buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key as job', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
+                    ->from('pulse_aggregates')
+                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('type', 'slow_job:count')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                ), as: 'child'
+            )
+            ->groupBy('job')
             ->orderByDesc('slowest')
-            ->orderByDesc('count')
-            ->limit(101), as: 'parent')
+            ->limit(101)
             ->get();
     }
 }

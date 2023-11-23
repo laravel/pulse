@@ -18,11 +18,6 @@ class SlowQueries
     use Concerns\Sampling;
 
     /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_slow_queries';
-
-    /**
      * The events to listen for.
      *
      * @var class-string
@@ -54,13 +49,14 @@ class SlowQueries
             return null;
         }
 
-        return new Entry($this->table, [
-            'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
-            'sql' => $event->sql,
-            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : '',
-            'duration' => (int) $event->time,
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
+        // count + slowest (max)
+        return (new Entry(
+            timestamp: (int) $now->subMilliseconds((int) $event->time)->timestamp,
+            type: 'slow_query',
+            key: $event->sql, // TODO: Location
+            //     'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : '',
+            value: (int) $event->time,
+        ))->count()->max();
     }
 
     /**

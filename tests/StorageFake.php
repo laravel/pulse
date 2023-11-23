@@ -18,7 +18,7 @@ class StorageFake implements Storage
     /**
      * Store the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
     public function store(Collection $items): void
     {

@@ -24,11 +24,6 @@ class Exceptions
     use ConfiguresAfterResolving;
 
     /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_exceptions';
-
-    /**
      * Create a new recorder instance.
      */
     public function __construct(
@@ -61,12 +56,13 @@ class Exceptions
             return null;
         }
 
-        return new Entry($this->table, [
-            'date' => $now->toDateTimeString(),
-            'class' => $class,
-            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation($e) : '',
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
+        return (new Entry(
+            timestamp: (int) $now->timestamp,
+            type: 'exception',
+            key: $class, // TODO: location
+            //             'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation($e) : '',
+            value: (int) $now->timestamp,
+        ))->count()->max();
     }
 
     /**

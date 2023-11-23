@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
 
 /**
@@ -32,25 +33,59 @@ class Exceptions
     {
         $now = new CarbonImmutable;
 
-        return $this->db->connection()
-            ->query()
-            ->select([
-                'count',
-                'last_occurrence',
-                'class' => fn (Builder $query) => $query->select('class')
-                    ->from('pulse_exceptions', as: 'child1')
-                    ->whereRaw('`child1`.`class_location_hash` = `parent`.`class_location_hash`')
-                    ->limit(1),
-                'location' => fn (Builder $query) => $query->select('location')
-                    ->from('pulse_exceptions', as: 'child2')
-                    ->whereRaw('`child2`.`class_location_hash` = `parent`.`class_location_hash`')
-                    ->limit(1),
-            ])->fromSub(fn (Builder $query) => $query->selectRaw('`class_location_hash`, MAX(`date`) as `last_occurrence`, COUNT(*) as `count`')
-            ->from('pulse_exceptions')
-            ->where('date', '>', $now->subSeconds((int) $interval->totalSeconds)->toDateTimeString())
-            ->groupBy('class_location_hash')
-            ->orderByDesc($orderBy)
-            ->limit(101), as: 'parent')
-            ->get();
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / 60) * 60; // TODO: Fix for all periods
+        $oldestBucket = $currentBucket - $interval->totalSeconds + 60; // TODO: fix for all periods
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        return $this->db->connection()->query()
+            ->select('key as class', $this->db->connection()->raw('max(`latest`) as `latest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
+            ->fromSub(fn (Builder $query) => $query
+                // latest tail
+                ->select('key', $this->db->connection()->raw('max(`value`) as `latest`'), $this->db->connection()->raw('0 as `count`'))
+                ->from('pulse_entries')
+                ->where('type', 'exception')
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->groupBy('key')
+                // count tail
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('count(*) as `count`'))
+                    ->from('pulse_entries')
+                    ->where('type', 'exception')
+                    ->where('timestamp', '>=', $tailStart)
+                    ->where('timestamp', '<=', $tailEnd)
+                    ->groupBy('key')
+                )
+                // latest buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key', $this->db->connection()->raw('max(`value`) as `latest`'), $this->db->connection()->raw('0 as `count`'))
+                    ->from('pulse_aggregates')
+                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('type', 'exception:max')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                )
+                // count buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
+                    ->from('pulse_aggregates')
+                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('type', 'exception:count')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                ), as: 'child'
+            )
+            ->groupBy('key')
+            ->orderByDesc($orderBy) // TODO: SQL injection?
+            ->limit(101)
+            ->get()
+            ->map(function ($row) {
+                $row->location = Str::afterLast($row->class, '::'); // TODO: Is this a good separator?
+                $row->class = Str::beforeLast($row->class, '::');
+
+                return $row;
+            });
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
@@ -18,20 +17,25 @@ it('includes the card on the dashboard', function () {
 it('renders slow routes', function () {
     Route::get('/users', ['FooController', 'index']);
     Route::get('/users/{user}', fn () => 'users');
-    Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 500, 'slow' => false],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 1234, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 2468, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users/{user}', 'duration' => 1234, 'slow' => true],
+    $timestamp = now()->timestamp;
+    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 500],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 1234],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 2468],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users/{user}', 'value' => 1234],
     ]));
-    Carbon::setTestNow('2000-01-02 03:04:15');
+    $currentBucket = (int) floor($timestamp / 60) * 60;
+    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:count', 'key' => 'GET /users', 'value' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:count', 'key' => 'GET /users/{user}', 'value' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users', 'value' => 1000],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users/{user}', 'value' => 1000],
+    ]));
 
     Livewire::test(SlowRoutes::class, ['lazy' => false])
-        ->assertViewHas('time')
-        ->assertViewHas('runAt', '2000-01-02 03:04:15')
         ->assertViewHas('slowRoutes', collect([
-            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 2, 'slowest' => 2468],
-            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 1, 'slowest' => 1234],
+            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 5, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234],
         ]));
 });
 
@@ -40,16 +44,22 @@ it('handles routes with domains', function () {
         Route::get('users', ['AccountUserController', 'index']);
     });
     Route::get('users', ['GlobalUserController', 'index']);
-
-    Pulse::ignore(fn () => DB::table('pulse_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET /users', 'duration' => 2468, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'route' => 'GET {account}.example.com/users', 'duration' => 1234, 'slow' => true],
+    $timestamp = now()->timestamp;
+    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 2468],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET {account}.example.com/users', 'value' => 1234],
     ]));
-    Carbon::setTestNow('2000-01-02 03:04:15');
+    $currentBucket = (int) floor($timestamp / 60) * 60;
+    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:count', 'key' => 'GET /users', 'value' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:count', 'key' => 'GET {account}.example.com/users', 'value' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users', 'value' => 1000],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET {account}.example.com/users', 'value' => 1000],
+    ]));
 
     Livewire::test(SlowRoutes::class, ['lazy' => false])
         ->assertViewHas('slowRoutes', collect([
-            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'GlobalUserController@index', 'count' => 1, 'slowest' => 2468],
-            (object) ['method' => 'GET', 'uri' => '{account}.example.com/users', 'action' => 'AccountUserController@index', 'count' => 1, 'slowest' => 1234],
+            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'GlobalUserController@index', 'count' => 3, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => '{account}.example.com/users', 'action' => 'AccountUserController@index', 'count' => 2, 'slowest' => 1234],
         ]));
 });

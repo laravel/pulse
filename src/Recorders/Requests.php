@@ -8,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
@@ -22,11 +23,6 @@ class Requests
     use Concerns\Ignores;
     use Concerns\Sampling;
     use ConfiguresAfterResolving;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_requests';
 
     /**
      * Create a new recorder instance.
@@ -52,8 +48,10 @@ class Requests
 
     /**
      * Record the request.
+     *
+     * @return ?list<\Laravel\Pulse\Entry>
      */
-    public function record(Carbon $startedAt, Request $request, Response $response): ?Entry
+    public function record(Carbon $startedAt, Request $request, Response $response): ?array
     {
         if (! ($route = $request->route()) instanceof Route) {
             return null;
@@ -75,12 +73,44 @@ class Requests
             return null;
         }
 
-        return new Entry($this->table, [
-            'date' => $startedAt->toDateTimeString(),
-            'route' => $request->method().' '.$path.($via ? " ($via)" : ''),
-            'duration' => $duration = $startedAt->diffInMilliseconds(),
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
-        ]);
+        // TODO: Separate requests and slow requests so they can be sampled independently.
+
+        $duration = $startedAt->diffInMilliseconds();
+        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
+
+        $entries = [];
+
+        // TODO: Fix for users that logout during the request.
+        if (Auth::check()) {
+            $entries[] = (new Entry(
+                timestamp: (int) $startedAt->timestamp,
+                type: 'user_request',
+                key: $this->pulse->authenticatedUserIdResolver(),
+            ))->count();
+        }
+
+        if ($slow) {
+            $entries[] = (new Entry(
+                timestamp: (int) $startedAt->timestamp,
+                type: 'slow_request',
+                key: $request->method().' '.$path.($via ? " ($via)" : ''),
+                value: $duration
+            ))->count()->max();
+
+            // TODO: Fix for users that logout during the request.
+            if (Auth::check()) {
+                $entries[] = (new Entry(
+                    timestamp: (int) $startedAt->timestamp,
+                    type: 'slow_user_request',
+                    key: $this->pulse->authenticatedUserIdResolver(),
+                ))->count();
+            }
+        }
+
+        if (count($entries) === 0) {
+            return null;
+        }
+
+        return $entries;
     }
 }

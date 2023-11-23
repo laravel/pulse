@@ -39,7 +39,7 @@
             }"
             :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']"
         >
-            @if ($allCacheInteractions->count === 0)
+            @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
                 <x-pulse::no-results />
             @else
                 <div class="grid grid-cols-3 gap-3 text-center">
@@ -58,9 +58,9 @@
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             @if ($config['sample_rate'] < 1)
-                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}">~{{ number_format(($allCacheInteractions->count - $allCacheInteractions->hits) * (1 / $config['sample_rate'])) }}</span>
+                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->misses) }}">~{{ number_format(($allCacheInteractions->misses) * (1 / $config['sample_rate'])) }}</span>
                             @else
-                                {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
+                                {{ number_format($allCacheInteractions->misses) }}
                             @endif
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
@@ -69,7 +69,7 @@
                     </div>
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
+                            {{ round($allCacheInteractions->misses * 100, 2).'%' }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Hit Rate
@@ -110,13 +110,13 @@
                                     </x-pulse::td>
                                     <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
                                         @if ($config['sample_rate'] < 1)
-                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->count - $interaction->hits) }}">~{{ number_format(($interaction->count - $interaction->hits) * (1 / $config['sample_rate'])) }}</span>
+                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->misses) }}">~{{ number_format($interaction->misses * (1 / $config['sample_rate'])) }}</span>
                                         @else
-                                            {{ number_format($interaction->count - $interaction->hits) }}
+                                            {{ number_format($interaction->misses) }}
                                         @endif
                                     </x-pulse::td>
                                     <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
-                                        {{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}
+                                        {{ round($interaction->misses * 100, 2).'%' }}
                                     </x-pulse::td>
                                 </tr>
                             @endforeach

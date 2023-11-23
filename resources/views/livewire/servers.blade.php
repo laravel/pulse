@@ -38,8 +38,8 @@ $rows = ! empty($rows) ? $rows : 1;
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Memory</div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Storage</div>
-            @foreach ($servers as $server)
-                <div wire:key="{{ $server->name }}-indicator" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''" title="{{ $server->updated_at->fromNow() }}">
+            @foreach ($servers as $slug => $server)
+                <div wire:key="{{ $slug }}-indicator" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
                         <div class="w-5 flex justify-center mr-1">
                             <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>
@@ -48,16 +48,16 @@ $rows = ! empty($rows) ? $rows : 1;
                         <x-pulse::icons.signal-slash class="w-5 h-5 stroke-red-500 mr-1" />
                     @endif
                 </div>
-                <div wire:key="{{ $server->name }}-name" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $slug }}-name" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <x-pulse::icons.server class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400" />
                     <span class="text-base font-bold text-gray-600 dark:text-gray-300" title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};">{{ $server->name }}</span>
                 </div>
-                <div wire:key="{{ $server->name }}-cpu" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $slug }}-cpu" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div class="text-xl font-bold text-gray-700 dark:text-gray-200 w-14 whitespace-nowrap tabular-nums">
-                        {{ $server->cpu_percent }}%
+                        {{ $server->cpu_current }}%
                     </div>
                 </div>
-                <div wire:key="{{ $server->name }}-cpu-graph" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $slug }}-cpu-graph" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
@@ -68,14 +68,14 @@ $rows = ! empty($rows) ? $rows : 1;
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->pluck('date')),
+                                            labels: @js($server->cpu->keys()),
                                             datasets: [
                                                 {
                                                     label: 'CPU Percent',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
                                                     borderCapStyle: 'round',
-                                                    data: @js(collect($server->readings)->pluck('cpu_percent')),
+                                                    data: @js($server->cpu->values()),
                                                     pointHitRadius: 10,
                                                     pointStyle: false,
                                                     tension: 0.2,
@@ -130,14 +130,14 @@ $rows = ! empty($rows) ? $rows : 1;
                                         return
                                     }
 
-                                    if (servers['{{ $server->slug }}'] === undefined && chart) {
+                                    if (servers['{{ $slug }}'] === undefined && chart) {
                                         chart.destroy()
                                         chart = undefined
                                         return
                                     }
 
-                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
-                                    chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.cpu_percent)
+                                    chart.data.labels = Object.keys(servers['{{ $slug }}'].cpu)
+                                    chart.data.datasets[0].data = Object.values(servers['{{ $slug }}'].cpu)
                                     chart.update()
                                 })
                             }
@@ -146,17 +146,17 @@ $rows = ! empty($rows) ? $rows : 1;
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div wire:key="{{ $server->name }}-memory" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $slug }}-memory" class="flex items-center {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div class="w-36 flex-shrink-0 whitespace-nowrap tabular-nums">
                         <span class="text-xl font-bold text-gray-700 dark:text-gray-200">
-                            {{ $friendlySize($server->memory_used, 1) }}
+                            {{ $friendlySize($server->memory_current, 1) }}
                         </span>
                         <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
                             / {{ $friendlySize($server->memory_total, 1) }}
                         </span>
                     </div>
                 </div>
-                <div wire:key="{{ $server->name }}-memory-graph" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
+                <div wire:key="{{ $slug }}-memory-graph" class="flex items-center pr-8 xl:pr-12 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}" :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''">
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
@@ -167,14 +167,14 @@ $rows = ! empty($rows) ? $rows : 1;
                                     {
                                         type: 'line',
                                         data: {
-                                            labels: @js(collect($server->readings)->pluck('date')),
+                                            labels: @js($server->memory->keys()),
                                             datasets: [
                                                 {
                                                     label: 'Memory Used',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
                                                     borderCapStyle: 'round',
-                                                    data: @js(collect($server->readings)->pluck('memory_used')),
+                                                    data: @js($server->memory->values()),
                                                     pointHitRadius: 10,
                                                     pointStyle: false,
                                                     tension: 0.2,
@@ -229,14 +229,14 @@ $rows = ! empty($rows) ? $rows : 1;
                                         return
                                     }
 
-                                    if (servers['{{ $server->slug }}'] === undefined && chart) {
+                                    if (servers['{{ $slug }}'] === undefined && chart) {
                                         chart.destroy()
                                         chart = undefined
                                         return
                                     }
 
-                                    chart.data.labels = servers['{{ $server->slug }}'].readings.map(reading => reading.date)
-                                    chart.data.datasets[0].data = servers['{{ $server->slug }}'].readings.map(reading => reading.memory_used)
+                                    chart.data.labels = Object.keys(servers['{{ $slug }}'].memory)
+                                    chart.data.datasets[0].data = Object.values(servers['{{ $slug }}'].memory)
                                     chart.update()
                                 })
                             }
@@ -245,7 +245,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div wire:key="{{ $server->name }}-storage" class="flex items-center gap-8 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                <div wire:key="{{ $slug }}-storage" class="flex items-center gap-8 {{ count($servers) > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
                         <div class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
                             <div class="whitespace-nowrap tabular-nums">
@@ -301,7 +301,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                         Livewire.on('servers-chart-update', ({ servers }) => {
                                             // TODO: Figure out how to destroy the Alpine instance and remove this listener.
 
-                                            const storage = servers['{{ $server->slug }}']?.storage?.find(storage => storage.directory === '{{ $storage->directory }}')
+                                            const storage = servers['{{ $slug }}']?.storage?.find(storage => storage.directory === '{{ $storage->directory }}')
 
                                             if (chart === undefined) {
                                                 return

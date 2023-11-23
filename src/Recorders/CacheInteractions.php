@@ -20,11 +20,6 @@ class CacheInteractions implements Grouping
     use Concerns\Sampling;
 
     /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_cache_interactions';
-
-    /**
      * The events to listen for.
      *
      * @var list<class-string>
@@ -55,12 +50,11 @@ class CacheInteractions implements Grouping
             return null;
         }
 
-        return new Entry($this->table, [
-            'date' => $now->toDateTimeString(),
-            'hit' => $event instanceof CacheHit,
-            'key' => $this->group($event->key),
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
+        return (new Entry(
+            timestamp: (int) $now->timestamp,
+            type: $event instanceof CacheHit ? 'cache_hit' : 'cache_miss',
+            key: $this->group($event->key),
+        ))->count();
     }
 
     /**

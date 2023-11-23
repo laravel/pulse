@@ -11,7 +11,6 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Update;
 
 /**
  * @internal
@@ -20,11 +19,6 @@ class Jobs
 {
     use Concerns\Ignores;
     use Concerns\Sampling;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_jobs';
 
     /**
      * The time the last job started processing.
@@ -57,9 +51,9 @@ class Jobs
     /**
      * Record the job.
      *
-     * @return \Laravel\Pulse\Entry|\Laravel\Pulse\Update|list<\Laravel\Pulse\Entry|\Laravel\Pulse\Update>|null
+     * @return \Laravel\Pulse\Entry|list<\Laravel\Pulse\Entry>|null
      */
-    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|Update|array|null
+    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|array|null
     {
         if ($event->connectionName === 'sync') {
             return null;
@@ -75,95 +69,52 @@ class Jobs
                 return null;
             }
 
-            return new Entry($this->table, [
-                'date' => $now->toDateTimeString(),
-                'queued_at' => $now->toDateTimeString(),
-                'job' => match (true) {
-                    is_string($event->job) => $event->job,
-                    method_exists($event->job, 'displayName') => $event->job->displayName(),
-                    default => $event->job::class,
-                },
-                'job_uuid' => $event->payload()['uuid'],
-                'attempt' => 1,
-                'connection' => $event->connectionName,
-                'queue' => $event->job->queue ?? 'default',
-                'user_id' => $this->pulse->authenticatedUserIdResolver(),
-            ]);
+            return (new Entry(
+                timestamp: (int) $now->timestamp,
+                type: 'queued', // TODO: prefix with 'queued:' or something?
+                key: $event->connectionName.':'.($event->job->queue ?? 'default')
+            ))->count();
         }
 
         if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) ||
             $this->shouldIgnore($event->job->resolveName())) {
+
             return null;
         }
 
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
 
-            // TODO: Allow this to be ingested immediately?
-
-            return new Update(
-                $this->table,
-                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
-                [
-                    'date' => $this->lastJobStartedProcessingAt->toDateTimeString(),
-                    'processing_at' => $this->lastJobStartedProcessingAt->toDateTimeString(),
-                ],
-            );
+            return (new Entry(
+                timestamp: (int) $now->timestamp,
+                type: 'processing',
+                key: $event->job->getConnectionName().':'.$event->job->getQueue()
+            ))->count();
         }
 
-        if ($event instanceof JobReleasedAfterException) {
-            return tap([
-                new Update(
-                    $this->table,
-                    ['job_uuid' => $event->job->uuid(), 'attempt' => $event->job->attempts()],
-                    [
-                        'date' => $now->toDateTimeString(),
-                        'released_at' => $now->toDateTimeString(),
-                        'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
-                        'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
-                    ],
-                ),
-                new Entry($this->table, [
-                    'date' => $now->toDateTimeString(),
-                    'queued_at' => $now->toDateTimeString(),
-                    'job' => $event->job->resolveName(),
-                    'job_uuid' => $event->job->uuid(),
-                    'attempt' => $event->job->attempts() + 1,
-                    'connection' => $event->job->getConnectionName(),
-                    'queue' => $event->job->getQueue(),
-                    'user_id' => null,
-                ]),
-            ], fn () => $this->lastJobStartedProcessingAt = null);
+        if ($this->lastJobStartedProcessingAt === null) {
+            return null;
         }
 
-        if ($event instanceof JobProcessed) {
-            if ($this->lastJobStartedProcessingAt === null) {
-                return null;
-            }
+        $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
+        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
 
-            return tap(new Update(
-                $this->table,
-                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
-                [
-                    'date' => $now->toDateTimeString(),
-                    'processed_at' => $now->toDateTimeString(),
-                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now),
-                    'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
-                ],
-            ), fn () => $this->lastJobStartedProcessingAt = null);
-        }
-
-        if ($event instanceof JobFailed) {
-            return tap(new Update(
-                $this->table,
-                ['job_uuid' => (string) $event->job->uuid(), 'attempt' => $event->job->attempts()],
-                [
-                    'date' => $now->toDateTimeString(),
-                    'failed_at' => $now->toDateTimeString(),
-                    'duration' => $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now), // @phpstan-ignore method.nonObject
-                    'slow' => $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold'),
-                ],
-            ), fn () => $this->lastJobStartedProcessingAt = null);
-        }
+        return array_values(array_filter([
+            (new Entry(
+                timestamp: (int) $now->timestamp,
+                type: match (true) {
+                    $event instanceof JobReleasedAfterException => 'released',
+                    $event instanceof JobFailed => 'failed',
+                    $event instanceof JobProcessed => 'processed',
+                },
+                key: $event->job->getConnectionName().':'.$event->job->getQueue(),
+            ))->count(),
+            $slow ? (new Entry(
+                timestamp: (int) $now->timestamp,
+                type: 'slow_job',
+                key: $event->job->resolveName(),
+                value: $duration,
+            ))->count()->max() : null,
+        ]));
     }
 }

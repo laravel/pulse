@@ -5,11 +5,10 @@ namespace Laravel\Pulse\Storage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
-use Laravel\Pulse\Update;
 
 class Database implements Storage
 {
@@ -26,45 +25,50 @@ class Database implements Storage
     /**
      * Store the entries and updates.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      */
-    public function store(Collection $items): void
+    public function store(Collection $entries): void
     {
-        if ($items->isEmpty()) {
+        if ($entries->isEmpty()) {
             return;
         }
 
-        [$inserts, $updates] = $items->partition(fn (Entry|Update $entry) => $entry instanceof Entry);
+        // TODO: Transactions!
 
-        $this->db->connection()->transaction(function () use ($inserts, $updates) {
-            $inserts->groupBy('table')
-                ->each(fn (Collection $rows, string $table) => $rows->chunk($this->config->get('pulse.storage.database.chunk'))
-                    ->map(fn (Collection $inserts) => $inserts->pluck('attributes')->all())
-                    ->each($this->db->connection()->table($table)->insert(...)));
+        $entries
+            ->chunk($this->config->get('pulse.storage.database.chunk'))
+            ->each(fn ($chunk) => $this->db->connection()
+                ->table('pulse_entries')
+                ->insert($chunk->map->attributes()->toArray()) // @phpstan-ignore method.notFound
+            );
 
-            $updates->each(function (Update $update) {
-                if (is_array($update->attributes)) {
-                    $this->db->connection()
-                        ->table($update->table)
-                        ->where($update->conditions)
-                        ->update($update->attributes);
-                } else {
-                    $existing = $this->db->connection()
-                        ->table($update->table)
-                        ->where($update->conditions)
-                        ->first();
+        $periods = collect([
+            Interval::hour()->totalSeconds / 60,
+            Interval::hours(6)->totalSeconds / 60,
+            Interval::hours(24)->totalSeconds / 60,
+            Interval::days(7)->totalSeconds / 60,
+        ]);
 
-                    if ($existing === null) {
-                        return;
-                    }
+        $entries->filter->isCount() // @phpstan-ignore method.notFound
+            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
+            ->each(fn ($chunk) => $this->upsertCount(
+                $periods->flatMap(fn ($period) => $chunk->map->countAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
+                'pulse_aggregates'
+            ));
 
-                    $this->db->connection()
-                        ->table($update->table)
-                        ->where($update->conditions)
-                        ->update(($update->attributes)((array) $existing));
-                }
-            });
-        });
+        $entries->filter->isMax() // @phpstan-ignore method.notFound
+            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
+            ->each(fn ($chunk) => $this->upsertMax(
+                $periods->flatMap(fn ($period) => $chunk->map->maxAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
+                'pulse_aggregates'
+            ));
+
+        $entries->filter->isAvg() // @phpstan-ignore method.notFound
+            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
+            ->each(fn ($chunk) => $this->upsertAvg(
+                $periods->flatMap(fn ($period) => $chunk->map->avgAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
+                'pulse_aggregates'
+            ));
     }
 
     /**
@@ -90,6 +94,63 @@ class Database implements Storage
         $tables->each(fn (string $table) => $this->db->connection()
             ->table($table)
             ->truncate());
+    }
+
+    /**
+     * Insert new records or update the existing ones and increment the count.
+     *
+     * @param  list<\Laravel\Pulse\Entry>  $values
+     */
+    protected function upsertCount(array $values, string $table, string $valueColumn = 'value'): bool
+    {
+        $grammar = $this->db->connection()->getQueryGrammar();
+
+        $sql = $grammar->compileInsert(
+            $this->db->connection()->table($table),
+            $values
+        );
+
+        $sql .= sprintf(' on duplicate key update %1$s = %1$s + values(%1$s)', $grammar->wrap($valueColumn));
+
+        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
+    }
+
+    /**
+     * Insert new records or update the existing ones and the maximum.
+     *
+     * @param  list<\Laravel\Pulse\Entry>  $values
+     */
+    protected function upsertMax(array $values, string $table, string $valueColumn = 'value'): bool
+    {
+        $grammar = $this->db->connection()->getQueryGrammar();
+
+        $sql = $grammar->compileInsert(
+            $this->db->connection()->table($table),
+            $values
+        );
+
+        $sql .= sprintf(' on duplicate key update %1$s = greatest(%1$s, values(%1$s))', $grammar->wrap($valueColumn));
+
+        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
+    }
+
+    /**
+     * Insert new records or update the existing ones and the average.
+     *
+     * @param  list<\Laravel\Pulse\Entry>  $values
+     */
+    protected function upsertAvg(array $values, string $table, string $valueColumn = 'value', string $countColumn = 'count'): bool
+    {
+        $grammar = $this->db->connection()->getQueryGrammar();
+
+        $sql = $grammar->compileInsert(
+            $this->db->connection()->table($table),
+            $values
+        );
+
+        $sql .= sprintf(' on duplicate key update %1$s = (%1$s * %2$s + values(%1$s)) / (%2$s + 1), %2$s = %2$s + 1', $grammar->wrap($valueColumn), $grammar->wrap($countColumn));
+
+        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
     }
 
     /**

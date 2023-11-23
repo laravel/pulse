@@ -136,9 +136,9 @@ The `<livewire:pulse.usage />` card displays the top 10 users making requests to
 If you wish to view all usage metrics on screen at the same time, you may include the card multiple times, specifying the `type` attribute:
 
 ```blade
-<livewire:pulse.usage type="request_counts" />
-<livewire:pulse.usage type="slow_endpoint_counts" />
-<livewire:pulse.usage type="dispatched_job_counts" />
+<livewire:pulse.usage type="requests" />
+<livewire:pulse.usage type="slow_requests" />
+<livewire:pulse.usage type="slow_jobs" />
 ```
 
 See the [requests recorder](#requests-recorder) and [jobs recorder](#jobs-recorder) sections for more information.

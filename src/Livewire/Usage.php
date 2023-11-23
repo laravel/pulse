@@ -19,17 +19,17 @@ class Usage extends Card
     /**
      * The type of usage to show.
      *
-     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'|null
+     * @var 'requests'|'slow_requests'|'slow_jobs'|null
      */
     public ?string $type = null;
 
     /**
      * The usage type.
      *
-     * @var 'request_counts'|'slow_endpoint_counts'|'dispatched_job_counts'
+     * @var 'requests'|'slow_requests'|'slow_jobs'
      */
     #[Url]
-    public string $usage = 'request_counts';
+    public string $usage = 'requests';
 
     /**
      * Render the component.
@@ -38,7 +38,10 @@ class Usage extends Card
     {
         $type = $this->type ?? $this->usage;
 
-        [$userRequestCounts, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $type), $type);
+        // [$userRequestCounts, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $type), $type);
+        $userRequestCounts = $query($this->periodAsInterval(), $type);
+        $time = 0;
+        $runAt = 0;
 
         return View::make('pulse::livewire.usage', [
             'time' => $time,
