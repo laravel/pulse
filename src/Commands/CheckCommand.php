@@ -46,13 +46,13 @@ class CheckCommand extends Command
 
         $interval = CarbonInterval::seconds(5);
 
-        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);
+        $lastSnapshotAt = CarbonImmutable::now()->floorSeconds((int) $interval->totalSeconds);
 
         while (true) {
-            $now = new CarbonImmutable();
+            $now = CarbonImmutable::now();
 
             if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
-                Sleep::for(200)->milliseconds();
+                Sleep::for(500)->milliseconds();
 
                 continue;
             }

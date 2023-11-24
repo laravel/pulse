@@ -40,7 +40,7 @@ class WorkCommand extends Command
     ): int {
         $lastRestart = $cache->get('laravel:pulse:restart');
 
-        $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
+        $lastTrimmedStorageAt = CarbonImmutable::now()->startOfMinute();
 
         while (true) {
             $now = CarbonImmutable::now();
@@ -51,7 +51,7 @@ class WorkCommand extends Command
 
             $ingest->store($storage);
 
-            if ($now->subHour()->greaterThan($lastTrimmedStorageAt)) {
+            if ($now->subMinutes(10)->greaterThan($lastTrimmedStorageAt)) {
                 $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
