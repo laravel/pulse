@@ -8,7 +8,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
