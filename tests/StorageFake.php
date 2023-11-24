@@ -16,7 +16,7 @@ class StorageFake implements Storage
     }
 
     /**
-     * Store the entries and updates.
+     * Store the items.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
@@ -34,7 +34,7 @@ class StorageFake implements Storage
     }
 
     /**
-     * Purge the stored entries from the given tables.
+     * Purge the storage.
      *
      * @param  \Illuminate\Support\Collection<int, string>  $tables
      */

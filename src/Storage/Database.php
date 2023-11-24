@@ -23,7 +23,7 @@ class Database implements Storage
     }
 
     /**
-     * Store the entries and updates.
+     * Store the items.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      */
@@ -100,7 +100,7 @@ class Database implements Storage
     }
 
     /**
-     * Purge the stored entries from the given tables.
+     * Purge the storage.
      *
      * @param  \Illuminate\Support\Collection<int, string>  $tables
      */

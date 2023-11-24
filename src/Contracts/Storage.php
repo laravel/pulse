@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 interface Storage
 {
     /**
-     * Store the entries and updates.
+     * Store the items.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
@@ -19,7 +19,7 @@ interface Storage
     public function trim(): void;
 
     /**
-     * Purge the stored entries from the given tables.
+     * Purge the storage.
      *
      * @param  \Illuminate\Support\Collection<int, string>  $tables
      */

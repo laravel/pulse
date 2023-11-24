@@ -29,7 +29,7 @@ class Redis implements Ingest
     }
 
     /**
-     * Ingest the entries and updates.
+     * Ingest the items.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
