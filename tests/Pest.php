@@ -3,6 +3,7 @@
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
@@ -24,8 +25,8 @@ uses(TestCase::class)
     ->beforeEach(function () {
         Model::unguard();
         Http::preventStrayRequests();
-        Pulse::flushEntries();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
+        Gate::define('viewPulse', fn ($user = null) => true);
     })
     ->afterEach(function () {
         if (Pulse::entries()->isNotEmpty()) {

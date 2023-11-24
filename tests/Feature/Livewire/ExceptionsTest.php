@@ -7,8 +7,6 @@ use Laravel\Pulse\Livewire\Exceptions;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
-    Pulse::authorizeUsing(fn () => true);
-
     $this
         ->get('/pulse')
         ->assertSeeLivewire(Exceptions::class);

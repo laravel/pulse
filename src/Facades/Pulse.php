@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse resolveAuthenticatedUserIdUsing(callable $callback)
  * @method static mixed|null withUser(\Illuminate\Contracts\Auth\Authenticatable|string|int|null $user, callable $callback)
  * @method static \Laravel\Pulse\Pulse rememberUser(\Illuminate\Contracts\Auth\Authenticatable $user)
- * @method static \Symfony\Component\HttpFoundation\Response|bool authorize(\Illuminate\Http\Request $request)
- * @method static \Laravel\Pulse\Pulse authorizeUsing(callable $callback)
  * @method static string css()
  * @method static string js()
  * @method static bool runsMigrations()

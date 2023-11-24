@@ -66,13 +66,6 @@ class Pulse
     protected int|string|null $rememberedUserId = null;
 
     /**
-     * The callback that should be used to authorize Pulse users.
-     *
-     * @var ?callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)
-     */
-    protected $authorizeUsing = null;
-
-    /**
      * Indicates if Pulse migrations will be run.
      */
     protected bool $runsMigrations = true;
@@ -374,26 +367,6 @@ class Pulse
     public function rememberUser(Authenticatable $user): self
     {
         $this->rememberedUserId = $user->getAuthIdentifier();
-
-        return $this;
-    }
-
-    /**
-     * Determine if the given request can access the Pulse dashboard.
-     */
-    public function authorize(Request $request): bool|Response
-    {
-        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
-    }
-
-    /**
-     * Set the callback that should be used to authorize Pulse users.
-     *
-     * @param  callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)  $callback
-     */
-    public function authorizeUsing(callable $callback): self
-    {
-        $this->authorizeUsing = $callback;
 
         return $this;
     }

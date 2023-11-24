@@ -2,16 +2,19 @@
 
 namespace Laravel\Pulse\Events;
 
-use Throwable;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 
-class ExceptionReported
+class IsolatedBeat
 {
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public Throwable $exception,
+        public CarbonImmutable $time,
+        public CarbonInterval $interval,
     ) {
         //
     }
 }
+

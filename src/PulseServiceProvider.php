@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -66,6 +67,8 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders')); // @phpstan-ignore offsetAccess.nonOffsetAccessible offsetAccess.nonOffsetAccessible
 
+
+        $this->registerAuthorization();
         $this->registerRoutes();
         $this->listenForEvents();
         $this->registerComponents();
@@ -74,6 +77,15 @@ class PulseServiceProvider extends ServiceProvider
         $this->registerPublishing();
         $this->registerCommands();
     }
+
+    /**
+     * Register the package authorization.
+     */
+    protected function registerAuthorization()
+    {
+        $this->app[Gate::class]->define('viewPulse', fn ($user = null) => $this->app->environment('local'));
+    }
+
 
     /**
      * Register the package routes.

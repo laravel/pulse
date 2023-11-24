@@ -10,8 +10,10 @@ class SharedBeat
     /**
      * Create a new event instance.
      */
-    public function __construct(public CarbonImmutable $time, public CarbonInterval $interval)
-    {
+    public function __construct(
+        public CarbonImmutable $time,
+        public CarbonInterval $interval,
+    ) {
         //
     }
 }

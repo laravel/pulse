@@ -2,13 +2,14 @@
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Cache;
 use Livewire\Livewire;
 
-it('includes the card on the dashboard', function () {
-    Pulse::authorizeUsing(fn () => true);
+use function Pest\Laravel\withoutExceptionHandling;
 
+it('includes the card on the dashboard', function () {
     $this
         ->get('/pulse')
         ->assertSeeLivewire(Cache::class);

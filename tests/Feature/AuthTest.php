@@ -1,9 +1,12 @@
 <?php
 
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Gate;
 use Laravel\Pulse\Pulse;
 
 it('authorizes dashboard access', function ($environment, $status) {
+    Gate::define('viewPulse', fn ($user = null) => $this->app->environment('local'));
+
     $this->app['env'] = $environment;
 
     $this->get('/pulse')->assertStatus($status);
@@ -13,8 +16,8 @@ it('authorizes dashboard access', function ($environment, $status) {
 ]);
 
 it('authorizes dashboard access with a callback', function ($email, $status) {
-    $this->app[Pulse::class]->authorizeUsing(function ($request) {
-        return $request->user()?->email === 'taylor@laravel.com';
+    Gate::define('viewPulse', function ($user) {
+        return $user->email === 'taylor@laravel.com';
     });
 
     $this
@@ -29,7 +32,7 @@ it('authorizes dashboard access with a callback', function ($email, $status) {
 it('requires authentication on livewire requests', function () {
     $authCount = 0;
 
-    $this->app[Pulse::class]->authorizeUsing(function () use (&$authCount) {
+    Gate::define('viewPulse', function ($user = null) use (&$authCount) {
         $authCount++;
 
         return true;
@@ -63,7 +66,7 @@ it('requires authentication on livewire requests', function () {
 });
 
 it('doesnt use pulse middleware on other livewire requests', function () {
-    $this->app[Pulse::class]->authorizeUsing(fn () => false);
+    Gate::define('viewPulse', fn ($user = null) => false);
 
     $this
         ->post('/livewire/update', [
