@@ -24,6 +24,18 @@ class Entry
     }
 
     /**
+     * Create a new Entry instance.
+     */
+    public function make(
+        int $timestamp,
+        string $type,
+        Closure|string $key,
+        ?int $value = null
+    ) {
+        return new static($timestamp, $type, $key, $value);
+    }
+
+    /**
      * Resolve the entry for ingest.
      */
     public function resolve(): self

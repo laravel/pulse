@@ -75,18 +75,18 @@ class SlowRequests
         }
 
         return [
-            (new Entry(
+            Entry::make(
                 timestamp: $startedAt->getTimestamp(),
                 type: 'slow_request',
                 key: $request->method().' '.$path.($via ? " ($via)" : ''),
                 value: $duration,
-            ))->count()->max(),
+            )->count()->max(),
             ...($userId = $this->pulse->resolveAuthenticatedUserId()) ? [
-                (new Entry(
+                Entry::make(
                     timestamp: $startedAt->getTimestamp(),
                     type: 'slow_user_request',
                     key: $userId,
-                ))->count(),
+                )->count(),
             ] : [],
         ];
     }

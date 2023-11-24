@@ -74,10 +74,10 @@ class UserRequests
             return null;
         }
 
-        return (new Entry(
+        return Entry::make(
             timestamp: $startedAt->getTimestamp(),
             type: 'user_request',
             key: $userId,
-        ))->count();
+        )->count();
     }
 }

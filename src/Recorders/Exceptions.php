@@ -56,13 +56,13 @@ class Exceptions
             return null;
         }
 
-        return (new Entry(
+        return Entry::make(
             timestamp: (int) $now->timestamp,
             type: 'exception',
             // TODO: Is this a good separator? Could it collide with something that might appear in a query?
             key: $class.($this->config->get('pulse.recorders.'.self::class.'.location') ? ('::'.$this->getLocation($e)) : ''),
             value: (int) $now->timestamp,
-        ))->count()->max();
+        )->count()->max();
     }
 
     /**

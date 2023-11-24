@@ -71,17 +71,17 @@ class Jobs
             }
 
             return array_values(array_filter([
-                (new Entry(
+                Entry::make(
                     timestamp: (int) $now->timestamp,
                     type: 'queued', // TODO: prefix with 'queued:' or something?
                     key: $event->connectionName.':'.($event->job->queue ?? 'default')
-                ))->count(),
+                )->count(),
                 // TODO: Make this better.
-                Auth::check() ? (new Entry(
+                Auth::check() ? Entry::make(
                     timestamp: (int) $now->timestamp,
                     type: 'user_job', // TODO: prefix with 'queued:' or 'usage'?
                     key: $this->pulse->authenticatedUserIdResolver()
-                ))->count() : null,
+                )->count() : null,
             ]));
         }
 
@@ -94,11 +94,11 @@ class Jobs
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
 
-            return (new Entry(
+            return Entry::make(
                 timestamp: (int) $now->timestamp,
                 type: 'processing',
                 key: $event->job->getConnectionName().':'.$event->job->getQueue()
-            ))->count();
+            )->count();
         }
 
         if ($this->lastJobStartedProcessingAt === null) {
@@ -109,7 +109,7 @@ class Jobs
         $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
 
         return array_values(array_filter([
-            (new Entry(
+            Entry::make(
                 timestamp: (int) $now->timestamp,
                 type: match (true) {
                     $event instanceof JobReleasedAfterException => 'released',
@@ -117,13 +117,13 @@ class Jobs
                     $event instanceof JobProcessed => 'processed',
                 },
                 key: $event->job->getConnectionName().':'.$event->job->getQueue(),
-            ))->count(),
-            $slow ? (new Entry(
+            )->count(),
+            $slow ? Entry::make(
                 timestamp: (int) $now->timestamp,
                 type: 'slow_job',
                 key: $event->job->resolveName(),
                 value: $duration,
-            ))->count()->max() : null,
+            )->count()->max() : null,
         ]));
     }
 }

@@ -50,11 +50,11 @@ class CacheInteractions implements Grouping
             return null;
         }
 
-        return (new Entry(
+        return Entry::make(
             timestamp: (int) $now->timestamp,
             type: $event instanceof CacheHit ? 'cache_hit' : 'cache_miss',
             key: $this->group($event->key),
-        ))->count();
+        )->count();
     }
 
     /**

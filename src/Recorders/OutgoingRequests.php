@@ -60,12 +60,12 @@ class OutgoingRequests implements Grouping // TODO: Rename to SlowOutgoingReques
         $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
 
         if ($slow) {
-            return (new Entry(
+            return Entry::make(
                 timestamp: (int) $startedAt->timestamp,
                 type: 'slow_outgoing_request',
                 key: $this->group($request->getMethod().' '.$request->getUri()),
                 value: $duration
-            ))->count()->max();
+            )->count()->max();
         }
 
         return null;

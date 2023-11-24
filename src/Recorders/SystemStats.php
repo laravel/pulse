@@ -80,19 +80,19 @@ class SystemStats
         ])]);
 
         return [
-            (new Entry(
+            Entry::make(
                 timestamp: (int) $event->time->timestamp,
                 type: 'cpu',
                 key: $slug,
                 value: $cpu,
-            ))->avg(),
+            )->avg(),
 
-            (new Entry(
+            Entry::make(
                 timestamp: (int) $event->time->timestamp,
                 type: 'memory',
                 key: $slug,
                 value: $memoryUsed,
-            ))->avg(),
+            )->avg(),
         ];
     }
 }
