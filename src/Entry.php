@@ -26,7 +26,7 @@ class Entry
     /**
      * Create a new Entry instance.
      */
-    public function make(
+    public static function make(
         int $timestamp,
         string $type,
         Closure|string $key,
