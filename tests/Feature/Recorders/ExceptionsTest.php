@@ -23,25 +23,25 @@ it('ingests exceptions', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'exception',
-        'key' => 'RuntimeException', // TODO: __FILE__.':'.$exception->getLine(),
         'value' => now()->timestamp,
     ]);
+    expect($entries[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
         'type' => 'exception:count',
-        'key' => 'RuntimeException',
         'value' => 1,
     ]);
+    expect($aggregates[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
         'type' => 'exception:max',
-        'key' => 'RuntimeException',
         'value' => now()->timestamp,
     ]);
+    expect($aggregates[1]->key)->toStartWith('RuntimeException::'.__FILE__.':');
 });
 
 it('can disable capturing the location', function () {
@@ -73,9 +73,9 @@ it('can manually report exceptions', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'exception',
-        'key' => 'MyReportedException',
         'value' => now()->timestamp,
     ]);
+    expect($entries[0]->key)->toStartWith('MyReportedException::'.__FILE__.':');
 });
 
 it('can ignore exceptions', function () {

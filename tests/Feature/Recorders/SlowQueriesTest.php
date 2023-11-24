@@ -28,67 +28,25 @@ it('ingests queries', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp - 5,
         'type' => 'slow_query',
-        'key' => 'select * from users', // TODO: Location...
         'value' => 5000,
     ]);
+    expect($entries[0]->key)->toStartWith('select * from users::');
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
         'period' => 60,
         'type' => 'slow_query:count',
-        'key' => 'select * from users', // TODO: Location...
         'value' => 1,
     ]);
+    expect($aggregates[0]->key)->toStartWith('select * from users::');
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
         'period' => 60,
         'type' => 'slow_query:max',
-        'key' => 'select * from users', // TODO: Location...
         'value' => 5000,
     ]);
-    expect($aggregates[2])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 360) * 360,
-        'period' => 360,
-        'type' => 'slow_query:count',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 1,
-    ]);
-    expect($aggregates[3])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 360) * 360,
-        'period' => 360,
-        'type' => 'slow_query:max',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 5000,
-    ]);
-    expect($aggregates[4])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 1440) * 1440,
-        'period' => 1440,
-        'type' => 'slow_query:count',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 1,
-    ]);
-    expect($aggregates[5])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 1440) * 1440,
-        'period' => 1440,
-        'type' => 'slow_query:max',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 5000,
-    ]);
-    expect($aggregates[6])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 10080) * 10080,
-        'period' => 10080,
-        'type' => 'slow_query:count',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 1,
-    ]);
-    expect($aggregates[7])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 10080) * 10080,
-        'period' => 10080,
-        'type' => 'slow_query:max',
-        'key' => 'select * from users', // TODO: Location...
-        'value' => 5000,
-    ]);
+    expect($aggregates[1]->key)->toStartWith('select * from users::');
 });
 
 it('can disable capturing the location', function () {

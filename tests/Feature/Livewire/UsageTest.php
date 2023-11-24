@@ -44,8 +44,8 @@ it('renders top 10 users making requests', function (string $query, string $type
         ]));
 })->with([
     ['requests', 'user_request'],
-    ['slow_requests', 'user_slow_request'],
-    ['slow_jobs', 'user_slow_job'],
+    ['slow_requests', 'slow_user_request'],
+    ['jobs', 'user_job'],
 ]);
 
 class User extends AuthUser
