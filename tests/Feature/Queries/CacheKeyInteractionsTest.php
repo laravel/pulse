@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\CarbonInterval;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -8,16 +9,7 @@ use Laravel\Pulse\Queries\CacheKeyInteractions;
 
 it('can get the data', function () {
     $query = App::make(CacheKeyInteractions::class);
-
-    // current: 16:09:22
-    // full window: 15:09:23 - 16:09:22
-    // buckets: 15:10:00 - 16:09:00
-    // tail: 15:09:23 - 15:09:59
-
-    while (now()->second >= 58 || now()->second === 0) {
-        sleep(1);
-    }
-
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 59, 'type' => 'cache_hit', 'key' => 'users:{user}'],
@@ -101,7 +93,7 @@ it('can get the data', function () {
 
 it('limits to 101 records', function () {
     $query = App::make(CacheKeyInteractions::class);
-
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     for ($i = 0; $i < 200; $i++) {
         DB::table('pulse_aggregates')->insert([

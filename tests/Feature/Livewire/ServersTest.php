@@ -16,6 +16,7 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders server statistics', function () {
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
         ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'cpu:avg', 'key' => 'web-1', 'value' => 12],

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
@@ -17,6 +18,7 @@ it('includes the card on the dashboard', function () {
 it('renders slow routes', function () {
     Route::get('/users', ['FooController', 'index']);
     Route::get('/users/{user}', fn () => 'users');
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 500],
@@ -44,6 +46,7 @@ it('handles routes with domains', function () {
         Route::get('users', ['AccountUserController', 'index']);
     });
     Route::get('users', ['GlobalUserController', 'index']);
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_request', 'key' => 'GET /users', 'value' => 2468],

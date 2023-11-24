@@ -15,6 +15,7 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders queue statistics', function () {
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
         ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'queued:count', 'key' => 'database:default', 'value' => 4],

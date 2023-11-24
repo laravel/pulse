@@ -3,6 +3,7 @@
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Usage;
@@ -19,6 +20,7 @@ it('includes the card on the dashboard', function () {
 it('renders top 10 users making requests', function (string $query, string $type) {
     $users = User::factory(3)->create();
     Pulse::resolveUsersUsing(fn () => $users);
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id],

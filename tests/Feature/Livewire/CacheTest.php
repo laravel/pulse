@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Cache;
@@ -14,6 +15,7 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders cache statistics', function () {
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_hit', 'key' => 'foo'],
