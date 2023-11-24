@@ -49,12 +49,11 @@ class SlowQueries
             return null;
         }
 
-        // count + slowest (max)
         return (new Entry(
             timestamp: (int) $now->subMilliseconds((int) $event->time)->timestamp,
             type: 'slow_query',
-            key: $event->sql, // TODO: Location
-            //     'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : '',
+            // TODO: Is this a good separator? Could it collide with something that might appear in a query?
+            key: $event->sql.($this->config->get('pulse.recorders.'.self::class.'.location') ? ('::'.$this->getLocation()) : ''),
             value: (int) $event->time,
         ))->count()->max();
     }

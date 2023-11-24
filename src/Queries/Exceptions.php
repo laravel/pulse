@@ -82,8 +82,10 @@ class Exceptions
             ->limit(101)
             ->get()
             ->map(function ($row) {
-                $row->location = Str::afterLast($row->class, '::'); // TODO: Is this a good separator?
-                $row->class = Str::beforeLast($row->class, '::');
+                if (str_contains($row->class, '::')) {
+                    $row->location = Str::afterLast($row->class, '::');
+                    $row->class = Str::beforeLast($row->class, '::');
+                }
 
                 return $row;
             });

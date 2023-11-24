@@ -81,8 +81,10 @@ class SlowQueries
             ->limit(101)
             ->get()
             ->map(function ($row) {
-                $row->location = Str::afterLast($row->sql, '::'); // TODO: Is this a safe separator?
-                $row->sql = Str::beforeLast($row->sql, '::');
+                if (str_contains($row->sql, '::')) {
+                    $row->location = Str::afterLast($row->sql, '::');
+                    $row->sql = Str::beforeLast($row->sql, '::');
+                }
 
                 return $row;
             });
