@@ -15,7 +15,7 @@ it('includes the card on the dashboard', function () {
         ->assertSeeLivewire(SlowRoutes::class);
 });
 
-it('renders slow routes', function () {
+it('renders slow requests', function () {
     Route::get('/users', ['FooController', 'index']);
     Route::get('/users/{user}', fn () => 'users');
     Carbon::setTestNow(now()->setSeconds(30));

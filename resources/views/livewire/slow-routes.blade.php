@@ -1,6 +1,6 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
-        name="Slow Routes"
+        name="Slow Requests"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
         details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
     >

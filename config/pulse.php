@@ -134,6 +134,7 @@ return [
             'ignore' => [
                 '/^laravel:pulse:/', // Internal Pulse keys...
                 '/^illuminate:/', // Internal Laravel keys...
+                '/^telescope:/', // Internal Telescope keys...
                 '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze / Jetstream authentication rate limiting...
                 '/^[a-zA-Z0-9]{40}$/', // Session IDs...
             ],
@@ -174,10 +175,18 @@ return [
             ],
         ],
 
-        Recorders\Requests::class => [
-            'enabled' => env('PULSE_REQUESTS_ENABLED', true),
-            'sample_rate' => env('PULSE_REQUESTS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_ENDPOINT_THRESHOLD', 1000),
+        Recorders\UserRequests::class => [
+            'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
+            'ignore' => [
+                '#^/pulse$#', // Pulse dashboard...
+            ],
+        ],
+
+        Recorders\SlowRequests::class => [
+            'enabled' => env('PULSE_SLOW_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_SLOW_REQUESTS_SAMPLE_RATE', 1),
+            'threshold' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
             ],

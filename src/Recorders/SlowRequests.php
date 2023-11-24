@@ -18,11 +18,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @internal
  */
-class Requests
+class SlowRequests
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-    use ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -53,7 +51,11 @@ class Requests
      */
     public function record(Carbon $startedAt, Request $request, Response $response): ?array
     {
-        if (! ($route = $request->route()) instanceof Route) {
+        if (
+            ($duration = $startedAt->diffInMilliseconds()) < $this->config->get('pulse.recorders.'.self::class.'.threshold') ||
+            ! ($route = $request->route()) instanceof Route ||
+            ! $this->shouldSample()
+        ) {
             return null;
         }
 
@@ -69,48 +71,24 @@ class Requests
             }
         }
 
-        if (! $this->shouldSample() || $this->shouldIgnore($path)) {
+        if ($this->shouldIgnore($path)) {
             return null;
         }
 
-        // TODO: Separate requests and slow requests so they can be sampled independently.
-
-        $duration = $startedAt->diffInMilliseconds();
-        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
-
-        $entries = [];
-
-        // TODO: Fix for users that logout during the request.
-        if (Auth::check()) {
-            $entries[] = (new Entry(
-                timestamp: (int) $startedAt->timestamp,
-                type: 'user_request',
-                key: $this->pulse->authenticatedUserIdResolver(),
-            ))->count();
-        }
-
-        if ($slow) {
-            $entries[] = (new Entry(
-                timestamp: (int) $startedAt->timestamp,
+        return [
+            (new Entry(
+                timestamp: $startedAt->getTimestamp(),
                 type: 'slow_request',
                 key: $request->method().' '.$path.($via ? " ($via)" : ''),
-                value: $duration
-            ))->count()->max();
-
-            // TODO: Fix for users that logout during the request.
-            if (Auth::check()) {
-                $entries[] = (new Entry(
-                    timestamp: (int) $startedAt->timestamp,
+                value: $duration,
+            ))->count()->max(),
+            ...($userId = $this->pulse->resolveAuthenticatedUserId()) ? [
+                (new Entry(
+                    timestamp: $startedAt->getTimestamp(),
                     type: 'slow_user_request',
-                    key: $this->pulse->authenticatedUserIdResolver(),
-                ))->count();
-            }
-        }
-
-        if (count($entries) === 0) {
-            return null;
-        }
-
-        return $entries;
+                    key: $userId,
+                ))->count(),
+            ] : []
+        ];
     }
 }
