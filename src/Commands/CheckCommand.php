@@ -66,7 +66,7 @@ class CheckCommand extends Command
 
             $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
-            if ($cache->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", $interval->totalSeconds)->get()) {
+            if ($cache->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()) {
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
