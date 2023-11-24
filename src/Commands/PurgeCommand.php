@@ -12,6 +12,9 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'pulse:purge')]
 class PurgeCommand extends Command
 {

@@ -12,6 +12,9 @@ use Laravel\Pulse\Contracts\Grouping;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'pulse:regroup')]
 class RegroupCommand extends Command
 {
