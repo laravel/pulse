@@ -80,12 +80,12 @@ class Database implements Storage
 
         $this->db->connection()
             ->table('pulse_values')
-            ->where('expires_at', '<', $now->getTimestamp())
+            ->where('expires_at', '<=', $now->getTimestamp())
             ->delete();
 
         $this->db->connection()
             ->table('pulse_entries')
-            ->where('timestamp', '<', $now->subWeek()->getTimestamp())
+            ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
         $this->db->connection()
@@ -95,7 +95,7 @@ class Database implements Storage
             ->each(fn (int $period) => $this->db->connection()
                 ->table('pulse_aggregates')
                 ->where('period', $period)
-                ->where('timestamp', '<', $now->subMinutes($period)->getTimestamp())
+                ->where('bucket', '<=', $now->subMinutes($period)->getTimestamp())
                 ->delete());
     }
 

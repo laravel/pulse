@@ -23,10 +23,12 @@ return new class extends Migration
         Schema::create('pulse_values', function (Blueprint $table) {
             $table->string('key');
             $table->text('value');
+            $table->unsignedInteger('expires_at');
             // $table->unsignedInteger('updated');
             // $table->unsignedInteger('expires')->nullable();
 
             $table->unique('key');
+            // todo: we want `expires_at` for trimming
             // $table->index('expires');
         });
 
@@ -37,6 +39,7 @@ return new class extends Migration
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
             $table->unsignedInteger('value')->nullable();
 
+            // todo: we want `timestamp` for trimming
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
         });
 
@@ -49,6 +52,7 @@ return new class extends Migration
             $table->unsignedInteger('value');
             $table->unsignedInteger('count')->nullable();
 
+            // todo: we want `period`,`bucket` for trimming
             $table->unique(['bucket', 'period', 'type', 'key_hash']);
 
             $table->index(['period', 'bucket', 'type']); // TODO: This is a guess.
