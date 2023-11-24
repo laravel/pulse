@@ -30,7 +30,7 @@ class Entry
         int $timestamp,
         string $type,
         Closure|string $key,
-        ?int $value = null
+        int $value = null
     ) {
         return new static($timestamp, $type, $key, $value);
     }
