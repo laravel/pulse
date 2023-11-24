@@ -22,8 +22,8 @@ class Redis implements Ingest
      * Create a new Redis Ingest instance.
      */
     public function __construct(
-        protected Repository $config,
         protected RedisConnectionResolver $redis,
+        protected Repository $config,
     ) {
         //
     }

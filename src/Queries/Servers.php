@@ -20,8 +20,8 @@ class Servers
      * Create a new query instance.
      */
     public function __construct(
-        protected Repository $config,
         protected DatabaseConnectionResolver $db,
+        protected Repository $config,
     ) {
         //
     }
