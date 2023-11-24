@@ -44,9 +44,10 @@ class Usage
     {
         $now = new CarbonImmutable();
 
+        $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / 60) * 60; // TODO: Fix for all periods
-        $oldestBucket = $currentBucket - $interval->totalSeconds + 60; // TODO: fix for all periods
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
@@ -70,7 +71,7 @@ class Usage
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('sum(`value`) as `value`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('period', $period)
                     ->where('type', $type.':count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')

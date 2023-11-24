@@ -31,9 +31,10 @@ class SlowJobs
     {
         $now = new CarbonImmutable;
 
+        $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / 60) * 60; // TODO: Fix for all periods
-        $oldestBucket = $currentBucket - $interval->totalSeconds + 60; // TODO: fix for all periods
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period; // TODO: Fix for all periods
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period; // TODO: fix for all periods
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
@@ -60,7 +61,7 @@ class SlowJobs
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key as job', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('period', $interval->totalSeconds / $period)
                     ->where('type', 'slow_job:max')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
@@ -69,7 +70,7 @@ class SlowJobs
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key as job', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('period', $interval->totalSeconds / $period)
                     ->where('type', 'slow_job:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')

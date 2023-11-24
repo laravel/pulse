@@ -31,9 +31,10 @@ class CacheKeyInteractions
     {
         $now = new CarbonImmutable();
 
+        $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / 60) * 60; // TODO: Fix for all periods
-        $oldestBucket = $currentBucket - $interval->totalSeconds + 60; // TODO: fix for all periods
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
@@ -60,7 +61,7 @@ class CacheKeyInteractions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('sum(`value`) as `hits`'), $this->db->connection()->raw('0 as `misses`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('period', $interval->totalSeconds / $period)
                     ->where('type', 'cache_hit:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
@@ -69,7 +70,7 @@ class CacheKeyInteractions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('0 as `hits`'), $this->db->connection()->raw('sum(`value`) as `misses`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / 60)
+                    ->where('period', $interval->totalSeconds / $period)
                     ->where('type', 'cache_miss:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
