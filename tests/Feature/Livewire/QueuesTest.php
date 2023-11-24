@@ -26,14 +26,14 @@ it('renders queue statistics', function () {
     Livewire::test(Queues::class, ['lazy' => false])
         ->assertViewHas('queues', collect([
             'database:default' => collect()->range(59, 1)
-                ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => [
+                ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => (object) [
                     'queued' => null,
                     'processing' => null,
                     'processed' => null,
                     'released' => null,
                     'failed' => null,
                 ]])
-                ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), [
+                ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), (object) [
                     'queued' => 4,
                     'processing' => 3,
                     'processed' => 2,
