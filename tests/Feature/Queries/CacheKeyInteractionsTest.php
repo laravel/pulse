@@ -1,7 +1,6 @@
 <?php
 
 use Carbon\CarbonInterval;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,7 +19,6 @@ it('can get the data', function () {
     }
 
     $timestamp = now()->timestamp;
-
     DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 59, 'type' => 'cache_hit', 'key' => 'users:{user}'],
         ['timestamp' => $timestamp - 3600 + 59, 'type' => 'cache_miss', 'key' => 'users:{user}'],
@@ -101,35 +99,17 @@ it('can get the data', function () {
     ]);
 });
 
-it('contains records to interval', function () {
-    $query = App::make(CacheKeyInteractions::class);
-    DB::table('pulse_cache_interactions')->insert([
-        [
-            'date' => '2000-01-01 00:00:05',
-            'hit' => true,
-            'key' => 'before',
-        ],
-        [
-            'date' => '2000-01-01 00:00:06',
-            'hit' => true,
-            'key' => 'after',
-        ],
-    ]);
-    Carbon::setTestNow('2000-01-01 01:00:05');
-
-    $results = $query(CarbonInterval::hour());
-
-    expect($results)->toHaveCount(1);
-    expect($results[0]->key)->toBe('after');
-});
-
 it('limits to 101 records', function () {
     $query = App::make(CacheKeyInteractions::class);
+
+    $timestamp = now()->timestamp;
     for ($i = 0; $i < 200; $i++) {
-        DB::table('pulse_cache_interactions')->insert([
-            'date' => now()->toDateTimeString(),
-            'hit' => true,
+        DB::table('pulse_aggregates')->insert([
+            'bucket' => (int) floor($timestamp / 60) * 60,
+            'period' => 60,
+            'type' => 'cache_hit:count',
             'key' => Str::random(),
+            'value' => rand(1, 10),
         ]);
     }
 
