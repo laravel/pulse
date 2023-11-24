@@ -52,8 +52,8 @@ class Usage
 
         $type = match ($type) {
             'requests' => 'user_request',
-            'slow_requests' => 'user_slow_request',
-            'slow_jobs' => 'user_slow_job',
+            'slow_requests' => 'slow_user_request',
+            'jobs' => 'user_job',
         };
 
         $top10 = $this->db->connection()->query()

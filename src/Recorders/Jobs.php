@@ -9,6 +9,7 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
@@ -69,11 +70,19 @@ class Jobs
                 return null;
             }
 
-            return (new Entry(
-                timestamp: (int) $now->timestamp,
-                type: 'queued', // TODO: prefix with 'queued:' or something?
-                key: $event->connectionName.':'.($event->job->queue ?? 'default')
-            ))->count();
+            return array_values(array_filter([
+                (new Entry(
+                    timestamp: (int) $now->timestamp,
+                    type: 'queued', // TODO: prefix with 'queued:' or something?
+                    key: $event->connectionName.':'.($event->job->queue ?? 'default')
+                ))->count(),
+                // TODO: Make this better.
+                Auth::check() ? (new Entry(
+                    timestamp: (int) $now->timestamp,
+                    type: 'user_job', // TODO: prefix with 'queued:' or 'usage'?
+                    key: $this->pulse->authenticatedUserIdResolver()
+                ))->count() : null
+            ]));
         }
 
         if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) ||

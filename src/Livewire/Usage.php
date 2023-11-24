@@ -19,14 +19,14 @@ class Usage extends Card
     /**
      * The type of usage to show.
      *
-     * @var 'requests'|'slow_requests'|'slow_jobs'|null
+     * @var 'requests'|'slow_requests'|'jobs'|null
      */
     public ?string $type = null;
 
     /**
      * The usage type.
      *
-     * @var 'requests'|'slow_requests'|'slow_jobs'
+     * @var 'requests'|'slow_requests'|'jobs'
      */
     #[Url]
     public string $usage = 'requests';

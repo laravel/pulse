@@ -3,17 +3,17 @@
         :name="match ($this->type) {
             'requests' => 'Top 10 Users Making Requests',
             'slow_requests' => 'Top 10 Users Experiencing Slow Endpoints',
-            'slow_jobs' => 'Top 10 Users Dispatching Jobs',
+            'jobs' => 'Top 10 Users Dispatching Jobs',
             default => 'Application Usage'
         }"
         title="Time: {{ number_format($time) }}ms; Run At: {{ $runAt }};"
-        details="{{ $this->usage === 'slow_endpoint_counts' ? ($requestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
+        details="{{ $this->usage === 'slow_requests' ? ($requestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {
                 'requests' => 'arrow-trending-up',
                 'slow_requests' => 'clock',
-                'slow_jobs' => 'scale',
+                'jobs' => 'scale',
                 default => 'cursor-arrow-rays'
             }" />
         </x-slot:icon>
@@ -32,7 +32,7 @@
                         <option value="slow_requests">
                             experiencing slow endpoints
                         </option>
-                        <option value="slow_jobs">
+                        <option value="jobs">
                             dispatching jobs
                         </option>
                     </select>

@@ -138,7 +138,7 @@ If you wish to view all usage metrics on screen at the same time, you may includ
 ```blade
 <livewire:pulse.usage type="requests" />
 <livewire:pulse.usage type="slow_requests" />
-<livewire:pulse.usage type="slow_jobs" />
+<livewire:pulse.usage type="jobs" />
 ```
 
 See the [requests recorder](#requests-recorder) and [jobs recorder](#jobs-recorder) sections for more information.
