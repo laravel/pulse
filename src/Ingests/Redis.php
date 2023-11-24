@@ -48,7 +48,7 @@ class Redis implements Ingest
     }
 
     /**
-     * Trim the ingested entries.
+     * Trim the ingest.
      */
     public function trim(): void
     {
@@ -56,7 +56,7 @@ class Redis implements Ingest
             $this->stream,
             'MINID',
             '~',
-            (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->getTimestampMs()
+            CarbonImmutable::now()->subWeek()->getTimestampMs()
         );
     }
 
@@ -93,13 +93,5 @@ class Redis implements Ingest
 
             $total = $total + $entries->count();
         }
-    }
-
-    /**
-     * The interval to trim the storage to.
-     */
-    protected function trimAfter(): Interval
-    {
-        return new Interval($this->config->get('pulse.retain'));
     }
 }

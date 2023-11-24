@@ -35,7 +35,6 @@ class WorkCommand extends Command
      * Handle the command.
      */
     public function handle(
-        Pulse $pulse,
         Ingest $ingest,
         Storage $storage,
         CacheManager $cache,
@@ -45,28 +44,18 @@ class WorkCommand extends Command
         $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
 
         while (true) {
-            $now = new CarbonImmutable;
+            $now = CarbonImmutable::now();
 
             if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
-                $this->info('Pulse restart signal detected. Goodbye.', 'v');
-
                 return self::SUCCESS;
             }
 
-            $this->info('Storing data.', 'v');
-
-            $count = $ingest->store($storage);
-
-            $this->info("Stored [$count] entries.", 'v');
+            $ingest->store($storage);
 
             if ($now->subHour()->greaterThan($lastTrimmedStorageAt)) {
-                $this->info('Trimming tables.', 'v');
-
-                $storage->trim($pulse->tables());
+                $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
-
-                $this->info('Tables trimmed.', 'v');
             }
 
             Sleep::for(1)->second();

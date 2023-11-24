@@ -262,21 +262,6 @@ class Pulse
     }
 
     /**
-     * Get the tables used by the recorders.
-     *
-     * @return \Illuminate\Support\Collection<int, string>
-     */
-    public function tables(): Collection
-    {
-        return $this->recorders
-            ->map(fn ($recorder) => $recorder->table ?? null)
-            ->flatten()
-            ->filter()
-            ->unique()
-            ->values();
-    }
-
-    /**
      * Get the registered recorders.
      *
      * @return \Illuminate\Support\Collection<int, object>

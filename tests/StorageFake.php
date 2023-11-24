@@ -26,11 +26,9 @@ class StorageFake implements Storage
     }
 
     /**
-     * Trim the stored entries from the given tables.
-     *
-     * @param  \Illuminate\Support\Collection<int, string>  $tables
+     * Trim the storage.
      */
-    public function trim(Collection $tables): void
+    public function trim(): void
     {
         //
     }

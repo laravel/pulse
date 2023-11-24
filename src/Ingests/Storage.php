@@ -12,7 +12,7 @@ class Storage implements Ingest
     /**
      * Create a new Storage Ingest instance.
      */
-    public function __construct(protected StorageContract $storage, protected Pulse $pulse)
+    public function __construct(protected StorageContract $storage)
     {
         //
     }
@@ -28,11 +28,11 @@ class Storage implements Ingest
     }
 
     /**
-     * Trim the ingested entries.
+     * Trim the ingest.
      */
     public function trim(): void
     {
-        $this->storage->trim($this->pulse->tables());
+        $this->storage->trim();
     }
 
     /**

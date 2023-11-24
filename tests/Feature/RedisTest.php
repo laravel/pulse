@@ -150,7 +150,7 @@ class NullStorage implements Storage
         //
     }
 
-    public function trim(Collection $tables): void
+    public function trim(): void
     {
         //
     }

@@ -89,19 +89,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pulse Data Retention
-    |--------------------------------------------------------------------------
-    |
-    | The configuration option determines how long Pulse will retain data in
-    | both ingest and storage locations before removing old records. This
-    | will not increase which periods are visible in Pulse's dashboard.
-    |
-    */
-
-    'retain' => Interval::days(7),
-
-    /*
-    |--------------------------------------------------------------------------
     | Pulse Route Middleware
     |--------------------------------------------------------------------------
     |

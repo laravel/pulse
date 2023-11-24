@@ -14,7 +14,7 @@ interface Ingest
     public function ingest(Collection $items): void;
 
     /**
-     * Trim the ingested entries.
+     * Trim the ingest.
      */
     public function trim(): void;
 

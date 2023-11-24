@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse flushEntries()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
  * @method static \Laravel\Pulse\Pulse store(\Laravel\Pulse\Contracts\Ingest $ingest)
- * @method static \Illuminate\Support\Collection tables()
  * @method static \Illuminate\Support\Collection recorders()
  * @method static \Illuminate\Support\Collection resolveUsers(\Illuminate\Support\Collection $ids)
  * @method static \Laravel\Pulse\Pulse resolveUsersUsing(callable $callback)

@@ -72,16 +72,31 @@ class Database implements Storage
     }
 
     /**
-     * Trim the stored entries from the given tables.
-     *
-     * @param  \Illuminate\Support\Collection<int, string>  $tables
+     * Trim the storage.
      */
-    public function trim(Collection $tables): void
+    public function trim(): void
     {
-        $tables->each(fn (string $table) => $this->db->connection()
-            ->table($table)
-            ->where('date', '<', (new CarbonImmutable)->subSeconds((int) $this->trimAfter()->totalSeconds)->toDateTimeString())
-            ->delete());
+        $now = CarbonImmutable::now();
+
+        $this->db->connection()
+            ->table('pulse_values')
+            ->where('expires_at', '<', $now->getTimestamp())
+            ->delete();
+
+        $this->db->connection()
+            ->table('pulse_entries')
+            ->where('timestamp', '<', $now->subWeek()->getTimestamp())
+            ->delete();
+
+        $this->db->connection()
+            ->table('pulse_aggregates')
+            ->distinct()
+            ->pluck('period')
+            ->each(fn (int $period) => $this->db->connection()
+                ->table('pulse_aggregates')
+                ->where('period', $period)
+                ->where('timestamp', '<', $now->subMinutes($period)->getTimestamp())
+                ->delete());
     }
 
     /**
@@ -151,13 +166,5 @@ class Database implements Storage
         $sql .= sprintf(' on duplicate key update %1$s = (%1$s * %2$s + values(%1$s)) / (%2$s + 1), %2$s = %2$s + 1', $grammar->wrap($valueColumn), $grammar->wrap($countColumn));
 
         return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
-    }
-
-    /**
-     * The interval to trim the storage to.
-     */
-    protected function trimAfter(): Interval
-    {
-        return new Interval($this->config->get('pulse.retain'));
     }
 }
