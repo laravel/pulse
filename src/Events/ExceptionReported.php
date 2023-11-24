@@ -9,9 +9,8 @@ class ExceptionReported
     /**
      * Create a new event instance.
      */
-    public function __construct(
-        public Throwable $exception,
-    ) {
+    public function __construct(public Throwable $exception)
+    {
         //
     }
 }

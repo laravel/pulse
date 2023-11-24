@@ -2,7 +2,6 @@
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
-use Laravel\Pulse\Pulse;
 
 it('authorizes dashboard access', function ($environment, $status) {
     Gate::define('viewPulse', fn ($user = null) => $this->app->environment('local'));

@@ -2,12 +2,9 @@
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Cache;
 use Livewire\Livewire;
-
-use function Pest\Laravel\withoutExceptionHandling;
 
 it('includes the card on the dashboard', function () {
     $this

@@ -24,9 +24,8 @@ class SystemStats
     /**
      * Create a new recorder instance.
      */
-    public function __construct(
-        protected Repository $config,
-    ) {
+    public function __construct(protected Repository $config)
+    {
         //
     }
 

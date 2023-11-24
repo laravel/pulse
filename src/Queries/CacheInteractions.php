@@ -15,9 +15,8 @@ class CacheInteractions
     /**
      * Create a new query instance.
      */
-    public function __construct(
-        protected DatabaseConnectionResolver $db,
-    ) {
+    public function __construct(protected DatabaseConnectionResolver $db)
+    {
         //
     }
 

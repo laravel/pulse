@@ -67,7 +67,6 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders')); // @phpstan-ignore offsetAccess.nonOffsetAccessible offsetAccess.nonOffsetAccessible
 
-
         $this->registerAuthorization();
         $this->registerRoutes();
         $this->listenForEvents();
@@ -85,7 +84,6 @@ class PulseServiceProvider extends ServiceProvider
     {
         $this->app[Gate::class]->define('viewPulse', fn ($user = null) => $this->app->environment('local'));
     }
-
 
     /**
      * Register the package routes.

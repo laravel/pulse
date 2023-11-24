@@ -7,13 +7,11 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Pulse

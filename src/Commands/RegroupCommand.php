@@ -5,8 +5,6 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Config\Repository;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Contracts\Grouping;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use ReflectionClass;
@@ -40,8 +38,7 @@ class RegroupCommand extends Command
     public function handle(
         DatabaseConnectionResolver $db,
         Repository $config,
-    ): int
-    {
+    ): int {
         if (! $this->confirmToProceed()) {
             return Command::FAILURE;
         }
