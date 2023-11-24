@@ -14,6 +14,9 @@ use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @internal
+ */
 class Pulse
 {
     use Concerns\ConfiguresAfterResolving;
