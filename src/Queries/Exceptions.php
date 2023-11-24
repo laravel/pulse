@@ -85,6 +85,8 @@ class Exceptions
                 if (str_contains($row->class, '::')) {
                     $row->location = Str::afterLast($row->class, '::');
                     $row->class = Str::beforeLast($row->class, '::');
+                } else {
+                    $row->location = null;
                 }
 
                 return $row;

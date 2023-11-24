@@ -34,7 +34,7 @@ class CacheInteractions
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
-        return $this->db->connection()->query()
+        $cache = $this->db->connection()->query()
             ->select($this->db->connection()->raw('sum(`hits`) as `hits`'), $this->db->connection()->raw('sum(`misses`) as `misses`'))
             ->fromSub(fn (Builder $query) => $query
                 // hits tail
@@ -68,6 +68,11 @@ class CacheInteractions
                     ->where('bucket', '>=', $oldestBucket)
                 ), as: 'child'
             )
-            ->first() ?? (object) ['hits' => 0, 'misses' => 0];
+            ->first();
+
+        return (object) [
+            'hits' => (int) $cache?->hits ?? 0,
+            'misses' => (int) $cache?->misses ?? 0,
+        ];
     }
 }

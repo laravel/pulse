@@ -84,6 +84,8 @@ class SlowQueries
                 if (str_contains($row->sql, '::')) {
                     $row->location = Str::afterLast($row->sql, '::');
                     $row->sql = Str::beforeLast($row->sql, '::');
+                } else {
+                    $row->location = null;
                 }
 
                 return $row;
