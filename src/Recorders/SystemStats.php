@@ -6,7 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
-use Laravel\Pulse\Events\Beat;
+use Laravel\Pulse\Events\SharedBeat;
 use RuntimeException;
 
 /**
@@ -19,7 +19,7 @@ class SystemStats
      *
      * @var class-string
      */
-    public string $listen = Beat::class;
+    public string $listen = SharedBeat::class;
 
     /**
      * Create a new recorder instance.
@@ -35,7 +35,7 @@ class SystemStats
      *
      * @return ?list<\Laravel\Pulse\Entry>
      */
-    public function record(Beat $event): ?array
+    public function record(SharedBeat $event): ?array
     {
         if ($event->time->second % 15 !== 0) {
             return null;

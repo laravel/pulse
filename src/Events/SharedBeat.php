@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Events;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 
-class Beat
+class SharedBeat
 {
     /**
      * Create a new event instance.

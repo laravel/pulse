@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
-use Laravel\Pulse\Events\Beat;
+use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -64,7 +64,7 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            $event->dispatch(new Beat($lastSnapshotAt, $interval));
+            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
             $pulse->store($ingest);
         }
