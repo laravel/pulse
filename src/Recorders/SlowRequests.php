@@ -8,7 +8,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Entry;
@@ -88,7 +87,7 @@ class SlowRequests
                     type: 'slow_user_request',
                     key: $userId,
                 ))->count(),
-            ] : []
+            ] : [],
         ];
     }
 }

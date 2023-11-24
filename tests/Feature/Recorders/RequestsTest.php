@@ -1,26 +1,18 @@
 <?php
 
-use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthManager;
-use Illuminate\Auth\GuardHelpers;
-use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Sleep;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Pulse as PulseInstance;
 use Laravel\Pulse\Recorders\SlowRequests;
 use Laravel\Pulse\Recorders\UserRequests;
 
-use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
@@ -147,8 +139,6 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 });
-
-
 
 it('ignores livewire update requests from an ignored path', function () {
     Route::post('livewire/update', fn () => [])->name('livewire.update');
