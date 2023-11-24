@@ -81,7 +81,7 @@ class Jobs
                     timestamp: (int) $now->timestamp,
                     type: 'user_job', // TODO: prefix with 'queued:' or 'usage'?
                     key: $this->pulse->authenticatedUserIdResolver()
-                ))->count() : null
+                ))->count() : null,
             ]));
         }
 
