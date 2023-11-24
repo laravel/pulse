@@ -44,7 +44,6 @@ class CheckCommand extends Command
     ): int {
         $lastRestart = $cache->get('laravel:pulse:restart');
 
-        // TODO: Review whether 5 seconds makes sense. Can we remove it all-together and beat once per second?
         $interval = CarbonInterval::seconds(5);
 
         $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);
@@ -52,14 +51,14 @@ class CheckCommand extends Command
         while (true) {
             $now = new CarbonImmutable();
 
-            if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
-                return self::SUCCESS;
-            }
-
             if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
-                Sleep::for(1)->second();
+                Sleep::for(200)->milliseconds();
 
                 continue;
+            }
+
+            if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
+                return self::SUCCESS;
             }
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
