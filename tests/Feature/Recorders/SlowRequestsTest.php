@@ -1,21 +1,14 @@
 <?php
 
-use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Pulse as PulseInstance;
 use Laravel\Pulse\Recorders\SlowRequests;
 
-use Symfony\Component\HttpFoundation\Response;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
@@ -132,7 +125,6 @@ it('ignores requests under the threshold', function () {
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
-
 it('can ignore requests based on config', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.ignore', [
@@ -195,7 +187,8 @@ it('ignores livewire update requests from an ignored path', function () {
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
-it('only records known routes', function () { Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+it('only records known routes', function () {
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
     Date::setTestNow('2000-01-02 03:04:05');
 
     get('some-route-that-does-not-exit')->assertNotFound();
