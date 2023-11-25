@@ -12,7 +12,7 @@
         - [Application Usage](#application-usage-card)
         - [Exceptions](#exceptions-card)
         - [Queues](#queues-card)
-        - [Slow Routes](#slow-routes-card)
+        - [Slow Requests](#slow-requests-card)
         - [Slow Jobs](#slow-jobs-card)
         - [Slow Queries](#slow-queries-card)
         - [Slow Outgoing Requests](#slow-outgoing-requests-card)
@@ -131,7 +131,7 @@ The `<livewire:pulse.servers />` card displays system resource usage for all ser
 <a name="application-usage-card"></a>
 #### Application Usage
 
-The `<livewire:pulse.usage />` card displays the top 10 users making requests to your application, dispatching jobs, and experiencing slow routes.
+The `<livewire:pulse.usage />` card displays the top 10 users making requests to your application, dispatching jobs, and experiencing slow requests.
 
 If you wish to view all usage metrics on screen at the same time, you may include the card multiple times, specifying the `type` attribute:
 
@@ -153,10 +153,10 @@ The `<livewire:pulse.exceptions />` card shows the frequency and recency of exce
 
 The `<livewire:pulse.queues />` shows the throughput of the queues in your application, including the number of jobs queued, processing, processed, released, and failed. See the [jobs recorder](#jobs-recorder) for more information.
 
-<a name="slow-routes-card"></a>
-#### Slow Routes
+<a name="slow-requests-card"></a>
+#### Slow Requests
 
-The `<livewire:pulse.slow-routes />` card shows the routes in your application that are exceeding the configured threshold, which is 1,000ms by default. See the [requests recorder](#requests-recorder) for more information.
+The `<livewire:pulse.slow-requests />` card shows incoming requests to your application that are exceeding the configured threshold, which is 1,000ms by default. See the [requests recorder](#requests-recorder) for more information.
 
 <a name="slow-jobs-card"></a>
 #### Slow Jobs
@@ -207,7 +207,7 @@ The configuration also allows you to customize the monitored directories and whe
 <a name="requests-recorder"></a>
 ### Requests
 
-The `Requests` recorder captures information about every request made to your application for display on the [Application Usage](#application-usage-card) and [Slow Routes](#slow-routes-card) cards.
+The `Requests` recorder captures information about every request made to your application for display on the [Application Usage](#application-usage-card) and [Slow Requests](#slow-requests-card) cards.
 
 You may optionally adjust the slow route threshold, sample rate, and ignored paths.
 
