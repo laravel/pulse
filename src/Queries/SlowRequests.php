@@ -38,22 +38,26 @@ class SlowRequests
      */
     public function __invoke(Interval $interval): Collection
     {
-        $now = new CarbonImmutable;
+        $now = CarbonImmutable::now();
 
         $routes = $this->router->getRoutes()->getRoutesByMethod();
 
-        $period = $interval->totalSeconds / 60;
-        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
-        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+        $period = (int) ($interval->totalSeconds / 60);
+        $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds + 1);
+        $currentBucket = (int) floor($now->getTimestamp() / $period) * $period;
+        $oldestBucket = (int) ($currentBucket - $interval->totalSeconds + $period);
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
         return $this->db->connection()->query()
-            ->select('route', $this->db->connection()->raw('max(`slowest`) as `slowest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
+            ->select('route')
+            ->selectRaw('max(`slowest`) as `slowest`')
+            ->selectRaw('sum(`count`) as `count`')
             ->fromSub(fn (Builder $query) => $query
                 // duration tail
-                ->select('key as route', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                ->select('key as route')
+                ->selectRaw('max(`value`) as `slowest`')
+                ->selectRaw('0 as `count`')
                 ->from('pulse_entries')
                 ->where('type', 'slow_request')
                 ->where('timestamp', '>=', $tailStart)
@@ -61,7 +65,9 @@ class SlowRequests
                 ->groupBy('key')
                 // count tail
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key as route', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('count(*) as `count`'))
+                    ->select('key as route')
+                    ->selectRaw('0 as `slowest`')
+                    ->selectRaw('count(*) as `count`')
                     ->from('pulse_entries')
                     ->where('type', 'slow_request')
                     ->where('timestamp', '>=', $tailStart)
@@ -70,18 +76,22 @@ class SlowRequests
                 )
                 // duration buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key as route', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                    ->select('key as route')
+                    ->selectRaw('max(`value`) as `slowest`')
+                    ->selectRaw('0 as `count`')
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'slow_request:max')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 )
                 // count buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key as route', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
+                    ->select('key as route')
+                    ->selectRaw('0 as `slowest`')
+                    ->selectRaw('sum(`value`) as `count`')
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'slow_request:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
