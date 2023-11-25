@@ -20,14 +20,14 @@ it('renders exceptions', function () {
         ['type' => 'exception:latest', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp - 3600 + 1, 'timestamp' => $timestamp - 3600 + 1],
     ]));
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123'],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Bar.php:123'],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123'],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 1],
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:sum', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 2, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:sum', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => 1, 'count' => 1],
     ]));
 
     Livewire::test(Exceptions::class, ['lazy' => false])

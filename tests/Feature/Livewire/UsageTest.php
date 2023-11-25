@@ -21,18 +21,18 @@ it('renders top 10 users making requests', function (string $query, string $type
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[2]->id],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id, 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id, 'value' => 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[2]->id, 'value' => 1],
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':count', 'key' => $users[0]->id, 'value' => 3],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':count', 'key' => $users[1]->id, 'value' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':count', 'key' => $users[2]->id, 'value' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[0]->id, 'value' => 3, 'count' => 3],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[1]->id, 'value' => 2, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[2]->id, 'value' => 1, 'count' => 1],
     ]));
 
     Livewire::withQueryParams(['usage' => $query])

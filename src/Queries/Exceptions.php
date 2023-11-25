@@ -40,16 +40,22 @@ class Exceptions
         $tailEnd = $oldestBucket - 1;
 
         return $this->db->connection()->query()
-            ->select('key as class', $this->db->connection()->raw('max(`latest`) as `latest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
+            ->select('class')
+            ->selectRaw('max(`latest`) as `latest`')
+            ->selectRaw('sum(`count`) as `count`')
             ->fromSub(fn (Builder $query) => $query
                 // latest
-                ->select('key', $this->db->connection()->raw('`value` as `latest`'), $this->db->connection()->raw('0 as `count`'))
+                ->select('key as class')
+                ->selectRaw('`value` as `latest`')
+                ->selectRaw('0 as `count`')
                 ->from('pulse_values')
                 ->where('type', 'exception:latest')
                 ->where('value', '>=', $windowStart)
                 // count tail
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('count(*) as `count`'))
+                    ->select('key as class')
+                    ->selectRaw('0 as `latest`')
+                    ->selectRaw('count(*) as `count`')
                     ->from('pulse_entries')
                     ->where('type', 'exception')
                     ->where('timestamp', '>=', $tailStart)
@@ -58,15 +64,17 @@ class Exceptions
                 )
                 // count buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
+                    ->select('key as class')
+                    ->selectRaw('0 as `latest`')
+                    ->selectRaw('sum(`value`) as `count`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->where('type', 'exception:count')
+                    ->where('type', 'exception:sum')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 ), as: 'child'
             )
-            ->groupBy('key')
+            ->groupBy('class')
             ->orderByDesc($orderBy) // TODO: SQL injection?
             ->limit(101)
             ->get()

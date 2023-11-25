@@ -57,42 +57,20 @@ class SlowRequests
                 // duration tail
                 ->select('key as route')
                 ->selectRaw('max(`value`) as `slowest`')
-                ->selectRaw('0 as `count`')
+                ->selectRaw('count(*) as `count`')
                 ->from('pulse_entries')
                 ->where('type', 'slow_request')
                 ->where('timestamp', '>=', $tailStart)
                 ->where('timestamp', '<=', $tailEnd)
                 ->groupBy('key')
-                // count tail
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key as route')
-                    ->selectRaw('0 as `slowest`')
-                    ->selectRaw('count(*) as `count`')
-                    ->from('pulse_entries')
-                    ->where('type', 'slow_request')
-                    ->where('timestamp', '>=', $tailStart)
-                    ->where('timestamp', '<=', $tailEnd)
-                    ->groupBy('key')
-                )
-                // duration buckets
+                // buckets
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key as route')
                     ->selectRaw('max(`value`) as `slowest`')
-                    ->selectRaw('0 as `count`')
+                    ->selectRaw('sum(`count`) as `count`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
                     ->where('type', 'slow_request:max')
-                    ->where('bucket', '>=', $oldestBucket)
-                    ->groupBy('key')
-                )
-                // count buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key as route')
-                    ->selectRaw('0 as `slowest`')
-                    ->selectRaw('sum(`value`) as `count`')
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->where('type', 'slow_request:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 ), as: 'child'

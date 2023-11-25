@@ -60,7 +60,7 @@ class Exceptions
             $class .= '::'.$this->getLocation($e);
         }
 
-        $this->pulse->record('exception', $class, timestamp: $now)->count();
+        $this->pulse->record('exception', $class, timestamp: $now)->sum();
 
         $this->pulse->set('exception:latest', $class, $now->getTimestamp());
     }

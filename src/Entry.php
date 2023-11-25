@@ -7,7 +7,7 @@ use Closure;
 class Entry
 {
     /**
-     * @var list<'count'|'max'|'avg'>
+     * @var list<'sum'|'max'|'avg'>
      */
     protected array $aggregations = [];
 
@@ -18,7 +18,7 @@ class Entry
         public int $timestamp,
         public string $type,
         public Closure|string $key,
-        public ?int $value = null
+        public int $value = 1,
     ) {
         //
     }
@@ -46,11 +46,11 @@ class Entry
     }
 
     /**
-     * Capture the count aggregate.
+     * Capture the sum aggregate.
      */
-    public function count(): static
+    public function sum(): static
     {
-        $this->aggregations[] = 'count';
+        $this->aggregations[] = 'sum';
 
         return $this;
     }
@@ -76,11 +76,11 @@ class Entry
     }
 
     /**
-     * Determine whether the entry is marked for count aggregation.
+     * Determine whether the entry is marked for sum aggregation.
      */
-    public function isCount(): bool
+    public function isSum(): bool
     {
-        return in_array('count', $this->aggregations);
+        return in_array('sum', $this->aggregations);
     }
 
     /**
@@ -115,48 +115,16 @@ class Entry
     }
 
     /**
-     * Fetch the count aggregate attributes for persisting.
+     * Fetch the aggregate attributes for persisting.
      *
      * @return array<string, mixed>
      */
-    public function countAttributes(int $period): array
+    public function aggregateAttributes(int $period, string $suffix): array
     {
         return [
             'bucket' => (int) floor($this->timestamp / $period) * $period,
             'period' => $period,
-            'type' => $this->type.':count',
-            'key' => $this->key,
-            'value' => 1,
-        ];
-    }
-
-    /**
-     * Fetch the maximum aggregate attributes for persisting.
-     *
-     * @return array<string, mixed>
-     */
-    public function maxAttributes(int $period): array
-    {
-        return [
-            'bucket' => (int) floor($this->timestamp / $period) * $period,
-            'period' => $period,
-            'type' => $this->type.':max',
-            'key' => $this->key,
-            'value' => $this->value,
-        ];
-    }
-
-    /**
-     * Fetch the average aggregate attributes for persisting.
-     *
-     * @return array<string, mixed>
-     */
-    public function avgAttributes(int $period): array
-    {
-        return [
-            'bucket' => (int) floor($this->timestamp / $period) * $period,
-            'period' => $period,
-            'type' => $this->type.':avg',
+            'type' => $this->type.':'.$suffix,
             'key' => $this->key,
             'value' => $this->value,
             'count' => 1,

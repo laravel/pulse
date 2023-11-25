@@ -86,7 +86,7 @@ class Jobs
                 default => $event->job->getConnectionName().':'.$event->job->getQueue(),
             },
             timestamp: $now,
-        )->count();
+        )->sum();
 
         // Slow Jobs
         // TODO: Separate recorder so it can be sampled differently?
@@ -98,7 +98,7 @@ class Jobs
             $this->lastJobStartedProcessingAt = null;
 
             if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->count()->max();
+                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->max();
             }
         }
 
@@ -106,7 +106,7 @@ class Jobs
         // TODO: Separate recorder so it can be sampled differently?
 
         if (Auth::check()) {
-            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->count();
+            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->sum();
         }
     }
 }

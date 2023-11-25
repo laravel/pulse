@@ -22,27 +22,27 @@ it('ingests cache interactions', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_hit',
         'key' => 'hit-key',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[1])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'miss-key',
-        'value' => null,
+        'value' => 1,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'cache_hit:count',
+        'type' => 'cache_hit:sum',
         'key' => 'hit-key',
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'cache_miss:count',
+        'type' => 'cache_miss:sum',
         'key' => 'miss-key',
         'value' => 1,
     ]);
@@ -76,7 +76,7 @@ it('stores the original keys by default', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'users:1234:profile',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -95,7 +95,7 @@ it('can normalize cache keys', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'users:{user}:profile',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -114,7 +114,7 @@ it('can use back references in normalized cache keys', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'bar:foo',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -133,7 +133,7 @@ it('uses the original key if no matching pattern is found', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'actual-key',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -153,7 +153,7 @@ it('can provide regex flags in normalization key', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'lowercase-key',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 

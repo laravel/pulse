@@ -41,14 +41,14 @@ it('ingests bus dispatched jobs', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'queued:count',
+        'type' => 'queued:sum',
         'key' => 'database:default',
         'value' => 1,
     ]);
@@ -71,7 +71,7 @@ it('ingests queued closures', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -87,13 +87,13 @@ it('ingests queued closures', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -109,13 +109,13 @@ it('ingests queued closures', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -134,7 +134,7 @@ it('ingests jobs pushed to the queue', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -157,7 +157,7 @@ it('ingests queued listeners', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -173,13 +173,13 @@ it('ingests queued listeners', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -195,13 +195,13 @@ it('ingests queued listeners', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -223,7 +223,7 @@ it('ingests queued mail', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -239,13 +239,13 @@ it('ingests queued mail', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -261,13 +261,13 @@ it('ingests queued mail', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -292,7 +292,7 @@ it('ingests queued notifications', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -308,13 +308,13 @@ it('ingests queued notifications', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -330,13 +330,13 @@ it('ingests queued notifications', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -358,7 +358,7 @@ it('ingests queued commands', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -374,13 +374,13 @@ it('ingests queued commands', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -396,13 +396,13 @@ it('ingests queued commands', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -425,7 +425,7 @@ it('handles a job throwing exceptions and failing', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -442,13 +442,13 @@ it('handles a job throwing exceptions and failing', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -465,13 +465,13 @@ it('handles a job throwing exceptions and failing', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -488,13 +488,13 @@ it('handles a job throwing exceptions and failing', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[6])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -517,7 +517,7 @@ it('handles a failure and then a successful job', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -534,13 +534,13 @@ it('handles a failure and then a successful job', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'released',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -557,13 +557,13 @@ it('handles a failure and then a successful job', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[4])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'processed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 
@@ -586,7 +586,7 @@ it('handles a slow successful job', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -603,13 +603,13 @@ it('handles a slow successful job', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'processed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[3])->toHaveProperties([
         'timestamp' => now()->timestamp,
@@ -638,7 +638,7 @@ it('handles a job that was manually failed', function () {
         'timestamp' => now()->timestamp,
         'type' => 'queued',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 
     /*
@@ -657,19 +657,19 @@ it('handles a job that was manually failed', function () {
         'timestamp' => now()->timestamp,
         'type' => 'processing',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[2])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'failed',
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
     expect($entries[3])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'processed', // TODO: Should this actually be captured when manually failed?
         'key' => 'database:default',
-        'value' => null,
+        'value' => 1,
     ]);
 });
 

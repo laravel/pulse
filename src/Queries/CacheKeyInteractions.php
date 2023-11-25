@@ -38,10 +38,14 @@ class CacheKeyInteractions
         $tailEnd = $oldestBucket - 1;
 
         return $this->db->connection()->query()
-            ->select('key', $this->db->connection()->raw('sum(`hits`) as `hits`'), $this->db->connection()->raw('sum(`misses`) as `misses`'))
+            ->select('key')
+            ->selectRaw('sum(`hits`) as `hits`')
+            ->selectRaw('sum(`misses`) as `misses`')
             ->fromSub(fn (Builder $query) => $query
                 // hits tail
-                ->select('key', $this->db->connection()->raw('count(*) as `hits`'), $this->db->connection()->raw('0 as `misses`'))
+                ->select('key')
+                ->selectRaw('count(*) as `hits`')
+                ->selectRaw('0 as `misses`')
                 ->from('pulse_entries')
                 ->where('type', 'cache_hit')
                 ->where('timestamp', '>=', $tailStart)
@@ -49,7 +53,9 @@ class CacheKeyInteractions
                 ->groupBy('key')
                 // misses tail
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('0 as `hits`'), $this->db->connection()->raw('count(*) as `misses`'))
+                    ->select('key')
+                    ->selectRaw('0 as `hits`')
+                    ->selectRaw('count(*) as `misses`')
                     ->from('pulse_entries')
                     ->where('type', 'cache_miss')
                     ->where('timestamp', '>=', $tailStart)
@@ -58,19 +64,23 @@ class CacheKeyInteractions
                 )
                 // hits buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('sum(`value`) as `hits`'), $this->db->connection()->raw('0 as `misses`'))
+                    ->select('key')
+                    ->selectRaw('sum(`value`) as `hits`')
+                    ->selectRaw('0 as `misses`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->where('type', 'cache_hit:count')
+                    ->where('type', 'cache_hit:sum')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 )
                 // misses buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('0 as `hits`'), $this->db->connection()->raw('sum(`value`) as `misses`'))
+                    ->select('key')
+                    ->selectRaw('0 as `hits`')
+                    ->selectRaw('sum(`value`) as `misses`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->where('type', 'cache_miss:count')
+                    ->where('type', 'cache_miss:sum')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 ), as: 'child'

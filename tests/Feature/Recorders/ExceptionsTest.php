@@ -40,7 +40,7 @@ it('ingests exceptions', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'exception:count',
+        'type' => 'exception:sum',
         'value' => 1,
     ]);
     expect($aggregates[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');

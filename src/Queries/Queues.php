@@ -49,7 +49,7 @@ class Queues
 
         return $this->db->connection()->table('pulse_aggregates')
             ->select(['bucket', 'type', 'key', 'value'])
-            ->whereIn('type', ['queued:count', 'processing:count', 'processed:count', 'released:count', 'failed:count'])
+            ->whereIn('type', ['queued:sum', 'processing:sum', 'processed:sum', 'released:sum', 'failed:sum'])
             ->where('period', $period)
             ->where('bucket', '>=', $firstBucket)
             ->orderBy('bucket')
@@ -61,11 +61,11 @@ class Queues
                     $row = $row->pluck('value', 'type');
 
                     return (object) [
-                        'queued' => $row['queued:count'] ?? 0,
-                        'processing' => $row['processing:count'] ?? 0,
-                        'processed' => $row['processed:count'] ?? 0,
-                        'released' => $row['released:count'] ?? 0,
-                        'failed' => $row['failed:count'] ?? 0,
+                        'queued' => $row['queued:sum'] ?? 0,
+                        'processing' => $row['processing:sum'] ?? 0,
+                        'processed' => $row['processed:sum'] ?? 0,
+                        'released' => $row['released:sum'] ?? 0,
+                        'failed' => $row['failed:sum'] ?? 0,
                     ];
                 })
                 ->all()

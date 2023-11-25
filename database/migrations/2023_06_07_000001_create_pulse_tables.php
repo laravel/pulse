@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('type');
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
-            $table->unsignedInteger('value')->nullable();
+            $table->unsignedInteger('value');
 
             // todo: we want `timestamp` for trimming
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
@@ -49,7 +49,7 @@ return new class extends Migration
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
             $table->unsignedInteger('value');
-            $table->unsignedInteger('count')->nullable();
+            $table->unsignedInteger('count');
 
             // todo: we want `period`,`bucket` for trimming
             $table->unique(['bucket', 'period', 'type', 'key_hash']);

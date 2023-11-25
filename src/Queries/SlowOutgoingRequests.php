@@ -43,39 +43,27 @@ class SlowOutgoingRequests
         $tailEnd = $oldestBucket - 1;
 
         return $this->db->connection()->query()
-            ->select('uri', $this->db->connection()->raw('max(`slowest`) as `slowest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
+            ->select('uri')
+            ->selectRaw('max(`slowest`) as `slowest`')
+            ->selectRaw('sum(`count`) as `count`')
             ->fromSub(fn (Builder $query) => $query
-                // duration tail
-                ->select('key as uri', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                // tail
+                ->select('key as uri')
+                ->selectRaw('max(`value`) as `slowest`')
+                ->selectRaw('count(*) as `count`')
                 ->from('pulse_entries')
                 ->where('type', 'slow_outgoing_request')
                 ->where('timestamp', '>=', $tailStart)
                 ->where('timestamp', '<=', $tailEnd)
                 ->groupBy('key')
-                // count tail
+                // buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key as uri', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('count(*) as `count`'))
-                    ->from('pulse_entries')
-                    ->where('type', 'slow_outgoing_request')
-                    ->where('timestamp', '>=', $tailStart)
-                    ->where('timestamp', '<=', $tailEnd)
-                    ->groupBy('key')
-                )
-                // duration buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key as uri', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
+                    ->select('key as uri')
+                    ->selectRaw('max(`value`) as `slowest`')
+                    ->selectRaw('sum(`count`) as `count`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
                     ->where('type', 'slow_outgoing_request:max')
-                    ->where('bucket', '>=', $oldestBucket)
-                    ->groupBy('key')
-                )
-                // count buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key as uri', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->where('type', 'slow_outgoing_request:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 ), as: 'child'

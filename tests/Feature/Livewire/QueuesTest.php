@@ -16,10 +16,10 @@ it('renders queue statistics', function () {
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'queued:count', 'key' => 'database:default', 'value' => 4],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processing:count', 'key' => 'database:default', 'value' => 3],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processed:count', 'key' => 'database:default', 'value' => 2],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'released:count', 'key' => 'database:default', 'value' => 1],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'queued:sum', 'key' => 'database:default', 'value' => 4, 'count' => 4],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processing:sum', 'key' => 'database:default', 'value' => 3, 'count' => 3],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processed:sum', 'key' => 'database:default', 'value' => 2, 'count' => 2],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'released:sum', 'key' => 'database:default', 'value' => 1, 'count' => 1],
     ]));
 
     Livewire::test(Queues::class, ['lazy' => false])

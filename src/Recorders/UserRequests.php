@@ -69,6 +69,6 @@ class UserRequests
             return;
         }
 
-        $this->pulse->record('user_request', $userId, timestamp: $startedAt->getTimestamp())->count();
+        $this->pulse->record('user_request', $userId, timestamp: $startedAt->getTimestamp())->sum();
     }
 }

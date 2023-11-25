@@ -139,7 +139,7 @@ class Pulse
     public function record(
         string $type,
         Closure|string $key,
-        int $value = null,
+        int $value = 1,
         DateTimeInterface|int $timestamp = null,
     ): Entry {
         if ($timestamp === null) {

@@ -76,14 +76,14 @@ class SlowRequests
             key: "{$request->method()} {$path}{$via}",
             value: $duration,
             timestamp: $startedAt,
-        )->count()->max();
+        )->max();
 
         if ($userId = $this->pulse->resolveAuthenticatedUserId()) {
             $this->pulse->record(
                 type: 'slow_user_request',
                 key: $userId,
                 timestamp: $startedAt,
-            )->count();
+            )->sum();
         }
     }
 }

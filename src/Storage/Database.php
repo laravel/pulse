@@ -53,25 +53,25 @@ class Database implements Storage
             Interval::days(7)->totalSeconds / 60,
         ]);
 
-        $entries->filter->isCount() // @phpstan-ignore method.notFound
+        $entries->filter->isSum() // @phpstan-ignore method.notFound
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
-            ->each(fn ($chunk) => $this->upsertCount(
-                $periods->flatMap(fn ($period) => $chunk->map->countAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
-                'pulse_aggregates'
+            ->each(fn ($chunk) => $this->upsertSum(
+                'pulse_aggregates',
+                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'sum'))->all() // @phpstan-ignore argument.templateType argument.templateType
             ));
 
         $entries->filter->isMax() // @phpstan-ignore method.notFound
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
             ->each(fn ($chunk) => $this->upsertMax(
-                $periods->flatMap(fn ($period) => $chunk->map->maxAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
-                'pulse_aggregates'
+                'pulse_aggregates',
+                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'max'))->all() // @phpstan-ignore argument.templateType argument.templateType
             ));
 
         $entries->filter->isAvg() // @phpstan-ignore method.notFound
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
             ->each(fn ($chunk) => $this->upsertAvg(
-                $periods->flatMap(fn ($period) => $chunk->map->avgAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
-                'pulse_aggregates'
+                'pulse_aggregates',
+                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'avg'))->all() // @phpstan-ignore argument.templateType argument.templateType
             ));
 
         $values
@@ -127,22 +127,22 @@ class Database implements Storage
     }
 
     /**
-     * Insert new records or update the existing ones and increment the count.
+     * Insert new records or update the existing ones and update the sum.
      *
      * @param  list<\Laravel\Pulse\Entry>  $values
      */
-    protected function upsertCount(array $values, string $table, string $valueColumn = 'value'): bool
-    {
-        $grammar = $this->db->connection()->getQueryGrammar();
-
-        $sql = $grammar->compileInsert(
-            $this->db->connection()->table($table),
-            $values
+    protected function upsertSum(
+        string $table,
+        array $values,
+        string $valueColumn = 'value',
+        string $countColumn = 'count'
+    ): bool {
+        return $this->upsert(
+            $table,
+            $values,
+            'on duplicate key update %1$s = %1$s + values(%1$s), %2$s = %2$s + 1',
+            [$valueColumn, $countColumn]
         );
-
-        $sql .= sprintf(' on duplicate key update %1$s = %1$s + values(%1$s)', $grammar->wrap($valueColumn));
-
-        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
     }
 
     /**
@@ -150,18 +150,18 @@ class Database implements Storage
      *
      * @param  list<\Laravel\Pulse\Entry>  $values
      */
-    protected function upsertMax(array $values, string $table, string $valueColumn = 'value'): bool
-    {
-        $grammar = $this->db->connection()->getQueryGrammar();
-
-        $sql = $grammar->compileInsert(
-            $this->db->connection()->table($table),
-            $values
+    protected function upsertMax(
+        string $table,
+        array $values,
+        string $valueColumn = 'value',
+        string $countColumn = 'count'
+    ): bool {
+        return $this->upsert(
+            $table,
+            $values,
+            'on duplicate key update %1$s = greatest(%1$s, values(%1$s)), %2$s = %2$s + 1',
+            [$valueColumn, $countColumn]
         );
-
-        $sql .= sprintf(' on duplicate key update %1$s = greatest(%1$s, values(%1$s))', $grammar->wrap($valueColumn));
-
-        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
     }
 
     /**
@@ -169,8 +169,31 @@ class Database implements Storage
      *
      * @param  list<\Laravel\Pulse\Entry>  $values
      */
-    protected function upsertAvg(array $values, string $table, string $valueColumn = 'value', string $countColumn = 'count'): bool
-    {
+    protected function upsertAvg(
+        string $table,
+        array $values,
+        string $valueColumn = 'value',
+        string $countColumn = 'count'
+    ): bool {
+        return $this->upsert(
+            $table,
+            $values,
+            ' on duplicate key update %1$s = (%1$s * %2$s + values(%1$s)) / (%2$s + 1), %2$s = %2$s + 1',
+            [$valueColumn, $countColumn]
+        );
+    }
+
+    /**
+     * Perform an "upsert" query with an "on duplicate key" clause.
+     *
+     * @param  list<\Laravel\Pulse\Entry>  $values
+     */
+    protected function upsert(
+        string $table,
+        array $values,
+        string $onDuplicateKeyClause,
+        array $onDuplicateKeyColumns = [],
+    ): bool {
         $grammar = $this->db->connection()->getQueryGrammar();
 
         $sql = $grammar->compileInsert(
@@ -178,7 +201,7 @@ class Database implements Storage
             $values
         );
 
-        $sql .= sprintf(' on duplicate key update %1$s = (%1$s * %2$s + values(%1$s)) / (%2$s + 1), %2$s = %2$s + 1', $grammar->wrap($valueColumn), $grammar->wrap($countColumn));
+        $sql .= ' '.sprintf($onDuplicateKeyClause, ...$onDuplicateKeyColumns);
 
         return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
     }

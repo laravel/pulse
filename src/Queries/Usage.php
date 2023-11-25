@@ -61,7 +61,8 @@ class Usage
             ->select('key', $this->db->connection()->raw('sum(`value`) as `value`'))
             ->fromSub(fn (Builder $query) => $query
                 // tail
-                ->select('key', $this->db->connection()->raw('count(*) as `value`'))
+                ->select('key')
+                ->selectRaw('count(*) as `value`')
                 ->from('pulse_entries')
                 ->where('type', $type)
                 ->where('timestamp', '>=', $tailStart)
@@ -69,10 +70,11 @@ class Usage
                 ->groupBy('key')
                 // buckets
                 ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('sum(`value`) as `value`'))
+                    ->select('key')
+                    ->selectRaw('sum(`value`) as `value`')
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->where('type', $type.':count')
+                    ->where('type', $type.':sum')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 ), as: 'child'
