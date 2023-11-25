@@ -4,13 +4,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Livewire\SlowRoutes;
+use Laravel\Pulse\Livewire\SlowRequests;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
     $this
         ->get('/pulse')
-        ->assertSeeLivewire(SlowRoutes::class);
+        ->assertSeeLivewire(SlowRequests::class);
 });
 
 it('renders slow requests', function () {
@@ -32,8 +32,8 @@ it('renders slow requests', function () {
         ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users/{user}', 'value' => 1000],
     ]));
 
-    Livewire::test(SlowRoutes::class, ['lazy' => false])
-        ->assertViewHas('slowRoutes', collect([
+    Livewire::test(SlowRequests::class, ['lazy' => false])
+        ->assertViewHas('routes', collect([
             (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 5, 'slowest' => 2468],
             (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234],
         ]));
@@ -58,8 +58,8 @@ it('handles routes with domains', function () {
         ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET {account}.example.com/users', 'value' => 1000],
     ]));
 
-    Livewire::test(SlowRoutes::class, ['lazy' => false])
-        ->assertViewHas('slowRoutes', collect([
+    Livewire::test(SlowRequests::class, ['lazy' => false])
+        ->assertViewHas('routes', collect([
             (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'GlobalUserController@index', 'count' => 3, 'slowest' => 2468],
             (object) ['method' => 'GET', 'uri' => '{account}.example.com/users', 'action' => 'AccountUserController@index', 'count' => 2, 'slowest' => 1234],
         ]));

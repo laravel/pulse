@@ -26,7 +26,7 @@
             class="min-h-full flex flex-col"
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
-            @if (count($slowRoutes) === 0)
+            @if ($routes->isEmpty())
                 <x-pulse::no-results class="flex-1" />
             @else
                 <x-pulse::table>
@@ -45,7 +45,7 @@
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($slowRoutes->take(100) as $route)
+                        @foreach ($routes->take(100) as $route)
                             <tr class="h-2 first:h-0"></tr>
                             <tr>
                                 <x-pulse::td>
@@ -80,7 +80,7 @@
                     </tbody>
                 </x-pulse::table>
 
-                @if ($slowRoutes->count() > 100)
+                @if ($routes->count() > 100)
                     <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
                 @endif
             @endif

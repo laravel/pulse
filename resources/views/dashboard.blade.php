@@ -32,7 +32,7 @@
 
     <livewire:pulse.exceptions cols="6" />
 
-    <livewire:pulse.slow-routes cols="6" />
+    <livewire:pulse.slow-requests cols="6" />
 
     <livewire:pulse.slow-jobs cols="6" />
 
