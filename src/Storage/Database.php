@@ -27,19 +27,20 @@ class Database implements Storage
     /**
      * Store the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
-    public function store(Collection $entries): void
+    public function store(Collection $items): void
     {
-        if ($entries->isEmpty()) {
+        if ($items->isEmpty()) {
             return;
         }
 
         // TODO: Transactions!
 
-        [$entries, $values] = $entries->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
+        [$entries, $values] = $items->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
 
         $entries
+            ->reject->isBucketOnly()
             ->chunk($this->config->get('pulse.storage.database.chunk'))
             ->each(fn ($chunk) => $this->db->connection()
                 ->table('pulse_entries')

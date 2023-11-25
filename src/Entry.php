@@ -7,9 +7,16 @@ use Closure;
 class Entry
 {
     /**
+     * The aggregations to perform on the entry.
+     *
      * @var list<'sum'|'max'|'avg'>
      */
     protected array $aggregations = [];
+
+    /**
+     * Whether to only save aggregate bucket data for the entry.
+     */
+    protected bool $bucketOnly = false;
 
     /**
      * Create a new Entry instance.
@@ -76,6 +83,16 @@ class Entry
     }
 
     /**
+     * Only save aggregate bucket data for the entry.
+     */
+    public function bucketOnly(): static
+    {
+        $this->bucketOnly = true;
+
+        return $this;
+    }
+
+    /**
      * Determine whether the entry is marked for sum aggregation.
      */
     public function isSum(): bool
@@ -97,6 +114,14 @@ class Entry
     public function isAvg(): bool
     {
         return in_array('avg', $this->aggregations);
+    }
+
+    /**
+     * Determine whether the entry is marked for average aggregation.
+     */
+    public function isBucketOnly(): bool
+    {
+        return $this->bucketOnly;
     }
 
     /**
