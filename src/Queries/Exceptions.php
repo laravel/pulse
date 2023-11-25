@@ -46,6 +46,7 @@ class Exceptions
                 ->select('key', $this->db->connection()->raw('`value` as `latest`'), $this->db->connection()->raw('0 as `count`'))
                 ->from('pulse_values')
                 ->where('type', 'exception:latest')
+                ->where('value', '>=', $windowStart)
                 // count tail
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('count(*) as `count`'))
