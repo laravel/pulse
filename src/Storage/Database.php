@@ -8,7 +8,9 @@ use Illuminate\Config\Repository;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
+use Laravel\Pulse\Value;
 
 class Database implements Storage
 {
@@ -34,6 +36,8 @@ class Database implements Storage
         }
 
         // TODO: Transactions!
+
+        [$entries, $values] = $entries->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
 
         $entries
             ->chunk($this->config->get('pulse.storage.database.chunk'))
@@ -69,6 +73,17 @@ class Database implements Storage
                 $periods->flatMap(fn ($period) => $chunk->map->avgAttributes($period))->all(), // @phpstan-ignore argument.templateType argument.templateType
                 'pulse_aggregates'
             ));
+
+        $values
+            ->chunk($this->config->get('pulse.storage.database.chunk'))
+            ->each(fn ($chunk) => $this->db->connection()
+                ->table('pulse_values')
+                ->upsert(
+                    $chunk->map->attributes()->toArray(), // @phpstan-ignore method.notFound
+                    ['type', 'key'],
+                    ['timestamp', 'value']
+                )
+            );
     }
 
     /**
@@ -80,7 +95,7 @@ class Database implements Storage
 
         $this->db->connection()
             ->table('pulse_values')
-            ->where('expires_at', '<=', $now->getTimestamp())
+            ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
         $this->db->connection()

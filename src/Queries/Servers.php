@@ -51,23 +51,22 @@ class Servers
 
         $servers = $this->db->connection()
             ->table('pulse_values')
-            ->where('key', 'like', 'system:%')
+            ->where('type', 'system')
             ->get()
-            ->mapWithKeys(function ($system) use ($now) {
+            ->keyBy('key')
+            ->map(function ($system) use ($now) {
                 $values = json_decode($system->value, flags: JSON_THROW_ON_ERROR);
 
-                return [
-                    Str::after($system->key, 'system:') => (object) [
-                        'name' => (string) $values->name,
-                        'cpu_current' => (int) $values->cpu,
-                        'cpu' => collect(),
-                        'memory_current' => (int) $values->memory_used,
-                        'memory_total' => (int) $values->memory_total,
-                        'memory' => collect(),
-                        'storage' => collect($values->storage), // @phpstan-ignore argument.templateType argument.templateType
-                        'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($values->timestamp),
-                        'recently_reported' => $updatedAt->isAfter($now->subSeconds(30)),
-                    ],
+                return (object) [
+                    'name' => (string) $values->name,
+                    'cpu_current' => (int) $values->cpu,
+                    'cpu' => collect(),
+                    'memory_current' => (int) $values->memory_used,
+                    'memory_total' => (int) $values->memory_total,
+                    'memory' => collect(),
+                    'storage' => collect($values->storage), // @phpstan-ignore argument.templateType argument.templateType
+                    'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
+                    'recently_reported' => $updatedAt->isAfter($now->subSeconds(30)),
                 ];
             });
 

@@ -9,7 +9,6 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Pulse;
 use Throwable;
@@ -46,23 +45,24 @@ class Exceptions
     /**
      * Record the exception.
      */
-    public function record(Throwable $e): ?Entry
+    public function record(Throwable $e): void
     {
         $now = new CarbonImmutable();
 
         $class = $this->getClass($e);
 
         if (! $this->shouldSample() || $this->shouldIgnore($class)) {
-            return null;
+            return;
         }
 
-        return Entry::make(
-            timestamp: (int) $now->timestamp,
-            type: 'exception',
-            // TODO: Is this a good separator? Could it collide with something that might appear in a query?
-            key: $class.($this->config->get('pulse.recorders.'.self::class.'.location') ? ('::'.$this->getLocation($e)) : ''),
-            value: (int) $now->timestamp,
-        )->count()->max();
+        if ($this->config->get('pulse.recorders.'.self::class.'.location')) {
+            // TODO: Is this a good generic separator? Could it collide with something that might appear in a query?
+            $class .= '::'.$this->getLocation($e);
+        }
+
+        $this->pulse->record('exception', $class, timestamp: $now)->count();
+
+        $this->pulse->set('exception:latest', $class, $now->getTimestamp());
     }
 
     /**

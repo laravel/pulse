@@ -21,15 +21,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pulse_values', function (Blueprint $table) {
+            $table->unsignedInteger('timestamp');
+            $table->string('type');
             $table->string('key');
             $table->text('value');
-            $table->unsignedInteger('expires_at');
-            // $table->unsignedInteger('updated');
-            // $table->unsignedInteger('expires')->nullable();
 
-            $table->unique('key');
-            // todo: we want `expires_at` for trimming
-            // $table->index('expires');
+            // todo: we want `timestamp` for trimming
+            $table->unique(['type', 'key']);
+            $table->index('type');
         });
 
         Schema::create('pulse_entries', function (Blueprint $table) {

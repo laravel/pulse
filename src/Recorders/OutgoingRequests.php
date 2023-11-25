@@ -10,7 +10,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Contracts\Grouping;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -48,27 +47,26 @@ class OutgoingRequests implements Grouping // TODO: Rename to SlowOutgoingReques
     /**
      * Record the outgoing request.
      */
-    public function record(RequestInterface $request, CarbonImmutable $startedAt): ?Entry
+    public function record(RequestInterface $request, CarbonImmutable $startedAt): void
     {
         $endedAt = new CarbonImmutable;
 
         if (! $this->shouldSample() || $this->shouldIgnore($request->getUri())) {
-            return null;
+            return;
         }
 
         $duration = $startedAt->diffInMilliseconds($endedAt);
-        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
 
-        if ($slow) {
-            return Entry::make(
-                timestamp: (int) $startedAt->timestamp,
-                type: 'slow_outgoing_request',
-                key: $this->group($request->getMethod().' '.$request->getUri()),
-                value: $duration
-            )->count()->max();
+        if ($duration < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+            return;
         }
 
-        return null;
+        $this->pulse->record(
+            type: 'slow_outgoing_request',
+            key: $this->group($request->getMethod().' '.$request->getUri()),
+            value: $duration,
+            timestamp: $startedAt,
+        )->count()->max();
     }
 
     /**

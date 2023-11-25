@@ -3,10 +3,9 @@
 namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Events\SharedBeat;
+use Laravel\Pulse\Pulse;
 use RuntimeException;
 
 /**
@@ -24,8 +23,10 @@ class SystemStats
     /**
      * Create a new recorder instance.
      */
-    public function __construct(protected Repository $config)
-    {
+    public function __construct(
+        protected Pulse $pulse,
+        protected Repository $config
+    ) {
         //
     }
 
@@ -61,15 +62,13 @@ class SystemStats
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
-        // TODO: figure out to send values..
-        DB::table('pulse_values')->updateOrInsert([
-            'key' => 'system:'.$slug,
-        ], ['value' => json_encode([
+        $this->pulse->record('cpu', $slug, $cpu, $event->time)->avg();
+        $this->pulse->record('memory', $slug, $memoryUsed, $event->time)->avg();
+        $this->pulse->set('system', $slug, json_encode([
             'name' => $server,
-            'timestamp' => $event->time->timestamp,
+            'cpu' => $cpu,
             'memory_used' => $memoryUsed,
             'memory_total' => $memoryTotal,
-            'cpu' => $cpu,
             'storage' => collect($this->config->get('pulse.recorders.'.self::class.'.directories')) // @phpstan-ignore argument.templateType argument.templateType
                 ->map(fn (string $directory) => [
                     'directory' => $directory,
@@ -77,22 +76,6 @@ class SystemStats
                     'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
                 ])
                 ->toArray(),
-        ])]);
-
-        return [
-            Entry::make(
-                timestamp: (int) $event->time->timestamp,
-                type: 'cpu',
-                key: $slug,
-                value: $cpu,
-            )->avg(),
-
-            Entry::make(
-                timestamp: (int) $event->time->timestamp,
-                type: 'memory',
-                key: $slug,
-                value: $memoryUsed,
-            )->avg(),
-        ];
+        ]), $event->time);
     }
 }

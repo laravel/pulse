@@ -21,10 +21,10 @@ it('renders server statistics', function () {
         ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'memory:avg', 'key' => 'web-1', 'value' => 1234],
     ]));
     Pulse::ignore(fn () => DB::table('pulse_values')->insert([
-        'key' => 'system:web-1',
+        'type' => 'system',
+        'key' => 'web-1',
         'value' => json_encode([
             'name' => 'Web 1',
-            'timestamp' => $timestamp,
             'memory_used' => 1234,
             'memory_total' => 2468,
             'cpu' => 12,
@@ -32,6 +32,7 @@ it('renders server statistics', function () {
                 ['directory' => '/', 'used' => 123, 'total' => 456],
             ],
         ]),
+        'timestamp' => $timestamp,
     ]));
 
     Livewire::test(Servers::class, ['lazy' => false])

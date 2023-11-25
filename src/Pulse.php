@@ -2,6 +2,9 @@
 
 namespace Laravel\Pulse;
 
+use Carbon\CarbonImmutable;
+use Closure;
+use DateTimeInterface;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -29,9 +32,9 @@ class Pulse
     protected Collection $recorders;
 
     /**
-     * The list of queued entries or updates.
+     * The list of queued entries and values.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
      */
     protected Collection $entries;
 
@@ -111,9 +114,7 @@ class Pulse
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
-                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event))
-                    ->filter()
-                    ->each($this->record(...)))
+                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event)))
             ))
         );
 
@@ -121,9 +122,7 @@ class Pulse
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
             ->each(function ($recorder) {
                 $record = function (...$args) use ($recorder) {
-                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args))
-                        ->filter()
-                        ->each($this->record(...)));
+                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args)));
                 };
 
                 $this->app->call($recorder->register(...), ['record' => $record]);
@@ -135,15 +134,57 @@ class Pulse
     }
 
     /**
-     * Record the given entry.
+     * Record an entry.
      */
-    public function record(Entry $entry): self
-    {
+    public function record(
+        string $type,
+        Closure|string $key,
+        int $value = null,
+        DateTimeInterface|int $timestamp = null,
+    ): Entry {
+        if ($timestamp === null) {
+            $timestamp = CarbonImmutable::now();
+        }
+
+        $entry = new Entry(
+            timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
+            type: $type,
+            key: $key,
+            value: $value,
+        );
+
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
         }
 
-        return $this;
+        return $entry;
+    }
+
+    /**
+     * Record a value.
+     */
+    public function set(
+        string $type,
+        Closure|string $key,
+        mixed $value,
+        DateTimeInterface|int $timestamp = null,
+    ): Value {
+        if ($timestamp === null) {
+            $timestamp = CarbonImmutable::now();
+        }
+
+        $value = new Value(
+            timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
+            type: $type,
+            key: $key,
+            value: $value,
+        );
+
+        if ($this->shouldRecord) {
+            $this->entries[] = $value;
+        }
+
+        return $value;
     }
 
     /**
@@ -250,7 +291,7 @@ class Pulse
     /**
      * Determine if the given entry should be recorded.
      */
-    protected function shouldRecord(Entry $entry): bool
+    protected function shouldRecord(Entry|Value $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
     }

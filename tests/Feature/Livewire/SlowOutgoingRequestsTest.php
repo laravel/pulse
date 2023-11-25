@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowOutgoingRequests;
@@ -12,6 +13,7 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders slow outgoing requests', function () {
+    Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_outgoing_request', 'key' => 'GET http://example.com', 'value' => 1234],

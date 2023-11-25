@@ -42,13 +42,10 @@ class Exceptions
         return $this->db->connection()->query()
             ->select('key as class', $this->db->connection()->raw('max(`latest`) as `latest`'), $this->db->connection()->raw('sum(`count`) as `count`'))
             ->fromSub(fn (Builder $query) => $query
-                // latest tail
-                ->select('key', $this->db->connection()->raw('max(`value`) as `latest`'), $this->db->connection()->raw('0 as `count`'))
-                ->from('pulse_entries')
-                ->where('type', 'exception')
-                ->where('timestamp', '>=', $tailStart)
-                ->where('timestamp', '<=', $tailEnd)
-                ->groupBy('key')
+                // latest
+                ->select('key', $this->db->connection()->raw('`value` as `latest`'), $this->db->connection()->raw('0 as `count`'))
+                ->from('pulse_values')
+                ->where('type', 'exception:latest')
                 // count tail
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('count(*) as `count`'))
@@ -56,15 +53,6 @@ class Exceptions
                     ->where('type', 'exception')
                     ->where('timestamp', '>=', $tailStart)
                     ->where('timestamp', '<=', $tailEnd)
-                    ->groupBy('key')
-                )
-                // latest buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key', $this->db->connection()->raw('max(`value`) as `latest`'), $this->db->connection()->raw('0 as `count`'))
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->where('type', 'exception:max')
-                    ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
                 )
                 // count buckets
@@ -88,6 +76,9 @@ class Exceptions
                 } else {
                     $row->location = null;
                 }
+
+                $row->latest = (int) $row->latest;
+                $row->count = (int) $row->count;
 
                 return $row;
             });

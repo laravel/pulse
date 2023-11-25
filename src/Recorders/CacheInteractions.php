@@ -8,7 +8,6 @@ use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
 use Laravel\Pulse\Contracts\Grouping;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -42,18 +41,21 @@ class CacheInteractions implements Grouping
     /**
      * Record the cache interaction.
      */
-    public function record(CacheHit|CacheMissed $event): ?Entry
+    public function record(CacheHit|CacheMissed $event): void
     {
         $now = new CarbonImmutable();
 
         if (! $this->shouldSample() || $this->shouldIgnore($event->key)) {
-            return null;
+            return;
         }
 
-        return Entry::make(
-            timestamp: (int) $now->timestamp,
-            type: $event instanceof CacheHit ? 'cache_hit' : 'cache_miss',
+        $this->pulse->record(
+            type: match (get_class($event)) { // TODO: Just record the event class name?
+                CacheHit::class => 'cache_hit',
+                CacheMissed::class => 'cache_miss',
+            },
             key: $this->group($event->key),
+            timestamp: $now
         )->count();
     }
 

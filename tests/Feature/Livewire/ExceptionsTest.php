@@ -15,6 +15,10 @@ it('includes the card on the dashboard', function () {
 it('renders exceptions', function () {
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
+    Pulse::ignore(fn () => DB::table('pulse_values')->insert([
+        ['type' => 'exception:latest', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp - 3600 + 1, 'timestamp' => $timestamp - 3600 + 1],
+        ['type' => 'exception:latest', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp - 3600 + 1, 'timestamp' => $timestamp - 3600 + 1],
+    ]));
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123'],
         ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Bar.php:123'],
@@ -24,13 +28,11 @@ it('renders exceptions', function () {
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
         ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => 2],
         ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:count', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => 1],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:max', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception:max', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp],
     ]));
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => $timestamp],
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => $timestamp],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => $timestamp - 3600 + 1],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => $timestamp - 3600 + 1],
         ]));
 });

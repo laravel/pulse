@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -37,24 +36,29 @@ class SlowQueries
     /**
      * Record a slow query.
      */
-    public function record(QueryExecuted $event): ?Entry
+    public function record(QueryExecuted $event): void
     {
         $now = new CarbonImmutable();
 
         if ($event->time < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-            return null;
+            return;
         }
 
         if (! $this->shouldSample() || $this->shouldIgnore($event->sql)) {
-            return null;
+            return;
         }
 
-        return Entry::make(
-            timestamp: (int) $now->subMilliseconds((int) $event->time)->timestamp,
-            type: 'slow_query',
+        $key = $event->sql;
+        if ($this->config->get('pulse.recorders.'.self::class.'.location')) {
             // TODO: Is this a good separator? Could it collide with something that might appear in a query?
-            key: $event->sql.($this->config->get('pulse.recorders.'.self::class.'.location') ? ('::'.$this->getLocation()) : ''),
+            $key .= '::'.$this->getLocation();
+        }
+
+        $this->pulse->record(
+            type: 'slow_query',
+            key: $key,
             value: (int) $event->time,
+            timestamp: $now->subMilliseconds((int) $event->time),
         )->count()->max();
     }
 

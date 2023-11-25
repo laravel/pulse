@@ -9,9 +9,9 @@ use Laravel\Pulse\Storage\Database;
 it('trims values at or past expiry', function () {
     Date::setTestNow('2000-01-01 00:00:05');
     DB::table('pulse_values')->insert([
-        ['key' => 'foo', 'value' => 'value', 'expires_at' => CarbonImmutable::parse('2000-01-01 00:00:04')->getTimestamp()],
-        ['key' => 'bar', 'value' => 'value', 'expires_at' => CarbonImmutable::parse('2000-01-01 00:00:05')->getTimestamp()],
-        ['key' => 'baz', 'value' => 'value', 'expires_at' => CarbonImmutable::parse('2000-01-01 00:00:06')->getTimestamp()],
+        ['type' => 'type', 'key' => 'foo', 'value' => 'value', 'timestamp' => now()->subWeek()->subSecond()->getTimestamp()],
+        ['type' => 'type', 'key' => 'bar', 'value' => 'value', 'timestamp' => now()->subWeek()->getTimestamp()],
+        ['type' => 'type', 'key' => 'baz', 'value' => 'value', 'timestamp' => now()->subWeek()->addSecond()->getTimestamp()],
     ]);
 
     App::make(Database::class)->trim();

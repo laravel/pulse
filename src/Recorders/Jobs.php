@@ -10,7 +10,6 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -51,79 +50,63 @@ class Jobs
 
     /**
      * Record the job.
-     *
-     * @return \Laravel\Pulse\Entry|list<\Laravel\Pulse\Entry>|null
      */
-    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): Entry|array|null
+    public function record(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): void
     {
         if ($event->connectionName === 'sync') {
-            return null;
+            return;
         }
 
         $now = new CarbonImmutable();
 
-        if ($event instanceof JobQueued) {
-            if (
-                ! $this->shouldSampleDeterministically($event->payload()['uuid'])
-                    || $this->shouldIgnore(is_string($event->job) ? $event->job : $event->job::class)
-            ) {
-                return null;
-            }
+        [$uuid, $name] = match (get_class($event)) {
+            JobQueued::class => [
+                $event->payload()['uuid'],
+                is_string($event->job) ? $event->job : $event->job::class,
+            ],
+            default => [$event->job->uuid(), $event->job->resolveName()],
+        };
 
-            return array_values(array_filter([
-                Entry::make(
-                    timestamp: (int) $now->timestamp,
-                    type: 'queued', // TODO: prefix with 'queued:' or something?
-                    key: $event->connectionName.':'.($event->job->queue ?? 'default')
-                )->count(),
-                // TODO: Make this better.
-                Auth::check() ? Entry::make(
-                    timestamp: (int) $now->timestamp,
-                    type: 'user_job', // TODO: prefix with 'queued:' or 'usage'?
-                    key: $this->pulse->authenticatedUserIdResolver()
-                )->count() : null,
-            ]));
+        if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
+            return;
         }
 
-        if (! $this->shouldSampleDeterministically((string) $event->job->uuid()) ||
-            $this->shouldIgnore($event->job->resolveName())) {
+        // Queue Stats
 
-            return null;
-        }
+        $this->pulse->record(
+            type: match (get_class($event)) { // TODO: Just record the event class name?
+                JobQueued::class => 'queued',
+                JobProcessing::class => 'processing',
+                JobProcessed::class => 'processed',
+                JobReleasedAfterException::class => 'released',
+                JobFailed::class => 'failed',
+            },
+            key: match (get_class($event)) {
+                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
+                default => $event->job->getConnectionName().':'.$event->job->getQueue(),
+            },
+            timestamp: $now,
+        )->count();
+
+        // Slow Jobs
+        // TODO: Separate recorder so it can be sampled differently?
 
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
+        } elseif (isset($this->lastJobStartedProcessingAt) && $this->lastJobStartedProcessingAt !== null) {
+            $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
+            $this->lastJobStartedProcessingAt = null;
 
-            return Entry::make(
-                timestamp: (int) $now->timestamp,
-                type: 'processing',
-                key: $event->job->getConnectionName().':'.$event->job->getQueue()
-            )->count();
+            if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->count()->max();
+            }
         }
 
-        if ($this->lastJobStartedProcessingAt === null) {
-            return null;
+        // User dispatching Jobs
+        // TODO: Separate recorder so it can be sampled differently?
+
+        if (Auth::check()) {
+            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->count();
         }
-
-        $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
-        $slow = $duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold');
-
-        return array_values(array_filter([
-            Entry::make(
-                timestamp: (int) $now->timestamp,
-                type: match (true) {
-                    $event instanceof JobReleasedAfterException => 'released',
-                    $event instanceof JobFailed => 'failed',
-                    $event instanceof JobProcessed => 'processed',
-                },
-                key: $event->job->getConnectionName().':'.$event->job->getQueue(),
-            )->count(),
-            $slow ? Entry::make(
-                timestamp: (int) $now->timestamp,
-                type: 'slow_job',
-                key: $event->job->resolveName(),
-                value: $duration,
-            )->count()->max() : null,
-        ]));
     }
 }

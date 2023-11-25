@@ -10,7 +10,6 @@ use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -45,17 +44,15 @@ class SlowRequests
 
     /**
      * Record the request.
-     *
-     * @return ?list<\Laravel\Pulse\Entry>
      */
-    public function record(Carbon $startedAt, Request $request, Response $response): ?array
+    public function record(Carbon $startedAt, Request $request, Response $response): void
     {
         if (
             ($duration = $startedAt->diffInMilliseconds()) < $this->config->get('pulse.recorders.'.self::class.'.threshold') ||
             ! ($route = $request->route()) instanceof Route ||
             ! $this->shouldSample()
         ) {
-            return null;
+            return;
         }
 
         $path = $route->getDomain().Str::start($route->uri(), '/');
@@ -71,23 +68,22 @@ class SlowRequests
         }
 
         if ($this->shouldIgnore($path)) {
-            return null;
+            return;
         }
 
-        return [
-            Entry::make(
-                timestamp: $startedAt->getTimestamp(),
-                type: 'slow_request',
-                key: $request->method().' '.$path.($via ? " ($via)" : ''),
-                value: $duration,
-            )->count()->max(),
-            ...($userId = $this->pulse->resolveAuthenticatedUserId()) ? [
-                Entry::make(
-                    timestamp: $startedAt->getTimestamp(),
-                    type: 'slow_user_request',
-                    key: (string) $userId,
-                )->count(),
-            ] : [],
-        ];
+        $this->pulse->record(
+            type: 'slow_request',
+            key: $request->method().' '.$path.($via ? " ($via)" : ''),
+            value: $duration,
+            timestamp: $startedAt,
+        )->count()->max();
+
+        if ($userId = $this->pulse->resolveAuthenticatedUserId()) {
+            $this->pulse->record(
+                type: 'slow_user_request',
+                key: $userId,
+                timestamp: $startedAt,
+            )->count();
+        }
     }
 }
