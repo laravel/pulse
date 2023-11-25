@@ -85,7 +85,7 @@ class SlowRequests
                 Entry::make(
                     timestamp: $startedAt->getTimestamp(),
                     type: 'slow_user_request',
-                    key: $userId,
+                    key: (string) $userId,
                 )->count(),
             ] : [],
         ];

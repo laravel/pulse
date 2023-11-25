@@ -31,8 +31,8 @@ class Entry
         string $type,
         Closure|string $key,
         int $value = null
-    ) {
-        return new static($timestamp, $type, $key, $value);
+    ): self {
+        return new self($timestamp, $type, $key, $value);
     }
 
     /**
