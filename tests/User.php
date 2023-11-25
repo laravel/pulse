@@ -25,4 +25,3 @@ class User extends AuthUser
         };
     }
 }
-

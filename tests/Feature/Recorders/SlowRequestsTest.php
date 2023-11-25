@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowRequests;
-
 use Tests\User;
 
 use function Pest\Laravel\actingAs;
