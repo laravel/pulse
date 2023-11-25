@@ -27,7 +27,7 @@ class Database implements Storage
     /**
      * Store the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>  $items
      */
     public function store(Collection $items): void
     {
@@ -44,7 +44,7 @@ class Database implements Storage
             ->chunk($this->config->get('pulse.storage.database.chunk'))
             ->each(fn ($chunk) => $this->db->connection()
                 ->table('pulse_entries')
-                ->insert($chunk->map->attributes()->toArray()) // @phpstan-ignore method.notFound
+                ->insert($chunk->map->attributes()->toArray())
             );
 
         $periods = collect([
@@ -54,21 +54,21 @@ class Database implements Storage
             Interval::days(7)->totalSeconds / 60,
         ]);
 
-        $entries->filter->isSum() // @phpstan-ignore method.notFound
+        $entries->filter->isSum()
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
             ->each(fn ($chunk) => $this->upsertSum(
                 'pulse_aggregates',
                 $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'sum'))->all() // @phpstan-ignore argument.templateType argument.templateType
             ));
 
-        $entries->filter->isMax() // @phpstan-ignore method.notFound
+        $entries->filter->isMax()
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
             ->each(fn ($chunk) => $this->upsertMax(
                 'pulse_aggregates',
                 $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'max'))->all() // @phpstan-ignore argument.templateType argument.templateType
             ));
 
-        $entries->filter->isAvg() // @phpstan-ignore method.notFound
+        $entries->filter->isAvg()
             ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
             ->each(fn ($chunk) => $this->upsertAvg(
                 'pulse_aggregates',
@@ -80,7 +80,7 @@ class Database implements Storage
             ->each(fn ($chunk) => $this->db->connection()
                 ->table('pulse_values')
                 ->upsert(
-                    $chunk->map->attributes()->toArray(), // @phpstan-ignore method.notFound
+                    $chunk->map->attributes()->toArray(),
                     ['type', 'key'],
                     ['timestamp', 'value']
                 )
@@ -188,6 +188,7 @@ class Database implements Storage
      * Perform an "upsert" query with an "on duplicate key" clause.
      *
      * @param  list<\Laravel\Pulse\Entry>  $values
+     * @param  list<string>  $onDuplicateKeyColumns
      */
     protected function upsert(
         string $table,

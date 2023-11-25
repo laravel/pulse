@@ -76,8 +76,8 @@ class CacheInteractions
             ->first();
 
         return (object) [
-            'hits' => (int) $cache?->hits ?? 0,
-            'misses' => (int) $cache?->misses ?? 0,
+            'hits' => (int) ($cache->hits ?? 0),
+            'misses' => (int) ($cache->misses ?? 0),
         ];
     }
 }

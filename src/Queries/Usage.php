@@ -30,7 +30,7 @@ class Usage
     /**
      * Run the query.
      *
-     * @param  'requests'|'slow_requests'|'slow_jobs'  $type
+     * @param  'requests'|'slow_requests'|'jobs'  $type
      * @return \Illuminate\Support\Collection<int, array{
      *     count: int,
      *     user: array{

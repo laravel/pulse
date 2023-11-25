@@ -32,13 +32,11 @@ class SystemStats
 
     /**
      * Record the system stats.
-     *
-     * @return ?list<\Laravel\Pulse\Entry>
      */
-    public function record(SharedBeat $event): ?array
+    public function record(SharedBeat $event): void
     {
         if ($event->time->second % 15 !== 0) {
-            return null;
+            return;
         }
 
         $server = $this->config->get('pulse.recorders.'.self::class.'.server_name');
