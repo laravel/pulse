@@ -62,7 +62,7 @@ class Exceptions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('max(`value`) as `latest`'), $this->db->connection()->raw('0 as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'exception:max')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
@@ -71,7 +71,7 @@ class Exceptions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('0 as `latest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'exception:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')

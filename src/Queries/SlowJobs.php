@@ -60,7 +60,7 @@ class SlowJobs
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key as job', $this->db->connection()->raw('max(`value`) as `slowest`'), $this->db->connection()->raw('0 as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'slow_job:max')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
@@ -69,7 +69,7 @@ class SlowJobs
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key as job', $this->db->connection()->raw('0 as `slowest`'), $this->db->connection()->raw('sum(`value`) as `count`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'slow_job:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')

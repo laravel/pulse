@@ -60,7 +60,7 @@ class CacheKeyInteractions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('sum(`value`) as `hits`'), $this->db->connection()->raw('0 as `misses`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'cache_hit:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
@@ -69,7 +69,7 @@ class CacheKeyInteractions
                 ->unionAll(fn (Builder $query) => $query
                     ->select('key', $this->db->connection()->raw('0 as `hits`'), $this->db->connection()->raw('sum(`value`) as `misses`'))
                     ->from('pulse_aggregates')
-                    ->where('period', $interval->totalSeconds / $period)
+                    ->where('period', $period)
                     ->where('type', 'cache_miss:count')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key')
