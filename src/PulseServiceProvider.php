@@ -82,7 +82,9 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerAuthorization(): void
     {
-        $this->app[Gate::class]->define('viewPulse', fn ($user = null) => $this->app->environment('local')); // @phpstan-ignore offsetAccess.nonOffsetAccessible
+        $this->callAfterResolving(Gate::class, function (Gate $gate, Application $app) {
+            $gate->define('viewPulse', fn ($user = null) => $app->environment('local'));
+        });
     }
 
     /**
