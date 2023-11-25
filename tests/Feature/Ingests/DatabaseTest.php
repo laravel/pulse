@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Storage\Database;
 
 it('trims values at or past expiry', function () {
-    Date::setTestNow('2000-01-01 00:00:05');
+    Date::setTestNow('2000-01-08 00:00:05');
     DB::table('pulse_values')->insert([
-        ['type' => 'type', 'key' => 'foo', 'value' => 'value', 'timestamp' => now()->subWeek()->subSecond()->getTimestamp()],
-        ['type' => 'type', 'key' => 'bar', 'value' => 'value', 'timestamp' => now()->subWeek()->getTimestamp()],
-        ['type' => 'type', 'key' => 'baz', 'value' => 'value', 'timestamp' => now()->subWeek()->addSecond()->getTimestamp()],
+        ['type' => 'type', 'key' => 'foo', 'value' => 'value', 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:04')->getTimestamp()],
+        ['type' => 'type', 'key' => 'bar', 'value' => 'value', 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:05')->getTimestamp()],
+        ['type' => 'type', 'key' => 'baz', 'value' => 'value', 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:06')->getTimestamp()],
     ]);
 
     App::make(Database::class)->trim();
