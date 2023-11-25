@@ -31,7 +31,7 @@ it('renders slow requests', function () {
     ]));
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
-        ->assertViewHas('routes', collect([
+        ->assertViewHas('slowRequests', collect([
             (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 5, 'slowest' => 2468],
             (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234],
         ]));
@@ -55,7 +55,7 @@ it('handles routes with domains', function () {
     ]));
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
-        ->assertViewHas('routes', collect([
+        ->assertViewHas('slowRequests', collect([
             (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'GlobalUserController@index', 'count' => 3, 'slowest' => 2468],
             (object) ['method' => 'GET', 'uri' => '{account}.example.com/users', 'action' => 'AccountUserController@index', 'count' => 2, 'slowest' => 1234],
         ]));
