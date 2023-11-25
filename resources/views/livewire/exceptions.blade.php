@@ -60,11 +60,11 @@
                         @foreach ($exceptions->take(100) as $exception)
                             <tr class="h-2 first:h-0"></tr>
                             <tr wire:key="{{ $exception->class.$exception->location }}">
-                                <x-pulse::td class="break-words overflow-hidden">
-                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate">
+                                <x-pulse::td class="max-w-[1px]">
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $exception->class }}">
                                         {{ $exception->class }}
                                     </code>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $exception->location }}">
                                         {{ $exception->location }}
                                     </p>
                                 </x-pulse::td>
