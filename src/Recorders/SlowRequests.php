@@ -56,13 +56,13 @@ class SlowRequests
         }
 
         $path = $route->getDomain().Str::start($route->uri(), '/');
-        $via = null;
+        $via = '';
 
         if ($route->named('*livewire.update')) {
             $snapshot = json_decode($request->input('components.0.snapshot'), flags: JSON_THROW_ON_ERROR);
 
             if (isset($snapshot->memo->path)) {
-                $via = $path;
+                $via = " ({$path})";
                 $path = Str::start($snapshot->memo->path, '/');
             }
         }
@@ -73,7 +73,7 @@ class SlowRequests
 
         $this->pulse->record(
             type: 'slow_request',
-            key: $request->method().' '.$path.($via ? " ($via)" : ''),
+            key: "{$request->method()} {$path}{$via}",
             value: $duration,
             timestamp: $startedAt,
         )->count()->max();

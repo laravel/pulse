@@ -244,6 +244,101 @@ it('ignores livewire update requests from an ignored path', function () {
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
+it('captures the requests "via" route when using livewire', function () {
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Date::setTestNow('2000-01-02 03:04:05');
+    Route::post('livewire/update', function () {
+        Date::setTestNow('2000-01-02 03:04:09');
+    })->name('livewire.update');
+
+    post('/livewire/update', [
+        'components' => [
+            [
+                'snapshot' => json_encode([
+                    'memo' => [
+                        'path' => 'test-route',
+                    ],
+                ]),
+            ],
+        ],
+    ]);
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->timestamp)->toBe(946782245);
+    expect($entries[0]->type)->toBe('slow_request');
+    expect($entries[0]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($entries[0]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($entries[0]->value)->toBe(4000);
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderByDesc('bucket')->get());
+    expect($aggregates)->toHaveCount(8);
+
+    expect($aggregates[0]->bucket)->toBe(946782240);
+    expect($aggregates[0]->period)->toBe(60);
+    expect($aggregates[0]->type)->toBe('slow_request:count');
+    expect($aggregates[0]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[0]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[0]->count)->toBe(null);
+    expect($aggregates[0]->value)->toBe(1);
+
+    expect($aggregates[1]->bucket)->toBe(946782000);
+    expect($aggregates[1]->period)->toBe(360);
+    expect($aggregates[1]->type)->toBe('slow_request:count');
+    expect($aggregates[1]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[1]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[1]->count)->toBe(null);
+    expect($aggregates[1]->value)->toBe(1);
+
+    expect($aggregates[2]->bucket)->toBe(946781280);
+    expect($aggregates[2]->period)->toBe(1440);
+    expect($aggregates[2]->type)->toBe('slow_request:count');
+    expect($aggregates[2]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[2]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[2]->count)->toBe(null);
+    expect($aggregates[2]->value)->toBe(1);
+
+    expect($aggregates[3]->period)->toBe(10080);
+    expect($aggregates[3]->type)->toBe('slow_request:count');
+    expect($aggregates[3]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[3]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[3]->count)->toBe(null);
+    expect($aggregates[3]->value)->toBe(1);
+
+    expect($aggregates[4]->bucket)->toBe(946782240);
+    expect($aggregates[4]->period)->toBe(60);
+    expect($aggregates[4]->type)->toBe('slow_request:max');
+    expect($aggregates[4]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[4]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[4]->count)->toBe(null);
+    expect($aggregates[4]->value)->toBe(4000);
+
+    expect($aggregates[5]->bucket)->toBe(946782000);
+    expect($aggregates[5]->period)->toBe(360);
+    expect($aggregates[5]->type)->toBe('slow_request:max');
+    expect($aggregates[5]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[5]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[5]->count)->toBe(null);
+    expect($aggregates[5]->value)->toBe(4000);
+
+    expect($aggregates[6]->bucket)->toBe(946781280);
+    expect($aggregates[6]->period)->toBe(1440);
+    expect($aggregates[6]->type)->toBe('slow_request:max');
+    expect($aggregates[6]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[6]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[6]->count)->toBe(null);
+    expect($aggregates[6]->value)->toBe(4000);
+
+    expect($aggregates[7]->period)->toBe(10080);
+    expect($aggregates[7]->type)->toBe('slow_request:max');
+    expect($aggregates[7]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[7]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[7]->count)->toBe(null);
+    expect($aggregates[7]->value)->toBe(4000);
+
+    Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
+});
+
 it('only records known routes', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
     Date::setTestNow('2000-01-02 03:04:05');
