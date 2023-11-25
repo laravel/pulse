@@ -62,7 +62,7 @@ class SlowRequests
         $via = null;
 
         if ($route->named('*livewire.update')) {
-            $snapshot = json_decode($request->input('components.0.snapshot'));
+            $snapshot = json_decode($request->input('components.0.snapshot'), flags: JSON_THROW_ON_ERROR);
 
             if (isset($snapshot->memo->path)) {
                 $via = $path;
