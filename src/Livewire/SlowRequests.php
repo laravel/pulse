@@ -19,12 +19,12 @@ class SlowRequests extends Card
      */
     public function render(SlowRequestsQuery $query): Renderable
     {
-        [$routes, $time, $runAt] = $this->remember($query);
+        [$slowRequests, $time, $runAt] = $this->remember($query);
 
         return View::make('pulse::livewire.slow-requests', [
             'time' => $time,
             'runAt' => $runAt,
-            'routes' => $routes,
+            'slowRequests' => $slowRequests,
             'config' => [
                 'threshold' => Config::get('pulse.recorders.'.SlowRequestsRecorder::class.'.threshold'),
                 'sample_rate' => Config::get('pulse.recorders.'.SlowRequestsRecorder::class.'.sample_rate'),

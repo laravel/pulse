@@ -26,7 +26,7 @@
             class="min-h-full flex flex-col"
             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
         >
-            @if ($routes->isEmpty())
+            @if ($slowRequests->isEmpty())
                 <x-pulse::no-results class="flex-1" />
             @else
                 <x-pulse::table>
@@ -45,34 +45,34 @@
                         </tr>
                     </x-pulse::thead>
                     <tbody>
-                        @foreach ($routes->take(100) as $route)
+                        @foreach ($slowRequests->take(100) as $slowRequest)
                             <tr class="h-2 first:h-0"></tr>
                             <tr>
                                 <x-pulse::td>
-                                    <x-pulse::http-method-badge :method="$route->method" />
+                                    <x-pulse::http-method-badge :method="$slowRequest->method" />
                                 </x-pulse::td>
                                 <x-pulse::td class="overflow-hidden max-w-[1px]">
-                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $route->uri }}">
-                                        {{ $route->uri }}
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $slowRequest->uri }}">
+                                        {{ $slowRequest->uri }}
                                     </code>
-                                    @if ($route->action)
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $route->action }}">
-                                            {{ $route->action }}
+                                    @if ($slowRequest->action)
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $slowRequest->action }}">
+                                            {{ $slowRequest->action }}
                                         </p>
                                     @endif
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
                                     @if ($config['sample_rate'] < 1)
-                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($route->count) }}">~{{ number_format($route->count * (1 / $config['sample_rate'])) }}</span>
+                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($slowRequest->count) }}">~{{ number_format($slowRequest->count * (1 / $config['sample_rate'])) }}</span>
                                     @else
-                                        {{ number_format($route->count) }}
+                                        {{ number_format($slowRequest->count) }}
                                     @endif
                                 </x-pulse::td>
                                 <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
-                                    @if ($route->slowest === null)
+                                    @if ($slowRequest->slowest === null)
                                         <strong>Unknown</strong>
                                     @else
-                                        <strong>{{ number_format($route->slowest) ?: '<1' }}</strong> ms
+                                        <strong>{{ number_format($slowRequest->slowest) ?: '<1' }}</strong> ms
                                     @endif
                                 </x-pulse::td>
                             </tr>
@@ -80,7 +80,7 @@
                     </tbody>
                 </x-pulse::table>
 
-                @if ($routes->count() > 100)
+                @if ($slowRequests->count() > 100)
                     <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
                 @endif
             @endif
