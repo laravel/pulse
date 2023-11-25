@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowRequests;
 
+use Tests\User;
+
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
@@ -93,6 +96,61 @@ it('captures requests over the threshold', function () {
     expect($aggregates[7]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
     expect($aggregates[7]->count)->toBe(null);
     expect($aggregates[7]->value)->toBe(4000);
+
+    Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
+});
+
+it('captures slow requests per user', function () {
+    Date::setTestNow('2000-01-02 03:04:05');
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Route::get('test-route', function () {
+        Date::setTestNow('2000-01-02 03:04:09');
+    });
+    $user = User::make(['id' => '4321']);
+
+    actingAs($user)->get('test-route');
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_user_request')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->timestamp)->toBe(946782245);
+    expect($entries[0]->type)->toBe('slow_user_request');
+    expect($entries[0]->key)->toBe('4321');
+    expect($entries[0]->key_hash)->toBe(hex2bin(md5('4321')));
+    expect($entries[0]->value)->toBe(null);
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'like', 'slow_user_request:%')->orderBy('type')->orderByDesc('bucket')->get());
+    expect($aggregates)->toHaveCount(4);
+
+    expect($aggregates[0]->bucket)->toBe(946782240);
+    expect($aggregates[0]->period)->toBe(60);
+    expect($aggregates[0]->type)->toBe('slow_user_request:count');
+    expect($aggregates[0]->key)->toBe('4321');
+    expect($aggregates[0]->key_hash)->toBe(hex2bin(md5('4321')));
+    expect($aggregates[0]->count)->toBe(null);
+    expect($aggregates[0]->value)->toBe(1);
+
+    expect($aggregates[1]->bucket)->toBe(946782000);
+    expect($aggregates[1]->period)->toBe(360);
+    expect($aggregates[1]->type)->toBe('slow_user_request:count');
+    expect($aggregates[1]->key)->toBe('4321');
+    expect($aggregates[1]->key_hash)->toBe(hex2bin(md5('4321')));
+    expect($aggregates[1]->count)->toBe(null);
+    expect($aggregates[1]->value)->toBe(1);
+
+    expect($aggregates[2]->bucket)->toBe(946781280);
+    expect($aggregates[2]->period)->toBe(1440);
+    expect($aggregates[2]->type)->toBe('slow_user_request:count');
+    expect($aggregates[2]->key)->toBe('4321');
+    expect($aggregates[2]->key_hash)->toBe(hex2bin(md5('4321')));
+    expect($aggregates[2]->count)->toBe(null);
+    expect($aggregates[2]->value)->toBe(1);
+
+    expect($aggregates[3]->period)->toBe(10080);
+    expect($aggregates[3]->type)->toBe('slow_user_request:count');
+    expect($aggregates[3]->key)->toBe('4321');
+    expect($aggregates[3]->key_hash)->toBe(hex2bin(md5('4321')));
+    expect($aggregates[3]->count)->toBe(null);
+    expect($aggregates[3]->value)->toBe(1);
 
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
