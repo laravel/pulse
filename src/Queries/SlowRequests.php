@@ -13,7 +13,7 @@ use Laravel\Pulse\Support\DatabaseConnectionResolver;
 /**
  * @internal
  */
-class SlowRoutes
+class SlowRequests
 {
     /**
      * Create a new query instance.

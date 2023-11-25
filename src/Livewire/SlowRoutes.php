@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Queries\SlowRoutes as SlowRoutesQuery;
+use Laravel\Pulse\Queries\SlowRequests as SlowRequestsQuery;
 use Laravel\Pulse\Recorders\SlowRequests;
 use Livewire\Attributes\Lazy;
 
@@ -17,7 +17,7 @@ class SlowRoutes extends Card
     /**
      * Render the component.
      */
-    public function render(SlowRoutesQuery $query): Renderable
+    public function render(SlowRequestsQuery $query): Renderable
     {
         [$slowRoutes, $time, $runAt] = $this->remember($query);
 
