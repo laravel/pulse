@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Queries\Usage as UsageQuery;
 use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\SlowRequests;
 use Laravel\Pulse\Recorders\UserRequests;
@@ -37,11 +36,9 @@ class Usage extends Card
     /**
      * Render the component.
      */
-    public function render(UsageQuery $query): Renderable
+    public function render(): Renderable
     {
         $type = $this->type ?? $this->usage;
-
-        // [$userRequestCounts, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $type), $type);
 
         [$userRequestCounts, $time, $runAt] = $this->remember(
             function () use ($type) {

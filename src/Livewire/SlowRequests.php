@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Queries\SlowRequests as SlowRequestsQuery;
 use Laravel\Pulse\Recorders\SlowRequests as SlowRequestsRecorder;
 use Livewire\Attributes\Lazy;
 
@@ -20,10 +19,8 @@ class SlowRequests extends Card
     /**
      * Render the component.
      */
-    public function render(SlowRequestsQuery $query): Renderable
+    public function render(): Renderable
     {
-        // [$slowRequests, $time, $runAt] = $this->remember($query);
-
         $routes = Route::getRoutes()->getRoutesByMethod();
 
         [$slowRequests, $time, $runAt] = $this->remember(fn () => Pulse::max('slow_request', $this->periodAsInterval())->map(function ($row) use ($routes) {

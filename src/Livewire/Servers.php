@@ -17,10 +17,8 @@ class Servers extends Card
     /**
      * Render the component.
      */
-    public function render(ServersQuery $query): Renderable
+    public function render(): Renderable
     {
-        // [$servers, $time, $runAt] = $this->remember($query);
-
         [$servers, $time, $runAt] = $this->remember(function () {
             $graphs = Pulse::graph(['cpu:avg', 'memory:avg'], $this->periodAsInterval());
 

@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
 use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -28,15 +27,8 @@ class Exceptions extends Card
     /**
      * Render the component.
      */
-    public function render(ExceptionsQuery $query): Renderable
+    public function render(): Renderable
     {
-        // $orderBy = match ($this->orderBy) {
-        //     'last_occurrence' => 'last_occurrence',
-        //     default => 'count'
-        // };
-
-        // [$exceptions, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $orderBy), $orderBy);
-
         [$exceptions, $time, $runAt] = $this->remember(
             fn () => Pulse::max(
                 'exception',

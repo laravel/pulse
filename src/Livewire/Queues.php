@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Queries\Queues as QueuesQuery;
 use Laravel\Pulse\Recorders\Jobs;
 use Livewire\Attributes\Lazy;
 
@@ -19,10 +18,8 @@ class Queues extends Card
     /**
      * Render the component.
      */
-    public function render(QueuesQuery $query): Renderable
+    public function render(): Renderable
     {
-        // [$queues, $time, $runAt] = $this->remember($query);
-
         [$queues, $time, $runAt] = $this->remember(fn () => Pulse::graph(
             ['queued:sum', 'processing:sum', 'processed:sum', 'released:sum', 'failed:sum'],
             $this->periodAsInterval(),
