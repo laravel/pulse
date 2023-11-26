@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Queries\Servers as ServersQuery;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]

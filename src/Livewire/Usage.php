@@ -5,8 +5,7 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\SlowRequests;
 use Laravel\Pulse\Recorders\UserRequests;
@@ -42,7 +41,7 @@ class Usage extends Card
 
         [$userRequestCounts, $time, $runAt] = $this->remember(
             function () use ($type) {
-                $counts = app(Storage::class)->sum(
+                $counts = Pulse::sum(
                     match ($type) {
                         'requests' => 'user_request',
                         'slow_requests' => 'slow_user_request',
@@ -52,7 +51,7 @@ class Usage extends Card
                     limit: 10,
                 );
 
-                $users = app(Pulse::class)->resolveUsers($counts->pluck('key'));
+                $users = Pulse::resolveUsers($counts->pluck('key'));
 
                 return $counts->map(function ($row) use ($users) {
                     $user = $users->firstWhere('id', $row->key);
