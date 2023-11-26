@@ -3,6 +3,7 @@
 namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Closure;
 use DateTimeInterface;
 use Illuminate\Auth\AuthManager;
@@ -13,6 +14,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
 use Throwable;
@@ -185,6 +187,38 @@ class Pulse
         }
 
         return $value;
+    }
+
+    /**
+     * Retrieve values for the given type.
+     */
+    public function values(string $type, array $keys = null): Collection
+    {
+        return $this->app->make(Storage::class)->values($type, $keys);
+    }
+
+    /**
+     * Retrieve aggregate values for plotting on a graph.
+     */
+    public function graph(array $types, CarbonInterval $interval)
+    {
+        return $this->app->make(Storage::class)->graph($types, $interval);
+    }
+
+    /**
+     * Retrieve max aggregate values.
+     */
+    public function max(string $type, CarbonInterval $interval, string $orderBy = 'max', string $direction = 'desc', $limit = 101)
+    {
+        return $this->app->make(Storage::class)->max($type, $interval, $orderBy, $direction, $limit);
+    }
+
+    /**
+     * Retrieve sum aggregate values.
+     */
+    public function sum(string $type, CarbonInterval $interval, string $orderBy = 'sum', string $direction = 'desc', $limit = 101)
+    {
+        return $this->app->make(Storage::class)->sum($type, $interval, $orderBy, $direction, $limit);
     }
 
     /**

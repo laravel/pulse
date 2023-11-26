@@ -22,6 +22,18 @@ use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Jobs;
 
+function queueAggregates()
+{
+    return Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereIn('type', [
+        'queued:sum',
+        'processing:sum',
+        'processed:sum',
+        'released:sum',
+        'failed:sum',
+        'slow_job:max',
+    ])->get());
+}
+
 it('ingests bus dispatched jobs', function () {
     Config::set('queue.default', 'database');
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -35,23 +47,16 @@ it('ingests bus dispatched jobs', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
+
+    $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
-    expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
-        'period' => 60,
-        'type' => 'queued:sum',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 });
 
 it('ingests queued closures', function () {
@@ -65,14 +70,15 @@ it('ingests queued closures', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -80,21 +86,14 @@ it('ingests queued closures', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -103,20 +102,20 @@ it('ingests queued closures', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('ingests jobs pushed to the queue', function () {
@@ -128,14 +127,14 @@ it('ingests jobs pushed to the queue', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 });
 
 it('ingests queued listeners', function () {
@@ -151,14 +150,14 @@ it('ingests queued listeners', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -166,21 +165,14 @@ it('ingests queued listeners', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -188,21 +180,20 @@ it('ingests queued listeners', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('ingests queued mail', function () {
@@ -217,14 +208,14 @@ it('ingests queued mail', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -233,20 +224,14 @@ it('ingests queued mail', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -254,21 +239,20 @@ it('ingests queued mail', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('ingests queued notifications', function () {
@@ -286,14 +270,14 @@ it('ingests queued notifications', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -301,21 +285,14 @@ it('ingests queued notifications', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -323,21 +300,20 @@ it('ingests queued notifications', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('ingests queued commands', function () {
@@ -352,14 +328,14 @@ it('ingests queued commands', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Pulse::entries())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -367,21 +343,14 @@ it('ingests queued commands', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -389,26 +358,24 @@ it('ingests queued commands', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('handles a job throwing exceptions and failing', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -419,14 +386,14 @@ it('handles a job throwing exceptions and failing', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -435,21 +402,14 @@ it('handles a job throwing exceptions and failing', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -458,21 +418,20 @@ it('handles a job throwing exceptions and failing', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 
     /*
      * Work the job for the third time.
@@ -481,26 +440,30 @@ it('handles a job throwing exceptions and failing', function () {
     Carbon::setTestNow('2000-01-02 03:04:20');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(7);
-    expect($entries[5])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[6])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'released:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 3,
+        count: 3,
+    );
 });
 
 it('handles a failure and then a successful job', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -511,14 +474,14 @@ it('handles a failure and then a successful job', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -527,21 +490,14 @@ it('handles a failure and then a successful job', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(3);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'released',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the second time.
@@ -550,21 +506,20 @@ it('handles a failure and then a successful job', function () {
     Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(5);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[4])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'processed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 it('handles a slow successful job', function () {
@@ -580,14 +535,14 @@ it('handles a slow successful job', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -596,32 +551,24 @@ it('handles a slow successful job', function () {
     Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(4);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'slow_job',
-        'key' => 'MySlowJob',
-        'value' => 100,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'processed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'slow_job:max',
+        key: MySlowJob::class,
+        value: 100,
+        count: 1,
+    );
 });
 
 it('handles a job that was manually failed', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -632,14 +579,14 @@ it('handles a job that was manually failed', function () {
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(1);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'queued',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     /*
      * Work the job for the first time.
@@ -650,27 +597,14 @@ it('handles a job that was manually failed', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     app()->forgetInstance(ExceptionHandler::class);
     expect(Queue::size())->toBe(0);
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(4);
-    expect($entries[1])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processing',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[2])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'failed',
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
-    expect($entries[3])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'processed', // TODO: Should this actually be captured when manually failed?
-        'key' => 'database:default',
-        'value' => 1,
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'processing:sum', 'failed:sum', 'processed:sum'], // TODO: Should this actually be captured when manually failed?
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 });
 
 it('can ignore jobs', function () {
@@ -689,7 +623,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->count()))->toBe(0);
+    expect(queueAggregates())->toHaveCount(0);
 
     /*
      * Work the job for the second time.
@@ -697,7 +631,7 @@ it('can ignore jobs', function () {
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['queued', 'processing', 'processed', 'released', 'failed'])->count()))->toBe(0);
+    expect(queueAggregates())->toHaveCount(0);
 });
 
 it('can sample', function () {
@@ -776,19 +710,31 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     Pulse::store(app(Ingest::class));
 
     expect(Queue::size())->toBe(2);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued:sum',
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
 
     Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereIn('type', ['processing', 'processed', 'released', 'failed'])->get());
-    expect($entries)->toHaveCount(4);
-    expect($entries->pluck('type')->all())->toBe([
-        'processing',
-        'released',
-        'processing',
-        'failed',
-    ]);
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        key: 'database:default',
+        value: 1,
+        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'processing:sum',
+        key: 'database:default',
+        value: 2,
+        count: 2,
+    );
 });
 
 class MyJob implements ShouldQueue

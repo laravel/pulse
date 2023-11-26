@@ -86,7 +86,7 @@ class Jobs
                 default => $event->job->getConnectionName().':'.$event->job->getQueue(),
             },
             timestamp: $now,
-        )->sum();
+        )->sum()->bucketOnly();
 
         // Slow Jobs
         // TODO: Separate recorder so it can be sampled differently?

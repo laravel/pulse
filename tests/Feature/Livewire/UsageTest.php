@@ -38,9 +38,9 @@ it('renders top 10 users making requests', function (string $query, string $type
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])
         ->assertViewHas('userRequestCounts', collect([
-            ['count' => 6, 'user' => ['name' => $users[0]->name, 'extra' => '', 'avatar' => null]],
-            ['count' => 4, 'user' => ['name' => $users[1]->name, 'extra' => '', 'avatar' => null]],
-            ['count' => 2, 'user' => ['name' => $users[2]->name, 'extra' => '', 'avatar' => null]],
+            (object) ['count' => 6, 'user' => (object) ['id' => $users[0]->id, 'name' => $users[0]->name, 'extra' => '', 'avatar' => null]],
+            (object) ['count' => 4, 'user' => (object) ['id' => $users[1]->id, 'name' => $users[1]->name, 'extra' => '', 'avatar' => null]],
+            (object) ['count' => 2, 'user' => (object) ['id' => $users[2]->id, 'name' => $users[2]->name, 'extra' => '', 'avatar' => null]],
         ]));
 })->with([
     ['requests', 'user_request'],

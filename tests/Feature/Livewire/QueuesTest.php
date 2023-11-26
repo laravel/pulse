@@ -24,22 +24,21 @@ it('renders queue statistics', function () {
 
     Livewire::test(Queues::class, ['lazy' => false])
         ->assertViewHas('queues', collect([
-            'database:default' => collect()->range(59, 1)
-                ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => (object) [
-                    'queued' => null,
-                    'processing' => null,
-                    'processed' => null,
-                    'released' => null,
-                    'failed' => null,
-                ]])
-                ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), (object) [
-                    'queued' => 4,
-                    'processing' => 3,
-                    'processed' => 2,
-                    'released' => 1,
-                    'failed' => 0,
-                ]),
-        ]),
-        )
+            'database:default' => collect([
+                'queued:sum' => collect()
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 4),
+                'processing:sum' => collect()
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 3),
+                'processed:sum' => collect()
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 2),
+                'released:sum' => collect()
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 1),
+                'failed:sum' => collect()->range(59, 0)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null]),
+            ]),
+        ]))
         ->assertViewHas('showConnection', false);
 });

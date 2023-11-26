@@ -5,6 +5,8 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
 use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
@@ -18,7 +20,7 @@ class Exceptions extends Card
     /**
      * The view type
      *
-     * @var 'count'|'last_occurrence'
+     * @var 'count'|'latest'
      */
     #[Url(as: 'exceptions_by')]
     public string $orderBy = 'count';
@@ -28,12 +30,35 @@ class Exceptions extends Card
      */
     public function render(ExceptionsQuery $query): Renderable
     {
-        $orderBy = match ($this->orderBy) {
-            'last_occurrence' => 'last_occurrence',
-            default => 'count'
-        };
+        // $orderBy = match ($this->orderBy) {
+        //     'last_occurrence' => 'last_occurrence',
+        //     default => 'count'
+        // };
 
-        [$exceptions, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $orderBy), $orderBy);
+        // [$exceptions, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $orderBy), $orderBy);
+
+        [$exceptions, $time, $runAt] = $this->remember(
+            fn () => Pulse::max(
+                'exception',
+                $this->periodAsInterval(),
+                match ($this->orderBy) {
+                    'latest' => 'max',
+                    default => 'count'
+                },
+            )->map(function ($row) {
+                [$class, $location] = Str::contains($row->key, '::')
+                    ? [Str::beforeLast($row->key, '::'), Str::afterLast($row->key, '::')]
+                    : [$row->key, null];
+
+                return (object) [
+                    'class' => $class,
+                    'location' => $location,
+                    'latest' => $row->max,
+                    'count' => $row->count,
+                ];
+            }),
+            $this->orderBy
+        );
 
         return View::make('pulse::livewire.exceptions', [
             'time' => $time,

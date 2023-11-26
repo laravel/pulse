@@ -5,8 +5,10 @@ namespace Laravel\Pulse\Storage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval as Interval;
 use Illuminate\Config\Repository;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
@@ -47,33 +49,27 @@ class Database implements Storage
                 ->insert($chunk->map->attributes()->toArray())
             );
 
-        $periods = collect([
+        $periods = [
             Interval::hour()->totalSeconds / 60,
             Interval::hours(6)->totalSeconds / 60,
             Interval::hours(24)->totalSeconds / 60,
             Interval::days(7)->totalSeconds / 60,
-        ]);
+        ];
 
-        $entries->filter->isSum()
-            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
-            ->each(fn ($chunk) => $this->upsertSum(
-                'pulse_aggregates',
-                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'sum'))->all() // @phpstan-ignore argument.templateType argument.templateType
-            ));
+        $this
+            ->aggregateAttributes($entries->filter->isSum(), $periods, 'sum')
+            ->chunk($this->config->get('pulse.storage.database.chunk'))
+            ->each(fn ($chunk) => $this->upsertSum('pulse_aggregates', $chunk->all()));
 
-        $entries->filter->isMax()
-            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
-            ->each(fn ($chunk) => $this->upsertMax(
-                'pulse_aggregates',
-                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'max'))->all() // @phpstan-ignore argument.templateType argument.templateType
-            ));
+        $this
+            ->aggregateAttributes($entries->filter->isMax(), $periods, 'max')
+            ->chunk($this->config->get('pulse.storage.database.chunk'))
+            ->each(fn ($chunk) => $this->upsertMax('pulse_aggregates', $chunk->all()));
 
-        $entries->filter->isAvg()
-            ->chunk((int) $this->config->get('pulse.storage.database.chunk') / $periods->count())
-            ->each(fn ($chunk) => $this->upsertAvg(
-                'pulse_aggregates',
-                $periods->flatMap(fn ($period) => $chunk->map->aggregateAttributes($period, 'avg'))->all() // @phpstan-ignore argument.templateType argument.templateType
-            ));
+        $this
+            ->aggregateAttributes($entries->filter->isAvg(), $periods, 'avg')
+            ->chunk($this->config->get('pulse.storage.database.chunk'))
+            ->each(fn ($chunk) => $this->upsertAvg('pulse_aggregates', $chunk->all()));
 
         $values
             ->chunk($this->config->get('pulse.storage.database.chunk'))
@@ -206,5 +202,170 @@ class Database implements Storage
         $sql .= ' '.sprintf($onDuplicateKeyClause, ...$onDuplicateKeyColumns);
 
         return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
+    }
+
+    /**
+     * Get the aggregate attributes for the collection.
+     */
+    protected function aggregateAttributes(Collection $entries, array $periods, string $aggregateSuffix): LazyCollection
+    {
+        return LazyCollection::make(function () use ($entries, $periods, $aggregateSuffix) {
+            foreach ($entries as $entry) {
+                foreach ($periods as $period) {
+                    // Exclude entries that would be trimmed.
+                    if ($entry->timestamp < now()->subMinutes($period)->getTimestamp()) {
+                        continue;
+                    }
+
+                    yield $entry->aggregateAttributes($period, $aggregateSuffix);
+                }
+            }
+        });
+    }
+
+    /**
+     * Retrieve values for the given type.
+     */
+    public function values(string $type, array $keys = null): Collection
+    {
+        return $this->db->connection()
+            ->table('pulse_values')
+            ->where('type', $type)
+            ->when($keys, fn ($query) => $query->whereIn('key', $keys))
+            ->get()
+            ->keyBy('key');
+    }
+
+    /**
+     * Retrieve aggregate values for plotting on a graph.
+     */
+    public function graph(array $types, Interval $interval)
+    {
+        $now = new CarbonImmutable;
+        $period = $interval->totalSeconds / 60;
+        $maxDataPoints = 60;
+        $secondsPerPeriod = ($interval->totalSeconds / $maxDataPoints);
+        $currentBucket = (int) floor((int) $now->timestamp / $secondsPerPeriod) * $secondsPerPeriod;
+        $firstBucket = $currentBucket - (($maxDataPoints - 1) * $secondsPerPeriod);
+
+        $padding = collect()
+            ->range(0, 59)
+            ->mapWithKeys(fn ($i) => [CarbonImmutable::createFromTimestamp($firstBucket + $i * $secondsPerPeriod)->toDateTimeString() => null]);
+
+        $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
+
+        return $this->db->connection()->table('pulse_aggregates')
+            ->select(['bucket', 'type', 'key', 'value'])
+            ->whereIn('type', $types)
+            ->where('period', $period)
+            ->where('bucket', '>=', $firstBucket)
+            ->orderBy('bucket')
+            ->get()
+            ->groupBy('key')
+            ->map(fn ($readings) => $structure->merge($readings
+                ->groupBy('type')
+                ->map(fn ($readings) => $padding->merge(
+                    $readings->mapWithKeys(function ($reading) {
+                        return [CarbonImmutable::createFromTimestamp($reading->bucket)->toDateTimeString() => $reading->value];
+                    })
+                ))
+            ));
+    }
+
+    /**
+     * Retrieve max aggregate values.
+     */
+    public function max(
+        string $type,
+        Interval $interval,
+        string $orderBy = 'max',
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        $now = new CarbonImmutable;
+        $period = $interval->totalSeconds / 60;
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        return $this->db->connection()->query()
+            ->select('key')
+            ->selectRaw('max(`max`) as `max`')
+            ->selectRaw('sum(`count`) as `count`')
+            ->fromSub(fn (Builder $query) => $query
+                // tail
+                ->select('key')
+                ->selectRaw('max(`value`) as `max`')
+                ->selectRaw('count(*) as `count`')
+                ->from('pulse_entries')
+                ->where('type', $type)
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->groupBy('key')
+                // buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key')
+                    ->selectRaw('max(`value`) as `max`')
+                    ->selectRaw('sum(`count`) as `count`')
+                    ->from('pulse_aggregates')
+                    ->where('period', $period)
+                    ->where('type', $type.':max')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                ), as: 'child'
+            )
+            ->groupBy('key')
+            ->orderBy($orderBy, $direction)
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Retrieve sum aggregate values.
+     */
+    public function sum(
+        string $type,
+        Interval $interval,
+        string $orderBy = 'sum',
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        $now = new CarbonImmutable();
+        $period = $interval->totalSeconds / 60;
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        return $this->db->connection()->query()
+            ->select('key')
+            ->selectRaw('sum(`sum`) as `sum`')
+            ->fromSub(fn (Builder $query) => $query
+                // tail
+                ->select('key')
+                ->selectRaw('sum(`value`) as `sum`')
+                ->from('pulse_entries')
+                ->where('type', $type)
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->groupBy('key')
+                // buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('key')
+                    ->selectRaw('sum(`value`) as `sum`')
+                    ->from('pulse_aggregates')
+                    ->where('period', $period)
+                    ->where('type', $type.':sum')
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('key')
+                ), as: 'child'
+            )
+            ->groupBy('key')
+            ->orderBy($orderBy, $direction)
+            ->limit($limit)
+            ->get();
     }
 }

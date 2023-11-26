@@ -2,12 +2,14 @@
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
+use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
 /*
@@ -46,7 +48,32 @@ uses(TestCase::class)
 |
 */
 
-// ...
+expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $key, int $value, int $count = 1, int $timestamp = null) {
+    $this->toBeInstanceOf(Collection::class);
+
+    $types = (array) $type;
+    $timestamp ??= now()->timestamp;
+
+    $periods = collect([60, 360, 1440, 10080]);
+
+    foreach ($types as $type) {
+        foreach ($periods as $period) {
+            $aggregate = (object) array_filter([
+                'bucket' => (int) floor($timestamp / $period) * $period,
+                'period' => $period,
+                'type' => $type,
+                'key' => $key,
+                'key_hash' => hex2bin(md5($key)),
+                'value' => $value,
+                'count' => $count,
+            ]);
+
+            Assert::assertContainsEquals($aggregate, $this->value);
+        }
+    }
+
+    return $this;
+});
 
 /*
 |--------------------------------------------------------------------------
