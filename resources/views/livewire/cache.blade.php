@@ -69,7 +69,7 @@
                     </div>
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ round($allCacheInteractions->misses * 100, 2).'%' }}
+                            {{ round($allCacheInteractions->hits / ($allCacheInteractions->hits + $allCacheInteractions->misses) * 100, 2).'%' }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Hit Rate
@@ -116,7 +116,7 @@
                                         @endif
                                     </x-pulse::td>
                                     <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
-                                        {{ round($interaction->misses * 100, 2).'%' }}
+                                        {{ round($interaction->hits / ($interaction->hits + $interaction->misses) * 100, 2).'%' }}
                                     </x-pulse::td>
                                 </tr>
                             @endforeach
