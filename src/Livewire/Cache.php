@@ -5,8 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Queries\CacheInteractions;
-use Laravel\Pulse\Queries\CacheKeyInteractions;
 use Laravel\Pulse\Recorders\CacheInteractions as CacheInteractionsRecorder;
 use Livewire\Attributes\Lazy;
 
@@ -18,11 +16,39 @@ class Cache extends Card
     /**
      * Render the component.
      */
-    public function render(CacheInteractions $cacheInteractionsQuery, CacheKeyInteractions $cacheKeyInteractionsQuery): Renderable
+    public function render(): Renderable
     {
-        [$cacheInteractions, $allTime, $allRunAt] = $this->remember($cacheInteractionsQuery, 'all');
+        [$cacheInteractions, $allTime, $allRunAt] = $this->remember(
+            function () {
+                $results = app(\Laravel\Pulse\Contracts\Storage::class)->sumMulti(
+                    ['cache_hit', 'cache_miss'],
+                    $this->periodAsInterval(),
+                    groupKeys: false,
+                )->pluck('sum', 'type');
 
-        [$cacheKeyInteractions, $keyTime, $keyRunAt] = $this->remember($cacheKeyInteractionsQuery, 'keys');
+                return (object) [
+                    'hits' => $results['cache_hit'],
+                    'misses' => $results['cache_miss'],
+                ];
+            },
+            'all'
+        );
+
+        [$cacheKeyInteractions, $keyTime, $keyRunAt] = $this->remember(
+            function () {
+                return app(\Laravel\Pulse\Contracts\Storage::class)->sumMulti(
+                    ['cache_hit', 'cache_miss'],
+                    $this->periodAsInterval(),
+                )->map(function ($row) {
+                    return (object) [
+                        'key' => $row->key,
+                        'hits' => $row->cache_hit,
+                        'misses' => $row->cache_miss,
+                    ];
+                });
+            },
+            'keys'
+        );
 
         return View::make('pulse::livewire.cache', [
             'allTime' => $allTime,

@@ -368,4 +368,74 @@ class Database implements Storage
             ->limit($limit)
             ->get();
     }
+
+    /**
+     * Retrieve sum aggregate values for multiple types.
+     *
+     * TODO: Make this better...
+     */
+    public function sumMulti(
+        array $types,
+        Interval $interval,
+        string $orderBy = 'sum',
+        string $direction = 'desc',
+        int $limit = 101,
+        bool $groupKeys = true,
+    ): Collection {
+        $now = new CarbonImmutable();
+        $period = $interval->totalSeconds / 60;
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        $results = $this->db->connection()->query()
+            ->when($groupKeys, fn ($query) => $query->addSelect('key'))
+            ->addSelect('type')
+            ->selectRaw('sum(`sum`) as `sum`')
+            ->fromSub(fn (Builder $query) => $query
+                // tail
+                ->when($groupKeys, fn ($query) => $query->addSelect('key'))
+                ->addSelect('type')
+                ->selectRaw('sum(`value`) as `sum`')
+                ->from('pulse_entries')
+                ->whereIn('type', $types)
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->when($groupKeys, fn ($query) => $query->groupBy('key'))
+                ->groupBy('type')
+                // buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->when($groupKeys, fn ($query) => $query->addSelect('key'))
+                    ->selectRaw("replace(`type`, ':sum', '') as `type`")
+                    ->selectRaw('sum(`value`) as `sum`')
+                    ->from('pulse_aggregates')
+                    ->where('period', $period)
+                    ->whereIn('type', array_map(fn ($type) => "$type:sum", $types))
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->when($groupKeys, fn ($query) => $query->groupBy('key'))
+                    ->groupBy('type')
+                ), as: 'child'
+            )
+            ->when($groupKeys, fn ($query) => $query->groupBy('key'))
+            ->groupBy('type')
+            ->orderBy($orderBy, $direction)
+            ->limit($limit)
+            ->get();
+
+        if ($groupKeys) {
+            return $results
+                ->groupBy('key')
+                ->map(function ($records, $key) {
+                    return (object) [
+                        'key' => $key,
+                        ...$records->pluck('sum', 'type'),
+                    ];
+                })
+                ->values();
+        }
+
+        return $results;
+    }
 }
