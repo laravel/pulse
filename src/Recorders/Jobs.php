@@ -62,7 +62,11 @@ class Jobs
         [$uuid, $name] = match (get_class($event)) {
             JobQueued::class => [
                 $event->payload()['uuid'],
-                is_string($event->job) ? $event->job : $event->job::class,
+                match (true) {
+                    is_string($event->job) => $event->job,
+                    method_exists($event->job, 'displayName') => $event->job->displayName(),
+                    default => $event->job::class,
+                },
             ],
             default => [$event->job->uuid(), $event->job->resolveName()],
         };
@@ -93,7 +97,7 @@ class Jobs
 
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;
-        } elseif (isset($this->lastJobStartedProcessingAt) && $this->lastJobStartedProcessingAt !== null) {
+        } elseif (! $event instanceof JobQueued && isset($this->lastJobStartedProcessingAt) && $this->lastJobStartedProcessingAt !== null) {
             $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
             $this->lastJobStartedProcessingAt = null;
 
@@ -105,7 +109,7 @@ class Jobs
         // User dispatching Jobs
         // TODO: Separate recorder so it can be sampled differently?
 
-        if (Auth::check()) {
+        if ($event instanceof JobQueued && Auth::check()) {
             $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->sum();
         }
     }
