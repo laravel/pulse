@@ -23,34 +23,37 @@ class SlowRequests extends Card
     {
         $routes = Route::getRoutes()->getRoutesByMethod();
 
-        [$slowRequests, $time, $runAt] = $this->remember(fn () => Pulse::max('slow_request', $this->periodAsInterval())->map(function ($row) use ($routes) {
-            [$method, $uri] = explode(' ', $row->key, 2);
+        [$slowRequests, $time, $runAt] = $this->remember(
+            fn () => Pulse::aggregate('slow_request', ['max', 'count'], $this->periodAsInterval())
+                ->map(function ($row) use ($routes) {
+                    [$method, $uri] = explode(' ', $row->key, 2);
 
-            preg_match('/(.*?)(?:\s\((.*)\))?$/', $uri, $matches);
+                    preg_match('/(.*?)(?:\s\((.*)\))?$/', $uri, $matches);
 
-            [$uri, $via] = [$matches[1], $matches[2] ?? null];
+                    [$uri, $via] = [$matches[1], $matches[2] ?? null];
 
-            $domain = Str::before($uri, '/');
+                    $domain = Str::before($uri, '/');
 
-            if ($domain) {
-                $uri = '/'.Str::after($uri, '/');
-            }
+                    if ($domain) {
+                        $uri = '/'.Str::after($uri, '/');
+                    }
 
-            if ($via) {
-                $action = 'via '.$via;
-            } else {
-                $path = $uri === '/' ? $uri : ltrim($uri, '/');
-                $action = ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null;
-            }
+                    if ($via) {
+                        $action = 'via '.$via;
+                    } else {
+                        $path = $uri === '/' ? $uri : ltrim($uri, '/');
+                        $action = ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null;
+                    }
 
-            return (object) [
-                'uri' => $domain.$uri,
-                'method' => $method,
-                'action' => $action,
-                'count' => $row->count,
-                'slowest' => $row->max,
-            ];
-        }));
+                    return (object) [
+                        'uri' => $domain.$uri,
+                        'method' => $method,
+                        'action' => $action,
+                        'count' => $row->count,
+                        'slowest' => $row->max,
+                    ];
+                })
+        );
 
         return View::make('pulse::livewire.slow-requests', [
             'time' => $time,

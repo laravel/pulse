@@ -25,12 +25,12 @@ use Laravel\Pulse\Recorders\Jobs;
 function queueAggregates()
 {
     return Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereIn('type', [
-        'queued:sum',
-        'processing:sum',
-        'processed:sum',
-        'released:sum',
-        'failed:sum',
-        'slow_job:max',
+        'queued',
+        'processing',
+        'processed',
+        'released',
+        'failed',
+        'slow_job',
     ])->get());
 }
 
@@ -52,7 +52,8 @@ it('ingests bus dispatched jobs', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -74,7 +75,8 @@ it('ingests queued closures', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -89,7 +91,8 @@ it('ingests queued closures', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -105,13 +108,15 @@ it('ingests queued closures', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -130,7 +135,8 @@ it('ingests jobs pushed to the queue', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -153,7 +159,8 @@ it('ingests queued listeners', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -168,7 +175,8 @@ it('ingests queued listeners', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -183,13 +191,15 @@ it('ingests queued listeners', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -211,7 +221,8 @@ it('ingests queued mail', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -227,7 +238,8 @@ it('ingests queued mail', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -242,13 +254,15 @@ it('ingests queued mail', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -273,7 +287,8 @@ it('ingests queued notifications', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -288,7 +303,8 @@ it('ingests queued notifications', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -303,13 +319,15 @@ it('ingests queued notifications', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -331,7 +349,8 @@ it('ingests queued commands', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -346,7 +365,8 @@ it('ingests queued commands', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -361,13 +381,15 @@ it('ingests queued commands', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -389,7 +411,8 @@ it('handles a job throwing exceptions and failing', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -405,7 +428,8 @@ it('handles a job throwing exceptions and failing', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -421,13 +445,15 @@ it('handles a job throwing exceptions and failing', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['processing:sum', 'released:sum'],
+        type: ['processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -443,19 +469,22 @@ it('handles a job throwing exceptions and failing', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'failed:sum'],
+        type: ['queued', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'released:sum',
+        type: 'released',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 3,
         count: 3,
@@ -477,7 +506,8 @@ it('handles a failure and then a successful job', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -493,7 +523,8 @@ it('handles a failure and then a successful job', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'released:sum'],
+        type: ['queued', 'processing', 'released'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -509,13 +540,15 @@ it('handles a failure and then a successful job', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'processed:sum'],
+        type: ['queued', 'released', 'processed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,
@@ -538,7 +571,8 @@ it('handles a slow successful job', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -554,13 +588,15 @@ it('handles a slow successful job', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'processed:sum'],
+        type: ['queued', 'processing', 'processed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'slow_job:max',
+        type: 'slow_job',
+        aggregate: 'max',
         key: MySlowJob::class,
         value: 100,
         count: 1,
@@ -582,7 +618,8 @@ it('handles a job that was manually failed', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -600,7 +637,8 @@ it('handles a job that was manually failed', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'processing:sum', 'failed:sum', 'processed:sum'], // TODO: Should this actually be captured when manually failed?
+        type: ['queued', 'processing', 'failed', 'processed'], // TODO: Should this actually be captured when manually failed?
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -713,7 +751,8 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued:sum',
+        type: 'queued',
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
@@ -724,13 +763,15 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued:sum', 'released:sum', 'failed:sum'],
+        type: ['queued', 'released', 'failed'],
+        aggregate: 'sum',
         key: 'database:default',
         value: 1,
         count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'processing:sum',
+        type: 'processing',
+        aggregate: 'sum',
         key: 'database:default',
         value: 2,
         count: 2,

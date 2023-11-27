@@ -30,8 +30,9 @@ class Exceptions extends Card
     public function render(): Renderable
     {
         [$exceptions, $time, $runAt] = $this->remember(
-            fn () => Pulse::max(
+            fn () => Pulse::aggregate(
                 'exception',
+                ['max', 'count'],
                 $this->periodAsInterval(),
                 match ($this->orderBy) {
                     'latest' => 'max',

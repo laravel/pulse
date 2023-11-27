@@ -200,25 +200,48 @@ class Pulse
     /**
      * Retrieve aggregate values for plotting on a graph.
      */
-    public function graph(array $types, CarbonInterval $interval)
+    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
-        return $this->app->make(Storage::class)->graph($types, $interval);
+        return $this->app->make(Storage::class)->graph($types, $aggregate, $interval);
     }
 
     /**
-     * Retrieve max aggregate values.
+     * Retrieve aggregate values for the given type.
      */
-    public function max(string $type, CarbonInterval $interval, string $orderBy = 'max', string $direction = 'desc', $limit = 101)
-    {
-        return $this->app->make(Storage::class)->max($type, $interval, $orderBy, $direction, $limit);
+    public function aggregate(
+        string $type,
+        array|string $aggregates,
+        CarbonInterval $interval,
+        string $orderBy = null,
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        return $this->app->make(Storage::class)->aggregate($type, $aggregates, $interval, $orderBy, $direction, $limit);
     }
 
     /**
-     * Retrieve sum aggregate values.
+     * Retrieve aggregate values for the given types.
      */
-    public function sum(string $type, CarbonInterval $interval, string $orderBy = 'sum', string $direction = 'desc', $limit = 101)
-    {
-        return $this->app->make(Storage::class)->sum($type, $interval, $orderBy, $direction, $limit);
+    public function aggregateTypes(
+        string|array $types,
+        string $aggregate,
+        CarbonInterval $interval,
+        string $orderBy = null,
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        return $this->app->make(Storage::class)->aggregateTypes($types, $aggregate, $interval, $orderBy, $direction, $limit);
+    }
+
+    /**
+     * Retrieve an aggregate total for the given types.
+     */
+    public function aggregateTotal(
+        array|string $types,
+        string $aggregate,
+        CarbonInterval $interval,
+    ) {
+        return $this->app->make(Storage::class)->aggregateTotal($types, $aggregate, $interval);
     }
 
     /**

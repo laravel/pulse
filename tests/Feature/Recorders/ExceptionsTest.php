@@ -30,7 +30,8 @@ it('ingests exceptions', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'exception:max',
+        'type' => 'exception',
+        'aggregate' => 'max',
         'value' => now()->timestamp,
     ]);
     expect($aggregates[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');
@@ -56,7 +57,8 @@ it('can disable capturing the location', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'exception:max',
+        'type' => 'exception',
+        'aggregate' => 'max',
         'key' => 'RuntimeException',
         'value' => now()->timestamp,
     ]);

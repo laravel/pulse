@@ -36,7 +36,8 @@ it('ingests queries', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
         'period' => 60,
-        'type' => 'slow_query:max',
+        'type' => 'slow_query',
+        'aggregate' => 'max',
         'value' => 5000,
         'count' => 1,
     ]);
@@ -67,7 +68,8 @@ it('can disable capturing the location', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
         'period' => 60,
-        'type' => 'slow_query:max',
+        'type' => 'slow_query',
+        'aggregate' => 'max',
         'key' => 'select * from users',
         'value' => 5000,
         'count' => 1,

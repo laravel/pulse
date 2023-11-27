@@ -17,8 +17,8 @@ it('renders server statistics', function () {
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'cpu:avg', 'key' => 'web-1', 'value' => 12, 'count' => 1],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'memory:avg', 'key' => 'web-1', 'value' => 1234, 'count' => 1],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'cpu', 'aggregate' => 'avg', 'key' => 'web-1', 'value' => 12, 'count' => 1],
+        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'memory', 'aggregate' => 'avg', 'key' => 'web-1', 'value' => 1234, 'count' => 1],
     ]));
     Pulse::ignore(fn () => DB::table('pulse_values')->insert([
         'type' => 'system',

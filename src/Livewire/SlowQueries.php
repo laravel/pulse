@@ -20,18 +20,21 @@ class SlowQueries extends Card
      */
     public function render(): Renderable
     {
-        [$slowQueries, $time, $runAt] = $this->remember(fn () => Pulse::max('slow_query', $this->periodAsInterval())->map(function ($row) {
-            [$sql, $location] = Str::contains($row->key, '::')
-                ? [Str::beforeLast($row->key, '::'), Str::afterLast($row->key, '::')]
-                : [$row->key, null];
+        [$slowQueries, $time, $runAt] = $this->remember(
+            fn () => Pulse::aggregate('slow_query', ['max', 'count'], $this->periodAsInterval())
+                ->map(function ($row) {
+                    [$sql, $location] = Str::contains($row->key, '::')
+                        ? [Str::beforeLast($row->key, '::'), Str::afterLast($row->key, '::')]
+                        : [$row->key, null];
 
-            return (object) [
-                'sql' => $sql,
-                'location' => $location,
-                'slowest' => $row->max,
-                'count' => $row->count,
-            ];
-        }));
+                    return (object) [
+                        'sql' => $sql,
+                        'location' => $location,
+                        'slowest' => $row->max,
+                        'count' => $row->count,
+                    ];
+                })
+        );
 
         return View::make('pulse::livewire.slow-queries', [
             'time' => $time,

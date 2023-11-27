@@ -144,12 +144,13 @@ class Entry
      *
      * @return array<string, mixed>
      */
-    public function aggregateAttributes(int $period, string $suffix): array
+    public function aggregateAttributes(int $period, string $aggregate): array
     {
         return [
             'bucket' => (int) floor($this->timestamp / $period) * $period,
             'period' => $period,
-            'type' => $this->type.':'.$suffix,
+            'type' => $this->type,
+            'aggregate' => $aggregate,
             'key' => $this->key,
             'value' => $this->value,
             'count' => 1,

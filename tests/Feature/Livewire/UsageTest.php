@@ -30,9 +30,9 @@ it('renders top 10 users making requests', function (string $query, string $type
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[0]->id, 'value' => 3, 'count' => 3],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[1]->id, 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type.':sum', 'key' => $users[2]->id, 'value' => 1, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[0]->id, 'value' => 3, 'count' => 3],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[1]->id, 'value' => 2, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[2]->id, 'value' => 1, 'count' => 1],
     ]));
 
     Livewire::withQueryParams(['usage' => $query])

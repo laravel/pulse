@@ -21,7 +21,8 @@ class Queues extends Card
     public function render(): Renderable
     {
         [$queues, $time, $runAt] = $this->remember(fn () => Pulse::graph(
-            ['queued:sum', 'processing:sum', 'processed:sum', 'released:sum', 'failed:sum'],
+            ['queued', 'processing', 'processed', 'released', 'failed'],
+            'sum',
             $this->periodAsInterval(),
         ));
 

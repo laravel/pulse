@@ -22,8 +22,8 @@ it('renders slow jobs', function () {
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job:max', 'key' => 'App\Jobs\MyJob', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job:max', 'key' => 'App\Jobs\MyOtherJob', 'value' => 1000, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job', 'aggregate' => 'max', 'key' => 'App\Jobs\MyJob', 'value' => 1000, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job', 'aggregate' => 'max', 'key' => 'App\Jobs\MyOtherJob', 'value' => 1000, 'count' => 1],
     ]));
 
     Livewire::test(SlowJobs::class, ['lazy' => false])

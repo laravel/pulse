@@ -48,11 +48,12 @@ return new class extends Migration
             $table->string('type');
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
+            $table->string('aggregate');
             $table->unsignedInteger('value');
             $table->unsignedInteger('count');
 
             // todo: we want `period`,`bucket` for trimming
-            $table->unique(['bucket', 'period', 'type', 'key_hash']);
+            $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']);
 
             $table->index(['period', 'bucket', 'type']); // TODO: This is a guess.
         });

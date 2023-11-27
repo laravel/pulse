@@ -35,14 +35,16 @@ it('ingests cache interactions', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'cache_hit:sum',
+        'type' => 'cache_hit',
+        'aggregate' => 'sum',
         'key' => 'hit-key',
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'cache_miss:sum',
+        'type' => 'cache_miss',
+        'aggregate' => 'sum',
         'key' => 'miss-key',
         'value' => 1,
     ]);

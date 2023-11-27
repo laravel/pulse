@@ -26,8 +26,8 @@ it('renders slow requests', function () {
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users/{user}', 'value' => 1000, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request', 'aggregate' => 'max', 'key' => 'GET /users', 'value' => 1000, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request', 'aggregate' => 'max', 'key' => 'GET /users/{user}', 'value' => 1000, 'count' => 1],
     ]));
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
@@ -50,8 +50,8 @@ it('handles routes with domains', function () {
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET /users', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request:max', 'key' => 'GET {account}.example.com/users', 'value' => 1000, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request', 'aggregate' => 'max', 'key' => 'GET /users', 'value' => 1000, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_request', 'aggregate' => 'max', 'key' => 'GET {account}.example.com/users', 'value' => 1000, 'count' => 1],
     ]));
 
     Livewire::test(SlowRequests::class, ['lazy' => false])

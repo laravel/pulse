@@ -29,7 +29,8 @@ it('ingests slow outgoing http requests', function () {
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
-        'type' => 'slow_outgoing_request:max',
+        'type' => 'slow_outgoing_request',
+        'aggregate' => 'max',
         'key' => 'GET https://laravel.com',
         'value' => 0,
         'count' => 1,

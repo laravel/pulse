@@ -19,11 +19,14 @@ class SlowJobs extends Card
      */
     public function render(): Renderable
     {
-        [$slowJobs, $time, $runAt] = $this->remember(fn () => Pulse::max('slow_job', $this->periodAsInterval())->map(fn ($row) => (object) [
-            'job' => $row->key,
-            'slowest' => $row->max,
-            'count' => $row->count,
-        ]));
+        [$slowJobs, $time, $runAt] = $this->remember(
+            fn () => Pulse::aggregate('slow_job', ['max', 'count'], $this->periodAsInterval())
+                ->map(fn ($row) => (object) [
+                    'job' => $row->key,
+                    'slowest' => $row->max,
+                    'count' => $row->count,
+                ])
+        );
 
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,

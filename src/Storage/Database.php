@@ -239,7 +239,7 @@ class Database implements Storage
     /**
      * Retrieve aggregate values for plotting on a graph.
      */
-    public function graph(array $types, Interval $interval)
+    public function graph(array $types, string $aggregate, Interval $interval)
     {
         $now = new CarbonImmutable;
         $period = $interval->totalSeconds / 60;
@@ -257,6 +257,7 @@ class Database implements Storage
         return $this->db->connection()->table('pulse_aggregates')
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
+            ->where('aggregate', $aggregate)
             ->where('period', $period)
             ->where('bucket', '>=', $firstBucket)
             ->orderBy('bucket')
@@ -273,65 +274,20 @@ class Database implements Storage
     }
 
     /**
-     * Retrieve max aggregate values.
+     * Retrieve aggregate values for the given type.
      */
-    public function max(
+    public function aggregate(
         string $type,
+        array|string $aggregates,
         Interval $interval,
-        string $orderBy = 'max',
+        string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {
-        $now = new CarbonImmutable;
-        $period = $interval->totalSeconds / 60;
-        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
-        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
-        $tailStart = $windowStart;
-        $tailEnd = $oldestBucket - 1;
-
-        return $this->db->connection()->query()
-            ->select('key')
-            ->selectRaw('max(`max`) as `max`')
-            ->selectRaw('sum(`count`) as `count`')
-            ->fromSub(fn (Builder $query) => $query
-                // tail
-                ->select('key')
-                ->selectRaw('max(`value`) as `max`')
-                ->selectRaw('count(*) as `count`')
-                ->from('pulse_entries')
-                ->where('type', $type)
-                ->where('timestamp', '>=', $tailStart)
-                ->where('timestamp', '<=', $tailEnd)
-                ->groupBy('key')
-                // buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key')
-                    ->selectRaw('max(`value`) as `max`')
-                    ->selectRaw('sum(`count`) as `count`')
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->where('type', $type.':max')
-                    ->where('bucket', '>=', $oldestBucket)
-                    ->groupBy('key')
-                ), as: 'child'
-            )
-            ->groupBy('key')
-            ->orderBy($orderBy, $direction)
-            ->limit($limit)
-            ->get();
-    }
-
-    /**
-     * Retrieve sum aggregate values.
-     */
-    public function sum(
-        string $type,
-        Interval $interval,
-        string $orderBy = 'sum',
-        string $direction = 'desc',
-        int $limit = 101,
-    ): Collection {
+        $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
+        // TODO: Validate `count` isn't included by itself, or figure out a way to make that work.
+        // Maybe add it as a separate `includeCount` parameter seeing as it's not an aggregate that is explicitly collected.
+        $orderBy ??= $aggregates[0];
         $now = new CarbonImmutable();
         $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
@@ -340,29 +296,100 @@ class Database implements Storage
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
-        return $this->db->connection()->query()
-            ->select('key')
-            ->selectRaw('sum(`sum`) as `sum`')
-            ->fromSub(fn (Builder $query) => $query
-                // tail
-                ->select('key')
-                ->selectRaw('sum(`value`) as `sum`')
+        $query = $this->db->connection()->query()->addSelect('key');
+
+        if (in_array('sum', $aggregates)) {
+            $query->selectRaw('sum(`sum`) as `sum`');
+        }
+
+        if (in_array('max', $aggregates)) {
+            $query->selectRaw('max(`max`) as `max`');
+        }
+
+        if (in_array('avg', $aggregates)) {
+            $query->selectRaw('avg(`avg`) as `avg`');
+        }
+
+        if (in_array('count', $aggregates)) {
+            $query->selectRaw('sum(`count`) as `count`');
+        }
+
+        return $query->fromSub(function (Builder $query) use ($type, $aggregates, $period, $tailStart, $tailEnd, $oldestBucket) {
+            // Tail
+            $query->select('key');
+
+            if (in_array('sum', $aggregates)) {
+                $query->selectRaw('sum(`value`) as `sum`');
+            }
+
+            if (in_array('max', $aggregates)) {
+                $query->selectRaw('max(`value`) as `max`');
+            }
+
+            if (in_array('avg', $aggregates)) {
+                $query->selectRaw('round(avg(`value`)) as `avg`');
+            }
+
+            if (in_array('count', $aggregates)) {
+                $query->selectRaw('count(*) as `count`');
+            }
+
+            $query
                 ->from('pulse_entries')
                 ->where('type', $type)
                 ->where('timestamp', '>=', $tailStart)
                 ->where('timestamp', '<=', $tailEnd)
-                ->groupBy('key')
-                // buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->select('key')
-                    ->selectRaw('sum(`value`) as `sum`')
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->where('type', $type.':sum')
-                    ->where('bucket', '>=', $oldestBucket)
-                    ->groupBy('key')
-                ), as: 'child'
-            )
+                ->groupBy('key');
+
+            // Buckets
+            $first = true;
+            foreach ($aggregates as $currentAggregate) {
+                // Alt approach: loop count as well, but set the "aggregate" column to the first non-count one.
+                // Note: adds an extra union
+                if ($currentAggregate === 'count') {
+                    continue;
+                }
+
+                $query->unionAll(function (Builder $query) use (&$first, $type, $aggregates, $currentAggregate, $period, $oldestBucket) {
+                    $query->select('key');
+
+                    foreach ($aggregates as $aggregate) {
+                        if ($aggregate === 'count') {
+                            continue;
+                        }
+
+                        if ($aggregate === $currentAggregate) {
+                            if ($aggregate === 'sum') {
+                                $query->selectRaw('sum(`value`) as `sum`');
+                            } elseif ($aggregate === 'max') {
+                                $query->selectRaw('max(`value`) as `max`');
+                            } elseif ($aggregate === 'avg') {
+                                $query->selectRaw('avg(`value`) as `avg`');
+                            }
+                        } else {
+                            $query->selectRaw("null as `$aggregate`");
+                        }
+                    }
+
+                    if (in_array('count', $aggregates)) {
+                        if ($first) {
+                            $query->selectRaw('sum(`count`) as `count`');
+                            $first = false;
+                        } else {
+                            $query->selectRaw('0 as `count`');
+                        }
+                    }
+
+                    $query
+                        ->from('pulse_aggregates')
+                        ->where('period', $period)
+                        ->where('type', $type)
+                        ->where('aggregate', $currentAggregate)
+                        ->where('bucket', '>=', $oldestBucket)
+                        ->groupBy('key');
+                });
+            }
+        }, as: 'child')
             ->groupBy('key')
             ->orderBy($orderBy, $direction)
             ->limit($limit)
@@ -370,18 +397,19 @@ class Database implements Storage
     }
 
     /**
-     * Retrieve sum aggregate values for multiple types.
-     *
-     * TODO: Make this better...
+     * Retrieve aggregate values for the given types.
      */
-    public function sumMulti(
-        array $types,
+    public function aggregateTypes(
+        string|array $types,
+        string $aggregate,
         Interval $interval,
-        string $orderBy = 'sum',
+        string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
-        bool $groupKeys = true,
     ): Collection {
+        $types = is_array($types) ? $types : [$types];
+        $orderBy ??= $types[0];
+
         $now = new CarbonImmutable();
         $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
@@ -390,52 +418,119 @@ class Database implements Storage
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
-        $results = $this->db->connection()->query()
-            ->when($groupKeys, fn ($query) => $query->addSelect('key'))
-            ->addSelect('type')
-            ->selectRaw('sum(`sum`) as `sum`')
-            ->fromSub(fn (Builder $query) => $query
-                // tail
-                ->when($groupKeys, fn ($query) => $query->addSelect('key'))
-                ->addSelect('type')
-                ->selectRaw('sum(`value`) as `sum`')
+        $query = $this->db->connection()->query()->select('key');
+
+        foreach ($types as $type) {
+            $query->selectRaw(match ($aggregate) {
+                'sum' => 'sum(`'.$type.'`) as `'.$type.'`',
+                'max' => 'max(`'.$type.'`) as `'.$type.'`',
+                'avg' => 'avg(`'.$type.'`) as `'.$type.'`',
+            });
+        }
+
+        return $query->fromSub(function (Builder $query) use ($types, $aggregate, $tailStart, $tailEnd, $period, $oldestBucket) {
+            // Tail
+            $query->select('key');
+
+            foreach ($types as $type) {
+                $query->selectRaw(match ($aggregate) {
+                    'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                    'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                    'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                }, [$type]);
+            }
+
+            $query
                 ->from('pulse_entries')
                 ->whereIn('type', $types)
                 ->where('timestamp', '>=', $tailStart)
                 ->where('timestamp', '<=', $tailEnd)
-                ->when($groupKeys, fn ($query) => $query->groupBy('key'))
-                ->groupBy('type')
-                // buckets
-                ->unionAll(fn (Builder $query) => $query
-                    ->when($groupKeys, fn ($query) => $query->addSelect('key'))
-                    ->selectRaw("replace(`type`, ':sum', '') as `type`")
-                    ->selectRaw('sum(`value`) as `sum`')
+                ->groupBy('key');
+
+            $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
+                $query->select('key');
+
+                foreach ($types as $type) {
+                    $query->selectRaw(match ($aggregate) {
+                        'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                        'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                        'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                    }, [$type]);
+                }
+
+                $query
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->whereIn('type', array_map(fn ($type) => "$type:sum", $types))
+                    ->whereIn('type', $types)
+                    ->where('aggregate', $aggregate)
+                    ->where('aggregate', 'sum')
                     ->where('bucket', '>=', $oldestBucket)
-                    ->when($groupKeys, fn ($query) => $query->groupBy('key'))
-                    ->groupBy('type')
-                ), as: 'child'
-            )
-            ->when($groupKeys, fn ($query) => $query->groupBy('key'))
-            ->groupBy('type')
+                    ->groupBy('key');
+            });
+        }, as: 'child')
+            ->groupBy('key')
             ->orderBy($orderBy, $direction)
             ->limit($limit)
             ->get();
+    }
 
-        if ($groupKeys) {
-            return $results
-                ->groupBy('key')
-                ->map(function ($records, $key) {
-                    return (object) [
-                        'key' => $key,
-                        ...$records->pluck('sum', 'type'),
-                    ];
+    /**
+     * Retrieve an aggregate total for the given types.
+     */
+    public function aggregateTotal(
+        array|string $types,
+        string $aggregate,
+        Interval $interval,
+    ): Collection {
+        // TODO: Aggregate can't be 'count'
+        $types = is_array($types) ? $types : [$types];
+
+        $now = new CarbonImmutable();
+        $period = $interval->totalSeconds / 60;
+        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+        $tailStart = $windowStart;
+        $tailEnd = $oldestBucket - 1;
+
+        return $this->db->connection()->query()
+            ->addSelect('type')
+            ->selectRaw(match ($aggregate) {
+                'sum' => 'sum(`sum`) as `sum`',
+                'max' => 'max(`max`) as `max`',
+                'avg' => 'avg(`avg`) as `avg`',
+            })
+            ->fromSub(fn (Builder $query) => $query
+                // Tail
+                ->addSelect('type')
+                ->selectRaw(match ($aggregate) {
+                    'sum' => 'sum(`value`) as `sum`',
+                    'max' => 'max(`value`) as `max`',
+                    'avg' => 'avg(`value`) as `avg`',
                 })
-                ->values();
-        }
-
-        return $results;
+                ->from('pulse_entries')
+                ->whereIn('type', $types)
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
+                ->groupBy('type')
+                // Buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('type')
+                    ->selectRaw(match ($aggregate) {
+                        'sum' => 'sum(`value`) as `sum`',
+                        'max' => 'max(`value`) as `max`',
+                        'avg' => 'avg(`value`) as `avg`',
+                    })
+                    ->from('pulse_aggregates')
+                    ->where('period', $period)
+                    ->whereIn('type', $types)
+                    ->where('aggregate', $aggregate)
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('type')
+                ), as: 'child'
+            )
+            ->groupBy('type')
+            ->get()
+            ->pluck($aggregate, 'type');
     }
 }

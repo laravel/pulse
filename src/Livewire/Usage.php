@@ -41,12 +41,13 @@ class Usage extends Card
 
         [$userRequestCounts, $time, $runAt] = $this->remember(
             function () use ($type) {
-                $counts = Pulse::sum(
+                $counts = Pulse::aggregate(
                     match ($type) {
                         'requests' => 'user_request',
                         'slow_requests' => 'slow_user_request',
                         'jobs' => 'user_job',
                     },
+                    'sum',
                     $this->periodAsInterval(),
                     limit: 10,
                 );

@@ -19,7 +19,7 @@ class Servers extends Card
     public function render(): Renderable
     {
         [$servers, $time, $runAt] = $this->remember(function () {
-            $graphs = Pulse::graph(['cpu:avg', 'memory:avg'], $this->periodAsInterval());
+            $graphs = Pulse::graph(['cpu', 'memory'], 'avg', $this->periodAsInterval());
 
             return Pulse::values('system')
                 ->map(function ($system, $slug) use ($graphs) {
@@ -28,10 +28,10 @@ class Servers extends Card
                     return (object) [
                         'name' => (string) $values->name,
                         'cpu_current' => (int) $values->cpu,
-                        'cpu' => $graphs->get($slug)?->get('cpu:avg') ?? collect(),
+                        'cpu' => $graphs->get($slug)?->get('cpu') ?? collect(),
                         'memory_current' => (int) $values->memory_used,
                         'memory_total' => (int) $values->memory_total,
-                        'memory' => $graphs->get($slug)?->get('memory:avg') ?? collect(),
+                        'memory' => $graphs->get($slug)?->get('memory') ?? collect(),
                         'storage' => collect($values->storage), // @phpstan-ignore argument.templateType argument.templateType
                         'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
                         'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),

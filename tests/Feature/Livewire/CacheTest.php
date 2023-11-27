@@ -25,10 +25,10 @@ it('renders cache statistics', function () {
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit:sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit:sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss:sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss:sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit', 'aggregate' => 'sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit', 'aggregate' => 'sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss', 'aggregate' => 'sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss', 'aggregate' => 'sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
     ]));
 
     Livewire::test(Cache::class, ['lazy' => false])
