@@ -27,8 +27,8 @@ class Cache extends Card
                     $this->periodAsInterval(),
                 ),
                 fn ($results) => (object) [
-                    'hits' => $results['cache_hit'],
-                    'misses' => $results['cache_miss'],
+                    'hits' => $results['cache_hit'] ?? 0,
+                    'misses' => $results['cache_miss'] ?? 0,
                 ]
             ),
             'all'
