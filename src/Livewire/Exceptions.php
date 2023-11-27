@@ -39,9 +39,7 @@ class Exceptions extends Card
                     default => 'count'
                 },
             )->map(function ($row) {
-                [$class, $location] = Str::contains($row->key, '::')
-                    ? [Str::beforeLast($row->key, '::'), Str::afterLast($row->key, '::')]
-                    : [$row->key, null];
+                [$class, $location] = json_decode($row->key);
 
                 return (object) [
                     'class' => $class,

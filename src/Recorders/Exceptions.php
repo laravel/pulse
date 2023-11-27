@@ -55,12 +55,11 @@ class Exceptions
             return;
         }
 
-        if ($this->config->get('pulse.recorders.'.self::class.'.location')) {
-            // TODO: Is this a good generic separator? Could it collide with something that might appear in a query?
-            $class .= '::'.$this->getLocation($e);
-        }
+        $location = $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation($e) : null;
 
-        $this->pulse->record('exception', $class, timestamp: $now, value: $now->getTimestamp())->max();
+        $key = json_encode([$class, $location]);
+
+        $this->pulse->record('exception', $key, timestamp: $now, value: $now->getTimestamp())->max();
     }
 
     /**

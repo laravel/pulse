@@ -30,7 +30,9 @@ it('ingests queries', function () {
         'type' => 'slow_query',
         'value' => 5000,
     ]);
-    expect($entries[0]->key)->toStartWith('select * from users::');
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->not->toBeNull();
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
@@ -41,7 +43,9 @@ it('ingests queries', function () {
         'value' => 5000,
         'count' => 1,
     ]);
-    expect($aggregates[0]->key)->toStartWith('select * from users::');
+    $key = json_decode($aggregates[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->not->toBeNull();
 });
 
 it('can disable capturing the location', function () {
@@ -60,9 +64,11 @@ it('can disable capturing the location', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp - 5,
         'type' => 'slow_query',
-        'key' => 'select * from users',
         'value' => 5000,
     ]);
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->toBeNull();
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
@@ -70,10 +76,12 @@ it('can disable capturing the location', function () {
         'period' => 60,
         'type' => 'slow_query',
         'aggregate' => 'max',
-        'key' => 'select * from users',
         'value' => 5000,
         'count' => 1,
     ]);
+    $key = json_decode($aggregates[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->toBeNull();
 });
 
 it('does not ingest queries under the slow query threshold', function () {

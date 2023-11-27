@@ -24,7 +24,9 @@ it('ingests exceptions', function () {
         'timestamp' => now()->timestamp,
         'type' => 'exception',
     ]);
-    expect($entries[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('RuntimeException');
+    expect($key[1])->toStartWith(__FILE__.':');
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
@@ -34,7 +36,9 @@ it('ingests exceptions', function () {
         'aggregate' => 'max',
         'value' => now()->timestamp,
     ]);
-    expect($aggregates[0]->key)->toStartWith('RuntimeException::'.__FILE__.':');
+    $key = json_decode($aggregates[0]->key);
+    expect($key[0])->toBe('RuntimeException');
+    expect($key[1])->toStartWith(__FILE__.':');
 });
 
 it('can disable capturing the location', function () {
@@ -49,9 +53,10 @@ it('can disable capturing the location', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'exception',
-        'key' => 'RuntimeException',
         'value' => now()->timestamp,
     ]);
+    $key = json_decode($entries[0]->key);
+    expect($key)->toBe(['RuntimeException', null]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
@@ -59,9 +64,10 @@ it('can disable capturing the location', function () {
         'period' => 60,
         'type' => 'exception',
         'aggregate' => 'max',
-        'key' => 'RuntimeException',
         'value' => now()->timestamp,
     ]);
+    $key = json_decode($aggregates[0]->key);
+    expect($key)->toBe(['RuntimeException', null]);
 });
 
 it('can manually report exceptions', function () {
@@ -77,7 +83,9 @@ it('can manually report exceptions', function () {
         'type' => 'exception',
         'value' => now()->timestamp,
     ]);
-    expect($entries[0]->key)->toStartWith('MyReportedException::'.__FILE__.':');
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('MyReportedException');
+    expect($key[1])->toStartWith(__FILE__.':');
 });
 
 it('can ignore exceptions', function () {

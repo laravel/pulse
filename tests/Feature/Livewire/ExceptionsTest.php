@@ -16,14 +16,14 @@ it('renders exceptions', function () {
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp - 3600 + 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp - 3600 + 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp - 3600 + 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => json_encode(['RuntimeException', 'app/Foo.php:123']), 'value' => $timestamp - 3600 + 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => json_encode(['RuntimeException', 'app/Bar.php:123']), 'value' => $timestamp - 3600 + 1],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'exception', 'key' => json_encode(['RuntimeException', 'app/Foo.php:123']), 'value' => $timestamp - 3600 + 1],
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception', 'aggregate' => 'max', 'key' => 'RuntimeException::app/Foo.php:123', 'value' => $timestamp, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception', 'aggregate' => 'max', 'key' => 'RuntimeException::app/Bar.php:123', 'value' => $timestamp, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception', 'aggregate' => 'max', 'key' => json_encode(['RuntimeException', 'app/Foo.php:123']), 'value' => $timestamp, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'exception', 'aggregate' => 'max', 'key' => json_encode(['RuntimeException', 'app/Bar.php:123']), 'value' => $timestamp, 'count' => 1],
     ]));
 
     Livewire::test(Exceptions::class, ['lazy' => false])

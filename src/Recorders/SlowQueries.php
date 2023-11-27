@@ -48,11 +48,9 @@ class SlowQueries
             return;
         }
 
-        $key = $event->sql;
-        if ($this->config->get('pulse.recorders.'.self::class.'.location')) {
-            // TODO: Is this a good separator? Could it collide with something that might appear in a query?
-            $key .= '::'.$this->getLocation();
-        }
+        $location = $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : null;
+
+        $key = json_encode([$event->sql, $location]);
 
         $this->pulse->record(
             type: 'slow_query',

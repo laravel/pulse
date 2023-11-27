@@ -16,14 +16,14 @@ it('renders slow queries', function () {
     Carbon::setTestNow(now()->setSeconds(30));
     $timestamp = now()->timestamp;
     Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => 'select * from `users`::app/Foo.php:123', 'value' => 1234],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => 'select * from `users`::app/Foo.php:123', 'value' => 2468],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => 'select * from `users` where `id` = ?::app/Bar.php:456', 'value' => 1234],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 1234],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 2468],
+        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users` where `id` = ?', 'app/Bar.php:456']), 'value' => 1234],
     ]));
     $currentBucket = (int) floor($timestamp / 60) * 60;
     Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => 'select * from `users`::app/Foo.php:123', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => 'select * from `users` where `id` = ?::app/Bar.php:456', 'value' => 1000, 'count' => 1],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 1000, 'count' => 2],
+        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => json_encode(['select * from `users` where `id` = ?', 'app/Bar.php:456']), 'value' => 1000, 'count' => 1],
     ]));
 
     Livewire::test(SlowQueries::class, ['lazy' => false])

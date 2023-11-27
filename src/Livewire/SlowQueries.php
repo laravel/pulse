@@ -23,9 +23,7 @@ class SlowQueries extends Card
         [$slowQueries, $time, $runAt] = $this->remember(
             fn () => Pulse::aggregate('slow_query', ['max', 'count'], $this->periodAsInterval())
                 ->map(function ($row) {
-                    [$sql, $location] = Str::contains($row->key, '::')
-                        ? [Str::beforeLast($row->key, '::'), Str::afterLast($row->key, '::')]
-                        : [$row->key, null];
+                    [$sql, $location] = json_decode($row->key);
 
                     return (object) [
                         'sql' => $sql,
