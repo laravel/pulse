@@ -31,7 +31,7 @@ it('captures requests over the threshold', function () {
     expect($entries[0]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
     expect($entries[0]->value)->toBe(4000);
 
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderByDesc('bucket')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
 
     expect($aggregates[0]->bucket)->toBe(946782240);
@@ -42,34 +42,62 @@ it('captures requests over the threshold', function () {
     expect($aggregates[0]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
     expect($aggregates[0]->value)->toBe(1);
 
-    expect($aggregates[1]->bucket)->toBe(946782000);
-    expect($aggregates[1]->period)->toBe(360);
+    expect($aggregates[1]->bucket)->toBe(946782240);
+    expect($aggregates[1]->period)->toBe(60);
     expect($aggregates[1]->type)->toBe('slow_request');
     expect($aggregates[1]->aggregate)->toBe('max');
     expect($aggregates[1]->key)->toBe('GET /test-route');
     expect($aggregates[1]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
-    expect($aggregates[1]->count)->toBe(1);
     expect($aggregates[1]->value)->toBe(4000);
 
-    expect($aggregates[2]->bucket)->toBe(946781280);
-    expect($aggregates[2]->period)->toBe(1440);
+    expect($aggregates[2]->bucket)->toBe(946782000);
+    expect($aggregates[2]->period)->toBe(360);
     expect($aggregates[2]->type)->toBe('slow_request');
-    expect($aggregates[2]->aggregate)->toBe('max');
+    expect($aggregates[2]->aggregate)->toBe('count');
     expect($aggregates[2]->key)->toBe('GET /test-route');
     expect($aggregates[2]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
-    expect($aggregates[2]->count)->toBe(1);
-    expect($aggregates[2]->value)->toBe(4000);
+    expect($aggregates[2]->value)->toBe(1);
 
-    expect($aggregates[3]->period)->toBe(10080);
+    expect($aggregates[3]->bucket)->toBe(946782000);
+    expect($aggregates[3]->period)->toBe(360);
     expect($aggregates[3]->type)->toBe('slow_request');
     expect($aggregates[3]->aggregate)->toBe('max');
     expect($aggregates[3]->key)->toBe('GET /test-route');
     expect($aggregates[3]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
-    expect($aggregates[3]->count)->toBe(1);
     expect($aggregates[3]->value)->toBe(4000);
 
+    expect($aggregates[4]->bucket)->toBe(946781280);
+    expect($aggregates[4]->period)->toBe(1440);
+    expect($aggregates[4]->type)->toBe('slow_request');
+    expect($aggregates[4]->aggregate)->toBe('count');
+    expect($aggregates[4]->key)->toBe('GET /test-route');
+    expect($aggregates[4]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
+    expect($aggregates[4]->value)->toBe(1);
+
+    expect($aggregates[5]->bucket)->toBe(946781280);
+    expect($aggregates[5]->period)->toBe(1440);
+    expect($aggregates[5]->type)->toBe('slow_request');
+    expect($aggregates[5]->aggregate)->toBe('max');
+    expect($aggregates[5]->key)->toBe('GET /test-route');
+    expect($aggregates[5]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
+    expect($aggregates[5]->value)->toBe(4000);
+
+    expect($aggregates[6]->period)->toBe(10080);
+    expect($aggregates[6]->type)->toBe('slow_request');
+    expect($aggregates[6]->aggregate)->toBe('count');
+    expect($aggregates[6]->key)->toBe('GET /test-route');
+    expect($aggregates[6]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
+    expect($aggregates[6]->value)->toBe(1);
+
+    expect($aggregates[7]->period)->toBe(10080);
+    expect($aggregates[7]->type)->toBe('slow_request');
+    expect($aggregates[7]->aggregate)->toBe('max');
+    expect($aggregates[7]->key)->toBe('GET /test-route');
+    expect($aggregates[7]->key_hash)->toBe(hex2bin(md5('GET /test-route')));
+    expect($aggregates[7]->value)->toBe(4000);
+
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
-})->todo();
+});
 
 it('captures slow requests per user', function () {
     Date::setTestNow('2000-01-02 03:04:05');
@@ -89,8 +117,8 @@ it('captures slow requests per user', function () {
     expect($entries[0]->key_hash)->toBe(hex2bin(md5('4321')));
     expect($entries[0]->value)->toBe(1);
 
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_user_request')->orderByDesc('bucket')->get());
-    expect($aggregates)->toHaveCount(8);
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_user_request')->orderBy('period')->orderBy('aggregate')->get());
+    expect($aggregates)->toHaveCount(4);
 
     expect($aggregates[0]->bucket)->toBe(946782240);
     expect($aggregates[0]->period)->toBe(60);
@@ -98,72 +126,33 @@ it('captures slow requests per user', function () {
     expect($aggregates[0]->aggregate)->toBe('count');
     expect($aggregates[0]->key)->toBe('4321');
     expect($aggregates[0]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[0]->count)->toBe(1);
     expect($aggregates[0]->value)->toBe(1);
 
-    expect($aggregates[1]->bucket)->toBe(946782240);
-    expect($aggregates[1]->period)->toBe(60);
+    expect($aggregates[1]->bucket)->toBe(946782000);
+    expect($aggregates[1]->period)->toBe(360);
     expect($aggregates[1]->type)->toBe('slow_user_request');
     expect($aggregates[1]->aggregate)->toBe('count');
     expect($aggregates[1]->key)->toBe('4321');
     expect($aggregates[1]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[1]->count)->toBe(1);
     expect($aggregates[1]->value)->toBe(1);
 
-    expect($aggregates[2]->bucket)->toBe(946782000);
-    expect($aggregates[2]->period)->toBe(360);
+    expect($aggregates[2]->bucket)->toBe(946781280);
+    expect($aggregates[2]->period)->toBe(1440);
     expect($aggregates[2]->type)->toBe('slow_user_request');
     expect($aggregates[2]->aggregate)->toBe('count');
     expect($aggregates[2]->key)->toBe('4321');
     expect($aggregates[2]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[2]->count)->toBe(1);
     expect($aggregates[2]->value)->toBe(1);
 
-    expect($aggregates[3]->bucket)->toBe(946782000);
-    expect($aggregates[3]->period)->toBe(360);
+    expect($aggregates[3]->period)->toBe(10080);
     expect($aggregates[3]->type)->toBe('slow_user_request');
     expect($aggregates[3]->aggregate)->toBe('count');
     expect($aggregates[3]->key)->toBe('4321');
     expect($aggregates[3]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[3]->count)->toBe(1);
     expect($aggregates[3]->value)->toBe(1);
 
-    expect($aggregates[4]->bucket)->toBe(946781280);
-    expect($aggregates[4]->period)->toBe(1440);
-    expect($aggregates[4]->type)->toBe('slow_user_request');
-    expect($aggregates[4]->aggregate)->toBe('count');
-    expect($aggregates[4]->key)->toBe('4321');
-    expect($aggregates[4]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[4]->count)->toBe(1);
-    expect($aggregates[4]->value)->toBe(1);
-
-    expect($aggregates[5]->bucket)->toBe(946781280);
-    expect($aggregates[5]->period)->toBe(1440);
-    expect($aggregates[5]->type)->toBe('slow_user_request');
-    expect($aggregates[5]->aggregate)->toBe('count');
-    expect($aggregates[5]->key)->toBe('4321');
-    expect($aggregates[5]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[5]->count)->toBe(1);
-    expect($aggregates[5]->value)->toBe(1);
-
-    expect($aggregates[6]->period)->toBe(10080);
-    expect($aggregates[6]->type)->toBe('slow_user_request');
-    expect($aggregates[6]->aggregate)->toBe('count');
-    expect($aggregates[6]->key)->toBe('4321');
-    expect($aggregates[6]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[6]->count)->toBe(1);
-    expect($aggregates[6]->value)->toBe(1);
-
-    expect($aggregates[7]->period)->toBe(10080);
-    expect($aggregates[7]->type)->toBe('slow_user_request');
-    expect($aggregates[7]->aggregate)->toBe('count');
-    expect($aggregates[7]->key)->toBe('4321');
-    expect($aggregates[7]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($aggregates[7]->count)->toBe(1);
-    expect($aggregates[7]->value)->toBe(1);
-
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
-})->todo();
+});
 
 it('captures requests equal to the threshold', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 1001);
@@ -282,46 +271,75 @@ it('captures the requests "via" route when using livewire', function () {
     expect($entries[0]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
     expect($entries[0]->value)->toBe(4000);
 
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderByDesc('bucket')->get());
-    expect($aggregates)->toHaveCount(4);
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderBy('period')->orderBy('aggregate')->get());
+    expect($aggregates)->toHaveCount(8);
 
     expect($aggregates[0]->bucket)->toBe(946782240);
     expect($aggregates[0]->period)->toBe(60);
     expect($aggregates[0]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('max');
+    expect($aggregates[0]->aggregate)->toBe('count');
     expect($aggregates[0]->key)->toBe('POST /test-route (/livewire/update)');
     expect($aggregates[0]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
-    expect($aggregates[0]->count)->toBe(1);
-    expect($aggregates[0]->value)->toBe(4000);
+    expect($aggregates[0]->value)->toBe(1);
 
-    expect($aggregates[1]->bucket)->toBe(946782000);
-    expect($aggregates[1]->period)->toBe(360);
+    expect($aggregates[1]->bucket)->toBe(946782240);
+    expect($aggregates[1]->period)->toBe(60);
     expect($aggregates[1]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('max');
+    expect($aggregates[1]->aggregate)->toBe('max');
     expect($aggregates[1]->key)->toBe('POST /test-route (/livewire/update)');
     expect($aggregates[1]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
-    expect($aggregates[1]->count)->toBe(1);
     expect($aggregates[1]->value)->toBe(4000);
 
-    expect($aggregates[2]->bucket)->toBe(946781280);
-    expect($aggregates[2]->period)->toBe(1440);
+    expect($aggregates[2]->bucket)->toBe(946782000);
+    expect($aggregates[2]->period)->toBe(360);
     expect($aggregates[2]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('max');
+    expect($aggregates[2]->aggregate)->toBe('count');
     expect($aggregates[2]->key)->toBe('POST /test-route (/livewire/update)');
     expect($aggregates[2]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
-    expect($aggregates[2]->count)->toBe(1);
-    expect($aggregates[2]->value)->toBe(4000);
+    expect($aggregates[2]->value)->toBe(1);
 
-    expect($aggregates[3]->period)->toBe(10080);
+    expect($aggregates[3]->bucket)->toBe(946782000);
+    expect($aggregates[3]->period)->toBe(360);
     expect($aggregates[3]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('max');
+    expect($aggregates[3]->aggregate)->toBe('max');
     expect($aggregates[3]->key)->toBe('POST /test-route (/livewire/update)');
     expect($aggregates[3]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
-    expect($aggregates[3]->count)->toBe(1);
     expect($aggregates[3]->value)->toBe(4000);
 
+    expect($aggregates[4]->bucket)->toBe(946781280);
+    expect($aggregates[4]->period)->toBe(1440);
+    expect($aggregates[4]->type)->toBe('slow_request');
+    expect($aggregates[4]->aggregate)->toBe('count');
+    expect($aggregates[4]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[4]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[4]->value)->toBe(1);
+
+    expect($aggregates[5]->bucket)->toBe(946781280);
+    expect($aggregates[5]->period)->toBe(1440);
+    expect($aggregates[5]->type)->toBe('slow_request');
+    expect($aggregates[5]->aggregate)->toBe('max');
+    expect($aggregates[5]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[5]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[5]->value)->toBe(4000);
+
+    expect($aggregates[6]->bucket)->toBe(946774080);
+    expect($aggregates[6]->period)->toBe(10080);
+    expect($aggregates[6]->type)->toBe('slow_request');
+    expect($aggregates[6]->aggregate)->toBe('count');
+    expect($aggregates[6]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[6]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[6]->value)->toBe(1);
+
+    expect($aggregates[7]->bucket)->toBe(946774080);
+    expect($aggregates[7]->period)->toBe(10080);
+    expect($aggregates[7]->type)->toBe('slow_request');
+    expect($aggregates[7]->aggregate)->toBe('max');
+    expect($aggregates[7]->key)->toBe('POST /test-route (/livewire/update)');
+    expect($aggregates[7]->key_hash)->toBe(hex2bin(md5('POST /test-route (/livewire/update)')));
+    expect($aggregates[7]->value)->toBe(4000);
+
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
-})->todo();
+});
 
 it('only records known routes', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
