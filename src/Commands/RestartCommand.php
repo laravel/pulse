@@ -2,9 +2,9 @@
 
 namespace Laravel\Pulse\Commands;
 
-use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\InteractsWithTime;
+use Laravel\Pulse\Support\CacheStoreResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
@@ -32,9 +32,9 @@ class RestartCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(CacheManager $cache): void
+    public function handle(CacheStoreResolver $cache): void
     {
-        $cache->forever('laravel:pulse:restart', $this->currentTime());
+        $cache->store()->forever('laravel:pulse:restart', $this->currentTime());
 
         $this->components->info('Broadcasting pulse restart signal.');
     }

@@ -88,6 +88,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pulse Cache Driver
+    |--------------------------------------------------------------------------
+    |
+    | TODO
+    | - Used to cache data on the dashboard.
+    | - Used to signal long lived commands should restart, i.e., `pulse:work`, `pulse:check`
+    | - Used to create locks for the `IsolatedBeat` event, i.e., it must support locking.
+    |
+    */
+
+    'cache' => env('PULSE_CACHE_DRIVER'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Pulse Route Middleware
     |--------------------------------------------------------------------------
     |

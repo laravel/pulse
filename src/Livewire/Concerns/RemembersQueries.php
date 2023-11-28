@@ -5,7 +5,8 @@ namespace Laravel\Pulse\Livewire\Concerns;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Benchmark;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\App;
+use Laravel\Pulse\Support\CacheStoreResolver;
 
 trait RemembersQueries
 {
@@ -16,7 +17,7 @@ trait RemembersQueries
      */
     public function remember(callable $query, string $key = ''): array
     {
-        return Cache::remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, CarbonInterval::seconds(5), function () use ($query) {
+        return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, CarbonInterval::seconds(5), function () use ($query) {
             $now = new CarbonImmutable;
 
             [$value, $duration] = Benchmark::value(fn () => $query($this->periodAsInterval()));
