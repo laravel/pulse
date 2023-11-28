@@ -124,19 +124,19 @@ class PulseServiceProvider extends ServiceProvider
                     Looping::class,
                     WorkerStopping::class,
                 ], function ($event) use ($app) {
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app[Pulse::class]->store();
                 });
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
                 $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app[Pulse::class]->store();
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
                 $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app[Pulse::class]->store();
                 });
             });
         });

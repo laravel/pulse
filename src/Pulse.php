@@ -330,8 +330,10 @@ class Pulse
     /**
      * Store the queued entries.
      */
-    public function store(Ingest $ingest): self
+    public function store(): self
     {
+        $ingest = $this->app->make(Ingest::class);
+
         $this->rescue(fn () => $ingest->ingest(
             $this->entries->map(fn ($entry) => $entry->resolve())->filter($this->shouldRecord(...)),
         ));

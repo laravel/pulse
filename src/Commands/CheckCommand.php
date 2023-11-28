@@ -8,7 +8,6 @@ use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Sleep;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Events\IsolatedBeat;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
@@ -39,7 +38,6 @@ class CheckCommand extends Command
      */
     public function handle(
         Pulse $pulse,
-        Ingest $ingest,
         CacheManager $cache,
         Dispatcher $event,
     ): int {
@@ -70,7 +68,7 @@ class CheckCommand extends Command
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
-            $pulse->store($ingest);
+            $pulse->store();
         }
     }
 }

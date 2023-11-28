@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowQueries;
 use Livewire\Livewire;
 
@@ -33,7 +32,7 @@ it('renders slow queries', function () {
     Pulse::record('slow_query', $query1, 1000)->max();
     Pulse::record('slow_query', $query2, 1000)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(SlowQueries::class, ['lazy' => false])
         ->assertViewHas('slowQueries', collect([

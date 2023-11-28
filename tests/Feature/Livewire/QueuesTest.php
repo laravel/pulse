@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Queues;
 use Livewire\Livewire;
 
@@ -34,7 +33,7 @@ it('renders queue statistics', function () {
     Pulse::record('processed', 'database:default')->sum()->bucketOnly();
     Pulse::record('released', 'database:default')->sum()->bucketOnly();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(Queues::class, ['lazy' => false])
         ->assertViewHas('queues', collect([

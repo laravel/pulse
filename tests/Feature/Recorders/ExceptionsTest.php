@@ -3,7 +3,6 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Exceptions;
 
@@ -15,7 +14,7 @@ it('ingests exceptions', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
@@ -46,7 +45,7 @@ it('can disable capturing the location', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
     report(new RuntimeException('Expected exception.'));
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -74,7 +73,7 @@ it('can manually report exceptions', function () {
     Carbon::setTestNow('2000-01-01 00:00:00');
 
     Pulse::report(new MyReportedException('Hello, Pulse!'));
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);

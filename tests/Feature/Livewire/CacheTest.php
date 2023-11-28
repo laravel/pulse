@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Cache;
 use Livewire\Livewire;
 
@@ -38,7 +37,7 @@ it('renders cache statistics', function () {
     Pulse::record('cache_miss', 'foo')->sum();
     Pulse::record('cache_miss', 'bar')->sum();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(Cache::class, ['lazy' => false])
         ->assertViewHas('allCacheInteractions', (object) [

@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowOutgoingRequests;
 use Livewire\Livewire;
 
@@ -30,7 +29,7 @@ it('renders slow outgoing requests', function () {
     Pulse::record('slow_outgoing_request', 'GET http://example.com', 1000)->max();
     Pulse::record('slow_outgoing_request', 'GET http://example.org', 1000)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
         ->assertViewHas('slowOutgoingRequests', collect([

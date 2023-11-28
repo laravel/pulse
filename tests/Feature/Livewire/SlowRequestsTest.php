@@ -3,7 +3,6 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowRequests;
 use Livewire\Livewire;
 
@@ -34,7 +33,7 @@ it('renders slow requests', function () {
     Pulse::record('slow_request', 'GET /users', 1000)->max();
     Pulse::record('slow_request', 'GET /users/{user}', 1000)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
         ->assertViewHas('slowRequests', collect([
@@ -66,7 +65,7 @@ it('handles routes with domains', function () {
     Pulse::record('slow_request', 'GET /users', 1000)->max();
     Pulse::record('slow_request', 'GET {account}.example.com/users', 1000)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
         ->assertViewHas('slowRequests', collect([

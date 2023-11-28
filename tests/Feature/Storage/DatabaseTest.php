@@ -3,7 +3,6 @@
 use Carbon\CarbonInterval;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage as StorageIngest;
 
 test('one or more aggregates for a single type', function () {
     /*
@@ -40,7 +39,7 @@ test('one or more aggregates for a single type', function () {
     Pulse::record('slow_request', 'GET /foo', 300)->max()->avg()->sum();
     Pulse::record('slow_request', 'GET /bar', 600)->max()->avg()->sum();
 
-    Pulse::store(app(StorageIngest::class));
+    Pulse::store();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 
@@ -107,7 +106,7 @@ test('one aggregate for multiple types, per key', function () {
     Pulse::record('cache_hit', 'user:*')->sum();
     Pulse::record('cache_miss', 'user:*')->sum();
 
-    Pulse::store(app(StorageIngest::class));
+    Pulse::store();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 
@@ -163,7 +162,7 @@ test('one aggregate for multiple types, totals', function () {
     Pulse::record('cache_hit', 'flight:*')->sum();
     Pulse::record('cache_miss', 'flight:*')->sum();
 
-    Pulse::store(app(StorageIngest::class));
+    Pulse::store();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 

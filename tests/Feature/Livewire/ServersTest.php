@@ -3,7 +3,6 @@
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Servers;
 use Livewire\Livewire;
 
@@ -37,7 +36,7 @@ it('renders server statistics', function () {
         ],
     ]));
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(Servers::class, ['lazy' => false])
         ->assertViewHas('servers', collect([

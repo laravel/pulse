@@ -5,7 +5,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Usage;
 use Livewire\Livewire;
 
@@ -43,7 +42,7 @@ it('renders top 10 users making requests', function (string $query, string $type
     Pulse::record($type, $users[1]->id)->sum();
     Pulse::record($type, $users[2]->id)->sum();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])

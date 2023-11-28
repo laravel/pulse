@@ -4,7 +4,6 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowQueries;
 
@@ -20,7 +19,7 @@ it('ingests queries', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
@@ -56,7 +55,7 @@ it('can disable capturing the location', function () {
     });
 
     DB::connection()->statement('select * from users');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
@@ -91,7 +90,7 @@ it('does not ingest queries under the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 });
@@ -103,7 +102,7 @@ it('ingests queries equal to the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });
@@ -115,7 +114,7 @@ it('ingests queries over the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });

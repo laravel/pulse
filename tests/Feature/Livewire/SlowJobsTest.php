@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowJobs;
 use Livewire\Livewire;
 
@@ -30,7 +29,7 @@ it('renders slow jobs', function () {
     Pulse::record('slow_job', 'App\Jobs\MyJob', 1000)->max();
     Pulse::record('slow_job', 'App\Jobs\MyOtherJob', 1000)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(SlowJobs::class, ['lazy' => false])
         ->assertViewHas('slowJobs', collect([

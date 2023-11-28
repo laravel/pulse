@@ -4,7 +4,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\OutgoingRequests;
 
@@ -14,7 +13,7 @@ it('ingests slow outgoing http requests', function () {
     Http::fake(fn () => Http::response('ok'));
 
     Http::get('https://laravel.com');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -51,7 +50,7 @@ it('captures failed requests', function () {
     Http::fake(['https://laravel.com' => Http::response('error', status: 500)]);
 
     Http::get('https://laravel.com');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -69,7 +68,7 @@ it('stores the original URI by default', function () {
     Http::fake(['https://laravel.com*' => Http::response('ok')]);
 
     Http::get('https://laravel.com?foo=123');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -90,7 +89,7 @@ it('can normalize URI', function () {
         '#^https://github\.com/([^/]+)/([^/]+)/commits/([^/]+)$#' => 'github.com/{user}/{repo}/commits/{branch}',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -111,7 +110,7 @@ it('can use back references in normalized URI', function () {
         '#^https?://([^/]+).*$#' => '\1/*',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -133,7 +132,7 @@ it('can provide regex flags in normalization key', function () {
         '/PARAMETER/i' => 'uppercase-parameter',
     ]);
     Http::get('https://github.com?PARAMETER=123');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);

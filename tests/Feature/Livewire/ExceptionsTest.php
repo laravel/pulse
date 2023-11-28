@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Exceptions;
 use Livewire\Livewire;
 
@@ -33,7 +32,7 @@ it('renders exceptions', function () {
     Pulse::record('exception', $exception1, now()->timestamp)->max();
     Pulse::record('exception', $exception2, now()->timestamp)->max();
 
-    Pulse::store(app(Storage::class));
+    Pulse::store();
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([

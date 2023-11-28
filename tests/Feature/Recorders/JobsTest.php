@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Jobs;
 
@@ -44,7 +43,7 @@ it('ingests bus dispatched jobs', function () {
     expect(Pulse::entries())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
@@ -68,7 +67,7 @@ it('ingests queued closures', function () {
     dispatch(function () {
         throw new RuntimeException('Nope');
     });
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
@@ -129,7 +128,7 @@ it('ingests jobs pushed to the queue', function () {
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     Queue::push('MyJob');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $aggregates = queueAggregates();
@@ -153,7 +152,7 @@ it('ingests queued listeners', function () {
      * Dispatch the event.
      */
     MyEvent::dispatch();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $aggregates = queueAggregates();
@@ -215,7 +214,7 @@ it('ingests queued mail', function () {
      * Dispatch the mail.
      */
     Mail::to('test@example.com')->queue(new MyMailThatFails);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $aggregates = queueAggregates();
@@ -281,7 +280,7 @@ it('ingests queued notifications', function () {
      * Dispatch the notification.
      */
     Notification::route('mail', 'test@example.com')->notify(new MyNotificationThatFails);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $aggregates = queueAggregates();
@@ -343,7 +342,7 @@ it('ingests queued commands', function () {
      * Dispatch the command.
      */
     Artisan::queue(MyCommandThatFails::class);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Pulse::entries())->toHaveCount(0);
     $aggregates = queueAggregates();
@@ -405,7 +404,7 @@ it('handles a job throwing exceptions and failing', function () {
      */
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobWithMultipleAttemptsThatAlwaysThrows);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -500,7 +499,7 @@ it('handles a failure and then a successful job', function () {
      */
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -565,7 +564,7 @@ it('handles a slow successful job', function () {
      */
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -612,7 +611,7 @@ it('handles a job that was manually failed', function () {
      */
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobThatManuallyFails);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -745,7 +744,7 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
 
     Bus::dispatchToQueue(new MyJobThatAlwaysFails);
     Bus::dispatchToQueue(new MyJobThatAlwaysFails);
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
     expect(Queue::size())->toBe(2);
     $aggregates = queueAggregates();
