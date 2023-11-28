@@ -24,23 +24,9 @@
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div
-            x-data="{
-                loadingNewDataset: false,
-                init() {
-                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
-
-                    Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === $wire.__instance.name) {
-                            succeed(() => this.loadingNewDataset = false)
-                        }
-                    })
-                }
-            }"
-            :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']"
-        >
+        <div class="min-h-full flex flex-col gap-6">
             @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
-                <x-pulse::no-results />
+                <x-pulse::no-results class="flex-1" />
             @else
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="flex flex-col justify-center @sm:block">

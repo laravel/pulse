@@ -20,26 +20,21 @@
             <button title="{{ $message }}" @click="alert('{{ str_replace("\n", '\n', $message) }}')">
                 <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
             </button>
+
+            <x-pulse::select
+                wire:model.live="orderBy"
+                label="Sort by"
+                :options="[
+                    'slowest' => 'slowest',
+                    'count' => 'count',
+                ]"
+                @change="loading = true"
+            />
         </x-slot:actions>
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div
-            x-data="{
-                loadingNewDataset: false,
-                init() {
-                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
-
-                    Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === $wire.__instance.name) {
-                            succeed(() => this.loadingNewDataset = false)
-                        }
-                    })
-                }
-            }"
-            class="min-h-full flex flex-col"
-             :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
-        >
+        <div class="min-h-full flex flex-col">
             @if (! $supported)
                 <div class="flex-1 flex flex-col items-center justify-center p-4 py-6">
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-full text-xs leading-none px-2 py-1 text-gray-500 dark:text-gray-400">

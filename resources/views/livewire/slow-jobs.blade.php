@@ -10,22 +10,7 @@
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div
-            x-data="{
-                loadingNewDataset: false,
-                init() {
-                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
-
-                    Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === $wire.__instance.name) {
-                            succeed(() => this.loadingNewDataset = false)
-                        }
-                    })
-                }
-            }"
-            class="min-h-full flex flex-col"
-            :class="loadingNewDataset ? 'opacity-25 animate-pulse' : ''"
-        >
+        <div class="min-h-full flex flex-col">
             @if (count($slowJobs) === 0)
                 <x-pulse::no-results class="flex-1" />
             @else

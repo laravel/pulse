@@ -20,7 +20,7 @@
             }
         }
     }"
-    {{ $attributes->merge(['class' => '@container/scroll-wrapper flex-grow flex w-full overflow-hidden' . ($expand ? '' : ' basis-56') ]) }}
+    {{ $attributes->merge(['class' => '@container/scroll-wrapper flex-grow flex w-full overflow-hidden' . ($expand ? '' : ' basis-56'), ':class' => "loading && 'opacity-25 animate-pulse'"]) }}
 >
     <div x-ref="content" class="flex-grow basis-full overflow-y-auto" @scroll.debounce.5ms="scroll">
         {{ $slot }}
