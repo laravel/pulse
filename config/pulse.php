@@ -141,7 +141,15 @@ return [
         Recorders\Jobs::class => [
             'enabled' => env('PULSE_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_JOBS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_JOB_THRESHOLD', 1000),
+            'ignore' => [
+                // '/^Package\\\\Jobs\\\\/',
+            ],
+        ],
+
+        Recorders\SlowJobs::class => [
+            'enabled' => env('PULSE_SLOW_JOBS_ENABLED', true),
+            'sample_rate' => env('PULSE_SLOW_JOBS_SAMPLE_RATE', 1),
+            'threshold' => env('PULSE_SLOW_JOBS_THRESHOLD', 1000),
             'ignore' => [
                 // '/^Package\\\\Jobs\\\\/',
             ],
@@ -150,7 +158,7 @@ return [
         Recorders\SlowOutgoingRequests::class => [
             'enabled' => env('PULSE_OUTGOING_REQUESTS_ENABLED', true),
             'sample_rate' => env('PULSE_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),
+            'threshold' => env('PULSE_SLOW_OUTGOING_REQUESTS_THRESHOLD', 1000),
             'ignore' => [
                 // '#^http://127\.0\.0\.1:13714#', // Inertia SSR...
             ],
@@ -181,8 +189,8 @@ return [
         Recorders\SlowQueries::class => [
             'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_QUERY_THRESHOLD', 1000),
-            'location' => env('PULSE_SLOW_QUERY_LOCATION', true),
+            'threshold' => env('PULSE_SLOW_QUERIES_THRESHOLD', 1000),
+            'location' => env('PULSE_SLOW_QUERIES_LOCATION', true),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables...
             ],

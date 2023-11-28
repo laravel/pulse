@@ -6,7 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Recorders\Jobs;
+use Laravel\Pulse\Recorders\SlowJobs as SlowJobsRecorder;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -31,7 +31,7 @@ class SlowJobs extends Card
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.Jobs::class),
+            'config' => Config::get('pulse.recorders.'.SlowJobsRecorder::class),
             'slowJobs' => $slowJobs,
         ]);
     }

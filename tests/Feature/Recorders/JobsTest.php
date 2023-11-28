@@ -521,57 +521,6 @@ it('handles a failure and then a successful job', function () {
     );
 });
 
-it('handles a slow successful job', function () {
-    Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.Jobs::class.'.threshold', 0);
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
-
-    /*
-     * Dispatch the job.
-     */
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
-
-    expect(Queue::size())->toBe(1);
-    $aggregates = queueAggregates();
-    expect($aggregates)->toHaveCount(4);
-    expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'queued',
-        aggregate: 'count',
-        key: 'database:default',
-        value: 1,
-    );
-
-    /*
-     * Work the job for the first time.
-     */
-
-    Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(0);
-    $aggregates = queueAggregates();
-    expect($aggregates)->toHaveCount(20);
-    expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued', 'processing', 'processed'],
-        aggregate: 'count',
-        key: 'database:default',
-        value: 1,
-    );
-    expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'slow_job',
-        aggregate: 'max',
-        key: MySlowJob::class,
-        value: 100,
-    );
-    expect($aggregates)->toContainAggregateForAllPeriods(
-        type: 'slow_job',
-        aggregate: 'count',
-        key: MySlowJob::class,
-        value: 1,
-    );
-});
-
 it('handles a job that was manually failed', function () {
     Config::set('queue.default', 'database');
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
@@ -841,14 +790,6 @@ class MyJobThatPassesOnTheSecondAttempt implements ShouldQueue
         if (static::$attempts === 1) {
             throw new RuntimeException('Nope');
         }
-    }
-}
-
-class MySlowJob implements ShouldQueue
-{
-    public function handle()
-    {
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(100));
     }
 }
 

@@ -21,11 +21,6 @@ class Jobs
     use Concerns\Sampling;
 
     /**
-     * The time the last job started processing.
-     */
-    protected ?CarbonImmutable $lastJobStartedProcessingAt;
-
-    /**
      * The events to listen for.
      *
      * @var list<class-string>
@@ -95,20 +90,6 @@ class Jobs
             },
             timestamp: $now,
         )->count()->bucketOnly();
-
-        // Slow Jobs
-        // TODO: Separate recorder so it can be sampled differently?
-
-        if ($event instanceof JobProcessing) {
-            $this->lastJobStartedProcessingAt = $now;
-        } elseif (! $event instanceof JobQueued && isset($this->lastJobStartedProcessingAt) && $this->lastJobStartedProcessingAt !== null) {
-            $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
-            $this->lastJobStartedProcessingAt = null;
-
-            if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->max()->count();
-            }
-        }
 
         // User dispatching Jobs
         // TODO: Separate recorder so it can be sampled differently?
