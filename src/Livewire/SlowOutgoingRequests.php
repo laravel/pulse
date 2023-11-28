@@ -23,7 +23,7 @@ class SlowOutgoingRequests extends Card
         [$slowOutgoingRequests, $time, $runAt] = $this->remember(
             fn () => Pulse::aggregate('slow_outgoing_request', ['max', 'count'], $this->periodAsInterval())
                 ->map(function ($row) {
-                    [$method, $uri] = explode(' ', $row->key, 2);
+                    [$method, $uri] = json_decode($row->key);
 
                     return (object) [
                         'method' => $method,

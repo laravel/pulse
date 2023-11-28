@@ -62,8 +62,8 @@ class SlowRequests
             $snapshot = json_decode($request->input('components.0.snapshot'), flags: JSON_THROW_ON_ERROR);
 
             if (isset($snapshot->memo->path)) {
-                $via = $path;
-                $path = 'via '.Str::start($snapshot->memo->path, '/');
+                $via = 'via '.$path;
+                $path = Str::start($snapshot->memo->path, '/');
             }
         }
 

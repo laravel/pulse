@@ -20,7 +20,7 @@ it('ingests slow outgoing http requests', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET https://laravel.com',
+        'key' => json_encode(['GET', 'https://laravel.com']),
         'value' => 0,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
@@ -30,7 +30,7 @@ it('ingests slow outgoing http requests', function () {
         'period' => 60,
         'type' => 'slow_outgoing_request',
         'aggregate' => 'count',
-        'key' => 'GET https://laravel.com',
+        'key' => json_encode(['GET', 'https://laravel.com']),
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
@@ -38,7 +38,7 @@ it('ingests slow outgoing http requests', function () {
         'period' => 60,
         'type' => 'slow_outgoing_request',
         'aggregate' => 'max',
-        'key' => 'GET https://laravel.com',
+        'key' => json_encode(['GET', 'https://laravel.com']),
         'value' => 0,
     ]);
 });
@@ -64,7 +64,7 @@ it('captures failed requests', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET https://laravel.com',
+        'key' => json_encode(['GET', 'https://laravel.com']),
         'value' => 0,
     ]);
 });
@@ -82,7 +82,7 @@ it('stores the original URI by default', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET https://laravel.com?foo=123',
+        'key' => json_encode(['GET', 'https://laravel.com?foo=123']),
         'value' => 0,
     ]);
 });
@@ -103,7 +103,7 @@ it('can normalize URI', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET github.com/{user}/{repo}/commits/{branch}',
+        'key' => json_encode(['GET', 'github.com/{user}/{repo}/commits/{branch}']),
         'value' => 0,
     ]);
 });
@@ -124,7 +124,7 @@ it('can use back references in normalized URI', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET github.com/*',
+        'key' => json_encode(['GET', 'github.com/*']),
         'value' => 0,
     ]);
 });
@@ -146,7 +146,7 @@ it('can provide regex flags in normalization key', function () {
     expect($entries[0])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'slow_outgoing_request',
-        'key' => 'GET https://github.com?lowercase-parameter=123',
+        'key' => json_encode(['GET', 'https://github.com?lowercase-parameter=123']),
         'value' => 0,
     ]);
 });
