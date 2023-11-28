@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowQueries;
 use Livewire\Livewire;
 
@@ -13,18 +13,27 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders slow queries', function () {
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 1234],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 2468],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_query', 'key' => json_encode(['select * from `users` where `id` = ?', 'app/Bar.php:456']), 'value' => 1234],
-    ]));
-    $currentBucket = (int) floor($timestamp / 60) * 60;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => json_encode(['select * from `users`', 'app/Foo.php:123']), 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_query', 'aggregate' => 'max', 'key' => json_encode(['select * from `users` where `id` = ?', 'app/Bar.php:456']), 'value' => 1000, 'count' => 1],
-    ]));
+    $query1 = json_encode(['select * from `users`', 'app/Foo.php:123']);
+    $query2 = json_encode(['select * from `users` where `id` = ?', 'app/Bar.php:456']);
+
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('slow_query', $query1, 1)->max();
+    Pulse::record('slow_query', $query2, 1)->max();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('slow_query', $query1, 1234)->max();
+    Pulse::record('slow_query', $query1, 2468)->max();
+    Pulse::record('slow_query', $query2, 1234)->max();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('slow_query', $query1, 1000)->max();
+    Pulse::record('slow_query', $query1, 1000)->max();
+    Pulse::record('slow_query', $query2, 1000)->max();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::test(SlowQueries::class, ['lazy' => false])
         ->assertViewHas('slowQueries', collect([

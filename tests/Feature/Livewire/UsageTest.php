@@ -4,8 +4,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Usage;
 use Livewire\Livewire;
 
@@ -18,22 +18,32 @@ it('includes the card on the dashboard', function () {
 it('renders top 10 users making requests', function (string $query, string $type) {
     $users = User::factory(3)->create();
     Pulse::resolveUsersUsing(fn () => $users);
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[0]->id, 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id, 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[1]->id, 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => $type, 'key' => $users[2]->id, 'value' => 1],
-    ]));
-    $currentBucket = (int) floor($timestamp / 60) * 60;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[0]->id, 'value' => 3, 'count' => 3],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[1]->id, 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => $type, 'aggregate' => 'sum', 'key' => $users[2]->id, 'value' => 1, 'count' => 1],
-    ]));
+
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[1]->id)->sum();
+    Pulse::record($type, $users[2]->id)->sum();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[1]->id)->sum();
+    Pulse::record($type, $users[1]->id)->sum();
+    Pulse::record($type, $users[2]->id)->sum();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[0]->id)->sum();
+    Pulse::record($type, $users[1]->id)->sum();
+    Pulse::record($type, $users[1]->id)->sum();
+    Pulse::record($type, $users[2]->id)->sum();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])

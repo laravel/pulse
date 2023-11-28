@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowJobs;
 use Livewire\Livewire;
 
@@ -13,18 +13,24 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders slow jobs', function () {
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_job', 'key' => 'App\Jobs\MyJob', 'value' => 1234],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_job', 'key' => 'App\Jobs\MyJob', 'value' => 2468],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_job', 'key' => 'App\Jobs\MyOtherJob', 'value' => 1234],
-    ]));
-    $currentBucket = (int) floor($timestamp / 60) * 60;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job', 'aggregate' => 'max', 'key' => 'App\Jobs\MyJob', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_job', 'aggregate' => 'max', 'key' => 'App\Jobs\MyOtherJob', 'value' => 1000, 'count' => 1],
-    ]));
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('slow_job', 'App\Jobs\MyJob', 1)->max();
+    Pulse::record('slow_job', 'App\Jobs\MyOtherJob', 1)->max();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('slow_job', 'App\Jobs\MyJob', 1234)->max();
+    Pulse::record('slow_job', 'App\Jobs\MyJob', 2468)->max();
+    Pulse::record('slow_job', 'App\Jobs\MyOtherJob', 1234)->max();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('slow_job', 'App\Jobs\MyJob', 1000)->max();
+    Pulse::record('slow_job', 'App\Jobs\MyJob', 1000)->max();
+    Pulse::record('slow_job', 'App\Jobs\MyOtherJob', 1000)->max();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::test(SlowJobs::class, ['lazy' => false])
         ->assertViewHas('slowJobs', collect([

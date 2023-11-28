@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Queues;
 use Livewire\Livewire;
 
@@ -13,31 +13,45 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders queue statistics', function () {
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'queued', 'aggregate' => 'sum', 'key' => 'database:default', 'value' => 4, 'count' => 4],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processing', 'aggregate' => 'sum', 'key' => 'database:default', 'value' => 3, 'count' => 3],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'processed', 'aggregate' => 'sum', 'key' => 'database:default', 'value' => 2, 'count' => 2],
-        ['bucket' => (int) floor($timestamp / 60) * 60, 'period' => 60, 'type' => 'released', 'aggregate' => 'sum', 'key' => 'database:default', 'value' => 1, 'count' => 1],
-    ]));
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
+    Pulse::record('released', 'database:default')->sum()->bucketOnly();
+    Pulse::record('failed', 'database:default')->sum()->bucketOnly();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
+    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
+    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
+    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
+    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
+    Pulse::record('released', 'database:default')->sum()->bucketOnly();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::test(Queues::class, ['lazy' => false])
         ->assertViewHas('queues', collect([
             'database:default' => collect([
                 'queued' => collect()
-                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
-                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 4),
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 4),
                 'processing' => collect()
-                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
-                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 3),
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 3),
                 'processed' => collect()
-                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
-                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 2),
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 2),
                 'released' => collect()
-                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
-                    ->put(Carbon::createFromTimestamp($timestamp)->startOfMinute()->toDateTimeString(), 1),
-                'failed' => collect()->range(59, 0)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp($timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null]),
+                    ->range(59, 1)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
+                    ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 1),
+                'failed' => collect()->range(59, 0)->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null]),
             ]),
         ]))
         ->assertViewHas('showConnection', false);

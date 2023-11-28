@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\SlowOutgoingRequests;
 use Livewire\Livewire;
 
@@ -13,18 +13,24 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders slow outgoing requests', function () {
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_outgoing_request', 'key' => 'GET http://example.com', 'value' => 1234],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_outgoing_request', 'key' => 'GET http://example.com', 'value' => 2468],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'slow_outgoing_request', 'key' => 'GET http://example.org', 'value' => 1234],
-    ]));
-    $currentBucket = (int) floor($timestamp / 60) * 60;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_outgoing_request', 'aggregate' => 'max', 'key' => 'GET http://example.com', 'value' => 1000, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'slow_outgoing_request', 'aggregate' => 'max', 'key' => 'GET http://example.org', 'value' => 1000, 'count' => 1],
-    ]));
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('slow_outgoing_request', 'GET http://example.com', 1)->max();
+    Pulse::record('slow_outgoing_request', 'GET http://example.org', 1)->max();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('slow_outgoing_request', 'GET http://example.com', 1234)->max();
+    Pulse::record('slow_outgoing_request', 'GET http://example.com', 2468)->max();
+    Pulse::record('slow_outgoing_request', 'GET http://example.org', 1234)->max();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('slow_outgoing_request', 'GET http://example.com', 1000)->max();
+    Pulse::record('slow_outgoing_request', 'GET http://example.com', 1000)->max();
+    Pulse::record('slow_outgoing_request', 'GET http://example.org', 1000)->max();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
         ->assertViewHas('slowOutgoingRequests', collect([

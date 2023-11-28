@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Ingests\Storage;
 use Laravel\Pulse\Livewire\Cache;
 use Livewire\Livewire;
 
@@ -13,23 +13,32 @@ it('includes the card on the dashboard', function () {
 });
 
 it('renders cache statistics', function () {
-    Carbon::setTestNow(now()->setSeconds(30));
-    $timestamp = now()->timestamp;
-    Pulse::ignore(fn () => DB::table('pulse_entries')->insert([
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_hit', 'key' => 'foo', 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_hit', 'key' => 'foo', 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_hit', 'key' => 'bar', 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_miss', 'key' => 'foo', 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_miss', 'key' => 'foo', 'value' => 1],
-        ['timestamp' => $timestamp - 3600 + 1, 'type' => 'cache_miss', 'key' => 'bar', 'value' => 1],
-    ]));
-    $currentBucket = (int) floor($timestamp / 60) * 60;
-    Pulse::ignore(fn () => DB::table('pulse_aggregates')->insert([
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit', 'aggregate' => 'sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_hit', 'aggregate' => 'sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss', 'aggregate' => 'sum', 'key' => 'foo', 'value' => 2, 'count' => 2],
-        ['bucket' => $currentBucket, 'period' => 60, 'type' => 'cache_miss', 'aggregate' => 'sum', 'key' => 'bar', 'value' => 1, 'count' => 1],
-    ]));
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('cache_hit', 'foo')->sum();
+    Pulse::record('cache_hit', 'bar')->sum();
+    Pulse::record('cache_miss', 'foo')->sum();
+    Pulse::record('cache_miss', 'bar')->sum();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('cache_hit', 'foo')->sum();
+    Pulse::record('cache_hit', 'foo')->sum();
+    Pulse::record('cache_hit', 'bar')->sum();
+    Pulse::record('cache_miss', 'foo')->sum();
+    Pulse::record('cache_miss', 'foo')->sum();
+    Pulse::record('cache_miss', 'bar')->sum();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('cache_hit', 'foo')->sum();
+    Pulse::record('cache_hit', 'foo')->sum();
+    Pulse::record('cache_hit', 'bar')->sum();
+    Pulse::record('cache_miss', 'foo')->sum();
+    Pulse::record('cache_miss', 'foo')->sum();
+    Pulse::record('cache_miss', 'bar')->sum();
+
+    Pulse::store(app(Storage::class));
 
     Livewire::test(Cache::class, ['lazy' => false])
         ->assertViewHas('allCacheInteractions', (object) [
