@@ -7,6 +7,17 @@
         <x-slot:icon>
             <x-pulse::icons.command-line />
         </x-slot:icon>
+        <x-slot:actions>
+            <x-pulse::select
+                wire:model.live="orderBy"
+                label="Sort by"
+                :options="[
+                    'slowest' => 'slowest',
+                    'count' => 'count',
+                ]"
+                @change="loading = true"
+            />
+        </x-slot:actions>
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">

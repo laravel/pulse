@@ -10,11 +10,20 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowRequests as SlowRequestsRecorder;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Url;
 
 #[Lazy]
 class SlowRequests extends Card
 {
     use Concerns\HasPeriod, Concerns\RemembersQueries;
+
+    /**
+     * Ordering.
+     *
+     * @var 'slowest'|'count'
+     */
+    #[Url(as: 'slow-requests')]
+    public string $orderBy = 'slowest';
 
     /**
      * Render the component.
