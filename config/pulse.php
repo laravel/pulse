@@ -147,7 +147,7 @@ return [
             ],
         ],
 
-        Recorders\OutgoingRequests::class => [
+        Recorders\SlowOutgoingRequests::class => [
             'enabled' => env('PULSE_OUTGOING_REQUESTS_ENABLED', true),
             'sample_rate' => env('PULSE_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_OUTGOING_REQUEST_THRESHOLD', 1000),

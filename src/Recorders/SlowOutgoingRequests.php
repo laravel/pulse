@@ -18,7 +18,7 @@ use Throwable;
 /**
  * @internal
  */
-class OutgoingRequests implements Grouping // TODO: Rename to SlowOutgoingRequests
+class SlowOutgoingRequests implements Grouping
 {
     use Concerns\Ignores;
     use Concerns\Sampling;

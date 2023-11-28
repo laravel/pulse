@@ -22,7 +22,7 @@
     - [Requests](#requests-recorder)
     - [Jobs](#jobs-recorder)
     - [Slow Queries](#slow-queries-recorder)
-    - [Outgoing Requests](#outgoing-requests-recorder)
+    - [Slow Outgoing Requests](#slow-outgoing-requests-recorder)
     - [Exceptions](#exceptions-recorder)
     - [Cache Interactions](#cache-interactions-recorder)
 - [Performance](#performance)
@@ -177,7 +177,7 @@ See the [slow queries recorder](#slow-queries-recorder) for more information.
 
 The `<livewire:pulse.slow-outgoing-requests />` shows outgoing requests made using Laravel's [HTTP client](/docs/{{version}}/http-client) that are exceeding the configured threshold, which is 1,000ms by default.
 
-By default, entries will be grouped by the full URL. However you may wish to normalize or group similar outgoing requests using a regular expression. See the [outgoing requests recorder](#outgoing-requests-recorder) for more information.
+By default, entries will be grouped by the full URL. However you may wish to normalize or group similar outgoing requests using a regular expression. See the [slow outgoing requests recorder](#slow-outgoing-requests-recorder) for more information.
 
 <a name="cache-card"></a>
 #### Cache
@@ -225,10 +225,10 @@ The `SlowQueries` recorder captures any database queries in your application tha
 
 You may optionally adjust the slow query threshold, [sample rate](#sampling), and ignored query patterns. You may also configure whether to capture the query location. The captured location will be displayed on the Pulse dashboard which can help to track down the query origin. However, if the same query is made in multiple locations then it will appear multiple times for each unique location.
 
-<a name="outgoing-requests-recorder"></a>
-### Outgoing Requests
+<a name="slow-outgoing-requests-recorder"></a>
+### Slow Outgoing Requests
 
-The `OutgoingRequests` recorder captures information about outgoing HTTP requests made using Laravel's [HTTP client](/docs/{{version}}/http-client) for display on the [Slow Outgoing Requests](#slow-outgoing-requests-card) card.
+The `SlowOutgoingRequests` recorder captures information about outgoing HTTP requests made using Laravel's [HTTP client](/docs/{{version}}/http-client) that exceed the configured threshold for display on the [Slow Outgoing Requests](#slow-outgoing-requests-card) card.
 
 You may optionally adjust the slow outgoing request threshold, [sample rate](#sampling), and ignored URL patterns.
 
