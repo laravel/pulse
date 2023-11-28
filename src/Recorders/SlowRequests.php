@@ -63,7 +63,7 @@ class SlowRequests
 
             if (isset($snapshot->memo->path)) {
                 $via = $path;
-                $path = Str::start($snapshot->memo->path, '/');
+                $path = 'via '.Str::start($snapshot->memo->path, '/');
             }
         }
 
