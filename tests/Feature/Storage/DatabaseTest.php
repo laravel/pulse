@@ -118,8 +118,6 @@ test('one aggregate for multiple types, per key', function () {
     ]);
 });
 
-// multiple aggregates for multiple types?!
-
 test('one aggregate for multiple types, totals', function () {
     /*
     | type       | sum |
