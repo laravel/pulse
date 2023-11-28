@@ -191,7 +191,6 @@ return [
         Recorders\SystemStats::class => [
             'server_name' => env('PULSE_SERVER_NAME', gethostname()),
             'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
-            'graph_aggregation' => 'avg', // Supported: "avg", "max"
         ],
     ],
 ];
