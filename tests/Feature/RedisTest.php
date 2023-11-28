@@ -155,7 +155,7 @@ class NullStorage implements Storage
         //
     }
 
-    public function purge(Collection $tables): void
+    public function purge(array $types = null): void
     {
         //
     }

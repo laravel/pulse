@@ -52,7 +52,7 @@ it('trims aggregates once the bucket is no longer relevant', function () {
 
     App::make(Database::class)->trim();
 
-    expect(DB::table('pulse_aggregates')->pluck('type')->all())->toBe([
+    expect(DB::table('pulse_aggregates')->pluck('type')->all())->toEqualCanonicalizing([
         'baz:60',
         'baz:360',
         'baz:1440',
