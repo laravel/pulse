@@ -21,32 +21,13 @@ class SlowRequests extends Card
      */
     public function render(): Renderable
     {
-        $routes = Route::getRoutes()->getRoutesByMethod();
-
         [$slowRequests, $time, $runAt] = $this->remember(
             fn () => Pulse::aggregate('slow_request', ['max', 'count'], $this->periodAsInterval())
-                ->map(function ($row) use ($routes) {
-                    [$method, $uri] = explode(' ', $row->key, 2);
-
-                    preg_match('/(.*?)(?:\s\((.*)\))?$/', $uri, $matches);
-
-                    [$uri, $via] = [$matches[1], $matches[2] ?? null];
-
-                    $domain = Str::before($uri, '/');
-
-                    if ($domain) {
-                        $uri = '/'.Str::after($uri, '/');
-                    }
-
-                    if ($via) {
-                        $action = 'via '.$via;
-                    } else {
-                        $path = $uri === '/' ? $uri : ltrim($uri, '/');
-                        $action = ($route = $routes[$method][$domain.$path] ?? null) ? (string) $route->getActionName() : null;
-                    }
+                ->map(function ($row) {
+                    [$method, $uri, $action] = json_decode($row->key);
 
                     return (object) [
-                        'uri' => $domain.$uri,
+                        'uri' => $uri,
                         'method' => $method,
                         'action' => $action,
                         'count' => $row->count,
