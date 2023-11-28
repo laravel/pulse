@@ -21,7 +21,7 @@ class WorkCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:work';
+    public $signature = 'pulse:work {--stop-when-empty : Stop when the stream is empty}';
 
     /**
      * The command's description.
@@ -55,6 +55,10 @@ class WorkCommand extends Command
                 $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
+            }
+
+            if ($this->option('stop-when-empty')) {
+                return self::SUCCESS;
             }
 
             Sleep::for(1)->second();
