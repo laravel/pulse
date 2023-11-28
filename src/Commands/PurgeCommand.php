@@ -33,7 +33,8 @@ class PurgeCommand extends Command
     /**
      * Handle the command.
      */
-    public function handle(Storage $storage): int {
+    public function handle(Storage $storage): int
+    {
         if (! $this->confirmToProceed()) {
             return Command::FAILURE;
         }
