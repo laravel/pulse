@@ -30,17 +30,25 @@ class SlowOutgoingRequests extends Card
     public function render(): Renderable
     {
         [$slowOutgoingRequests, $time, $runAt] = $this->remember(
-            fn () => Pulse::aggregate('slow_outgoing_request', ['max', 'count'], $this->periodAsInterval())
-                ->map(function ($row) {
-                    [$method, $uri] = json_decode($row->key);
+            fn () => Pulse::aggregate(
+                'slow_outgoing_request',
+                ['max', 'count'],
+                $this->periodAsInterval(),
+                match ($this->orderBy) {
+                    'count' => 'count',
+                    default => 'max',
+                },
+            )->map(function ($row) {
+                [$method, $uri] = json_decode($row->key);
 
-                    return (object) [
-                        'method' => $method,
-                        'uri' => $uri,
-                        'slowest' => $row->max,
-                        'count' => $row->count,
-                    ];
-                })
+                return (object) [
+                    'method' => $method,
+                    'uri' => $uri,
+                    'slowest' => $row->max,
+                    'count' => $row->count,
+                ];
+            }),
+            $this->orderBy,
         );
 
         return View::make('pulse::livewire.slow-outgoing-requests', [
