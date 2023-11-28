@@ -135,7 +135,8 @@ class Database implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertCount(array $values): bool {
+    protected function upsertCount(array $values): bool
+    {
         return $this->upsert(
             $values,
             'on duplicate key update `value` = `value` + 1'
@@ -147,7 +148,8 @@ class Database implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertMax(array $values): bool {
+    protected function upsertMax(array $values): bool
+    {
         return $this->upsert(
             $values,
             'on duplicate key update `value` = greatest(`value`, values(`value`))'
@@ -159,7 +161,8 @@ class Database implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertAvg(array $values): bool {
+    protected function upsertAvg(array $values): bool
+    {
         return $this->upsert(
             $values,
             ' on duplicate key update `value` = (`value` * `count` + values(`value`)) / (`count` + 1), `count` = `count` + 1',
@@ -172,7 +175,8 @@ class Database implements Storage
      * @param  list<AggregateRow>  $values
      * @param  list<string>  $onDuplicateKeyColumns
      */
-    protected function upsert(array $values, string $onDuplicateKeyClause): bool {
+    protected function upsert(array $values, string $onDuplicateKeyClause): bool
+    {
         $grammar = $this->db->connection()->getQueryGrammar();
 
         $sql = $grammar->compileInsert(

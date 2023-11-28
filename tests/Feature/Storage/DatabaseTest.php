@@ -2,7 +2,6 @@
 
 use Carbon\CarbonInterval;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 
 test('one or more aggregates for a single type', function () {
