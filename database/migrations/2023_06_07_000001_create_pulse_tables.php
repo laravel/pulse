@@ -27,8 +27,8 @@ return new class extends Migration
             $table->text('value');
 
             $table->index('timestamp'); // For trimming
+            $table->index('type'); // For fast lookups and purging.
             $table->unique(['type', 'key']); // For data integrity
-            $table->index('type'); // For fast lookups
         });
 
         Schema::create('pulse_entries', function (Blueprint $table) {
@@ -39,6 +39,7 @@ return new class extends Migration
             $table->unsignedInteger('value')->nullable();
 
             $table->index('timestamp'); // For trimming
+            $table->index('type'); // For purging.
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
         });
 
@@ -52,8 +53,9 @@ return new class extends Migration
             $table->unsignedInteger('value');
             $table->unsignedInteger('count')->nullable();
 
-            $table->index(['period', 'bucket']); // For trimming
             $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"
+            $table->index(['period', 'bucket']); // For trimming
+            $table->index('type'); // For purging.
             $table->index(['period', 'bucket', 'type']); // TODO: This is a guess.
         });
     }

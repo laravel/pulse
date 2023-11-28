@@ -121,13 +121,21 @@ class Database implements Storage
     /**
      * Purge the storage.
      *
-     * @param  \Illuminate\Support\Collection<int, string>  $tables
+     * @param  list<string>  $types
      */
-    public function purge(Collection $tables): void
+    public function purge(array $types = null): void
     {
-        $tables->each(fn (string $table) => $this->db->connection()
-            ->table($table)
-            ->truncate());
+        if ($types === null) {
+            $this->db->connection()->table('pulse_values')->truncate();
+            $this->db->connection()->table('pulse_entries')->truncate();
+            $this->db->connection()->table('pulse_aggregates')->truncate();
+
+            return;
+        }
+
+        $this->db->connection()->table('pulse_values')->whereIn('type', $types)->delete();
+        $this->db->connection()->table('pulse_entries')->whereIn('type', $types)->delete();
+        $this->db->connection()->table('pulse_aggregates')->whereIn('type', $types)->delete();
     }
 
     /**
