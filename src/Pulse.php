@@ -3,7 +3,6 @@
 namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval;
 use Closure;
 use DateTimeInterface;
 use Illuminate\Auth\AuthManager;
@@ -493,7 +492,6 @@ class Pulse
      *
      * @param  string  $method
      * @param  array  $parameters
-     * @return mixed
      */
     public function __call($method, $parameters): mixed
     {

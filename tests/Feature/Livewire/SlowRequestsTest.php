@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowRequests;
 use Livewire\Livewire;
