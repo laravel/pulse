@@ -100,6 +100,10 @@ class Database implements Storage
             ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
+        // TODO: Run a single delete with multiple grouped conditions?
+        // E.g. where (`period` = 60 AND `bucket` <= 1623072000) or (`period` = 360 AND `bucket` <= 1623046800)
+        // 1 query instead of 5
+
         $this->db->connection()
             ->table('pulse_aggregates')
             ->distinct()

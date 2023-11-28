@@ -26,9 +26,9 @@ return new class extends Migration
             $table->string('key');
             $table->text('value');
 
-            // todo: we want `timestamp` for trimming
-            $table->unique(['type', 'key']);
-            $table->index('type');
+            $table->index('timestamp'); // For trimming
+            $table->unique(['type', 'key']); // For data integrity
+            $table->index('type'); // For fast lookups
         });
 
         Schema::create('pulse_entries', function (Blueprint $table) {
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
             $table->unsignedInteger('value');
 
-            // todo: we want `timestamp` for trimming
+            $table->index('timestamp'); // For trimming
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
         });
 
@@ -52,9 +52,8 @@ return new class extends Migration
             $table->unsignedInteger('value');
             $table->unsignedInteger('count');
 
-            // todo: we want `period`,`bucket` for trimming
-            $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']);
-
+            $table->index(['period', 'bucket']); // For trimming
+            $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"
             $table->index(['period', 'bucket', 'type']); // TODO: This is a guess.
         });
     }
