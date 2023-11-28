@@ -63,10 +63,7 @@ class SlowOutgoingRequests implements Grouping
 
         $this->pulse->record(
             type: 'slow_outgoing_request',
-            key: json_encode([
-                $request->getMethod(),
-                $this->group($request->getUri())(),
-            ]),
+            key: $this->group(json_encode([$request->getMethod(), $request->getUri()])),
             value: $duration,
             timestamp: $startedAt,
         )->max()->count();
@@ -77,18 +74,20 @@ class SlowOutgoingRequests implements Grouping
      *
      * @return Closure(): string
      */
-    public function group(string $uri): Closure
+    public function group(string $key): Closure
     {
-        return function () use ($uri) {
+        return function () use ($key) {
+            [$method, $uri] = json_decode($key);
+
             foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
                 $group = preg_replace($pattern, $replacement, $uri, count: $count);
 
                 if ($count > 0 && $group !== null) {
-                    return $group;
+                    return json_encode([$method, $group]);
                 }
             }
 
-            return $uri;
+            return $key;
         };
     }
 
