@@ -16,11 +16,11 @@ class Exceptions extends Card
     use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
-     * The view type
+     * Ordering.
      *
      * @var 'count'|'latest'
      */
-    #[Url(as: 'exceptions_by')]
+    #[Url(as: 'exceptions')]
     public string $orderBy = 'count';
 
     /**
