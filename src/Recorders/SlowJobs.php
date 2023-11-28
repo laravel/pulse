@@ -65,6 +65,8 @@ class SlowJobs
         $name = $event->job->resolveName();
 
         if (! $this->shouldSample() || $this->shouldIgnore($name)) {
+            $this->lastJobStartedProcessingAt = null;
+
             return;
         }
 
