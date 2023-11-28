@@ -13,6 +13,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
@@ -21,10 +22,12 @@ use Throwable;
 
 /**
  * @internal
+ *
+ * @mixin \Laravel\Pulse\Contracts\Storage
  */
 class Pulse
 {
-    use Concerns\ConfiguresAfterResolving;
+    use Concerns\ConfiguresAfterResolving, ForwardsCalls;
 
     /**
      * The list of metric recorders.
@@ -187,93 +190,6 @@ class Pulse
         }
 
         return $value;
-    }
-
-    /**
-     * Retrieve values for the given type.
-     *
-     * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<
-     *     int,
-     *     array<
-     *         string,
-     *         array{
-     *             timestamp: int,
-     *             type: string,
-     *             key: string,
-     *             value: string
-     *         }
-     *     >
-     * >
-     */
-    public function values(string $type, array $keys = null): Collection
-    {
-        return $this->app->make(Storage::class)->values($type, $keys);
-    }
-
-    /**
-     * Retrieve aggregate values for plotting on a graph.
-     *
-     * @param  list<string>  $types
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
-     */
-    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
-    {
-        return $this->app->make(Storage::class)->graph($types, $aggregate, $interval);
-    }
-
-    /**
-     * Retrieve aggregate values for the given type.
-     *
-     * @param  list<string>  $aggregates
-     * @return \Illuminate\Support\Collection<int, object{
-     *     key: string,
-     *     max?: int,
-     *     sum?: int,
-     *     avg?: int,
-     *     count?: int
-     * }>
-     */
-    public function aggregate(
-        string $type,
-        array|string $aggregates,
-        CarbonInterval $interval,
-        string $orderBy = null,
-        string $direction = 'desc',
-        int $limit = 101,
-    ): Collection {
-        return $this->app->make(Storage::class)->aggregate($type, $aggregates, $interval, $orderBy, $direction, $limit);
-    }
-
-    /**
-     * Retrieve aggregate values for the given types.
-     *
-     * @param  string|list<string>  $types
-     * @return \Illuminate\Support\Collection<int, object>
-     */
-    public function aggregateTypes(
-        string|array $types,
-        string $aggregate,
-        CarbonInterval $interval,
-        string $orderBy = null,
-        string $direction = 'desc',
-        int $limit = 101,
-    ): Collection {
-        return $this->app->make(Storage::class)->aggregateTypes($types, $aggregate, $interval, $orderBy, $direction, $limit);
-    }
-
-    /**
-     * Retrieve an aggregate total for the given types.
-     *
-     * @param  string|list<string>  $types
-     * @return \Illuminate\Support\Collection<string, int>
-     */
-    public function aggregateTotal(
-        array|string $types,
-        string $aggregate,
-        CarbonInterval $interval,
-    ) {
-        return $this->app->make(Storage::class)->aggregateTotal($types, $aggregate, $interval);
     }
 
     /**
@@ -570,5 +486,19 @@ class Pulse
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
+    }
+
+    /**
+     * Forward calls to the storage driver.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters): mixed
+    {
+        $storage = $this->app->make(Storage::class);
+
+        return $this->forwardCallTo($storage, $method, $parameters);
     }
 }
