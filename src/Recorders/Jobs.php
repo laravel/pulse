@@ -68,7 +68,10 @@ class Jobs
                     default => $event->job::class,
                 },
             ],
-            default => [$event->job->uuid(), $event->job->resolveName()],
+            default => [
+                $event->job->uuid(), // @phpstan-ignore method.nonObject
+                $event->job->resolveName(), // @phpstan-ignore method.nonObject
+            ],
         };
 
         if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
@@ -84,10 +87,11 @@ class Jobs
                 JobProcessed::class => 'processed',
                 JobReleasedAfterException::class => 'released',
                 JobFailed::class => 'failed',
+                default => throw new \LogicException('Unknown event type.'),
             },
             key: match (get_class($event)) {
                 JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
-                default => $event->job->getConnectionName().':'.$event->job->getQueue(),
+                default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
             },
             timestamp: $now,
         )->sum()->bucketOnly();

@@ -3,7 +3,7 @@
 namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval as Interval;
+use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
@@ -14,6 +14,9 @@ use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use Laravel\Pulse\Value;
 
+/**
+ * @phpstan-type AggregateRow array{bucket: int, period: int, type: string, aggregate: string, key: string, value: int, count: int}
+ */
 class Database implements Storage
 {
     /**
@@ -50,10 +53,10 @@ class Database implements Storage
             );
 
         $periods = [
-            Interval::hour()->totalSeconds / 60,
-            Interval::hours(6)->totalSeconds / 60,
-            Interval::hours(24)->totalSeconds / 60,
-            Interval::days(7)->totalSeconds / 60,
+            (int) CarbonInterval::hour()->totalSeconds / 60,
+            (int) CarbonInterval::hours(6)->totalSeconds / 60,
+            (int) CarbonInterval::hours(24)->totalSeconds / 60,
+            (int) CarbonInterval::days(7)->totalSeconds / 60,
         ];
 
         $this
@@ -130,7 +133,7 @@ class Database implements Storage
     /**
      * Insert new records or update the existing ones and update the sum.
      *
-     * @param  list<\Laravel\Pulse\Entry>  $values
+     * @param  list<AggregateRow>  $values
      */
     protected function upsertSum(
         string $table,
@@ -149,7 +152,7 @@ class Database implements Storage
     /**
      * Insert new records or update the existing ones and the maximum.
      *
-     * @param  list<\Laravel\Pulse\Entry>  $values
+     * @param  list<AggregateRow>  $values
      */
     protected function upsertMax(
         string $table,
@@ -168,7 +171,7 @@ class Database implements Storage
     /**
      * Insert new records or update the existing ones and the average.
      *
-     * @param  list<\Laravel\Pulse\Entry>  $values
+     * @param  list<AggregateRow>  $values
      */
     protected function upsertAvg(
         string $table,
@@ -187,7 +190,7 @@ class Database implements Storage
     /**
      * Perform an "upsert" query with an "on duplicate key" clause.
      *
-     * @param  list<\Laravel\Pulse\Entry>  $values
+     * @param  list<AggregateRow>  $values
      * @param  list<string>  $onDuplicateKeyColumns
      */
     protected function upsert(
@@ -210,6 +213,10 @@ class Database implements Storage
 
     /**
      * Get the aggregate attributes for the collection.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @param  list<int>  $periods
+     * @return \Illuminate\Support\LazyCollection<int, AggregateRow>
      */
     protected function aggregateAttributes(Collection $entries, array $periods, string $aggregateSuffix): LazyCollection
     {
@@ -229,6 +236,20 @@ class Database implements Storage
 
     /**
      * Retrieve values for the given type.
+     *
+     * @param  list<string>  $keys
+     * @return \Illuminate\Support\Collection<
+     *     int,
+     *     array<
+     *         string,
+     *         array{
+     *             timestamp: int,
+     *             type: string,
+     *             key: string,
+     *             value: string
+     *         }
+     *     >
+     * >
      */
     public function values(string $type, array $keys = null): Collection
     {
@@ -242,8 +263,11 @@ class Database implements Storage
 
     /**
      * Retrieve aggregate values for plotting on a graph.
+     *
+     * @param  list<string>  $types
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
-    public function graph(array $types, string $aggregate, Interval $interval)
+    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
         $now = new CarbonImmutable;
         $period = $interval->totalSeconds / 60;
@@ -258,7 +282,7 @@ class Database implements Storage
 
         $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
 
-        return $this->db->connection()->table('pulse_aggregates')
+        return $this->db->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
@@ -279,11 +303,20 @@ class Database implements Storage
 
     /**
      * Retrieve aggregate values for the given type.
+     *
+     * @param  list<string>  $aggregates
+     * @return \Illuminate\Support\Collection<int, object{
+     *     key: string,
+     *     max?: int,
+     *     sum?: int,
+     *     avg?: int,
+     *     count?: int
+     * }>
      */
     public function aggregate(
         string $type,
         array|string $aggregates,
-        Interval $interval,
+        CarbonInterval $interval,
         string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
@@ -402,11 +435,14 @@ class Database implements Storage
 
     /**
      * Retrieve aggregate values for the given types.
+     *
+     * @param  string|list<string>  $types
+     * @return \Illuminate\Support\Collection<int, object>
      */
     public function aggregateTypes(
         string|array $types,
         string $aggregate,
-        Interval $interval,
+        CarbonInterval $interval,
         string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
@@ -429,6 +465,7 @@ class Database implements Storage
                 'sum' => 'sum(`'.$type.'`) as `'.$type.'`',
                 'max' => 'max(`'.$type.'`) as `'.$type.'`',
                 'avg' => 'avg(`'.$type.'`) as `'.$type.'`',
+                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
             });
         }
 
@@ -441,6 +478,7 @@ class Database implements Storage
                     'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                     'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                     'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                    default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                 }, [$type]);
             }
 
@@ -459,6 +497,7 @@ class Database implements Storage
                         'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                         'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                         'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                     }, [$type]);
                 }
 
@@ -480,11 +519,14 @@ class Database implements Storage
 
     /**
      * Retrieve an aggregate total for the given types.
+     *
+     * @param  string|list<string>  $types
+     * @return \Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,
         string $aggregate,
-        Interval $interval,
+        CarbonInterval $interval,
     ): Collection {
         // TODO: Aggregate can't be 'count'
         $types = is_array($types) ? $types : [$types];
@@ -503,6 +545,7 @@ class Database implements Storage
                 'sum' => 'sum(`sum`) as `sum`',
                 'max' => 'max(`max`) as `max`',
                 'avg' => 'avg(`avg`) as `avg`',
+                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
             })
             ->fromSub(fn (Builder $query) => $query
                 // Tail
@@ -511,6 +554,7 @@ class Database implements Storage
                     'sum' => 'sum(`value`) as `sum`',
                     'max' => 'max(`value`) as `max`',
                     'avg' => 'avg(`value`) as `avg`',
+                    default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                 })
                 ->from('pulse_entries')
                 ->whereIn('type', $types)
@@ -524,6 +568,7 @@ class Database implements Storage
                         'sum' => 'sum(`value`) as `sum`',
                         'max' => 'max(`value`) as `max`',
                         'avg' => 'avg(`value`) as `avg`',
+                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                     })
                     ->from('pulse_aggregates')
                     ->where('period', $period)

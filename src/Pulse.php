@@ -48,7 +48,7 @@ class Pulse
     /**
      * The entry filters.
      *
-     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry): bool)>
+     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)>
      */
     protected Collection $filters;
 
@@ -191,6 +191,20 @@ class Pulse
 
     /**
      * Retrieve values for the given type.
+     *
+     * @param  list<string>  $keys
+     * @return \Illuminate\Support\Collection<
+     *     int,
+     *     array<
+     *         string,
+     *         array{
+     *             timestamp: int,
+     *             type: string,
+     *             key: string,
+     *             value: string
+     *         }
+     *     >
+     * >
      */
     public function values(string $type, array $keys = null): Collection
     {
@@ -199,6 +213,9 @@ class Pulse
 
     /**
      * Retrieve aggregate values for plotting on a graph.
+     *
+     * @param  list<string>  $types
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
@@ -207,6 +224,15 @@ class Pulse
 
     /**
      * Retrieve aggregate values for the given type.
+     *
+     * @param  list<string>  $aggregates
+     * @return \Illuminate\Support\Collection<int, object{
+     *     key: string,
+     *     max?: int,
+     *     sum?: int,
+     *     avg?: int,
+     *     count?: int
+     * }>
      */
     public function aggregate(
         string $type,
@@ -221,6 +247,9 @@ class Pulse
 
     /**
      * Retrieve aggregate values for the given types.
+     *
+     * @param  string|list<string>  $types
+     * @return \Illuminate\Support\Collection<int, object>
      */
     public function aggregateTypes(
         string|array $types,
@@ -235,6 +264,9 @@ class Pulse
 
     /**
      * Retrieve an aggregate total for the given types.
+     *
+     * @param  string|list<string>  $types
+     * @return \Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,
@@ -298,7 +330,7 @@ class Pulse
     /**
      * The pending entries to be recorded.
      *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
      */
     public function entries()
     {
@@ -318,7 +350,7 @@ class Pulse
     /**
      * Filter incoming entries using the provided filter.
      *
-     * @param  (callable(\Laravel\Pulse\Entry): bool)  $filter
+     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)  $filter
      */
     public function filter(callable $filter): self
     {

@@ -53,6 +53,7 @@ class CacheInteractions implements Grouping
             type: match (get_class($event)) { // TODO: Just record the event class name?
                 CacheHit::class => 'cache_hit',
                 CacheMissed::class => 'cache_miss',
+                default => throw new \LogicException('Unknown event type.'),
             },
             key: $this->group($event->key),
             timestamp: $now

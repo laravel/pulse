@@ -159,4 +159,44 @@ class NullStorage implements Storage
     {
         //
     }
+
+    public function values(string $type, array $keys = null): Collection
+    {
+        return collect();
+    }
+
+    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
+    {
+        return collect();
+    }
+
+    public function aggregate(
+        string $type,
+        array|string $aggregates,
+        CarbonInterval $interval,
+        string $orderBy = null,
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        return collect();
+    }
+
+    public function aggregateTypes(
+        string|array $types,
+        string $aggregate,
+        CarbonInterval $interval,
+        string $orderBy = null,
+        string $direction = 'desc',
+        int $limit = 101,
+    ): Collection {
+        return collect();
+    }
+
+    public function aggregateTotal(
+        array|string $types,
+        string $aggregate,
+        CarbonInterval $interval,
+    ): Collection {
+        return collect();
+    }
 }
