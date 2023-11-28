@@ -60,19 +60,19 @@ class Database implements Storage
         ];
 
         $this
-            ->aggregateAttributes($entries->filter->isSum(), $periods, 'sum')
+            ->aggregateAttributes($entries->filter->isCount(), $periods, 'count')
             ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertSum('pulse_aggregates', $chunk->all()));
+            ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
         $this
             ->aggregateAttributes($entries->filter->isMax(), $periods, 'max')
             ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertMax('pulse_aggregates', $chunk->all()));
+            ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
         $this
             ->aggregateAttributes($entries->filter->isAvg(), $periods, 'avg')
             ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertAvg('pulse_aggregates', $chunk->all()));
+            ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
         $values
             ->chunk($this->config->get('pulse.storage.database.chunk'))
@@ -131,21 +131,14 @@ class Database implements Storage
     }
 
     /**
-     * Insert new records or update the existing ones and update the sum.
+     * Insert new records or update the existing ones and update the count.
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertSum(
-        string $table,
-        array $values,
-        string $valueColumn = 'value',
-        string $countColumn = 'count'
-    ): bool {
+    protected function upsertCount(array $values): bool {
         return $this->upsert(
-            $table,
             $values,
-            'on duplicate key update %1$s = %1$s + values(%1$s), %2$s = %2$s + 1',
-            [$valueColumn, $countColumn]
+            'on duplicate key update `value` = `value` + 1'
         );
     }
 
@@ -154,17 +147,10 @@ class Database implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertMax(
-        string $table,
-        array $values,
-        string $valueColumn = 'value',
-        string $countColumn = 'count'
-    ): bool {
+    protected function upsertMax(array $values): bool {
         return $this->upsert(
-            $table,
             $values,
-            'on duplicate key update %1$s = greatest(%1$s, values(%1$s)), %2$s = %2$s + 1',
-            [$valueColumn, $countColumn]
+            'on duplicate key update `value` = greatest(`value`, values(`value`))'
         );
     }
 
@@ -173,17 +159,10 @@ class Database implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertAvg(
-        string $table,
-        array $values,
-        string $valueColumn = 'value',
-        string $countColumn = 'count'
-    ): bool {
+    protected function upsertAvg(array $values): bool {
         return $this->upsert(
-            $table,
             $values,
-            ' on duplicate key update %1$s = (%1$s * %2$s + values(%1$s)) / (%2$s + 1), %2$s = %2$s + 1',
-            [$valueColumn, $countColumn]
+            ' on duplicate key update `value` = (`value` * `count` + values(`value`)) / (`count` + 1), `count` = `count` + 1',
         );
     }
 
@@ -193,20 +172,15 @@ class Database implements Storage
      * @param  list<AggregateRow>  $values
      * @param  list<string>  $onDuplicateKeyColumns
      */
-    protected function upsert(
-        string $table,
-        array $values,
-        string $onDuplicateKeyClause,
-        array $onDuplicateKeyColumns = [],
-    ): bool {
+    protected function upsert(array $values, string $onDuplicateKeyClause): bool {
         $grammar = $this->db->connection()->getQueryGrammar();
 
         $sql = $grammar->compileInsert(
-            $this->db->connection()->table($table),
+            $this->db->connection()->table('pulse_aggregates'),
             $values
         );
 
-        $sql .= ' '.sprintf($onDuplicateKeyClause, ...$onDuplicateKeyColumns);
+        $sql .= ' '.$onDuplicateKeyClause;
 
         return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
     }
@@ -308,7 +282,6 @@ class Database implements Storage
      * @return \Illuminate\Support\Collection<int, object{
      *     key: string,
      *     max?: int,
-     *     sum?: int,
      *     avg?: int,
      *     count?: int
      * }>
@@ -322,8 +295,6 @@ class Database implements Storage
         int $limit = 101,
     ): Collection {
         $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
-        // TODO: Validate `count` isn't included by itself, or figure out a way to make that work.
-        // Maybe add it as a separate `includeCount` parameter seeing as it's not an aggregate that is explicitly collected.
         $orderBy ??= $aggregates[0];
         $now = new CarbonImmutable();
         $period = $interval->totalSeconds / 60;
@@ -335,40 +306,24 @@ class Database implements Storage
 
         $query = $this->db->connection()->query()->addSelect('key');
 
-        if (in_array('sum', $aggregates)) {
-            $query->selectRaw('sum(`sum`) as `sum`');
-        }
-
-        if (in_array('max', $aggregates)) {
-            $query->selectRaw('max(`max`) as `max`');
-        }
-
-        if (in_array('avg', $aggregates)) {
-            $query->selectRaw('avg(`avg`) as `avg`');
-        }
-
-        if (in_array('count', $aggregates)) {
-            $query->selectRaw('sum(`count`) as `count`');
+        foreach ($aggregates as $aggregate) {
+            $query->selectRaw(match ($aggregate) {
+                'count' => 'sum(`count`) as `count`',
+                'max' => 'max(`max`) as `max`',
+                'avg' => 'avg(`avg`) as `avg`',
+            });
         }
 
         return $query->fromSub(function (Builder $query) use ($type, $aggregates, $period, $tailStart, $tailEnd, $oldestBucket) {
             // Tail
             $query->select('key');
 
-            if (in_array('sum', $aggregates)) {
-                $query->selectRaw('sum(`value`) as `sum`');
-            }
-
-            if (in_array('max', $aggregates)) {
-                $query->selectRaw('max(`value`) as `max`');
-            }
-
-            if (in_array('avg', $aggregates)) {
-                $query->selectRaw('round(avg(`value`)) as `avg`');
-            }
-
-            if (in_array('count', $aggregates)) {
-                $query->selectRaw('count(*) as `count`');
+            foreach ($aggregates as $aggregate) {
+                $query->selectRaw(match ($aggregate) {
+                    'count' => 'count(*) as `count`',
+                    'max' => 'max(`value`) as `max`',
+                    'avg' => 'avg(`value`) as `avg`',
+                });
             }
 
             $query
@@ -379,41 +334,19 @@ class Database implements Storage
                 ->groupBy('key');
 
             // Buckets
-            $first = true;
             foreach ($aggregates as $currentAggregate) {
-                // Alt approach: loop count as well, but set the "aggregate" column to the first non-count one.
-                // Note: adds an extra union
-                if ($currentAggregate === 'count') {
-                    continue;
-                }
-
                 $query->unionAll(function (Builder $query) use (&$first, $type, $aggregates, $currentAggregate, $period, $oldestBucket) {
                     $query->select('key');
 
                     foreach ($aggregates as $aggregate) {
-                        if ($aggregate === 'count') {
-                            continue;
-                        }
-
                         if ($aggregate === $currentAggregate) {
-                            if ($aggregate === 'sum') {
-                                $query->selectRaw('sum(`value`) as `sum`');
-                            } elseif ($aggregate === 'max') {
-                                $query->selectRaw('max(`value`) as `max`');
-                            } elseif ($aggregate === 'avg') {
-                                $query->selectRaw('avg(`value`) as `avg`');
-                            }
+                            $query->selectRaw(match ($aggregate) {
+                                'count' => 'sum(`value`) as `count`',
+                                'max' => 'max(`value`) as `max`',
+                                'avg' => 'avg(`value`) as `avg`',
+                            });
                         } else {
                             $query->selectRaw("null as `$aggregate`");
-                        }
-                    }
-
-                    if (in_array('count', $aggregates)) {
-                        if ($first) {
-                            $query->selectRaw('sum(`count`) as `count`');
-                            $first = false;
-                        } else {
-                            $query->selectRaw('0 as `count`');
                         }
                     }
 
@@ -462,7 +395,7 @@ class Database implements Storage
 
         foreach ($types as $type) {
             $query->selectRaw(match ($aggregate) {
-                'sum' => 'sum(`'.$type.'`) as `'.$type.'`',
+                'count' => 'sum(`'.$type.'`) as `'.$type.'`',
                 'max' => 'max(`'.$type.'`) as `'.$type.'`',
                 'avg' => 'avg(`'.$type.'`) as `'.$type.'`',
                 default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
@@ -475,7 +408,7 @@ class Database implements Storage
 
             foreach ($types as $type) {
                 $query->selectRaw(match ($aggregate) {
-                    'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                    'count' => 'count(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                     'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                     'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                     default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
@@ -489,12 +422,13 @@ class Database implements Storage
                 ->where('timestamp', '<=', $tailEnd)
                 ->groupBy('key');
 
+            // Buckets
             $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
                 $query->select('key');
 
                 foreach ($types as $type) {
                     $query->selectRaw(match ($aggregate) {
-                        'sum' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                        'count' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                         'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                         'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
                         default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
@@ -506,7 +440,6 @@ class Database implements Storage
                     ->where('period', $period)
                     ->whereIn('type', $types)
                     ->where('aggregate', $aggregate)
-                    ->where('aggregate', 'sum')
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('key');
             });
@@ -528,7 +461,6 @@ class Database implements Storage
         string $aggregate,
         CarbonInterval $interval,
     ): Collection {
-        // TODO: Aggregate can't be 'count'
         $types = is_array($types) ? $types : [$types];
 
         $now = new CarbonImmutable();
@@ -542,7 +474,7 @@ class Database implements Storage
         return $this->db->connection()->query()
             ->addSelect('type')
             ->selectRaw(match ($aggregate) {
-                'sum' => 'sum(`sum`) as `sum`',
+                'count' => 'sum(`count`) as `count`',
                 'max' => 'max(`max`) as `max`',
                 'avg' => 'avg(`avg`) as `avg`',
                 default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
@@ -551,7 +483,7 @@ class Database implements Storage
                 // Tail
                 ->addSelect('type')
                 ->selectRaw(match ($aggregate) {
-                    'sum' => 'sum(`value`) as `sum`',
+                    'count' => 'count(*) as `count`',
                     'max' => 'max(`value`) as `max`',
                     'avg' => 'avg(`value`) as `avg`',
                     default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
@@ -565,7 +497,7 @@ class Database implements Storage
                 ->unionAll(fn (Builder $query) => $query
                     ->select('type')
                     ->selectRaw(match ($aggregate) {
-                        'sum' => 'sum(`value`) as `sum`',
+                        'count' => 'sum(`value`) as `count`',
                         'max' => 'max(`value`) as `max`',
                         'avg' => 'avg(`value`) as `avg`',
                         default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),

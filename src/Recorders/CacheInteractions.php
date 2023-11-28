@@ -57,7 +57,7 @@ class CacheInteractions implements Grouping
             },
             key: $this->group($event->key),
             timestamp: $now
-        )->sum();
+        )->count();
     }
 
     /**

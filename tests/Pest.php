@@ -48,7 +48,7 @@ uses(TestCase::class)
 |
 */
 
-expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, int $count = 1, int $timestamp = null) {
+expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, int $count = null, int $timestamp = null) {
     $this->toBeInstanceOf(Collection::class);
 
     $types = (array) $type;
@@ -58,7 +58,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
 
     foreach ($types as $type) {
         foreach ($periods as $period) {
-            $record = (object) array_filter([
+            $record = (object) [
                 'bucket' => (int) floor($timestamp / $period) * $period,
                 'period' => $period,
                 'type' => $type,
@@ -67,7 +67,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
                 'key_hash' => hex2bin(md5($key)),
                 'value' => $value,
                 'count' => $count,
-            ]);
+            ];
 
             Assert::assertContainsEquals($record, $this->value);
         }

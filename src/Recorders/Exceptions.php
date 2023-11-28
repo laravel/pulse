@@ -59,7 +59,7 @@ class Exceptions
 
         $key = json_encode([$class, $location]);
 
-        $this->pulse->record('exception', $key, timestamp: $now, value: $now->getTimestamp())->max();
+        $this->pulse->record('exception', $key, timestamp: $now, value: $now->getTimestamp())->max()->count();
     }
 
     /**

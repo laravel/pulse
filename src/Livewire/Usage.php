@@ -47,7 +47,7 @@ class Usage extends Card
                         'slow_requests' => 'slow_user_request',
                         'jobs' => 'user_job',
                     },
-                    'sum',
+                    'count',
                     $this->periodAsInterval(),
                     limit: 10,
                 );
@@ -64,7 +64,7 @@ class Usage extends Card
                             'extra' => $user['extra'] ?? $user['email'] ?? '',
                             'avatar' => $user['avatar'] ?? (($user['email'] ?? false) ? "https://unavatar.io/{$user['email']}?fallback=".rawurlencode("https://source.boringavatars.com/marble/120/{$user['email']}?colors=2f2bad,ad2bad,e42692,f71568,f7db15") : null),
                         ],
-                        'count' => (int) $row->sum,
+                        'count' => (int) $row->count,
                     ];
                 });
             },

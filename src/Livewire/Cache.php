@@ -23,7 +23,7 @@ class Cache extends Card
             fn () => with(
                 Pulse::aggregateTotal(
                     ['cache_hit', 'cache_miss'],
-                    'sum',
+                    'count',
                     $this->periodAsInterval(),
                 ),
                 fn ($results) => (object) [
@@ -35,7 +35,7 @@ class Cache extends Card
         );
 
         [$cacheKeyInteractions, $keyTime, $keyRunAt] = $this->remember(
-            fn () => Pulse::aggregateTypes(['cache_hit', 'cache_miss'], 'sum', $this->periodAsInterval())
+            fn () => Pulse::aggregateTypes(['cache_hit', 'cache_miss'], 'count', $this->periodAsInterval())
                 ->map(function ($row) {
                     return (object) [
                         'key' => $row->key,

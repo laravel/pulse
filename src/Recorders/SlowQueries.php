@@ -57,7 +57,7 @@ class SlowQueries
             key: $key,
             value: (int) $event->time,
             timestamp: $now->subMilliseconds((int) $event->time),
-        )->max();
+        )->max()->count();
     }
 
     /**

@@ -17,20 +17,20 @@ it('renders exceptions', function () {
 
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
-    Pulse::record('exception', $exception1, now()->timestamp)->max();
-    Pulse::record('exception', $exception2, now()->timestamp)->max();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
 
     // Add entries to the "tail".
     Carbon::setTestNow('2000-01-01 12:00:01');
-    Pulse::record('exception', $exception1, now()->timestamp)->max();
-    Pulse::record('exception', $exception1, now()->timestamp)->max();
-    Pulse::record('exception', $exception2, now()->timestamp)->max();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 13:00:00');
-    Pulse::record('exception', $exception1, now()->timestamp)->max();
-    Pulse::record('exception', $exception1, now()->timestamp)->max();
-    Pulse::record('exception', $exception2, now()->timestamp)->max();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
 
     Pulse::store();
 

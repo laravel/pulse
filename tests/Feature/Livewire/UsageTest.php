@@ -20,27 +20,27 @@ it('renders top 10 users making requests', function (string $query, string $type
 
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[1]->id)->sum();
-    Pulse::record($type, $users[2]->id)->sum();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[1]->id)->count();
+    Pulse::record($type, $users[2]->id)->count();
 
     // Add entries to the "tail".
     Carbon::setTestNow('2000-01-01 12:00:01');
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[1]->id)->sum();
-    Pulse::record($type, $users[1]->id)->sum();
-    Pulse::record($type, $users[2]->id)->sum();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[1]->id)->count();
+    Pulse::record($type, $users[1]->id)->count();
+    Pulse::record($type, $users[2]->id)->count();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 13:00:00');
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[0]->id)->sum();
-    Pulse::record($type, $users[1]->id)->sum();
-    Pulse::record($type, $users[1]->id)->sum();
-    Pulse::record($type, $users[2]->id)->sum();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[0]->id)->count();
+    Pulse::record($type, $users[1]->id)->count();
+    Pulse::record($type, $users[1]->id)->count();
+    Pulse::record($type, $users[2]->id)->count();
 
     Pulse::store();
 

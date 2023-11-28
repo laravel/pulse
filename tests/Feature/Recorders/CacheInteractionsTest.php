@@ -35,7 +35,7 @@ it('ingests cache interactions', function () {
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
         'type' => 'cache_hit',
-        'aggregate' => 'sum',
+        'aggregate' => 'count',
         'key' => 'hit-key',
         'value' => 1,
     ]);
@@ -43,7 +43,7 @@ it('ingests cache interactions', function () {
         'bucket' => (int) floor(now()->timestamp / 60) * 60,
         'period' => 60,
         'type' => 'cache_miss',
-        'aggregate' => 'sum',
+        'aggregate' => 'count',
         'key' => 'miss-key',
         'value' => 1,
     ]);

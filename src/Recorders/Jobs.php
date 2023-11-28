@@ -94,7 +94,7 @@ class Jobs
                 default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
             },
             timestamp: $now,
-        )->sum()->bucketOnly();
+        )->count()->bucketOnly();
 
         // Slow Jobs
         // TODO: Separate recorder so it can be sampled differently?
@@ -106,7 +106,7 @@ class Jobs
             $this->lastJobStartedProcessingAt = null;
 
             if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->max();
+                $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->max()->count();
             }
         }
 
@@ -114,7 +114,7 @@ class Jobs
         // TODO: Separate recorder so it can be sampled differently?
 
         if ($event instanceof JobQueued && Auth::check()) {
-            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->sum();
+            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->count();
         }
     }
 }

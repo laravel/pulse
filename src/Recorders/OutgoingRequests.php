@@ -66,7 +66,7 @@ class OutgoingRequests implements Grouping // TODO: Rename to SlowOutgoingReques
             key: $this->group($request->getMethod().' '.$request->getUri()),
             value: $duration,
             timestamp: $startedAt,
-        )->max();
+        )->max()->count();
     }
 
     /**

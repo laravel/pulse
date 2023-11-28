@@ -22,7 +22,7 @@ class Queues extends Card
     {
         [$queues, $time, $runAt] = $this->remember(fn () => Pulse::graph(
             ['queued', 'processing', 'processed', 'released', 'failed'],
-            'sum',
+            'count',
             $this->periodAsInterval(),
         ));
 

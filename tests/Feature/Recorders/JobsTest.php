@@ -52,10 +52,9 @@ it('ingests bus dispatched jobs', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 });
 
@@ -75,10 +74,9 @@ it('ingests queued closures', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -91,10 +89,9 @@ it('ingests queued closures', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -108,17 +105,15 @@ it('ingests queued closures', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -135,10 +130,9 @@ it('ingests jobs pushed to the queue', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 });
 
@@ -159,10 +153,9 @@ it('ingests queued listeners', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -175,10 +168,9 @@ it('ingests queued listeners', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -191,17 +183,15 @@ it('ingests queued listeners', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -221,10 +211,9 @@ it('ingests queued mail', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -238,10 +227,9 @@ it('ingests queued mail', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -254,17 +242,15 @@ it('ingests queued mail', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -287,10 +273,9 @@ it('ingests queued notifications', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -303,10 +288,9 @@ it('ingests queued notifications', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -319,17 +303,15 @@ it('ingests queued notifications', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -349,10 +331,9 @@ it('ingests queued commands', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -365,10 +346,9 @@ it('ingests queued commands', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -381,17 +361,15 @@ it('ingests queued commands', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -411,10 +389,9 @@ it('handles a job throwing exceptions and failing', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -428,10 +405,9 @@ it('handles a job throwing exceptions and failing', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -445,17 +421,15 @@ it('handles a job throwing exceptions and failing', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 
     /*
@@ -469,24 +443,21 @@ it('handles a job throwing exceptions and failing', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'released',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 3,
-        count: 3,
     );
 });
 
@@ -506,10 +477,9 @@ it('handles a failure and then a successful job', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -523,10 +493,9 @@ it('handles a failure and then a successful job', function () {
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'released'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -540,17 +509,15 @@ it('handles a failure and then a successful job', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'processed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 
@@ -571,10 +538,9 @@ it('handles a slow successful job', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -585,20 +551,24 @@ it('handles a slow successful job', function () {
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
-    expect($aggregates)->toHaveCount(16);
+    expect($aggregates)->toHaveCount(20);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'processed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'slow_job',
         aggregate: 'max',
         key: MySlowJob::class,
         value: 100,
-        count: 1,
+    );
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'slow_job',
+        aggregate: 'count',
+        key: MySlowJob::class,
+        value: 1,
     );
 });
 
@@ -618,10 +588,9 @@ it('handles a job that was manually failed', function () {
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     /*
@@ -637,10 +606,9 @@ it('handles a job that was manually failed', function () {
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'processing', 'failed', 'processed'], // TODO: Should this actually be captured when manually failed?
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 });
 
@@ -751,10 +719,9 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
 
     Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true]);
@@ -763,17 +730,15 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: ['queued', 'released', 'failed'],
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 1,
-        count: 1,
     );
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'processing',
-        aggregate: 'sum',
+        aggregate: 'count',
         key: 'database:default',
         value: 2,
-        count: 2,
     );
 });
 

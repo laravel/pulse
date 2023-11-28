@@ -9,7 +9,7 @@ class Entry
     /**
      * The aggregations to perform on the entry.
      *
-     * @var list<'sum'|'max'|'avg'>
+     * @var list<'count'|'max'|'avg'>
      */
     protected array $aggregations = [];
 
@@ -53,11 +53,11 @@ class Entry
     }
 
     /**
-     * Capture the sum aggregate.
+     * Capture the count aggregate.
      */
-    public function sum(): static
+    public function count(): static
     {
-        $this->aggregations[] = 'sum';
+        $this->aggregations[] = 'count';
 
         return $this;
     }
@@ -93,11 +93,11 @@ class Entry
     }
 
     /**
-     * Determine whether the entry is marked for sum aggregation.
+     * Determine whether the entry is marked for count aggregation.
      */
-    public function isSum(): bool
+    public function isCount(): bool
     {
-        return in_array('sum', $this->aggregations);
+        return in_array('count', $this->aggregations);
     }
 
     /**
@@ -146,14 +146,23 @@ class Entry
      */
     public function aggregateAttributes(int $period, string $aggregate): array
     {
-        return [
+        $attributes = [
             'bucket' => (int) floor($this->timestamp / $period) * $period,
             'period' => $period,
             'type' => $this->type,
             'aggregate' => $aggregate,
             'key' => $this->key,
             'value' => $this->value,
-            'count' => 1,
         ];
+
+        if ($aggregate === 'count') {
+            $attributes['value'] = 1;
+        }
+
+        if ($aggregate === 'avg') {
+            $attributes['count'] = 1;
+        }
+
+        return $attributes;
     }
 }

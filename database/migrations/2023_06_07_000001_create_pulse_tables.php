@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('type');
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
-            $table->unsignedInteger('value');
+            $table->unsignedInteger('value')->nullable();
 
             $table->index('timestamp'); // For trimming
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // TODO: This is a guess.
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
             $table->string('aggregate');
             $table->unsignedInteger('value');
-            $table->unsignedInteger('count');
+            $table->unsignedInteger('count')->nullable();
 
             $table->index(['period', 'bucket']); // For trimming
             $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"

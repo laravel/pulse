@@ -14,24 +14,24 @@ it('includes the card on the dashboard', function () {
 it('renders queue statistics', function () {
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
-    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
-    Pulse::record('released', 'database:default')->sum()->bucketOnly();
-    Pulse::record('failed', 'database:default')->sum()->bucketOnly();
+    Pulse::record('queued', 'database:default')->count()->bucketOnly();
+    Pulse::record('processing', 'database:default')->count()->bucketOnly();
+    Pulse::record('processed', 'database:default')->count()->bucketOnly();
+    Pulse::record('released', 'database:default')->count()->bucketOnly();
+    Pulse::record('failed', 'database:default')->count()->bucketOnly();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 13:00:00');
-    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
-    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
-    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
-    Pulse::record('queued', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processing', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
-    Pulse::record('processed', 'database:default')->sum()->bucketOnly();
-    Pulse::record('released', 'database:default')->sum()->bucketOnly();
+    Pulse::record('queued', 'database:default')->count()->bucketOnly();
+    Pulse::record('queued', 'database:default')->count()->bucketOnly();
+    Pulse::record('queued', 'database:default')->count()->bucketOnly();
+    Pulse::record('queued', 'database:default')->count()->bucketOnly();
+    Pulse::record('processing', 'database:default')->count()->bucketOnly();
+    Pulse::record('processing', 'database:default')->count()->bucketOnly();
+    Pulse::record('processing', 'database:default')->count()->bucketOnly();
+    Pulse::record('processed', 'database:default')->count()->bucketOnly();
+    Pulse::record('processed', 'database:default')->count()->bucketOnly();
+    Pulse::record('released', 'database:default')->count()->bucketOnly();
 
     Pulse::store();
 
