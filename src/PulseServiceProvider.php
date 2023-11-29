@@ -17,9 +17,9 @@ use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Ingests\Redis as RedisIngest;
-use Laravel\Pulse\Ingests\Storage as StorageIngest;
-use Laravel\Pulse\Storage\Database as DatabaseStorage;
+use Laravel\Pulse\Ingests\RedisIngest;
+use Laravel\Pulse\Ingests\StorageIngest;
+use Laravel\Pulse\Storage\DatabaseStorage;
 use Livewire\LivewireManager;
 use RuntimeException;
 

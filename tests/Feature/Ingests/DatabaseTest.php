@@ -4,7 +4,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Laravel\Pulse\Storage\Database;
+use Laravel\Pulse\Storage\DatabaseStorage;
 
 it('trims values at or past expiry', function () {
     Date::setTestNow('2000-01-08 00:00:05');
@@ -14,7 +14,7 @@ it('trims values at or past expiry', function () {
         ['type' => 'type', 'key' => 'baz', 'value' => 'value', 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:06')->getTimestamp()],
     ]);
 
-    App::make(Database::class)->trim();
+    App::make(DatabaseStorage::class)->trim();
 
     expect(DB::table('pulse_values')->pluck('key')->all())->toBe(['baz']);
 });
@@ -27,7 +27,7 @@ it('trims entries at or after week after timestamp', function () {
         ['type' => 'baz', 'key' => 'xxxx', 'value' => 1, 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:06')->getTimestamp()],
     ]);
 
-    App::make(Database::class)->trim();
+    App::make(DatabaseStorage::class)->trim();
 
     expect(DB::table('pulse_entries')->pluck('type')->all())->toBe(['baz']);
 });
@@ -50,7 +50,7 @@ it('trims aggregates once the bucket is no longer relevant', function () {
         ['period' => 10080, 'type' => 'baz:10080', 'key' => 'xxxx', 'aggregate' => 'sum', 'value' => 1, 'count' => 1, 'bucket' => CarbonImmutable::parse('2000-01-01 01:01:06')->getTimestamp()],
     ]);
 
-    App::make(Database::class)->trim();
+    App::make(DatabaseStorage::class)->trim();
 
     expect(DB::table('pulse_aggregates')->pluck('type')->all())->toEqualCanonicalizing([
         'baz:60',

@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage as StorageContract;
 
-class Storage implements Ingest
+class StorageIngest implements Ingest
 {
     /**
      * Create a new Storage Ingest instance.

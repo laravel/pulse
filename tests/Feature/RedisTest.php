@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Redis as FacadesRedis;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
-use Laravel\Pulse\Ingests\Redis;
+use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Support\RedisAdapter;
 
 beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' FLUSHALL')->throw());
@@ -17,7 +17,7 @@ beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.re
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
 
-    $commands = captureRedisCommands(fn () => App::make(Redis::class)->ingest(collect([
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->ingest(collect([
         new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
     ])));
 
@@ -28,7 +28,7 @@ it('runs the same commands while triming the stream', function ($driver) {
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
 
-    $commands = captureRedisCommands(fn () => App::make(Redis::class)->trim());
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946177445000"');
 })->with(['predis', 'phpredis']);
@@ -37,7 +37,7 @@ it('runs the same commands while storing', function ($driver) {
     Config::set('database.redis.client', $driver);
     Config::set('pulse.ingest.redis.chunk', 567);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
-    $ingest = App::make(Redis::class);
+    $ingest = App::make(RedisIngest::class);
     $ingest->ingest(collect([
         new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
         new Entry(timestamp: 1700752211, type: 'foo', key: 'baz', value: 456),

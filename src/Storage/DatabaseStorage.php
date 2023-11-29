@@ -19,7 +19,7 @@ use Laravel\Pulse\Value;
 /**
  * @phpstan-type AggregateRow array{bucket: int, period: int, type: string, aggregate: string, key: string, value: int, count: int}
  */
-class Database implements Storage
+class DatabaseStorage implements Storage
 {
     /**
      * Create a new Database storage instance.
