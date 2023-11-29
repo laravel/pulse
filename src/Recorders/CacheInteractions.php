@@ -6,13 +6,12 @@ use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
-use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class CacheInteractions implements Groupable
+class CacheInteractions
 {
     use Concerns\Ignores, Concerns\Sampling;
 

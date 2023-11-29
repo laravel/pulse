@@ -8,7 +8,6 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +16,7 @@ use Throwable;
 /**
  * @internal
  */
-class SlowOutgoingRequests implements Groupable
+class SlowOutgoingRequests
 {
     use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
