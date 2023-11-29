@@ -5,6 +5,8 @@ namespace Laravel\Pulse\Storage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
+use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -24,7 +26,7 @@ class Database implements Storage
      * Create a new Database storage instance.
      */
     public function __construct(
-        protected DatabaseConnectionResolver $db,
+        protected DatabaseManager $db,
         protected Repository $config,
     ) {
         //
@@ -48,7 +50,7 @@ class Database implements Storage
         $entries
             ->reject->isOnlyBuckets()
             ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->db->connection()
+            ->each(fn ($chunk) => $this->connection()
                 ->table('pulse_entries')
                 ->insert($chunk->map->attributes()->toArray())
             );
@@ -77,7 +79,7 @@ class Database implements Storage
 
         $values
             ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->db->connection()
+            ->each(fn ($chunk) => $this->connection()
                 ->table('pulse_values')
                 ->upsert(
                     $chunk->map->attributes()->toArray(),
@@ -94,12 +96,12 @@ class Database implements Storage
     {
         $now = CarbonImmutable::now();
 
-        $this->db->connection()
+        $this->connection()
             ->table('pulse_values')
             ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
-        $this->db->connection()
+        $this->connection()
             ->table('pulse_entries')
             ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
@@ -108,11 +110,11 @@ class Database implements Storage
         // E.g. where (`period` = 60 AND `bucket` <= 1623072000) or (`period` = 360 AND `bucket` <= 1623046800)
         // 1 query instead of 5
 
-        $this->db->connection()
+        $this->connection()
             ->table('pulse_aggregates')
             ->distinct()
             ->pluck('period')
-            ->each(fn (int $period) => $this->db->connection()
+            ->each(fn (int $period) => $this->connection()
                 ->table('pulse_aggregates')
                 ->where('period', $period)
                 ->where('bucket', '<=', $now->subMinutes($period)->getTimestamp())
@@ -127,16 +129,16 @@ class Database implements Storage
     public function purge(array $types = null): void
     {
         if ($types === null) {
-            $this->db->connection()->table('pulse_values')->truncate();
-            $this->db->connection()->table('pulse_entries')->truncate();
-            $this->db->connection()->table('pulse_aggregates')->truncate();
+            $this->connection()->table('pulse_values')->truncate();
+            $this->connection()->table('pulse_entries')->truncate();
+            $this->connection()->table('pulse_aggregates')->truncate();
 
             return;
         }
 
-        $this->db->connection()->table('pulse_values')->whereIn('type', $types)->delete();
-        $this->db->connection()->table('pulse_entries')->whereIn('type', $types)->delete();
-        $this->db->connection()->table('pulse_aggregates')->whereIn('type', $types)->delete();
+        $this->connection()->table('pulse_values')->whereIn('type', $types)->delete();
+        $this->connection()->table('pulse_entries')->whereIn('type', $types)->delete();
+        $this->connection()->table('pulse_aggregates')->whereIn('type', $types)->delete();
     }
 
     /**
@@ -185,16 +187,16 @@ class Database implements Storage
      */
     protected function upsert(array $values, string $onDuplicateKeyClause): bool
     {
-        $grammar = $this->db->connection()->getQueryGrammar();
+        $grammar = $this->connection()->getQueryGrammar();
 
         $sql = $grammar->compileInsert(
-            $this->db->connection()->table('pulse_aggregates'),
+            $this->connection()->table('pulse_aggregates'),
             $values
         );
 
         $sql .= ' '.$onDuplicateKeyClause;
 
-        return $this->db->connection()->statement($sql, Arr::flatten($values, 1));
+        return $this->connection()->statement($sql, Arr::flatten($values, 1));
     }
 
     /**
@@ -239,7 +241,7 @@ class Database implements Storage
      */
     public function values(string $type, array $keys = null): Collection
     {
-        return $this->db->connection()
+        return $this->connection()
             ->table('pulse_values')
             ->where('type', $type)
             ->when($keys, fn ($query) => $query->whereIn('key', $keys))
@@ -269,7 +271,7 @@ class Database implements Storage
 
         $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
 
-        return $this->db->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
+        return $this->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
@@ -315,7 +317,7 @@ class Database implements Storage
 
         $orderBy ??= $aggregates[0];
 
-        return $this->db->connection()
+        return $this->connection()
             ->query()
             ->select([
                 'key' => fn (Builder $query) => $query
@@ -417,7 +419,7 @@ class Database implements Storage
         $types = is_array($types) ? $types : [$types];
         $orderBy ??= $types[0];
 
-        return $this->db->connection()
+        return $this->connection()
             ->query()
             ->select([
                 'key' => fn (Builder $query) => $query
@@ -517,7 +519,7 @@ class Database implements Storage
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
-        return $this->db->connection()->query()
+        return $this->connection()->query()
             ->addSelect('type')
             ->selectRaw(match ($aggregate) {
                 'count' => 'sum(`count`)',
@@ -556,5 +558,13 @@ class Database implements Storage
             ->groupBy('type')
             ->get()
             ->pluck($aggregate, 'type');
+    }
+
+    /**
+     * Resolve the database connection.
+     */
+    protected function connection(): Connection
+    {
+        return $this->db->connection($this->config->get('pulse.storage.database.connection'));
     }
 }
