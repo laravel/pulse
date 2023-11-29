@@ -5,6 +5,7 @@ namespace Laravel\Pulse\Commands;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Events\IsolatedBeat;
@@ -64,7 +65,10 @@ class CheckCommand extends Command
 
             $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
-            if ($cache->store()->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()) {
+            if (
+                $cache->store()->getStore() instanceof LockProvider &&
+                $cache->store()->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()
+            ) {
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
