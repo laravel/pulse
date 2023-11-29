@@ -13,8 +13,7 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The events to listen for.

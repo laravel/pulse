@@ -15,8 +15,7 @@ use Laravel\Pulse\Pulse;
  */
 class SlowJobs
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The time the last job started processing.

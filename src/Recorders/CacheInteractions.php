@@ -15,8 +15,7 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions implements Grouping
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The events to listen for.

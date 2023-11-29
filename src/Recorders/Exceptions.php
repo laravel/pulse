@@ -18,9 +18,7 @@ use Throwable;
  */
 class Exceptions
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-    use ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.

@@ -17,8 +17,7 @@ use Laravel\Pulse\Pulse;
  */
 class Jobs
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The events to listen for.

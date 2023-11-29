@@ -20,9 +20,7 @@ use Throwable;
  */
 class SlowOutgoingRequests implements Grouping
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-    use ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
