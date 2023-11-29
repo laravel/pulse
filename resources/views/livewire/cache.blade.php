@@ -24,10 +24,10 @@
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div class="min-h-full flex flex-col gap-6">
-            @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
-                <x-pulse::no-results />
-            @else
+        @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
+            <x-pulse::no-results />
+        @else
+            <div class="flex flex-col gap-6">
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
@@ -113,7 +113,7 @@
                         <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
                     @endif
                 </div>
-            @endif
-        </div>
+            </div>
+        @endif
     </x-pulse::card-body>
 </x-pulse::card>

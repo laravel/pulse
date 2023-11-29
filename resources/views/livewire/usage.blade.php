@@ -35,46 +35,44 @@
     </x-pulse::card-header>
 
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div class="min-h-full flex flex-col">
-            @if (count($userRequestCounts) === 0)
-                <x-pulse::no-results />
-            @else
-                <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
-                    @foreach ($userRequestCounts as $userRequestCount)
-                        <div wire:key="{{ $userRequestCount->user->id }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 dark:bg-gray-800/50 rounded">
-                            <div class="flex items-center gap-3 overflow-hidden">
-                                @if ($userRequestCount->user->avatar ?? false)
-                                    <img height="32" width="32" src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full">
-                                @endif
-                                <div class="overflow-hidden">
-                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate" title="{{ $userRequestCount->user->name }}">
-                                        {{ $userRequestCount->user->name }}
-                                    </div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $userRequestCount->user->extra }}">
-                                        {{ $userRequestCount->user->extra }}
-                                    </div>
+        @if (count($userRequestCounts) === 0)
+            <x-pulse::no-results />
+        @else
+            <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
+                @foreach ($userRequestCounts as $userRequestCount)
+                    <div wire:key="{{ $userRequestCount->user->id }}" class="flex items-center justify-between p-3 gap-3 bg-gray-50 dark:bg-gray-800/50 rounded">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            @if ($userRequestCount->user->avatar ?? false)
+                                <img height="32" width="32" src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full">
+                            @endif
+                            <div class="overflow-hidden">
+                                <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate" title="{{ $userRequestCount->user->name }}">
+                                    {{ $userRequestCount->user->name }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $userRequestCount->user->extra }}">
+                                    {{ $userRequestCount->user->extra }}
                                 </div>
                             </div>
-                            <div>
-                                <b class="text-xl text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                    @php
-                                        $sampleRate = match($this->usage) {
-                                            'requests' => $userRequestsConfig['sample_rate'],
-                                            'slow_requests' => $slowRequestsConfig['sample_rate'],
-                                            'jobs' => $jobsConfig['sample_rate'],
-                                        };
-                                    @endphp
-                                    @if ($sampleRate < 1)
-                                        <span title="Sample rate: {{ $sampleRate }}, Raw value: {{ number_format($userRequestCount->count) }}">~{{ number_format($userRequestCount->count * (1 / $sampleRate)) }}</span>
-                                    @else
-                                        {{ number_format($userRequestCount->count) }}
-                                    @endif
-                                </b>
-                            </div>
                         </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
+                        <div>
+                            <b class="text-xl text-gray-900 dark:text-gray-100 font-bold tabular-nums">
+                                @php
+                                    $sampleRate = match($this->usage) {
+                                        'requests' => $userRequestsConfig['sample_rate'],
+                                        'slow_requests' => $slowRequestsConfig['sample_rate'],
+                                        'jobs' => $jobsConfig['sample_rate'],
+                                    };
+                                @endphp
+                                @if ($sampleRate < 1)
+                                    <span title="Sample rate: {{ $sampleRate }}, Raw value: {{ number_format($userRequestCount->count) }}">~{{ number_format($userRequestCount->count * (1 / $sampleRate)) }}</span>
+                                @else
+                                    {{ number_format($userRequestCount->count) }}
+                                @endif
+                            </b>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </x-pulse::card-body>
 </x-pulse::card>
