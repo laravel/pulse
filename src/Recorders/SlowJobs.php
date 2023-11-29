@@ -20,7 +20,7 @@ class SlowJobs
     /**
      * The time the last job started processing.
      */
-    protected ?CarbonImmutable $lastJobStartedProcessingAt = null;
+    protected ?int $lastJobStartedProcessingAt = null;
 
     /**
      * The events to listen for.
@@ -53,31 +53,36 @@ class SlowJobs
             return;
         }
 
-        $now = CarbonImmutable::now();
+        [$timestamp, $timestampMs] = with(CarbonImmutable::now(), fn ($now) => [
+            $now->getTimestamp(),
+            $now->getTimestampMs(),
+        ]);
 
         if ($event instanceof JobProcessing) {
-            $this->lastJobStartedProcessingAt = $now;
+            $this->lastJobStartedProcessingAt = $timestampMs;
 
             return;
         }
 
         $name = $event->job->resolveName();
-
-        if (! $this->shouldSample() || $this->shouldIgnore($name)) {
-            $this->lastJobStartedProcessingAt = null;
-
-            return;
-        }
-
-        if ($this->lastJobStartedProcessingAt === null) {
-            return;
-        }
-
-        $duration = $this->lastJobStartedProcessingAt->diffInMilliseconds($now);
+        $lastJobStartedProcessingAt = $this->lastJobStartedProcessingAt;
         $this->lastJobStartedProcessingAt = null;
 
-        if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-            $this->pulse->record('slow_job', $name, $duration, timestamp: $now)->max()->count();
-        }
+        $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
+            if (! $this->shouldSample() || $this->shouldIgnore($name) || $lastJobStartedProcessingAt === null) {
+                return;
+            }
+
+            $duration = $timestampMs - $lastJobStartedProcessingAt;
+
+            if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+                $this->pulse->record(
+                    'slow_job',
+                    $name,
+                    $duration,
+                    timestamp: $timestamp,
+                )->max()->count();
+            }
+        });
     }
 }

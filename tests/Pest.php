@@ -31,7 +31,9 @@ uses(TestCase::class)
         Gate::define('viewPulse', fn ($user = null) => true);
     })
     ->afterEach(function () {
-        if (Pulse::queue()->isNotEmpty()) {
+        Str::createUuidsNormally();
+
+        if (Pulse::store() > 0) {
             throw new RuntimeException('The queue is not empty');
         }
     })

@@ -11,12 +11,8 @@ it('ingests exceptions', function () {
 
     report(new RuntimeException('Expected exception.'));
 
-    expect(Pulse::queue())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
+    expect(Pulse::store())->toBe(1);
 
-    Pulse::store();
-
-    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -164,9 +160,7 @@ it('can sample at one', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::queue())->toHaveCount(10);
-
-    Pulse::flush();
+    expect(Pulse::store())->toBe(10);
 });
 
 class MyReportedException extends Exception
