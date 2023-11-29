@@ -16,7 +16,7 @@ it('includes the card on the dashboard', function () {
 
 it('renders top 10 users making requests', function (string $query, string $type) {
     $users = User::factory(3)->create();
-    Pulse::resolveUsersUsing(fn () => $users);
+    Pulse::users(fn () => $users);
 
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');

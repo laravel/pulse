@@ -362,7 +362,7 @@ class Pulse
      *
      * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)  $callback
      */
-    public function resolveUsersUsing(callable $callback): self
+    public function users(callable $callback): self
     {
         $this->usersResolver = $callback;
 

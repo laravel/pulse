@@ -62,7 +62,9 @@ class Usage extends Card
                             'id' => $row->key,
                             'name' => $user['name'] ?? 'Unknown',
                             'extra' => $user['extra'] ?? $user['email'] ?? '',
-                            'avatar' => $user['avatar'] ?? (($user['email'] ?? false) ? "https://unavatar.io/{$user['email']}?fallback=".rawurlencode("https://source.boringavatars.com/marble/120/{$user['email']}?colors=2f2bad,ad2bad,e42692,f71568,f7db15") : null),
+                            'avatar' => $user['avatar'] ?? ($user['email'] ?? false)
+                                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user['email']))))
+                                : null,
                         ],
                         'count' => (int) $row->count,
                     ];
