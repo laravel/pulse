@@ -9,6 +9,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
+use InvalidArgumentException;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
@@ -181,7 +182,6 @@ class Database implements Storage
      * Perform an "upsert" query with an "on duplicate key" clause.
      *
      * @param  list<AggregateRow>  $values
-     * @param  list<string>  $onDuplicateKeyColumns
      */
     protected function upsert(array $values, string $onDuplicateKeyClause): bool
     {
@@ -308,6 +308,11 @@ class Database implements Storage
         int $limit = 101,
     ): Collection {
         $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
+
+        if ($invalid = array_diff($aggregates, $allowed = ['count', 'max', 'avg'])) {
+            throw new InvalidArgumentException('Invalid aggregate type(s) ['.implode(', ', $invalid).'], allowed types: ['.implode(', ', $allowed).'].');
+        }
+
         $orderBy ??= $aggregates[0];
 
         return $this->db->connection()
@@ -324,11 +329,10 @@ class Database implements Storage
                 $query->select('key_hash');
 
                 foreach ($aggregates as $aggregate) {
-                    $query->selectRaw(match ($aggregate) {
+                    $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
                         'count' => 'sum(`count`)',
                         'max' => 'max(`max`)',
                         'avg' => 'avg(`avg`)',
-                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                     }." as `{$aggregate}`");
                 }
 
@@ -343,11 +347,10 @@ class Database implements Storage
                     $query->select('key_hash');
 
                     foreach ($aggregates as $aggregate) {
-                        $query->selectRaw(match ($aggregate) {
+                        $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
                             'count' => 'count(*)',
                             'max' => 'max(`value`)',
                             'avg' => 'avg(`value`)',
-                            default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                         }." as `{$aggregate}`");
                     }
 
@@ -365,11 +368,10 @@ class Database implements Storage
 
                             foreach ($aggregates as $aggregate) {
                                 if ($aggregate === $currentAggregate) {
-                                    $query->selectRaw(match ($aggregate) {
+                                    $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
                                         'count' => 'sum(`value`)',
                                         'max' => 'max(`value`)',
                                         'avg' => 'avg(`value`)',
-                                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                                     }." as `$aggregate`");
                                 } else {
                                     $query->selectRaw("null as `$aggregate`");
@@ -408,6 +410,10 @@ class Database implements Storage
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {
+        if (! in_array($aggregate, $allowed = ['count', 'max', 'avg'])) {
+            throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
+        }
+
         $types = is_array($types) ? $types : [$types];
         $orderBy ??= $types[0];
 
@@ -429,7 +435,6 @@ class Database implements Storage
                         'count' => 'sum(`'.$type.'`)',
                         'max' => 'max(`'.$type.'`)',
                         'avg' => 'avg(`'.$type.'`)',
-                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                     }." as `{$type}`");
                 }
 
@@ -448,7 +453,6 @@ class Database implements Storage
                             'count' => 'count(case when (`type` = ?) then `value` else null end)',
                             'max' => 'max(case when (`type` = ?) then `value` else null end)',
                             'avg' => 'avg(case when (`type` = ?) then `value` else null end)',
-                            default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                         }." as `{$type}`", [$type]);
                     }
 
@@ -468,7 +472,6 @@ class Database implements Storage
                                 'count' => 'sum(case when (`type` = ?) then `value` else null end)',
                                 'max' => 'max(case when (`type` = ?) then `value` else null end)',
                                 'avg' => 'avg(case when (`type` = ?) then `value` else null end)',
-                                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                             }." as `{$type}`", [$type]);
                         }
 
@@ -500,6 +503,10 @@ class Database implements Storage
         string $aggregate,
         CarbonInterval $interval,
     ): Collection {
+        if (! in_array($aggregate, $allowed = ['count', 'max', 'avg'])) {
+            throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
+        }
+
         $types = is_array($types) ? $types : [$types];
 
         $now = CarbonImmutable::now();
@@ -516,7 +523,6 @@ class Database implements Storage
                 'count' => 'sum(`count`)',
                 'max' => 'max(`max`)',
                 'avg' => 'avg(`avg`)',
-                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
             }." as `{$aggregate}`")
             ->fromSub(fn (Builder $query) => $query
                 // Tail
@@ -525,7 +531,6 @@ class Database implements Storage
                     'count' => 'count(*)',
                     'max' => 'max(`value`)',
                     'avg' => 'avg(`value`)',
-                    default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                 }." as `{$aggregate}`")
                 ->from('pulse_entries')
                 ->whereIn('type', $types)
@@ -539,7 +544,6 @@ class Database implements Storage
                         'count' => 'sum(`value`)',
                         'max' => 'max(`value`)',
                         'avg' => 'avg(`value`)',
-                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
                     }."as `{$aggregate}`")
                     ->from('pulse_aggregates')
                     ->where('period', $period)

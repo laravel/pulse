@@ -491,7 +491,7 @@ class Pulse
      * Forward calls to the storage driver.
      *
      * @param  string  $method
-     * @param  array  $parameters
+     * @param  array<mixed>  $parameters
      */
     public function __call($method, $parameters): mixed
     {
