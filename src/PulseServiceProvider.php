@@ -6,9 +6,9 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
@@ -34,7 +34,7 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
+        if (! $this->app->make('config')->get('pulse.enabled')) {
             return;
         }
 
@@ -49,10 +49,10 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerIngest(): void
     {
-        $this->app->bind(Ingest::class, fn (Application $app) => match ($app['config']->get('pulse.ingest.driver')) {
-            'storage' => $app[StorageIngest::class],
-            'redis' => $app[RedisIngest::class],
-            default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
+        $this->app->bind(Ingest::class, fn (Application $app) => match ($app->make('config')->get('pulse.ingest.driver')) {
+            'storage' => $app->make(StorageIngest::class),
+            'redis' => $app->make(RedisIngest::class),
+            default => throw new RuntimeException("Unknown ingest driver [{$app->make('config')->get('pulse.ingest.driver')}]."),
         });
     }
 
@@ -61,11 +61,11 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
+        if (! $this->app->make('config')->get('pulse.enabled')) {
             return;
         }
 
-        $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders')); // @phpstan-ignore offsetAccess.nonOffsetAccessible offsetAccess.nonOffsetAccessible
+        $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
 
         $this->registerAuthorization();
         $this->registerRoutes();
@@ -95,9 +95,9 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->callAfterResolving('router', function (Router $router, Application $app) {
                 $router->group([
-                    'domain' => $app['config']->get('pulse.domain', null),
-                    'prefix' => $app['config']->get('pulse.path'),
-                    'middleware' => $app['config']->get('pulse.middleware', 'web'),
+                    'domain' => $app->make('config')->get('pulse.domain', null),
+                    'prefix' => $app->make('config')->get('pulse.path'),
+                    'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
                 ], function (Router $router) {
                     $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                         return $view->make('pulse::dashboard');
@@ -115,7 +115,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
                 $event->listen(function (Logout $event) use ($app) {
-                    $pulse = $app[Pulse::class];
+                    $pulse = $app->make(Pulse::class);
 
                     $pulse->rescue(fn () => $pulse->rememberUser($event->user));
                 });
@@ -124,19 +124,19 @@ class PulseServiceProvider extends ServiceProvider
                     Looping::class,
                     WorkerStopping::class,
                 ], function ($event) use ($app) {
-                    $app[Pulse::class]->store();
+                    $app->make(Pulse::class)->store();
                 });
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
                 $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store();
+                    $app->make(Pulse::class)->store();
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
                 $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store();
+                    $app->make(Pulse::class)->store();
                 });
             });
         });
@@ -152,7 +152,7 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $livewire->addPersistentMiddleware($app['config']->get('pulse.middleware', []));
+            $livewire->addPersistentMiddleware($app->make('config')->get('pulse.middleware', []));
 
             $livewire->component('pulse.cache', Livewire\Cache::class);
             $livewire->component('pulse.usage', Livewire\Usage::class);
@@ -181,7 +181,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerMigrations(): void
     {
         $this->callAfterResolving('migrator', function (Migrator $migrator, Application $app) {
-            if ($app[Pulse::class]->runsMigrations()) {
+            if ($app->make(Pulse::class)->runsMigrations()) {
                 $migrator->path(__DIR__.'/../database/migrations');
             }
         });

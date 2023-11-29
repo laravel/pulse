@@ -211,11 +211,23 @@ class DatabaseStorage implements Storage
             foreach ($entries as $entry) {
                 foreach ($periods as $period) {
                     // Exclude entries that would be trimmed.
-                    if ($entry->timestamp < now()->subMinutes($period)->getTimestamp()) {
+                    if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
                         continue;
                     }
 
-                    yield $entry->aggregateAttributes($period, $aggregateSuffix);
+                    yield [
+                        'bucket' => (int) (floor($entry->timestamp / $period) * $period),
+                        'period' => $period,
+                        'type' => $entry->type,
+                        'aggregate' => $aggregateSuffix,
+                        'key' => $entry->key,
+                        'value' => $aggregateSuffix === 'count'
+                            ? 1
+                            : $entry->value,
+                        ...($aggregateSuffix === 'avg') 
+                            ? ['count' => 1] 
+                            : [],
+                    ];
                 }
             }
         });

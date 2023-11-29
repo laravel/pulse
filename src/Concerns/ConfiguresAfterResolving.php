@@ -3,7 +3,7 @@
 namespace Laravel\Pulse\Concerns;
 
 use Closure;
-use Illuminate\Foundation\Application;
+use Illuminate\Contracts\Foundation\Application;
 
 trait ConfiguresAfterResolving
 {

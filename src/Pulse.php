@@ -7,8 +7,8 @@ use DateTimeInterface;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Traits\ForwardsCalls;
@@ -216,7 +216,7 @@ class Pulse
      */
     public function report(Throwable $e): self
     {
-        $this->rescue(fn () => $this->app['events']->dispatch(new ExceptionReported($e)));
+        $this->rescue(fn () => $this->app->make('events')->dispatch(new ExceptionReported($e)));
 
         return $this;
     }

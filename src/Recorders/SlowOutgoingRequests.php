@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Recorders;
 use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Config\Repository;
-use Illuminate\Foundation\Application;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
