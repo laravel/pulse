@@ -152,14 +152,6 @@ return [
             ],
         ],
 
-        Recorders\UserJobs::class => [
-            'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
-            'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
-            'ignore' => [
-                // '/^Package\\\\Jobs\\\\/',
-            ],
-        ],
-
         Recorders\Jobs::class => [
             'enabled' => env('PULSE_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_JOBS_SAMPLE_RATE', 1),
@@ -191,18 +183,17 @@ return [
             ],
         ],
 
-        Recorders\UserRequests::class => [
-            'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
-            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
+        Recorders\UserJobs::class => [
+            'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
             'ignore' => [
-                '#^/pulse$#', // Pulse dashboard...
+                // '/^Package\\\\Jobs\\\\/',
             ],
         ],
 
-        Recorders\SlowRequests::class => [
-            'enabled' => env('PULSE_SLOW_REQUESTS_ENABLED', true),
-            'sample_rate' => env('PULSE_SLOW_REQUESTS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
+        Recorders\UserRequests::class => [
+            'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
             ],
@@ -215,6 +206,15 @@ return [
             'location' => env('PULSE_SLOW_QUERIES_LOCATION', true),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables...
+            ],
+        ],
+
+        Recorders\SlowRequests::class => [
+            'enabled' => env('PULSE_SLOW_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_SLOW_REQUESTS_SAMPLE_RATE', 1),
+            'threshold' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
+            'ignore' => [
+                '#^/pulse$#', // Pulse dashboard...
             ],
         ],
 
