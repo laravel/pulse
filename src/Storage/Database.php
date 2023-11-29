@@ -251,6 +251,7 @@ class Database implements Storage
      * Retrieve aggregate values for plotting on a graph.
      *
      * @param  list<string>  $types
+     * @param  'count'|'max'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
@@ -290,7 +291,7 @@ class Database implements Storage
     /**
      * Retrieve aggregate values for the given type.
      *
-     * @param  list<string>  $aggregates
+     * @param  list<'count'|'max'|'avg'>  $aggregates
      * @return \Illuminate\Support\Collection<int, object{
      *     key: string,
      *     max?: int,
@@ -308,73 +309,87 @@ class Database implements Storage
     ): Collection {
         $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
         $orderBy ??= $aggregates[0];
-        $now = CarbonImmutable::now();
-        $period = $interval->totalSeconds / 60;
-        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
-        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
-        $tailStart = $windowStart;
-        $tailEnd = $oldestBucket - 1;
 
-        $query = $this->db->connection()->query()->addSelect('key');
+        return $this->db->connection()
+            ->query()
+            ->select([
+                'key' => fn (Builder $query) => $query
+                    ->select('key')
+                    ->from('pulse_entries', as: 'keys')
+                    ->whereColumn('keys.key_hash', 'aggregated.key_hash')
+                    ->limit(1),
+                ...$aggregates,
+            ])
+            ->fromSub(function (Builder $query) use ($type, $aggregates, $interval, $orderBy, $direction, $limit) {
+                $query->select('key_hash');
 
-        foreach ($aggregates as $aggregate) {
-            $query->selectRaw(match ($aggregate) {
-                'count' => 'sum(`count`) as `count`',
-                'max' => 'max(`max`) as `max`',
-                'avg' => 'avg(`avg`) as `avg`',
-            });
-        }
+                foreach ($aggregates as $aggregate) {
+                    $query->selectRaw(match ($aggregate) {
+                        'count' => 'sum(`count`)',
+                        'max' => 'max(`max`)',
+                        'avg' => 'avg(`avg`)',
+                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
+                    }." as `{$aggregate}`");
+                }
 
-        return $query->fromSub(function (Builder $query) use ($type, $aggregates, $period, $tailStart, $tailEnd, $oldestBucket) {
-            // Tail
-            $query->select('key');
+                $query->fromSub(function (Builder $query) use ($type, $aggregates, $interval) {
+                    $now = CarbonImmutable::now();
+                    $period = $interval->totalSeconds / 60;
+                    $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+                    $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+                    $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
 
-            foreach ($aggregates as $aggregate) {
-                $query->selectRaw(match ($aggregate) {
-                    'count' => 'count(*) as `count`',
-                    'max' => 'max(`value`) as `max`',
-                    'avg' => 'avg(`value`) as `avg`',
-                });
-            }
-
-            $query
-                ->from('pulse_entries')
-                ->where('type', $type)
-                ->where('timestamp', '>=', $tailStart)
-                ->where('timestamp', '<=', $tailEnd)
-                ->groupBy('key');
-
-            // Buckets
-            foreach ($aggregates as $currentAggregate) {
-                $query->unionAll(function (Builder $query) use (&$first, $type, $aggregates, $currentAggregate, $period, $oldestBucket) {
-                    $query->select('key');
+                    // Tail
+                    $query->select('key_hash');
 
                     foreach ($aggregates as $aggregate) {
-                        if ($aggregate === $currentAggregate) {
-                            $query->selectRaw(match ($aggregate) {
-                                'count' => 'sum(`value`) as `count`',
-                                'max' => 'max(`value`) as `max`',
-                                'avg' => 'avg(`value`) as `avg`',
-                            });
-                        } else {
-                            $query->selectRaw("null as `$aggregate`");
-                        }
+                        $query->selectRaw(match ($aggregate) {
+                            'count' => 'count(*)',
+                            'max' => 'max(`value`)',
+                            'avg' => 'avg(`value`)',
+                            default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
+                        }." as `{$aggregate}`");
                     }
 
                     $query
-                        ->from('pulse_aggregates')
-                        ->where('period', $period)
+                        ->from('pulse_entries')
                         ->where('type', $type)
-                        ->where('aggregate', $currentAggregate)
-                        ->where('bucket', '>=', $oldestBucket)
-                        ->groupBy('key');
-                });
-            }
-        }, as: 'child')
-            ->groupBy('key')
-            ->orderBy($orderBy, $direction)
-            ->limit($limit)
+                        ->where('timestamp', '>=', $windowStart)
+                        ->where('timestamp', '<=', $oldestBucket - 1)
+                        ->groupBy('key_hash');
+
+                    // Buckets
+                    foreach ($aggregates as $currentAggregate) {
+                        $query->unionAll(function (Builder $query) use ($type, $aggregates, $currentAggregate, $period, $oldestBucket) {
+                            $query->select('key_hash');
+
+                            foreach ($aggregates as $aggregate) {
+                                if ($aggregate === $currentAggregate) {
+                                    $query->selectRaw(match ($aggregate) {
+                                        'count' => 'sum(`value`)',
+                                        'max' => 'max(`value`)',
+                                        'avg' => 'avg(`value`)',
+                                        default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
+                                    }." as `$aggregate`");
+                                } else {
+                                    $query->selectRaw("null as `$aggregate`");
+                                }
+                            }
+
+                            $query
+                                ->from('pulse_aggregates')
+                                ->where('period', $period)
+                                ->where('type', $type)
+                                ->where('aggregate', $currentAggregate)
+                                ->where('bucket', '>=', $oldestBucket)
+                                ->groupBy('key_hash');
+                        });
+                    }
+                }, as: 'results')
+                    ->groupBy('key_hash')
+                    ->orderBy($orderBy, $direction)
+                    ->limit($limit);
+            }, as: 'aggregated')
             ->get();
     }
 
@@ -382,6 +397,7 @@ class Database implements Storage
      * Retrieve aggregate values for the given types.
      *
      * @param  string|list<string>  $types
+     * @param  'count'|'max'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<int, object>
      */
     public function aggregateTypes(
@@ -395,70 +411,80 @@ class Database implements Storage
         $types = is_array($types) ? $types : [$types];
         $orderBy ??= $types[0];
 
-        $now = CarbonImmutable::now();
-        $period = $interval->totalSeconds / 60;
-        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
-        $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
-        $tailStart = $windowStart;
-        $tailEnd = $oldestBucket - 1;
-
-        $query = $this->db->connection()->query()->select('key');
-
-        foreach ($types as $type) {
-            $query->selectRaw(match ($aggregate) {
-                'count' => 'sum(`'.$type.'`) as `'.$type.'`',
-                'max' => 'max(`'.$type.'`) as `'.$type.'`',
-                'avg' => 'avg(`'.$type.'`) as `'.$type.'`',
-                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-            });
-        }
-
-        return $query->fromSub(function (Builder $query) use ($types, $aggregate, $tailStart, $tailEnd, $period, $oldestBucket) {
-            // Tail
-            $query->select('key');
-
-            foreach ($types as $type) {
-                $query->selectRaw(match ($aggregate) {
-                    'count' => 'count(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
-                    'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
-                    'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
-                    default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-                }, [$type]);
-            }
-
-            $query
-                ->from('pulse_entries')
-                ->whereIn('type', $types)
-                ->where('timestamp', '>=', $tailStart)
-                ->where('timestamp', '<=', $tailEnd)
-                ->groupBy('key');
-
-            // Buckets
-            $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
-                $query->select('key');
+        return $this->db->connection()
+            ->query()
+            ->select([
+                'key' => fn (Builder $query) => $query
+                    ->select('key')
+                    ->from('pulse_entries', as: 'keys')
+                    ->whereColumn('keys.key_hash', 'aggregated.key_hash')
+                    ->limit(1),
+                ...$types,
+            ])
+            ->fromSub(function (Builder $query) use ($types, $aggregate, $interval, $orderBy, $direction, $limit) {
+                $query->select('key_hash');
 
                 foreach ($types as $type) {
                     $query->selectRaw(match ($aggregate) {
-                        'count' => 'sum(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
-                        'max' => 'max(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
-                        'avg' => 'avg(case when (`type` = ?) then `value` else null end) as `'.$type.'`',
+                        'count' => 'sum(`'.$type.'`)',
+                        'max' => 'max(`'.$type.'`)',
+                        'avg' => 'avg(`'.$type.'`)',
                         default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-                    }, [$type]);
+                    }." as `{$type}`");
                 }
 
-                $query
-                    ->from('pulse_aggregates')
-                    ->where('period', $period)
-                    ->whereIn('type', $types)
-                    ->where('aggregate', $aggregate)
-                    ->where('bucket', '>=', $oldestBucket)
-                    ->groupBy('key');
-            });
-        }, as: 'child')
-            ->groupBy('key')
-            ->orderBy($orderBy, $direction)
-            ->limit($limit)
+                $query->fromSub(function (Builder $query) use ($types, $aggregate, $interval) {
+                    $now = CarbonImmutable::now();
+                    $period = $interval->totalSeconds / 60;
+                    $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
+                    $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+                    $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
+
+                    // Tail
+                    $query->select('key_hash');
+
+                    foreach ($types as $type) {
+                        $query->selectRaw(match ($aggregate) {
+                            'count' => 'count(case when (`type` = ?) then `value` else null end)',
+                            'max' => 'max(case when (`type` = ?) then `value` else null end)',
+                            'avg' => 'avg(case when (`type` = ?) then `value` else null end)',
+                            default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
+                        }." as `{$type}`", [$type]);
+                    }
+
+                    $query
+                        ->from('pulse_entries')
+                        ->whereIn('type', $types)
+                        ->where('timestamp', '>=', $windowStart)
+                        ->where('timestamp', '<=', $oldestBucket - 1)
+                        ->groupBy('key_hash');
+
+                    // Buckets
+                    $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
+                        $query->select('key_hash');
+
+                        foreach ($types as $type) {
+                            $query->selectRaw(match ($aggregate) {
+                                'count' => 'sum(case when (`type` = ?) then `value` else null end)',
+                                'max' => 'max(case when (`type` = ?) then `value` else null end)',
+                                'avg' => 'avg(case when (`type` = ?) then `value` else null end)',
+                                default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
+                            }." as `{$type}`", [$type]);
+                        }
+
+                        $query
+                            ->from('pulse_aggregates')
+                            ->where('period', $period)
+                            ->whereIn('type', $types)
+                            ->where('aggregate', $aggregate)
+                            ->where('bucket', '>=', $oldestBucket)
+                            ->groupBy('key_hash');
+                    });
+                }, as: 'results')
+                    ->groupBy('key_hash')
+                    ->orderBy($orderBy, $direction)
+                    ->limit($limit);
+            }, as: 'aggregated')
             ->get();
     }
 
@@ -466,6 +492,7 @@ class Database implements Storage
      * Retrieve an aggregate total for the given types.
      *
      * @param  string|list<string>  $types
+     * @param  'count'|'max'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
@@ -486,20 +513,20 @@ class Database implements Storage
         return $this->db->connection()->query()
             ->addSelect('type')
             ->selectRaw(match ($aggregate) {
-                'count' => 'sum(`count`) as `count`',
-                'max' => 'max(`max`) as `max`',
-                'avg' => 'avg(`avg`) as `avg`',
+                'count' => 'sum(`count`)',
+                'max' => 'max(`max`)',
+                'avg' => 'avg(`avg`)',
                 default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-            })
+            }." as `{$aggregate}`")
             ->fromSub(fn (Builder $query) => $query
                 // Tail
                 ->addSelect('type')
                 ->selectRaw(match ($aggregate) {
-                    'count' => 'count(*) as `count`',
-                    'max' => 'max(`value`) as `max`',
-                    'avg' => 'avg(`value`) as `avg`',
+                    'count' => 'count(*)',
+                    'max' => 'max(`value`)',
+                    'avg' => 'avg(`value`)',
                     default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-                })
+                }." as `{$aggregate}`")
                 ->from('pulse_entries')
                 ->whereIn('type', $types)
                 ->where('timestamp', '>=', $tailStart)
@@ -509,11 +536,11 @@ class Database implements Storage
                 ->unionAll(fn (Builder $query) => $query
                     ->select('type')
                     ->selectRaw(match ($aggregate) {
-                        'count' => 'sum(`value`) as `count`',
-                        'max' => 'max(`value`) as `max`',
-                        'avg' => 'avg(`value`) as `avg`',
+                        'count' => 'sum(`value`)',
+                        'max' => 'max(`value`)',
+                        'avg' => 'avg(`value`)',
                         default => throw new \InvalidArgumentException("Invalid aggregate type [$aggregate]"),
-                    })
+                    }."as `{$aggregate}`")
                     ->from('pulse_aggregates')
                     ->where('period', $period)
                     ->whereIn('type', $types)

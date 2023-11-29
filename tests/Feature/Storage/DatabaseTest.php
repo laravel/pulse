@@ -20,23 +20,21 @@ test('one or more aggregates for a single type', function () {
     // Add entries to the "tail"
     Carbon::setTestNow('2000-01-01 12:00:01');
     Pulse::record('slow_request', 'GET /foo', 100)->max()->avg()->count();
-    Pulse::record('slow_request', 'GET /bar', 200)->max()->avg()->count();
-    Carbon::setTestNow('2000-01-01 12:00:02');
     Pulse::record('slow_request', 'GET /foo', 200)->max()->avg()->count();
-    Pulse::record('slow_request', 'GET /bar', 400)->max()->avg()->count();
-    Carbon::setTestNow('2000-01-01 12:00:03');
     Pulse::record('slow_request', 'GET /foo', 300)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /foo', 400)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /bar', 200)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /bar', 400)->max()->avg()->count();
     Pulse::record('slow_request', 'GET /bar', 600)->max()->avg()->count();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 12:59:00');
     Pulse::record('slow_request', 'GET /foo', 100)->max()->avg()->count();
-    Pulse::record('slow_request', 'GET /bar', 200)->max()->avg()->count();
-    Carbon::setTestNow('2000-01-01 12:59:10');
     Pulse::record('slow_request', 'GET /foo', 200)->max()->avg()->count();
-    Pulse::record('slow_request', 'GET /bar', 400)->max()->avg()->count();
-    Carbon::setTestNow('2000-01-01 12:59:20');
     Pulse::record('slow_request', 'GET /foo', 300)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /foo', 400)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /bar', 200)->max()->avg()->count();
+    Pulse::record('slow_request', 'GET /bar', 400)->max()->avg()->count();
     Pulse::record('slow_request', 'GET /bar', 600)->max()->avg()->count();
 
     Pulse::store();
@@ -46,15 +44,15 @@ test('one or more aggregates for a single type', function () {
     $results = Pulse::aggregate('slow_request', 'count', CarbonInterval::hour());
 
     expect($results->all())->toEqual([
+        (object) ['key' => 'GET /foo', 'count' => 8],
         (object) ['key' => 'GET /bar', 'count' => 6],
-        (object) ['key' => 'GET /foo', 'count' => 6],
     ]);
 
     $results = Pulse::aggregate('slow_request', ['max', 'avg', 'count'], CarbonInterval::hour());
 
     expect($results->all())->toEqual([
         (object) ['key' => 'GET /bar', 'max' => 600, 'avg' => 400, 'count' => 6],
-        (object) ['key' => 'GET /foo', 'max' => 300, 'avg' => 200, 'count' => 6],
+        (object) ['key' => 'GET /foo', 'max' => 400, 'avg' => 250, 'count' => 8],
     ]);
 });
 
