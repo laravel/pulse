@@ -36,7 +36,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         </x-slot:actions>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
+    <x-pulse::scroll :expand="$expand" wire:poll.5s="">
         @if (count($slowQueries) === 0)
             <x-pulse::no-results />
         @else
@@ -93,5 +93,5 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         @if ($slowQueries->count() > 100)
             <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
         @endif
-    </x-pulse::card-body>
+    </x-pulse::scroll>
 </x-pulse::card>

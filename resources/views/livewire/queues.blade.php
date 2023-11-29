@@ -33,7 +33,7 @@
         </x-slot:actions>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
+    <x-pulse::scroll :expand="$expand" wire:poll.5s="">
         @if (count($queues) === 0)
             <x-pulse::no-results />
         @else
@@ -185,5 +185,5 @@
                 @endforeach
             </div>
         @endif
-    </x-pulse::card-body>
+    </x-pulse::scroll>
 </x-pulse::card>

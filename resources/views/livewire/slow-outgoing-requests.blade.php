@@ -33,7 +33,7 @@
         </x-slot:actions>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
+    <x-pulse::scroll :expand="$expand" wire:poll.5s="">
         @if (! $supported)
             <div class="h-full flex flex-col items-center justify-center p-4 py-6">
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-full text-xs leading-none px-2 py-1 text-gray-500 dark:text-gray-400">
@@ -100,5 +100,5 @@
                 @endif
             @endif
         @endif
-    </x-pulse::card-body>
+    </x-pulse::scroll>
 </x-pulse::card>

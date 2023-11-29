@@ -20,7 +20,7 @@
         </x-slot:actions>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
+    <x-pulse::scroll :expand="$expand" wire:poll.5s="">
         @if ($slowRequests->isEmpty())
             <x-pulse::no-results />
         @else
@@ -79,5 +79,5 @@
                 <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
             @endif
         @endif
-    </x-pulse::card-body>
+    </x-pulse::scroll>
 </x-pulse::card>
