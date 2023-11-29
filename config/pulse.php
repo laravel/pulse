@@ -152,6 +152,14 @@ return [
             ],
         ],
 
+        Recorders\UserJobs::class => [
+            'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
+            'ignore' => [
+                // '/^Package\\\\Jobs\\\\/',
+            ],
+        ],
+
         Recorders\Jobs::class => [
             'enabled' => env('PULSE_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_JOBS_SAMPLE_RATE', 1),
