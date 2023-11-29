@@ -113,7 +113,7 @@ it('can ignore exceptions', function () {
 
     report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
 
-    expect(Pulse::queue())->toHaveCount(0);
+    expect(Pulse::store())->toBe(0);
 });
 
 it('can sample', function () {
@@ -130,9 +130,7 @@ it('can sample', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
-
-    Pulse::flush();
+    expect(Pulse::store())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -149,9 +147,7 @@ it('can sample at zero', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::queue())->toHaveCount(0);
-
-    Pulse::flush();
+    expect(Pulse::store())->toBe(0);
 });
 
 it('can sample at one', function () {
