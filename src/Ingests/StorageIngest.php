@@ -4,14 +4,14 @@ namespace Laravel\Pulse\Ingests;
 
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
-use Laravel\Pulse\Contracts\Storage as StorageContract;
+use Laravel\Pulse\Contracts\Storage;
 
 class StorageIngest implements Ingest
 {
     /**
      * Create a new Storage Ingest instance.
      */
-    public function __construct(protected StorageContract $storage)
+    public function __construct(protected Storage $storage)
     {
         //
     }
@@ -37,7 +37,7 @@ class StorageIngest implements Ingest
     /**
      * Store the ingested items.
      */
-    public function store(StorageContract $store): int
+    public function store(Storage $storage): int
     {
         return 0;
     }
