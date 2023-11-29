@@ -269,7 +269,7 @@ class Pulse
      */
     public function queue()
     {
-        return $this->entries->merge($this->lazy);
+        return $this->entries->merge($this->lazy); // @phpstan-ignore argument.type
     }
 
     /**

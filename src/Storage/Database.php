@@ -291,7 +291,7 @@ class Database implements Storage
     /**
      * Retrieve aggregate values for the given type.
      *
-     * @param  list<'count'|'max'|'avg'>  $aggregates
+     * @param  'count'|'max'|'avg'|list<'count'|'max'|'avg'>  $aggregates
      * @return \Illuminate\Support\Collection<int, object{
      *     key: string,
      *     max?: int,
@@ -301,7 +301,7 @@ class Database implements Storage
      */
     public function aggregate(
         string $type,
-        array|string $aggregates,
+        string|array $aggregates,
         CarbonInterval $interval,
         string $orderBy = null,
         string $direction = 'desc',
@@ -329,7 +329,7 @@ class Database implements Storage
                 $query->select('key_hash');
 
                 foreach ($aggregates as $aggregate) {
-                    $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
+                    $query->selectRaw(match ($aggregate) {
                         'count' => 'sum(`count`)',
                         'max' => 'max(`max`)',
                         'avg' => 'avg(`avg`)',
@@ -347,7 +347,7 @@ class Database implements Storage
                     $query->select('key_hash');
 
                     foreach ($aggregates as $aggregate) {
-                        $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
+                        $query->selectRaw(match ($aggregate) {
                             'count' => 'count(*)',
                             'max' => 'max(`value`)',
                             'avg' => 'avg(`value`)',
@@ -368,7 +368,7 @@ class Database implements Storage
 
                             foreach ($aggregates as $aggregate) {
                                 if ($aggregate === $currentAggregate) {
-                                    $query->selectRaw(match ($aggregate) { // @phpstan-ignore match.unhandled
+                                    $query->selectRaw(match ($aggregate) {
                                         'count' => 'sum(`value`)',
                                         'max' => 'max(`value`)',
                                         'avg' => 'avg(`value`)',

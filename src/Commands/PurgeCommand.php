@@ -39,7 +39,7 @@ class PurgeCommand extends Command
             return Command::FAILURE;
         }
 
-        if (count($this->option('type')) > 0) {
+        if (is_array($this->option('type')) && count($this->option('type')) > 0) {
             $this->components->task(
                 'Purging Pulse data for ['.implode(', ', $this->option('type')).']',
                 fn () => $storage->purge($this->option('type'))
