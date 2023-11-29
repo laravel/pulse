@@ -123,7 +123,7 @@ class Entry
     public function aggregateAttributes(int $period, string $aggregate): array
     {
         $attributes = [
-            'bucket' => (int) floor($this->timestamp / $period) * $period,
+            'bucket' => (int) (floor($this->getTimestamp() / $period) * $period),
             'period' => $period,
             'type' => $this->type,
             'aggregate' => $aggregate,

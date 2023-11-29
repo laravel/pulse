@@ -35,7 +35,7 @@ it('ingests queries', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
         'period' => 60,
         'type' => 'slow_query',
         'aggregate' => 'count',
@@ -45,7 +45,7 @@ it('ingests queries', function () {
     expect($key[0])->toBe('select * from users');
     expect($key[1])->not->toBeNull();
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
         'period' => 60,
         'type' => 'slow_query',
         'aggregate' => 'max',
@@ -80,7 +80,7 @@ it('can disable capturing the location', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
         'period' => 60,
         'type' => 'slow_query',
         'aggregate' => 'count',
@@ -90,7 +90,7 @@ it('can disable capturing the location', function () {
     expect($key[0])->toBe('select * from users');
     expect($key[1])->toBeNull();
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor((now()->timestamp - 5) / 60) * 60,
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
         'period' => 60,
         'type' => 'slow_query',
         'aggregate' => 'max',

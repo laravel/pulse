@@ -54,10 +54,10 @@ class Database implements Storage
             );
 
         $periods = [
-            (int) CarbonInterval::hour()->totalSeconds / 60,
-            (int) CarbonInterval::hours(6)->totalSeconds / 60,
-            (int) CarbonInterval::hours(24)->totalSeconds / 60,
-            (int) CarbonInterval::days(7)->totalSeconds / 60,
+            (int) (CarbonInterval::hour()->totalSeconds / 60),
+            (int) (CarbonInterval::hours(6)->totalSeconds / 60),
+            (int) (CarbonInterval::hours(24)->totalSeconds / 60),
+            (int) (CarbonInterval::days(7)->totalSeconds / 60),
         ];
 
         $this
@@ -260,7 +260,7 @@ class Database implements Storage
         $period = $interval->totalSeconds / 60;
         $maxDataPoints = 60;
         $secondsPerPeriod = ($interval->totalSeconds / $maxDataPoints);
-        $currentBucket = (int) floor((int) $now->timestamp / $secondsPerPeriod) * $secondsPerPeriod;
+        $currentBucket = (int) (floor($now->getTimestamp() / $secondsPerPeriod) * $secondsPerPeriod);
         $firstBucket = $currentBucket - (($maxDataPoints - 1) * $secondsPerPeriod);
 
         $padding = collect()
@@ -339,8 +339,8 @@ class Database implements Storage
                 $query->fromSub(function (Builder $query) use ($type, $aggregates, $interval) {
                     $now = CarbonImmutable::now();
                     $period = $interval->totalSeconds / 60;
-                    $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-                    $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+                    $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds + 1);
+                    $currentBucket = (int) (floor($now->getTimestamp() / $period) * $period);
                     $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
 
                     // Tail
@@ -441,8 +441,8 @@ class Database implements Storage
                 $query->fromSub(function (Builder $query) use ($types, $aggregate, $interval) {
                     $now = CarbonImmutable::now();
                     $period = $interval->totalSeconds / 60;
-                    $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-                    $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+                    $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds + 1);
+                    $currentBucket = (int) (floor($now->getTimestamp() / $period) * $period);
                     $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
 
                     // Tail
@@ -511,8 +511,8 @@ class Database implements Storage
 
         $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
-        $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
-        $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
+        $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds + 1);
+        $currentBucket = (int) (floor($now->getTimestamp() / $period) * $period);
         $oldestBucket = $currentBucket - $interval->totalSeconds + $period;
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;

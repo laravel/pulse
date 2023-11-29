@@ -19,14 +19,14 @@ it('ingests slow unauthenticated requests', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'slow_request:count',
         'key' => 'GET /users',
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'slow_request:max',
         'key' => 'GET /users',
@@ -60,7 +60,7 @@ it('captures authenticated requests under the slow endpoint threshold', function
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'user_request:count',
         'key' => '567',

@@ -32,7 +32,7 @@ it('ingests cache interactions', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'cache_hit',
         'aggregate' => 'count',
@@ -40,7 +40,7 @@ it('ingests cache interactions', function () {
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'cache_miss',
         'aggregate' => 'count',

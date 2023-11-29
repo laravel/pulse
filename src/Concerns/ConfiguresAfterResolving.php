@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Concerns;
 
-use Closure;
 use Illuminate\Foundation\Application;
 
 trait ConfiguresAfterResolving
@@ -10,7 +9,7 @@ trait ConfiguresAfterResolving
     /**
      * Configure the class after resolving.
      */
-    public function afterResolving(Application $app, string $class, Closure $callback): void
+    public function afterResolving(Application $app, string $class, callable $callback): void
     {
         $app->afterResolving($class, $callback);
 

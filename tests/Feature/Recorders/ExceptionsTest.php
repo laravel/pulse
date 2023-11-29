@@ -29,7 +29,7 @@ it('ingests exceptions', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'exception',
         'aggregate' => 'count',
@@ -39,7 +39,7 @@ it('ingests exceptions', function () {
     expect($key[0])->toBe('RuntimeException');
     expect($key[1])->toStartWith(__FILE__.':');
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'exception',
         'aggregate' => 'max',
@@ -69,7 +69,7 @@ it('can disable capturing the location', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'exception',
         'aggregate' => 'count',
@@ -78,7 +78,7 @@ it('can disable capturing the location', function () {
     $key = json_decode($aggregates[0]->key);
     expect($key)->toBe(['RuntimeException', null]);
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'exception',
         'aggregate' => 'max',

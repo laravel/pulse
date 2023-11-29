@@ -59,7 +59,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
     foreach ($types as $type) {
         foreach ($periods as $period) {
             $record = (object) [
-                'bucket' => (int) floor($timestamp / $period) * $period,
+                'bucket' => (int) (floor($timestamp / $period) * $period),
                 'period' => $period,
                 'type' => $type,
                 'aggregate' => $aggregate,

@@ -26,7 +26,7 @@ it('ingests slow outgoing http requests', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'slow_outgoing_request',
         'aggregate' => 'count',
@@ -34,7 +34,7 @@ it('ingests slow outgoing http requests', function () {
         'value' => 1,
     ]);
     expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) floor(now()->timestamp / 60) * 60,
+        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
         'type' => 'slow_outgoing_request',
         'aggregate' => 'max',
