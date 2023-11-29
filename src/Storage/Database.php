@@ -14,7 +14,6 @@ use Illuminate\Support\LazyCollection;
 use InvalidArgumentException;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
-use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use Laravel\Pulse\Value;
 
 /**
