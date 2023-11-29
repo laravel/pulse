@@ -35,7 +35,7 @@ class Storage implements Ingest
     }
 
     /**
-     * Store the ingested entries.
+     * Store the ingested items.
      */
     public function store(StorageContract $store): int
     {

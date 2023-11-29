@@ -35,7 +35,7 @@ class Pulse
     protected Collection $recorders;
 
     /**
-     * The list of queued entries and values.
+     * The list of queued items.
      *
      * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
      */
@@ -49,7 +49,7 @@ class Pulse
     protected Collection $lazy;
 
     /**
-     * Indicates if Pulse should record entries.
+     * Indicates if Pulse should be recording.
      */
     protected bool $shouldRecord = true;
 
@@ -200,7 +200,7 @@ class Pulse
     }
 
     /**
-     * Lazily capture entries or values.
+     * Lazily capture items.
      */
     public function lazy(callable $closure): self
     {
@@ -222,7 +222,7 @@ class Pulse
     }
 
     /**
-     * Start recording entries.
+     * Start recording.
      */
     public function startRecording(): self
     {
@@ -232,7 +232,7 @@ class Pulse
     }
 
     /**
-     * Stop recording entries.
+     * Stop recording.
      */
     public function stopRecording(): self
     {
@@ -242,7 +242,7 @@ class Pulse
     }
 
     /**
-     * Execute the given callback without recording entries.
+     * Execute the given callback without recording.
      *
      * @template TReturn
      *
@@ -263,7 +263,7 @@ class Pulse
     }
 
     /**
-     * The pending entries to be recorded.
+     * The pending items to be recorded.
      *
      * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value|callable>
      */
@@ -284,7 +284,7 @@ class Pulse
     }
 
     /**
-     * Filter incoming entries using the provided filter.
+     * Filter items before storage using the provided filter.
      *
      * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)  $filter
      */
@@ -296,7 +296,7 @@ class Pulse
     }
 
     /**
-     * Store the queued entries.
+     * Store the queued items.
      */
     public function store(): int
     {

@@ -120,7 +120,7 @@ class Redis
     }
 
     /**
-     * Read a range of entries from the stream.
+     * Read a range of items from the stream.
      *
      * @return array<string, array<string, string>>
      */
@@ -142,7 +142,7 @@ class Redis
     }
 
     /**
-     * Delete the entries from the stream.
+     * Delete the items from the stream.
      *
      * @param  \Illuminate\Support\Collection<int, string>|array<int, string>  $keys
      */

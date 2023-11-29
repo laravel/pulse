@@ -19,7 +19,7 @@ interface Ingest
     public function trim(): void;
 
     /**
-     * Store the ingested entries.
+     * Store the ingested items.
      */
     public function store(Storage $storage): int;
 }

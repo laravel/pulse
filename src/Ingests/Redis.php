@@ -61,7 +61,7 @@ class Redis implements Ingest
     }
 
     /**
-     * Store the ingested entries.
+     * Store the ingested items.
      */
     public function store(Storage $storage): int
     {
