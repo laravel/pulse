@@ -3,17 +3,16 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
-use Laravel\Pulse\Contracts\Grouping;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class CacheInteractions implements Grouping
+class CacheInteractions implements Groupable
 {
     use Concerns\Ignores, Concerns\Sampling;
 
@@ -42,48 +41,39 @@ class CacheInteractions implements Grouping
      */
     public function record(CacheHit|CacheMissed $event): void
     {
-        $now = CarbonImmutable::now();
+        $timestamp = CarbonImmutable::now()->getTimestamp();
+        $class = $event::class;
+        $key = $event->key;
 
-        if (! $this->shouldSample() || $this->shouldIgnore($event->key)) {
-            return;
-        }
-
-        $this->pulse->record(
-            type: match (get_class($event)) { // TODO: Just record the event class name?
-                CacheHit::class => 'cache_hit',
-                CacheMissed::class => 'cache_miss',
-                default => throw new \LogicException('Unknown event type.'),
-            },
-            key: $this->group($event->key),
-            timestamp: $now
-        )->count();
-    }
-
-    /**
-     * Return a closure that groups the given value.
-     *
-     * @return Closure(): string
-     */
-    public function group(string $value): Closure
-    {
-        return function () use ($value) {
-            foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-                $group = preg_replace($pattern, $replacement, $value, count: $count);
-
-                if ($count > 0 && $group !== null) {
-                    return $group;
-                }
+        $this->pulse->lazy(function () use ($timestamp, $class, $key) {
+            if (! $this->shouldSample() || $this->shouldIgnore($key)) {
+                return;
             }
 
-            return $value;
-        };
+            return $this->pulse->record(
+                type: match (true) {
+                    is_a($class, CacheHit::class, true) => 'cache_hit',
+                    is_a($class, CacheMissed::class, true) => 'cache_miss',
+                },
+                key: $this->group($key),
+                timestamp: $timestamp,
+            )->count();
+        });
     }
 
     /**
-     * Return the column that grouping should be applied to.
+     * The grouped value.
      */
-    public function groupColumn(): string
+    public function group(string $value): string
     {
-        return 'key';
+        foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
+            $group = preg_replace($pattern, $replacement, $value, count: $count);
+
+            if ($count > 0 && $group !== null) {
+                return $group;
+            }
+        }
+
+        return $value;
     }
 }

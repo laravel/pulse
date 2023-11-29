@@ -48,7 +48,7 @@ it('ignores fast requests', function () {
 
     Http::get('https://laravel.com');
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
 });
 
 it('captures failed requests', function () {
@@ -160,7 +160,7 @@ it('can ignore outgoing requests', function () {
 
     Http::get('http://127.0.0.1:13714/render');
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
 });
 
 it('can sample', function () {
@@ -179,9 +179,9 @@ it('can sample', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at zero', function () {
@@ -200,9 +200,9 @@ it('can sample at zero', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(count(Pulse::entries()))->toBe(0);
+    expect(Pulse::queue())->toHaveCount(0);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at one', function () {
@@ -221,7 +221,7 @@ it('can sample at one', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(count(Pulse::entries()))->toBe(10);
+    expect(Pulse::queue())->toHaveCount(10);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });

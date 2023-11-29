@@ -9,7 +9,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Contracts\Grouping;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -18,7 +18,7 @@ use Throwable;
 /**
  * @internal
  */
-class SlowOutgoingRequests implements Grouping
+class SlowOutgoingRequests implements Groupable
 {
     use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
@@ -61,6 +61,7 @@ class SlowOutgoingRequests implements Grouping
 
         $this->pulse->record(
             type: 'slow_outgoing_request',
+            // this returns a stirng now
             key: $this->group(json_encode([$request->getMethod(), $request->getUri()])),
             value: $duration,
             timestamp: $startedAt,
@@ -72,8 +73,11 @@ class SlowOutgoingRequests implements Grouping
      *
      * @return Closure(): string
      */
-    public function group(string $key): Closure
+    public function group(string $key): string
     {
+        // TODO
+        return 'TODO';
+
         return function () use ($key) {
             [$method, $uri] = json_decode($key);
 
@@ -87,14 +91,6 @@ class SlowOutgoingRequests implements Grouping
 
             return $key;
         };
-    }
-
-    /**
-     * Return the column that grouping should be applied to.
-     */
-    public function groupColumn(): string
-    {
-        return 'uri';
     }
 
     /**

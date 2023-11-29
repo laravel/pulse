@@ -40,12 +40,12 @@ it('ingests bus dispatched jobs', function () {
 
     Bus::dispatchToQueue(new MyJob);
 
-    expect(Pulse::entries())->toHaveCount(1);
+    expect(Pulse::queue())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
 
     $aggregates = queueAggregates();
@@ -68,7 +68,7 @@ it('ingests queued closures', function () {
     });
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->get()))->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -125,7 +125,7 @@ it('ingests jobs pushed to the queue', function () {
     Queue::push('MyJob');
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -148,7 +148,7 @@ it('ingests queued listeners', function () {
     MyEvent::dispatch();
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -206,7 +206,7 @@ it('ingests queued mail', function () {
     Mail::to('test@example.com')->queue(new MyMailThatFails);
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -268,7 +268,7 @@ it('ingests queued notifications', function () {
     Notification::route('mail', 'test@example.com')->notify(new MyNotificationThatFails);
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -326,7 +326,7 @@ it('ingests queued commands', function () {
     Artisan::queue(MyCommandThatFails::class);
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -569,7 +569,7 @@ it('can ignore jobs', function () {
     MyJobThatPassesOnTheSecondAttempt::$attempts = 0;
     Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
     expect(Queue::size())->toBe(1);
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
 
     /*
      * Work the job for the first time.
@@ -604,9 +604,9 @@ it('can sample', function () {
     Bus::dispatchToQueue(new MyJob);
 
     expect(Queue::size())->toBe(10);
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at zero', function () {
@@ -625,9 +625,9 @@ it('can sample at zero', function () {
     Bus::dispatchToQueue(new MyJob);
 
     expect(Queue::size())->toBe(10);
-    expect(count(Pulse::entries()))->toBe(0);
+    expect(Pulse::queue())->toHaveCount(0);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at one', function () {
@@ -646,9 +646,9 @@ it('can sample at one', function () {
     Bus::dispatchToQueue(new MyJob);
 
     expect(Queue::size())->toBe(10);
-    expect(count(Pulse::entries()))->toBe(10);
+    expect(Pulse::queue())->toHaveCount(10);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it("doesn't sample subsequent events for jobs that aren't initially sampled", function () {

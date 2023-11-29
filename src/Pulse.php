@@ -3,7 +3,6 @@
 namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
-use Closure;
 use DateTimeInterface;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
@@ -41,6 +40,13 @@ class Pulse
      * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
      */
     protected Collection $entries;
+
+    /**
+     * The list of queued lazy entry and value resolvers.
+     *
+     * @var \Illuminate\Support\Collection<int, callable>
+     */
+    protected Collection $lazy;
 
     /**
      * Indicates if Pulse should record entries.
@@ -90,13 +96,15 @@ class Pulse
      */
     public function __construct(
         protected Application $app,
+        // TODO these should be resolved from the container instead of injected.
         protected AuthManager $auth,
         protected Repository $config,
     ) {
         $this->filters = collect([]);
         $this->recorders = collect([]);
-
-        $this->flushEntries();
+        $this->recorders = collect([]);
+        $this->entries = collect([]);
+        $this->lazy = collect([]);
     }
 
     /**
@@ -192,6 +200,18 @@ class Pulse
     }
 
     /**
+     * Lazily capture entries or values.
+     */
+    public function lazy(callable $closure): self
+    {
+        if ($this->shouldRecord) {
+            $this->lazy[] = $closure;
+        }
+
+        return $this;
+    }
+
+    /**
      * Report the throwable exception to Pulse.
      */
     public function report(Throwable $e): self
@@ -245,19 +265,20 @@ class Pulse
     /**
      * The pending entries to be recorded.
      *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value|callable>
      */
-    public function entries()
+    public function queue()
     {
-        return $this->entries;
+        return $this->entries->merge($this->lazy);
     }
 
     /**
      * Flush the queue.
      */
-    public function flushEntries(): self
+    public function flush(): self
     {
         $this->entries = collect([]);
+        $this->lazy = collect([]);
 
         return $this;
     }
@@ -277,12 +298,14 @@ class Pulse
     /**
      * Store the queued entries.
      */
-    public function store(): self
+    public function store(): int
     {
         $ingest = $this->app->make(Ingest::class);
 
+        $this->lazy->each(fn ($lazy) => $lazy());
+
         $this->rescue(fn () => $ingest->ingest(
-            $this->entries->map(fn ($entry) => $entry->resolve())->filter($this->shouldRecord(...)),
+            $this->entries->filter($this->shouldRecord(...)),
         ));
 
         Lottery::odds(...$this->config->get('pulse.ingest.trim_lottery'))
@@ -291,7 +314,7 @@ class Pulse
 
         $this->rememberedUserId = null;
 
-        return $this->flushEntries();
+        return tap($this->entries->count(), $this->flush(...));
     }
 
     /**

@@ -145,7 +145,7 @@ it('can sample', function () {
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toEqualWithDelta(1, 4);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at zero', function () {
@@ -180,7 +180,7 @@ it('can sample at zero', function () {
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(0);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at one', function () {
@@ -215,7 +215,7 @@ it('can sample at one', function () {
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(10);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 class MySlowJob implements ShouldQueue

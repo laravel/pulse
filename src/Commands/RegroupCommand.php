@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Commands;
 use Illuminate\Config\Repository;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Laravel\Pulse\Contracts\Grouping;
+use Laravel\Pulse\Contracts\Groupable;
 use Laravel\Pulse\Support\DatabaseConnectionResolver;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -44,7 +44,7 @@ class RegroupCommand extends Command
         }
 
         collect(array_keys($config->get('pulse.recorders')))
-            ->filter(fn ($recorder) => (new ReflectionClass($recorder))->implementsInterface(Grouping::class)) // @phpstan-ignore argument.type
+            ->filter(fn ($recorder) => (new ReflectionClass($recorder))->implementsInterface(Groupable::class)) // @phpstan-ignore argument.type
             ->map(fn ($recorder) => app($recorder)) // @phpstan-ignore argument.type
             ->each(function ($recorder) use ($db) {
                 $this->info("Re-grouping {$recorder->table}...");
@@ -55,7 +55,7 @@ class RegroupCommand extends Command
                     ->distinct()
                     ->pluck($recorder->groupColumn())
                     ->each(function ($value) use ($db, $recorder) {
-                        $newValue = $recorder->group($value)();
+                        $newValue = $recorder->group($value);
 
                         if ($newValue === $value) {
                             return;

@@ -16,12 +16,12 @@ it('ingests queries', function () {
 
     DB::connection()->statement('select * from users');
 
-    expect(Pulse::entries())->toHaveCount(1);
+    expect(Pulse::queue())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -66,7 +66,7 @@ it('can disable capturing the location', function () {
     DB::connection()->statement('select * from users');
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -145,7 +145,7 @@ it('can ignore queries', function () {
 
     DB::table('pulse_entries')->count();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
 });
 
 it('can sample', function () {
@@ -163,9 +163,9 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at zero', function () {
@@ -183,9 +183,9 @@ it('can sample at zero', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toBe(0);
+    expect(Pulse::queue())->toHaveCount(0);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at one', function () {
@@ -203,7 +203,7 @@ it('can sample at one', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toBe(10);
+    expect(Pulse::queue())->toHaveCount(10);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });

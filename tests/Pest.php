@@ -31,7 +31,7 @@ uses(TestCase::class)
         Gate::define('viewPulse', fn ($user = null) => true);
     })
     ->afterEach(function () {
-        if (Pulse::entries()->isNotEmpty()) {
+        if (Pulse::queue()->isNotEmpty()) {
             throw new RuntimeException('The queue is not empty');
         }
     })

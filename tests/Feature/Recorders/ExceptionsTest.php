@@ -11,12 +11,12 @@ it('ingests exceptions', function () {
 
     report(new RuntimeException('Expected exception.'));
 
-    expect(Pulse::entries())->toHaveCount(1);
+    expect(Pulse::queue())->toHaveCount(1);
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 
     Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -113,7 +113,7 @@ it('can ignore exceptions', function () {
 
     report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
 });
 
 it('can sample', function () {
@@ -130,9 +130,9 @@ it('can sample', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
+    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at zero', function () {
@@ -149,9 +149,9 @@ it('can sample at zero', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(count(Pulse::entries()))->toBe(0);
+    expect(Pulse::queue())->toHaveCount(0);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 it('can sample at one', function () {
@@ -168,9 +168,9 @@ it('can sample at one', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(count(Pulse::entries()))->toBe(10);
+    expect(Pulse::queue())->toHaveCount(10);
 
-    Pulse::flushEntries();
+    Pulse::flush();
 });
 
 class MyReportedException extends Exception

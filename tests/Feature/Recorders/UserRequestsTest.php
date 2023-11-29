@@ -7,7 +7,7 @@ it('ingests slow unauthenticated requests', function () {
 
     get('users');
 
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([

@@ -51,18 +51,14 @@ it('ingests cache interactions', function () {
 
 it('ignores internal illuminate cache interactions', function () {
     Cache::get('illuminate:');
-    Pulse::store();
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(0);
+    expect(Pulse::store())->toBe(0);
 });
 
 it('ignores internal pulse cache interactions', function () {
-    Cache::get('laravel:pulse:foo');
-    Pulse::store();
+    Cache::get('laravel:pulse:');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(0);
+    expect(Pulse::store())->toBe(0);
 });
 
 it('stores the original keys by default', function () {
@@ -164,7 +160,8 @@ it('can ignore keys', function () {
     ]);
 
     Cache::get('laravel:pulse:foo:bar');
-    expect(Pulse::entries())->toHaveCount(0);
+
+    expect(Pulse::store())->toBe(0);
 });
 
 it('can sample', function () {
@@ -181,7 +178,5 @@ it('can sample', function () {
     Cache::get('foo');
     Cache::get('foo');
 
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
-
-    Pulse::flushEntries();
+    expect(Pulse::store())->toEqualWithDelta(1, 4);
 });
