@@ -36,7 +36,7 @@
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
         <div class="min-h-full flex flex-col">
             @if (count($queues) === 0)
-                <x-pulse::no-results class="flex-1" />
+                <x-pulse::no-results />
             @else
                 <div class="grid gap-3 mx-px mb-px">
                     @foreach ($queues as $queue => $readings)

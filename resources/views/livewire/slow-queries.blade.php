@@ -39,7 +39,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
         <div class="min-h-full flex flex-col">
             @if (count($slowQueries) === 0)
-                <x-pulse::no-results class="flex-1" />
+                <x-pulse::no-results />
             @else
                 <x-pulse::table>
                     <colgroup>

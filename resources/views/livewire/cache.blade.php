@@ -26,7 +26,7 @@
     <x-pulse::card-body :expand="$expand" wire:poll.5s="">
         <div class="min-h-full flex flex-col gap-6">
             @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
-                <x-pulse::no-results class="flex-1" />
+                <x-pulse::no-results />
             @else
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="flex flex-col justify-center @sm:block">

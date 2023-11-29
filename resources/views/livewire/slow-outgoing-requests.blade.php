@@ -43,7 +43,7 @@
                 </div>
             @else
                 @if ($slowOutgoingRequests->isEmpty())
-                    <x-pulse::no-results class="flex-1" />
+                    <x-pulse::no-results />
                 @else
                     <x-pulse::table>
                         <colgroup>
