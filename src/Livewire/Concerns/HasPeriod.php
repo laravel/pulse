@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Livewire\Concerns;
 
-use Carbon\CarbonInterval as Interval;
+use Carbon\CarbonInterval;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 
@@ -30,9 +30,9 @@ trait HasPeriod
     /**
      * The period as an Interval instance.
      */
-    public function periodAsInterval(): Interval
+    public function periodAsInterval(): CarbonInterval
     {
-        return Interval::hours(match ($this->period) {
+        return CarbonInterval::hours(match ($this->period) {
             '6_hours' => 6,
             '24_hours' => 24,
             '7_days' => 168,
