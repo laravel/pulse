@@ -2,8 +2,6 @@
 
 namespace Laravel\Pulse;
 
-use Closure;
-
 class Value
 {
     /**
@@ -12,20 +10,10 @@ class Value
     public function __construct(
         public int $timestamp,
         public string $type,
-        public Closure|string $key,
+        public string $key,
         public string $value,
     ) {
         //
-    }
-
-    /**
-     * Resolve the entry for ingest.
-     */
-    public function resolve(): self
-    {
-        $this->key = value($this->key);
-
-        return $this;
     }
 
     /**

@@ -150,7 +150,7 @@ class Pulse
      */
     public function record(
         string $type,
-        Closure|string $key,
+        string $key,
         int $value = 1,
         DateTimeInterface|int $timestamp = null,
     ): Entry {
@@ -177,7 +177,7 @@ class Pulse
      */
     public function set(
         string $type,
-        Closure|string $key,
+        string $key,
         mixed $value,
         DateTimeInterface|int $timestamp = null,
     ): Value {

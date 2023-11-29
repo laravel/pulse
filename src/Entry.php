@@ -2,8 +2,6 @@
 
 namespace Laravel\Pulse;
 
-use Closure;
-
 class Entry
 {
     /**
@@ -24,32 +22,10 @@ class Entry
     public function __construct(
         public int $timestamp,
         public string $type,
-        public Closure|string $key,
+        public string $key,
         public int $value = 1,
     ) {
         //
-    }
-
-    /**
-     * Create a new Entry instance.
-     */
-    public static function make(
-        int $timestamp,
-        string $type,
-        Closure|string $key,
-        int $value = null
-    ): self {
-        return new self($timestamp, $type, $key, $value);
-    }
-
-    /**
-     * Resolve the entry for ingest.
-     */
-    public function resolve(): self
-    {
-        $this->key = value($this->key);
-
-        return $this;
     }
 
     /**

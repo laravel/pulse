@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Closure;
 use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
@@ -70,8 +69,6 @@ class SlowOutgoingRequests implements Groupable
 
     /**
      * Return a closure that groups the given value.
-     *
-     * @return Closure(): string
      */
     public function group(string $key): string
     {
