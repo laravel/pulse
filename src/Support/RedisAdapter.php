@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Pulse;
+namespace Laravel\Pulse\Support;
 
 use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
@@ -14,7 +14,7 @@ use RuntimeException;
 /**
  * @internal
  */
-class Redis
+class RedisAdapter
 {
     /**
      * Create a new Redis instance.

@@ -4,12 +4,12 @@ namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
+use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
-use Laravel\Pulse\Redis as RedisAdapter;
-use Laravel\Pulse\Support\RedisConnectionResolver;
+use Laravel\Pulse\Support\RedisAdapter;
 use Laravel\Pulse\Value;
 
 class Redis implements Ingest
@@ -23,7 +23,7 @@ class Redis implements Ingest
      * Create a new Redis Ingest instance.
      */
     public function __construct(
-        protected RedisConnectionResolver $redis,
+        protected RedisManager $redis,
         protected Repository $config,
     ) {
         //
@@ -40,7 +40,7 @@ class Redis implements Ingest
             return;
         }
 
-        $this->redis->connection()->pipeline(function (RedisAdapter $pipeline) use ($items) {
+        $this->connection()->pipeline(function (RedisAdapter $pipeline) use ($items) {
             $items->each(fn (Entry|Value $entry) => $pipeline->xadd($this->stream, [
                 'data' => serialize($entry),
             ]));
@@ -52,7 +52,7 @@ class Redis implements Ingest
      */
     public function trim(): void
     {
-        $this->redis->connection()->xtrim(
+        $this->connection()->xtrim(
             $this->stream,
             'MINID',
             '~',
@@ -68,7 +68,7 @@ class Redis implements Ingest
         $total = 0;
 
         while (true) {
-            $entries = collect($this->redis->connection()->xrange(
+            $entries = collect($this->connection()->xrange(
                 $this->stream,
                 '-',
                 '+',
@@ -85,7 +85,7 @@ class Redis implements Ingest
                 $entries->map(fn (array $payload): Entry|Value => unserialize($payload['data']))->values()
             );
 
-            $this->redis->connection()->xdel($this->stream, $keys);
+            $this->connection()->xdel($this->stream, $keys);
 
             if ($entries->count() < $chunk) {
                 return $total + $entries->count();
@@ -93,5 +93,15 @@ class Redis implements Ingest
 
             $total = $total + $entries->count();
         }
+    }
+
+    /**
+     * Resolve the redis connection.
+     */
+    protected function connection(): RedisAdapter
+    {
+        return new RedisAdapter($this->redis->connection(
+            $this->config->get('pulse.ingest.redis.connection')
+        ), $this->config);
     }
 }

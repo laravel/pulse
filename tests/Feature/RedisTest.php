@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Redis as FacadesRedis;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\Redis;
-use Laravel\Pulse\Redis as RedisAdapter;
+use Laravel\Pulse\Support\RedisAdapter;
 
 beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' FLUSHALL')->throw());
 
