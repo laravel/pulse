@@ -51,7 +51,7 @@ class CacheInteractions implements Groupable
             }
 
             return $this->pulse->record(
-                type: match (true) {
+                type: match (true) { // @phpstan-ignore match.unhandled
                     is_a($class, CacheHit::class, true) => 'cache_hit',
                     is_a($class, CacheMissed::class, true) => 'cache_miss',
                 },
