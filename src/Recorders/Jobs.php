@@ -9,7 +9,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Pulse;
 
 /**
