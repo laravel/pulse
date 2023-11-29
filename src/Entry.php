@@ -14,7 +14,7 @@ class Entry
     /**
      * Whether to only save aggregate bucket data for the entry.
      */
-    protected bool $bucketOnly = false;
+    protected bool $onlyBuckets = false;
 
     /**
      * Create a new Entry instance.
@@ -61,9 +61,9 @@ class Entry
     /**
      * Only save aggregate bucket data for the entry.
      */
-    public function bucketOnly(): static
+    public function onlyBuckets(): static
     {
-        $this->bucketOnly = true;
+        $this->onlyBuckets = true;
 
         return $this;
     }
@@ -95,9 +95,9 @@ class Entry
     /**
      * Determine whether the entry is marked for average aggregation.
      */
-    public function isBucketOnly(): bool
+    public function isOnlyBuckets(): bool
     {
-        return $this->bucketOnly;
+        return $this->onlyBuckets;
     }
 
     /**

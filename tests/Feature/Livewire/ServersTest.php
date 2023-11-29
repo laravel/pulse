@@ -15,17 +15,17 @@ it('includes the card on the dashboard', function () {
 it('renders server statistics', function () {
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
-    Pulse::record('cpu', 'web-1', 1)->avg()->bucketOnly();
-    Pulse::record('memory', 'web-1', 1)->avg()->bucketOnly();
+    Pulse::record('cpu', 'web-1', 1)->avg()->onlyBuckets();
+    Pulse::record('memory', 'web-1', 1)->avg()->onlyBuckets();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 13:00:00');
-    Pulse::record('cpu', 'web-1', 25)->avg()->bucketOnly();
-    Pulse::record('cpu', 'web-1', 50)->avg()->bucketOnly();
-    Pulse::record('cpu', 'web-1', 75)->avg()->bucketOnly();
-    Pulse::record('memory', 'web-1', 1000)->avg()->bucketOnly();
-    Pulse::record('memory', 'web-1', 1500)->avg()->bucketOnly();
-    Pulse::record('memory', 'web-1', 2000)->avg()->bucketOnly();
+    Pulse::record('cpu', 'web-1', 25)->avg()->onlyBuckets();
+    Pulse::record('cpu', 'web-1', 50)->avg()->onlyBuckets();
+    Pulse::record('cpu', 'web-1', 75)->avg()->onlyBuckets();
+    Pulse::record('memory', 'web-1', 1000)->avg()->onlyBuckets();
+    Pulse::record('memory', 'web-1', 1500)->avg()->onlyBuckets();
+    Pulse::record('memory', 'web-1', 2000)->avg()->onlyBuckets();
     Pulse::set('system', 'web-1', json_encode([
         'name' => 'Web 1',
         'memory_used' => 1234,

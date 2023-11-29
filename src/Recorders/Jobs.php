@@ -51,11 +51,15 @@ class Jobs
             return;
         }
 
-        $now = CarbonImmutable::now();
-
-        [$uuid, $name] = match (get_class($event)) {
+        $timestamp = CarbonImmutable::now()->getTimestamp();
+        $class = $event::class;
+        $connection = match ($class) {
+            JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
+            default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
+        };
+        [$uuid, $name] = match ($class) {
             JobQueued::class => [
-                $event->payload()['uuid'],
+                $event->payload()['uuid'], // @phpstan-ignore method.notFound
                 match (true) {
                     is_string($event->job) => $event->job,
                     method_exists($event->job, 'displayName') => $event->job->displayName(),
@@ -68,33 +72,26 @@ class Jobs
             ],
         };
 
-        if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
-            return;
-        }
+        $this->pulse->lazy(function () use ($timestamp, $class, $uuid, $name, $connection) {
+            if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
+                return;
+            }
 
-        // Queue Stats
-
-        $this->pulse->record(
-            type: match (get_class($event)) { // TODO: Just record the event class name?
-                JobQueued::class => 'queued',
-                JobProcessing::class => 'processing',
-                JobProcessed::class => 'processed',
-                JobReleasedAfterException::class => 'released',
-                JobFailed::class => 'failed',
-                default => throw new \LogicException('Unknown event type.'),
-            },
-            key: match (get_class($event)) {
-                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
-                default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
-            },
-            timestamp: $now,
-        )->count()->bucketOnly();
+            $this->pulse->record(
+                type: match ($class) { // @phpstan-ignore match.unhandled
+                    JobQueued::class => 'queued',
+                    JobProcessing::class => 'processing',
+                    JobProcessed::class => 'processed',
+                    JobReleasedAfterException::class => 'released',
+                    JobFailed::class => 'failed',
+                },
+                key: $connection,
+                timestamp: $timestamp,
+            )->count()->onlyBuckets();
+        });
 
         // User dispatching Jobs
         // TODO: Separate recorder so it can be sampled differently?
 
-        if ($event instanceof JobQueued && Auth::check()) {
-            $this->pulse->record('user_job', $this->pulse->authenticatedUserIdResolver(), timestamp: $now)->count();
-        }
     }
 }

@@ -60,8 +60,8 @@ class SystemStats
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
-        $this->pulse->record('cpu', $slug, $cpu, $event->time)->avg()->bucketOnly();
-        $this->pulse->record('memory', $slug, $memoryUsed, $event->time)->avg()->bucketOnly();
+        $this->pulse->record('cpu', $slug, $cpu, $event->time)->avg()->onlyBuckets();
+        $this->pulse->record('memory', $slug, $memoryUsed, $event->time)->avg()->onlyBuckets();
         $this->pulse->set('system', $slug, json_encode([
             'name' => $server,
             'cpu' => $cpu,

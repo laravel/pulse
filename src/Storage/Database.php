@@ -46,7 +46,7 @@ class Database implements Storage
         [$entries, $values] = $items->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
 
         $entries
-            ->reject->isBucketOnly()
+            ->reject->isOnlyBuckets()
             ->chunk($this->config->get('pulse.storage.database.chunk'))
             ->each(fn ($chunk) => $this->db->connection()
                 ->table('pulse_entries')
