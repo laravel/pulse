@@ -88,9 +88,5 @@ class Jobs
                 timestamp: $timestamp,
             )->count()->onlyBuckets();
         });
-
-        // User dispatching Jobs
-        // TODO: Separate recorder so it can be sampled differently?
-
     }
 }
