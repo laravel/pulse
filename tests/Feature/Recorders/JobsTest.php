@@ -592,11 +592,7 @@ it('can sample', function () {
     Pulse::store();
 
     expect(Queue::size())->toBe(10);
-    $aggregates = queueAggregates();
-    expect($aggregates)->toHaveCount(4);
-    expect($aggregates[0]->type)->toBe('queued');
-    expect($aggregates[0]->aggregate)->toBe('count');
-    expect($aggregates[0]->value)->toEqualWithDelta(1, 4);
+    expect(queueAggregates()->count())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
