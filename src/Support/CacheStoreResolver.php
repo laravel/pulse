@@ -3,8 +3,8 @@
 namespace Laravel\Pulse\Support;
 
 use Illuminate\Cache\CacheManager;
-use Illuminate\Cache\Repository as CacheRepository;
 use Illuminate\Config\Repository as ConfigRepository;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 class CacheStoreResolver
 {
