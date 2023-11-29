@@ -91,10 +91,9 @@ return [
     | Pulse Cache Driver
     |--------------------------------------------------------------------------
     |
-    | TODO
-    | - Used to cache data on the dashboard.
-    | - Used to signal long lived commands should restart, i.e., `pulse:work`, `pulse:check`
-    | - Used to create locks for the `IsolatedBeat` event. If locking is not supported only the `SharedBeat` will trigger.
+    | This configuration option determines the cache driver that will be used
+    | for various tasks, including caching dashboard results, establishing
+    | locks for events that should only occur on one server and signals.
     |
     */
 
