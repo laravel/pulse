@@ -23,8 +23,6 @@ class DatabaseConnectionResolver
      */
     public function connection(): Connection
     {
-        return $this->db->connection(
-            $this->config->get('pulse.storage.database.connection') ?? $this->config->get('database.default')
-        );
+        return $this->db->connection($this->config->get('pulse.storage.database.connection'));
     }
 }
