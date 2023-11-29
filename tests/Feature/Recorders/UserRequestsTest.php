@@ -1,50 +1,20 @@
 <?php
 
-it('ingests slow unauthenticated requests', function () {
-    Config::set('pulse.recorders.'.UserRequests::class.'.threshold', 0);
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Route::get('users', fn () => []);
+use Illuminate\Auth\GuardHelpers;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Recorders\UserRequests;
+use Tests\User;
 
-    get('users');
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
 
-    expect(Pulse::queue())->toHaveCount(0);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0])->toHaveProperties([
-        'timestamp' => now()->timestamp,
-        'type' => 'slow_request',
-        'key' => 'GET /users',
-        'value' => 0,
-    ]);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
-    expect($aggregates)->toHaveCount(8);
-    expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
-        'period' => 60,
-        'type' => 'slow_request:count',
-        'key' => 'GET /users',
-        'value' => 1,
-    ]);
-    expect($aggregates[1])->toHaveProperties([
-        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
-        'period' => 60,
-        'type' => 'slow_request:max',
-        'key' => 'GET /users',
-        'value' => 0,
-    ]);
-});
-
-it('ignores unauthenticated requests under the slow endpoint threshold', function () {
-    Config::set('pulse.recorders.'.UserRequests::class.'.threshold', PHP_INT_MAX);
-    Route::get('users', fn () => []);
-
-    get('users');
-
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(0);
-});
-
-it('captures authenticated requests under the slow endpoint threshold', function () {
+it('captures authenticated requests', function () {
     Route::get('users', fn () => []);
 
     actingAs(User::make(['id' => '567']))->get('users');
@@ -55,17 +25,25 @@ it('captures authenticated requests under the slow endpoint threshold', function
         'timestamp' => now()->timestamp,
         'type' => 'user_request',
         'key' => '567',
-        'value' => null,
+        'value' => 1,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
-    expect($aggregates[0])->toHaveProperties([
-        'bucket' => (int) (floor(now()->timestamp / 60) * 60),
-        'period' => 60,
-        'type' => 'user_request:count',
-        'key' => '567',
-        'value' => 1,
-    ]);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'user_request',
+        aggregate: 'count',
+        key: '567',
+        value: 1,
+    );
+});
+
+it('ignores unauthenticated requests', function () {
+    Route::get('users', fn () => []);
+
+    get('users');
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(0);
 });
 
 it('captures the authenticated user if they login during the request', function () {
@@ -85,7 +63,7 @@ it('captures the authenticated user if they logout during the request', function
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
-    expect($entries[0]->user_id)->toBe('567');
+    expect($entries[0]->key)->toBe('567');
 });
 
 it('does not trigger an infinite loop when retrieving the authenticated user from the database', function () {
@@ -115,6 +93,96 @@ it('does not trigger an infinite loop when retrieving the authenticated user fro
     get('users');
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0]->user_id)->toBe(null);
+    expect($entries)->toHaveCount(0);
+});
+
+it('can ignore requests', function () {
+    Config::set('pulse.recorders.'.UserRequests::class.'.ignore', [
+        '#^/users#',
+    ]);
+    Route::get('users', fn () => []);
+
+    actingAs(User::make(['id' => '567']))->get('users');
+
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+});
+
+it('ignores livewire update requests from an ignored path', function () {
+    Config::set('pulse.recorders.'.UserRequests::class.'.ignore', [
+        '#^/users#',
+    ]);
+    Route::get('users', fn () => []);
+    Route::post('livewire/update', fn () => [])->name('livewire.update');
+
+    actingAs(User::make(['id' => '567']))
+        ->post('/livewire/update', [
+            'components' => [
+                [
+                    'snapshot' => json_encode([
+                        'memo' => [
+                            'path' => 'users',
+                        ],
+                    ]),
+                ],
+            ],
+        ]);
+
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+});
+
+it('can sample', function () {
+    Config::set('pulse.recorders.'.UserRequests::class.'.sample_rate', 0.1);
+    Route::get('users', fn () => []);
+
+    actingAs(User::make(['id' => '567']));
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toEqualWithDelta(1, 4);
+});
+
+it('can sample at zero', function () {
+    Config::set('pulse.recorders.'.UserRequests::class.'.sample_rate', 0);
+    Route::get('users', fn () => []);
+
+    actingAs(User::make(['id' => '567']));
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+});
+
+it('can sample at one', function () {
+    Config::set('pulse.recorders.'.UserRequests::class.'.sample_rate', 1);
+    Route::get('users', fn () => []);
+
+    actingAs(User::make(['id' => '567']));
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+    get('users');
+
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(10);
 });
