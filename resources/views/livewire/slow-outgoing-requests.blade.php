@@ -53,8 +53,8 @@
                     </colgroup>
                     <x-pulse::thead>
                         <tr>
-                            <x-pulse::th class="text-left">Method</x-pulse::th>
-                            <x-pulse::th class="text-left">URI</x-pulse::th>
+                            <x-pulse::th>Method</x-pulse::th>
+                            <x-pulse::th>URI</x-pulse::th>
                             <x-pulse::th class="text-right">Count</x-pulse::th>
                             <x-pulse::th class="text-right">Slowest</x-pulse::th>
                         </tr>
@@ -76,14 +76,14 @@
                                         </code>
                                     </div>
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     @if ($config['sample_rate'] < 1)
                                         <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($request->count) }}">~{{ number_format($request->count * (1 / $config['sample_rate'])) }}</span>
                                     @else
                                         {{ number_format($request->count) }}
                                     @endif
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                                <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                     @if ($request->slowest === null)
                                         <strong>Unknown</strong>
                                     @else

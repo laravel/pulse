@@ -33,7 +33,7 @@
                     </colgroup>
                     <x-pulse::thead>
                         <tr>
-                            <x-pulse::th class="text-left">Type</x-pulse::th>
+                            <x-pulse::th>Type</x-pulse::th>
                             <x-pulse::th class="text-right">Latest</x-pulse::th>
                             <x-pulse::th class="text-right">Count</x-pulse::th>
                         </tr>
@@ -50,10 +50,10 @@
                                         {{ $exception->location }}
                                     </p>
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold whitespace-nowrap tabular-nums">
+                                <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     {{ $exception->latest !== null ? Carbon\CarbonImmutable::parse($exception->latest)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
                                 </x-pulse::td>
-                                <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm font-bold tabular-nums">
+                                <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     @if ($config['sample_rate'] < 1)
                                         <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($exception->count) }}">~{{ number_format($exception->count * (1 / $config['sample_rate'])) }}</span>
                                     @else

@@ -32,7 +32,7 @@
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th class="text-left">Job</x-pulse::th>
+                        <x-pulse::th>Job</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
@@ -46,14 +46,14 @@
                                     {{ $job->job }}
                                 </code>
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                 @if ($config['sample_rate'] < 1)
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($job->count) }}">~{{ number_format($job->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
                                     {{ number_format($job->count) }}
                                 @endif
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($job->slowest === null)
                                     <strong>Unknown</strong>
                                 @else

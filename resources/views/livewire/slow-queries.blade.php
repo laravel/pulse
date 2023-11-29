@@ -48,7 +48,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th class="text-left">Query</x-pulse::th>
+                        <x-pulse::th>Query</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
@@ -70,14 +70,14 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                                     <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-gray-800 pointer-events-none"></div>
                                 </div>
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                 @if ($config['sample_rate'] < 1)
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($query->count) }}">~{{ number_format($query->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
                                     {{ number_format($query->count) }}
                                 @endif
                             </x-pulse::td>
-                            <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap tabular-nums">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($query->slowest === null)
                                     <strong>Unknown</strong>
                                 @else
