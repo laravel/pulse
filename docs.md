@@ -90,9 +90,33 @@ The dashboard view will be published to `resources/views/vendor/pulse/dashboard.
 
 The dashboard is powered by [Livewire](https://livewire.laravel.com/) and allows you to customize the cards and layout without needing to rebuild any JavaScript assets.
 
-Within this file, the `<x-pulse>` component is responsible for rendering the dashboard and provides a grid layout for the cards.
+Within this file, the `<x-pulse>` component is responsible for rendering the dashboard and provides a grid layout for the cards. If you would like the dashboard to span the full width of the screen, you may specify the `full-width` prop:
 
-Each card then accepts a `cols` and `rows` attribute to control the space and positioning.
+```blade
+<x-pulse full-width>
+    ...
+</x-pulse>
+```
+
+By default, the `<x-pulse>` component will create a 12 column grid, but you may customize this with the `cols` prop:
+
+```blade
+<x-pulse cols="16">
+    ...
+</x-pulse>
+```
+
+Each card accepts a `cols` and `rows` prop to control the space and positioning:
+
+```blade
+<livewire:pulse.usage cols="4" rows="2" />
+```
+
+Most cards also accept an `expand` prop to show the full card instead of scrolling:
+
+```blade
+<livewire:pulse.slow-queries expand />
+```
 
 <a name="dashboard-cards"></a>
 ### Cards
