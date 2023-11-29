@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static \Laravel\Pulse\Pulse register(array $recorders)
- * @method static \Laravel\Pulse\Entry record(string $type, \Closure|string $key, int|null $value, \DateTimeInterface|int|null $timestamp)
+ * @method static \Laravel\Pulse\Entry record(string $type, \Closure|string $key, int $value = 1, \DateTimeInterface|int|null $timestamp = null)
+ * @method static \Laravel\Pulse\Value set(string $type, \Closure|string $key, mixed|null $value, \DateTimeInterface|int|null $timestamp = null)
  * @method static \Laravel\Pulse\Pulse report(\Throwable $e)
  * @method static \Laravel\Pulse\Pulse startRecording()
  * @method static \Laravel\Pulse\Pulse stopRecording()
@@ -14,11 +15,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection entries()
  * @method static \Laravel\Pulse\Pulse flushEntries()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
- * @method static \Laravel\Pulse\Pulse store(\Laravel\Pulse\Contracts\Ingest $ingest)
+ * @method static \Laravel\Pulse\Pulse store()
  * @method static \Illuminate\Support\Collection recorders()
  * @method static \Illuminate\Support\Collection resolveUsers(\Illuminate\Support\Collection $ids)
  * @method static \Laravel\Pulse\Pulse resolveUsersUsing(callable $callback)
  * @method static callable authenticatedUserIdResolver()
+ * @method static string|int|null resolveAuthenticatedUserId()
  * @method static \Laravel\Pulse\Pulse resolveAuthenticatedUserIdUsing(callable $callback)
  * @method static mixed|null withUser(\Illuminate\Contracts\Auth\Authenticatable|string|int|null $user, callable $callback)
  * @method static \Laravel\Pulse\Pulse rememberUser(\Illuminate\Contracts\Auth\Authenticatable $user)
@@ -29,6 +31,13 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
  * @method static void rescue(callable $callback)
  * @method static void afterResolving(\Illuminate\Foundation\Application $app, string $class, \Closure $callback)
+ * @method static void trim()
+ * @method static void purge(array $types = null)
+ * @method static \Illuminate\Support\Collection values(string $type, array $keys = null)
+ * @method static \Illuminate\Support\Collection graph(array $types, string $aggregate, \Carbon\CarbonInterval $interval)
+ * @method static \Illuminate\Support\Collection aggregate(string $type, array $aggregates, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTypes(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTotal(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval)
  *
  * @see \Laravel\Pulse\Pulse
  */
