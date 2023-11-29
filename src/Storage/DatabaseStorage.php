@@ -224,8 +224,8 @@ class DatabaseStorage implements Storage
                         'value' => $aggregateSuffix === 'count'
                             ? 1
                             : $entry->value,
-                        ...($aggregateSuffix === 'avg') 
-                            ? ['count' => 1] 
+                        ...($aggregateSuffix === 'avg')
+                            ? ['count' => 1]
                             : [],
                     ];
                 }
