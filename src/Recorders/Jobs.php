@@ -51,7 +51,7 @@ class Jobs
             return;
         }
 
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
 
         [$uuid, $name] = match (get_class($event)) {
             JobQueued::class => [

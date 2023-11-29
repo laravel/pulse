@@ -45,7 +45,7 @@ class Exceptions
      */
     public function record(Throwable $e): void
     {
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
 
         $class = $this->getClass($e);
 

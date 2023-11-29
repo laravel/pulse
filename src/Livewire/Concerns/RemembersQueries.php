@@ -18,7 +18,7 @@ trait RemembersQueries
     public function remember(callable $query, string $key = ''): array
     {
         return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, CarbonInterval::seconds(5), function () use ($query) {
-            $now = new CarbonImmutable;
+            $now = CarbonImmutable::now();
 
             [$value, $duration] = Benchmark::value(fn () => $query($this->periodAsInterval()));
 

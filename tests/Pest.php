@@ -107,7 +107,7 @@ function captureRedisCommands(callable $callback)
     $beforeFlag = Str::random();
     Process::timeout(1)->run("redis-cli -p {$port} ping {$beforeFlag}")->throw();
 
-    $pingedAt = new CarbonImmutable;
+    $pingedAt = CarbonImmutable::now();
 
     while (! str_contains($process->output(), $beforeFlag) && $pingedAt->addSeconds(3)->isFuture()) {
         Sleep::for(50)->milliseconds();
@@ -123,7 +123,7 @@ function captureRedisCommands(callable $callback)
         $afterFlag = Str::random();
         Process::timeout(1)->run("redis-cli -p {$port} ping {$afterFlag}")->throw();
 
-        $pingedAt = new CarbonImmutable;
+        $pingedAt = CarbonImmutable::now();
 
         while (! str_contains($process->output(), $afterFlag) && $pingedAt->addSeconds(3)->isFuture()) {
             Sleep::for(50)->milliseconds();

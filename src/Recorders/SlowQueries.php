@@ -37,7 +37,7 @@ class SlowQueries
      */
     public function record(QueryExecuted $event): void
     {
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
 
         if ($event->time < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
             return;

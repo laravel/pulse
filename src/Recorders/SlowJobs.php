@@ -53,7 +53,7 @@ class SlowJobs
             return;
         }
 
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
 
         if ($event instanceof JobProcessing) {
             $this->lastJobStartedProcessingAt = $now;

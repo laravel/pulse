@@ -47,7 +47,7 @@ class SlowOutgoingRequests implements Grouping
      */
     public function record(RequestInterface $request, CarbonImmutable $startedAt): void
     {
-        $endedAt = new CarbonImmutable;
+        $endedAt = CarbonImmutable::now();
 
         if (! $this->shouldSample() || $this->shouldIgnore($request->getUri())) {
             return;
@@ -103,7 +103,7 @@ class SlowOutgoingRequests implements Grouping
     protected function middleware(callable $record): callable
     {
         return fn (callable $handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
-            $startedAt = new CarbonImmutable;
+            $startedAt = CarbonImmutable::now();
 
             return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
                 $record($request, $startedAt);

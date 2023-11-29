@@ -42,7 +42,7 @@ class CacheInteractions implements Grouping
      */
     public function record(CacheHit|CacheMissed $event): void
     {
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
 
         if (! $this->shouldSample() || $this->shouldIgnore($event->key)) {
             return;

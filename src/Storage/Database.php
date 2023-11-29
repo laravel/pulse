@@ -255,7 +255,7 @@ class Database implements Storage
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
-        $now = new CarbonImmutable;
+        $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
         $maxDataPoints = 60;
         $secondsPerPeriod = ($interval->totalSeconds / $maxDataPoints);
@@ -308,7 +308,7 @@ class Database implements Storage
     ): Collection {
         $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
         $orderBy ??= $aggregates[0];
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
         $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
@@ -395,7 +395,7 @@ class Database implements Storage
         $types = is_array($types) ? $types : [$types];
         $orderBy ??= $types[0];
 
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
         $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
@@ -475,7 +475,7 @@ class Database implements Storage
     ): Collection {
         $types = is_array($types) ? $types : [$types];
 
-        $now = new CarbonImmutable();
+        $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
         $windowStart = (int) $now->timestamp - $interval->totalSeconds + 1;
         $currentBucket = (int) floor((int) $now->timestamp / $period) * $period;
