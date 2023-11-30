@@ -13,7 +13,7 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
-    use Concerns\Ignores, Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling, Concerns\Groups;
 
     /**
      * The events to listen for.
@@ -60,21 +60,5 @@ class CacheInteractions
                 timestamp: $timestamp,
             )->count();
         });
-    }
-
-    /**
-     * The grouped value.
-     */
-    protected function group(string $value): string
-    {
-        foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-            $group = preg_replace($pattern, $replacement, $value, count: $count);
-
-            if ($count > 0 && $group !== null) {
-                return $group;
-            }
-        }
-
-        return $value;
     }
 }

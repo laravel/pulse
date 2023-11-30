@@ -18,7 +18,7 @@ use Throwable;
  */
 class SlowOutgoingRequests
 {
-    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\Sampling, Concerns\Groups, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -68,22 +68,6 @@ class SlowOutgoingRequests
                 timestamp: $timestamp,
             )->max()->count();
         });
-    }
-
-    /**
-     * The grouped value.
-     */
-    protected function group(string $value): string
-    {
-        foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-            $group = preg_replace($pattern, $replacement, $value, count: $count);
-
-            if ($count > 0 && $group !== null) {
-                return $group;
-            }
-        }
-
-        return $value;
     }
 
     /**
