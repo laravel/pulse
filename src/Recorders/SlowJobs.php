@@ -73,11 +73,11 @@ class SlowJobs
         ];
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
-            if (! $this->shouldSample() || $this->shouldIgnore($name)) {
-                return;
-            }
-
-            if (($duration = $timestampMs - $lastJobStartedProcessingAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+            if (
+                ! $this->shouldSample() ||
+                $this->shouldIgnore($name) ||
+                ($duration = $timestampMs - $lastJobStartedProcessingAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')
+            ) {
                 return;
             }
 

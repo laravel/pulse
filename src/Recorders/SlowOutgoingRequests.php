@@ -53,11 +53,11 @@ class SlowOutgoingRequests
         ]);
 
         $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
-            if (! $this->shouldSample() || $this->shouldIgnore($uri)) {
-                return;
-            }
-
-            if (($duration = $endedAt - $startedAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+            if (
+                ! $this->shouldSample() ||
+                $this->shouldIgnore($uri) ||
+                ($duration = $endedAt - $startedAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')
+            ) {
                 return;
             }
 
