@@ -53,7 +53,11 @@ class UserJobs
         ];
 
         $this->pulse->lazy(function () use ($timestamp, $name, $userIdResolver) {
-            if (! $this->shouldSample() || $this->shouldIgnore($name) || ($userId = $userIdResolver()) === null) {
+            if (
+                ($userId = $userIdResolver()) === null ||
+                ! $this->shouldSample() ||
+                $this->shouldIgnore($name)
+            ) {
                 return;
             }
 
