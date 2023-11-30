@@ -172,7 +172,7 @@ class Pulse
     public function set(
         string $type,
         string $key,
-        mixed $value,
+        string $value,
         DateTimeInterface|int $timestamp = null,
     ): Value {
         if ($timestamp === null) {

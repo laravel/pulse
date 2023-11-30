@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static \Laravel\Pulse\Pulse register(array $recorders)
  * @method static \Laravel\Pulse\Entry record(string $type, string $key, int $value = 1, \DateTimeInterface|int|null $timestamp = null)
- * @method static \Laravel\Pulse\Value set(string $type, string $key, mixed|null $value, \DateTimeInterface|int|null $timestamp = null)
+ * @method static \Laravel\Pulse\Value set(string $type, string $key, string $value, \DateTimeInterface|int|null $timestamp = null)
  * @method static \Laravel\Pulse\Pulse lazy(callable $closure)
  * @method static \Laravel\Pulse\Pulse report(\Throwable $e)
  * @method static \Laravel\Pulse\Pulse startRecording()
