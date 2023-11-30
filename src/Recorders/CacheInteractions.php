@@ -52,9 +52,9 @@ class CacheInteractions
             }
 
             return $this->pulse->record(
-                type: match (true) { // @phpstan-ignore match.unhandled
-                    is_a($class, CacheHit::class, true) => 'cache_hit',
-                    is_a($class, CacheMissed::class, true) => 'cache_miss',
+                type: match ($class) { // @phpstan-ignore match.unhandled
+                    CacheHit::class => 'cache_hit',
+                    CacheMissed::class => 'cache_miss',
                 },
                 key: $this->group($key),
                 timestamp: $timestamp,

@@ -50,26 +50,26 @@ class Jobs
             return;
         }
 
-        $timestamp = CarbonImmutable::now()->getTimestamp();
-        $class = $event::class;
-        $connection = match ($class) {
-            JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
-            default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
-        };
-        [$uuid, $name] = match ($class) {
-            JobQueued::class => [
-                $event->payload()['uuid'], // @phpstan-ignore method.notFound
-                match (true) {
+        [$timestamp, $class, $connection, $uuid, $name] = [
+            CarbonImmutable::now()->getTimestamp(),
+            $event::class,
+            match ($event::class) {
+                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
+                default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
+            },
+            match ($event::class) {
+                JobQueued::class => $event->payload()['uuid'],
+                default => $event->job->uuid(), // @phpstan-ignore method.nonObject
+            },
+            match ($event::class) {
+                JobQueued::class => match (true) {
                     is_string($event->job) => $event->job,
                     method_exists($event->job, 'displayName') => $event->job->displayName(),
                     default => $event->job::class,
                 },
-            ],
-            default => [
-                $event->job->uuid(), // @phpstan-ignore method.nonObject
-                $event->job->resolveName(), // @phpstan-ignore method.nonObject
-            ],
-        };
+                default => $event->job->resolveName(), // @phpstan-ignore method.nonObject
+            },
+        ];
 
         $this->pulse->lazy(function () use ($timestamp, $class, $uuid, $name, $connection) {
             if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
