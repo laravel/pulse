@@ -53,23 +53,25 @@ class SlowJobs
             return;
         }
 
-        [$timestamp, $timestampMs] = with(CarbonImmutable::now(), fn ($now) => [
-            $now->getTimestamp(),
-            $now->getTimestampMs(),
-        ]);
-
         if ($event instanceof JobProcessing) {
-            $this->lastJobStartedProcessingAt = $timestampMs;
+            $this->lastJobStartedProcessingAt = CarbonImmutable::now()->getTimestampMs();
 
             return;
         }
 
-        $name = $event->job->resolveName();
-        $lastJobStartedProcessingAt = $this->lastJobStartedProcessingAt;
-        $this->lastJobStartedProcessingAt = null;
+        if ($this->lastJobStartedProcessingAt === null) {
+            return;
+        }
+
+        [$timestamp, $timestampMs, $name, $lastJobStartedProcessingAt] = with(CarbonImmutable::now(), fn ($now) => [
+            $now->getTimestamp(),
+            $now->getTimestampMs(),
+            $event->job->resolveName(),
+            tap($this->lastJobStartedProcessingAt, fn () => ($this->lastJobStartedProcessingAt = null))
+        ]);
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
-            if (! $this->shouldSample() || $this->shouldIgnore($name) || $lastJobStartedProcessingAt === null) {
+            if (! $this->shouldSample() || $this->shouldIgnore($name)) {
                 return;
             }
 
