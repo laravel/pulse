@@ -2,7 +2,73 @@
 
 use Carbon\CarbonInterval;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
+
+it('combines duplicate count aggregates before upserting', function () {
+    $queries = collect();
+    DB::listen(fn ($query) => $queries[] = $query);
+
+    Pulse::record('type', 'key1')->count();
+    Pulse::record('type', 'key1')->count();
+    Pulse::record('type', 'key1')->count();
+    Pulse::record('type', 'key2')->count();
+    Pulse::store();
+
+    expect($queries)->toHaveCount(2);
+    expect($queries[0]->sql)->toContain('pulse_entries');
+    expect($queries[1]->sql)->toContain('pulse_aggregates');
+    expect($queries[0]->bindings)->toHaveCount(4 * 4); // 4 entries, 4 columns each
+    expect($queries[1]->bindings)->toHaveCount(2 * 6 * 4); // 2 entries, 6 columns each, 4 periods
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('period', 60)->orderBy('key')->pluck('value', 'key'));
+    expect($aggregates['key1'])->toEqual(3);
+    expect($aggregates['key2'])->toEqual(1);
+});
+
+it('combines duplicate max aggregates before upserting', function () {
+    $queries = collect();
+    DB::listen(fn ($query) => $queries[] = $query);
+
+    Pulse::record('type', 'key1', 100)->max();
+    Pulse::record('type', 'key1', 300)->max();
+    Pulse::record('type', 'key1', 200)->max();
+    Pulse::record('type', 'key2', 100)->max();
+    Pulse::store();
+
+    expect($queries)->toHaveCount(2);
+    expect($queries[0]->sql)->toContain('pulse_entries');
+    expect($queries[1]->sql)->toContain('pulse_aggregates');
+    expect($queries[0]->bindings)->toHaveCount(4 * 4); // 4 entries, 4 columns each
+    expect($queries[1]->bindings)->toHaveCount(2 * 6 * 4); // 2 entries, 6 columns each, 4 periods
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('period', 60)->orderBy('key')->pluck('value', 'key'));
+    expect($aggregates['key1'])->toEqual(300);
+    expect($aggregates['key2'])->toEqual(100);
+});
+
+it('combines duplicate average aggregates before upserting', function () {
+    $queries = collect();
+    DB::listen(fn ($query) => $queries[] = $query);
+
+    Pulse::record('type', 'key1', 100)->avg();
+    Pulse::record('type', 'key1', 300)->avg();
+    Pulse::record('type', 'key1', 200)->avg();
+    Pulse::record('type', 'key2', 100)->avg();
+    Pulse::store();
+
+    expect($queries)->toHaveCount(2);
+    expect($queries[0]->sql)->toContain('pulse_entries');
+    expect($queries[1]->sql)->toContain('pulse_aggregates');
+    expect($queries[0]->bindings)->toHaveCount(4 * 4); // 4 entries, 4 columns each
+    expect($queries[1]->bindings)->toHaveCount(2 * 7 * 4); // 2 entries, 7 columns each, 4 periods
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('period', 60)->orderBy('key')->get())->keyBy('key');
+    expect($aggregates['key1']->value)->toEqual(200);
+    expect($aggregates['key2']->value)->toEqual(100);
+    expect($aggregates['key1']->count)->toEqual(3);
+    expect($aggregates['key2']->count)->toEqual(1);
+});
 
 test('one or more aggregates for a single type', function () {
     /*

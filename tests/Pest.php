@@ -4,6 +4,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Process;
@@ -68,7 +69,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
                 'type' => $type,
                 'aggregate' => $aggregate,
                 'key' => $key,
-                'key_hash' => hex2bin(md5($key)),
+                'key_hash' => keyHash($key),
                 'value' => $value,
                 'count' => $count,
             ];
@@ -90,6 +91,14 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+function keyHash(string $string): string
+{
+    return match (DB::connection()->getDriverName()) {
+        'mysql' => hex2bin(md5($string)),
+        'pgsql' => md5($string),
+    };
+}
 
 function prependListener(string $event, callable $listener): void
 {
