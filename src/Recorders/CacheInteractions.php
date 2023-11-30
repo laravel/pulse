@@ -40,9 +40,11 @@ class CacheInteractions
      */
     public function record(CacheHit|CacheMissed $event): void
     {
-        $timestamp = CarbonImmutable::now()->getTimestamp();
-        $class = $event::class;
-        $key = $event->key;
+        [$timestamp, $class, $key] = [
+            CarbonImmutable::now()->getTimestamp(),
+            $event::class,
+            $event->key,
+        ];
 
         $this->pulse->lazy(function () use ($timestamp, $class, $key) {
             if (! $this->shouldSample() || $this->shouldIgnore($key)) {
