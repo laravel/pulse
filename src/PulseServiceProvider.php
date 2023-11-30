@@ -23,6 +23,9 @@ use Laravel\Pulse\Storage\DatabaseStorage;
 use Livewire\LivewireManager;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 class PulseServiceProvider extends ServiceProvider
 {
     /**

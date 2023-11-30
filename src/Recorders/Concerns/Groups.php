@@ -2,9 +2,6 @@
 
 namespace Laravel\Pulse\Recorders\Concerns;
 
-/**
- * @internal
- */
 trait Groups
 {
     /**

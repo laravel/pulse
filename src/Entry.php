@@ -114,31 +114,4 @@ class Entry
             'value' => $this->value,
         ];
     }
-
-    /**
-     * Fetch the aggregate attributes for persisting.
-     *
-     * @return array<string, mixed>
-     */
-    public function aggregateAttributes(int $period, string $aggregate): array
-    {
-        $attributes = [
-            'bucket' => (int) (floor($this->timestamp / $period) * $period),
-            'period' => $period,
-            'type' => $this->type,
-            'aggregate' => $aggregate,
-            'key' => $this->key,
-            'value' => $this->value,
-        ];
-
-        if ($aggregate === 'count') {
-            $attributes['value'] = 1;
-        }
-
-        if ($aggregate === 'avg') {
-            $attributes['count'] = 1;
-        }
-
-        return $attributes;
-    }
 }

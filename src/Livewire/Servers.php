@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Attributes\Lazy;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Servers extends Card
 {

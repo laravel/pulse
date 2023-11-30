@@ -10,6 +10,9 @@ use Laravel\Pulse\Recorders\SlowJobs as SlowJobsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class SlowJobs extends Card
 {

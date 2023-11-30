@@ -12,6 +12,9 @@ use Laravel\Pulse\Entry;
 use Laravel\Pulse\Support\RedisAdapter;
 use Laravel\Pulse\Value;
 
+/**
+ * @internal
+ */
 class RedisIngest implements Ingest
 {
     /**

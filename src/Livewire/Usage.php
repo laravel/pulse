@@ -12,6 +12,9 @@ use Laravel\Pulse\Recorders\UserRequests;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Usage extends Card
 {

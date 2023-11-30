@@ -10,6 +10,9 @@ use Laravel\Pulse\Recorders\SlowRequests as SlowRequestsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class SlowRequests extends Card
 {

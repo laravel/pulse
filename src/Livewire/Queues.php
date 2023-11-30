@@ -11,6 +11,9 @@ use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues as QueuesRecorder;
 use Livewire\Attributes\Lazy;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Queues extends Card
 {

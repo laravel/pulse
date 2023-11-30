@@ -6,6 +6,9 @@ use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
 
+/**
+ * @internal
+ */
 class StorageIngest implements Ingest
 {
     /**

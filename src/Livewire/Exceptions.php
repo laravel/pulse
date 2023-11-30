@@ -10,6 +10,9 @@ use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Exceptions extends Card
 {

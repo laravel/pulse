@@ -9,6 +9,9 @@ use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\CacheInteractions as CacheInteractionsRecorder;
 use Livewire\Attributes\Lazy;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Cache extends Card
 {
