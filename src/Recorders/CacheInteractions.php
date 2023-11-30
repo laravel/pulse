@@ -51,7 +51,7 @@ class CacheInteractions
                 return;
             }
 
-            return $this->pulse->record(
+            $this->pulse->record(
                 type: match ($class) { // @phpstan-ignore match.unhandled
                     CacheHit::class => 'cache_hit',
                     CacheMissed::class => 'cache_miss',
