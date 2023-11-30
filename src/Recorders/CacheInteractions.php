@@ -13,7 +13,7 @@ use Laravel\Pulse\Pulse;
  */
 class CacheInteractions
 {
-    use Concerns\Ignores, Concerns\Sampling, Concerns\Groups;
+    use Concerns\Groups, Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The events to listen for.
