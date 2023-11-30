@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Recorders\Jobs;
+use Laravel\Pulse\Recorders\Queues as QueuesRecorder;
 use Livewire\Attributes\Lazy;
 
 #[Lazy]
@@ -35,7 +35,7 @@ class Queues extends Card
             'showConnection' => $queues->keys()->map(fn ($queue) => Str::before($queue, ':'))->unique()->count() > 1,
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.Jobs::class),
+            'config' => Config::get('pulse.recorders.'.QueuesRecorder::class),
         ]);
     }
 }

@@ -14,7 +14,7 @@ use Laravel\Pulse\Pulse;
 /**
  * @internal
  */
-class Jobs
+class Queues
 {
     use Concerns\Ignores, Concerns\Sampling;
 

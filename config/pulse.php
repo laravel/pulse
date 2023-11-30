@@ -151,9 +151,9 @@ return [
             ],
         ],
 
-        Recorders\Jobs::class => [
-            'enabled' => env('PULSE_JOBS_ENABLED', true),
-            'sample_rate' => env('PULSE_JOBS_SAMPLE_RATE', 1),
+        Recorders\Queues::class => [
+            'enabled' => env('PULSE_QUEUES_ENABLED', true),
+            'sample_rate' => env('PULSE_QUEUES_SAMPLE_RATE', 1),
             'ignore' => [
                 // '/^Package\\\\Jobs\\\\/',
             ],
