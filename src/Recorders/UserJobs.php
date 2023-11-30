@@ -42,13 +42,15 @@ class UserJobs
             return;
         }
 
-        $timestamp = CarbonImmutable::now()->getTimestamp();
-        $name = match (true) {
-            is_string($event->job) => $event->job,
-            method_exists($event->job, 'displayName') => $event->job->displayName(),
-            default => $event->job::class,
-        };
-        $userIdResolver = $this->pulse->authenticatedUserIdResolver();
+        [$timestamp, $name, $userIdResolver] = [
+            CarbonImmutable::now()->getTimestamp(),
+            match (true) {
+                is_string($event->job) => $event->job,
+                method_exists($event->job, 'displayName') => $event->job->displayName(),
+                default => $event->job::class,
+            },
+            $this->pulse->authenticatedUserIdResolver(),
+        ];
 
         $this->pulse->lazy(function () use ($timestamp, $name, $userIdResolver) {
             if (! $this->shouldSample() || $this->shouldIgnore($name) || ($userId = $userIdResolver()) === null) {
