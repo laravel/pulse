@@ -67,7 +67,7 @@ interface Storage
      */
     public function aggregate(
         string $type,
-        array|string $aggregates,
+        string|array $aggregates,
         CarbonInterval $interval,
         string $orderBy = null,
         string $direction = 'desc',
