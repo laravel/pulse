@@ -67,7 +67,7 @@ class SlowJobs
             $now->getTimestamp(),
             $now->getTimestampMs(),
             $event->job->resolveName(),
-            tap($this->lastJobStartedProcessingAt, fn () => ($this->lastJobStartedProcessingAt = null))
+            tap($this->lastJobStartedProcessingAt, fn () => ($this->lastJobStartedProcessingAt = null)),
         ]);
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
