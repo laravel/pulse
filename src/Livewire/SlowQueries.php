@@ -38,7 +38,7 @@ class SlowQueries extends Card
                     default => 'max',
                 },
             )->map(function ($row) {
-                [$sql, $location] = json_decode($row->key);
+                [$sql, $location] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
                 return (object) [
                     'sql' => $sql,

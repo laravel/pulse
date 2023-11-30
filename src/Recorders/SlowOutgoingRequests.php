@@ -60,7 +60,7 @@ class SlowOutgoingRequests
         $this->pulse->record(
             type: 'slow_outgoing_request',
             // this returns a stirng now
-            key: $this->group(json_encode([$request->getMethod(), $request->getUri()])),
+            key: $this->group(json_encode([$request->getMethod(), $request->getUri()], flags: JSON_THROW_ON_ERROR)),
             value: $duration,
             timestamp: $startedAt,
         )->max()->count();
@@ -75,13 +75,13 @@ class SlowOutgoingRequests
         return 'TODO';
 
         return function () use ($key) {
-            [$method, $uri] = json_decode($key);
+            [$method, $uri] = json_decode($key, flags: JSON_THROW_ON_ERROR);
 
             foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
                 $group = preg_replace($pattern, $replacement, $uri, count: $count);
 
                 if ($count > 0 && $group !== null) {
-                    return json_encode([$method, $group]);
+                    return json_encode([$method, $group], flags: JSON_THROW_ON_ERROR);
                 }
             }
 

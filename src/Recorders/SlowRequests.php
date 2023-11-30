@@ -75,7 +75,7 @@ class SlowRequests
             $request->method(),
             $path,
             $via ?? $route->getActionName(),
-        ]);
+        ], flags: JSON_THROW_ON_ERROR);
 
         $this->pulse->record(
             type: 'slow_request',

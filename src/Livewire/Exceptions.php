@@ -38,7 +38,7 @@ class Exceptions extends Card
                     default => 'count'
                 },
             )->map(function ($row) {
-                [$class, $location] = json_decode($row->key);
+                [$class, $location] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
                 return (object) [
                     'class' => $class,

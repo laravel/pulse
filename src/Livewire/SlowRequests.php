@@ -38,7 +38,7 @@ class SlowRequests extends Card
                     default => 'max',
                 },
             )->map(function ($row) {
-                [$method, $uri, $action] = json_decode($row->key);
+                [$method, $uri, $action] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
                 return (object) [
                     'uri' => $uri,

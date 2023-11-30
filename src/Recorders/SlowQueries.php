@@ -49,7 +49,7 @@ class SlowQueries
 
         $location = $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : null;
 
-        $key = json_encode([$event->sql, $location]);
+        $key = json_encode([$event->sql, $location], flags: JSON_THROW_ON_ERROR);
 
         $this->pulse->record(
             type: 'slow_query',
