@@ -11,9 +11,9 @@ trait Sampling
      */
     protected function shouldSample(): bool
     {
-        $rate = $this->config->get('pulse.recorders.'.self::class.'.sample_rate');
-
-        return Lottery::odds($rate)->choose();
+        return Lottery::odds(
+            $this->config->get('pulse.recorders.'.self::class.'.sample_rate')
+        )->choose();
     }
 
     /**
@@ -21,10 +21,8 @@ trait Sampling
      */
     protected function shouldSampleDeterministically(string $seed): bool
     {
-        $rate = $this->config->get('pulse.recorders.'.self::class.'.sample_rate');
-
         $value = hexdec(md5($seed)) / pow(16, 32); // Scale to 0-1
 
-        return $value <= $rate;
+        return $value <= $this->config->get('pulse.recorders.'.self::class.'.sample_rate');
     }
 }

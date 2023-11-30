@@ -4,13 +4,14 @@ namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
-use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Sleep;
-use Laravel\Pulse\Contracts\Ingest;
-use Laravel\Pulse\Events\Beat;
+use Laravel\Pulse\Events\IsolatedBeat;
+use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Support\CacheStoreResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
@@ -38,35 +39,40 @@ class CheckCommand extends Command
      */
     public function handle(
         Pulse $pulse,
-        Ingest $ingest,
-        CacheManager $cache,
+        CacheStoreResolver $cache,
         Dispatcher $event,
     ): int {
-        $lastRestart = $cache->get('laravel:pulse:restart');
+        $lastRestart = $cache->store()->get('laravel:pulse:restart');
 
-        // TODO: Review whether 5 seconds makes sense. Can we remove it all-together and beat once per second?
         $interval = CarbonInterval::seconds(5);
 
-        $lastSnapshotAt = (new CarbonImmutable)->floorSeconds((int) $interval->totalSeconds);
+        $lastSnapshotAt = CarbonImmutable::now()->floorSeconds((int) $interval->totalSeconds);
 
         while (true) {
-            $now = new CarbonImmutable();
-
-            if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
-                return self::SUCCESS;
-            }
+            $now = CarbonImmutable::now();
 
             if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
-                Sleep::for(1)->second();
+                Sleep::for(500)->milliseconds();
 
                 continue;
             }
 
+            if ($lastRestart !== $cache->store()->get('laravel:pulse:restart')) {
+                return self::SUCCESS;
+            }
+
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            $event->dispatch(new Beat($lastSnapshotAt, $interval));
+            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
-            $pulse->store($ingest);
+            if (
+                ($lockProvider ??= $cache->store()->getStore()) instanceof LockProvider &&
+                $lockProvider->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()
+            ) {
+                $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
+            }
+
+            $pulse->store();
         }
     }
 }

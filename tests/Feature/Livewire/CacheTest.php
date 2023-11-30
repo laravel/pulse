@@ -1,41 +1,51 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Cache;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
-    Pulse::authorizeUsing(fn () => true);
-
     $this
         ->get('/pulse')
         ->assertSeeLivewire(Cache::class);
 });
 
 it('renders cache statistics', function () {
-    Pulse::ignore(fn () => DB::table('pulse_cache_interactions')->insert([
-        ['date' => '2000-01-02 03:04:05', 'key' => 'foo', 'hit' => true],
-        ['date' => '2000-01-02 03:04:05', 'key' => 'foo', 'hit' => true],
-        ['date' => '2000-01-02 03:04:05', 'key' => 'foo', 'hit' => false],
-        ['date' => '2000-01-02 03:04:05', 'key' => 'foo', 'hit' => false],
-        ['date' => '2000-01-02 03:04:05', 'key' => 'bar', 'hit' => true],
-        ['date' => '2000-01-02 03:04:05', 'key' => 'bar', 'hit' => false],
-    ]));
-    Carbon::setTestNow('2000-01-02 03:04:10');
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('cache_hit', 'foo')->count();
+    Pulse::record('cache_hit', 'bar')->count();
+    Pulse::record('cache_miss', 'foo')->count();
+    Pulse::record('cache_miss', 'bar')->count();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('cache_hit', 'foo')->count();
+    Pulse::record('cache_hit', 'foo')->count();
+    Pulse::record('cache_hit', 'bar')->count();
+    Pulse::record('cache_miss', 'foo')->count();
+    Pulse::record('cache_miss', 'foo')->count();
+    Pulse::record('cache_miss', 'bar')->count();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('cache_hit', 'foo')->count();
+    Pulse::record('cache_hit', 'foo')->count();
+    Pulse::record('cache_hit', 'bar')->count();
+    Pulse::record('cache_miss', 'foo')->count();
+    Pulse::record('cache_miss', 'foo')->count();
+    Pulse::record('cache_miss', 'bar')->count();
+
+    Pulse::store();
 
     Livewire::test(Cache::class, ['lazy' => false])
-        ->assertViewHas('allTime')
-        ->assertViewHas('allRunAt', '2000-01-02 03:04:10')
         ->assertViewHas('allCacheInteractions', (object) [
-            'count' => 6,
-            'hits' => 3,
+            'hits' => 6,
+            'misses' => 6,
         ])
-        ->assertViewHas('keyTime')
-        ->assertViewHas('keyRunAt', '2000-01-02 03:04:10')
         ->assertViewHas('cacheKeyInteractions', collect([
-            (object) ['key' => 'foo', 'count' => 4, 'hits' => 2],
-            (object) ['key' => 'bar', 'count' => 2, 'hits' => 1],
+            (object) ['key' => 'foo', 'hits' => 4, 'misses' => 4],
+            (object) ['key' => 'bar', 'hits' => 2, 'misses' => 2],
         ]));
 });

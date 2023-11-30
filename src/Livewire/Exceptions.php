@@ -5,35 +5,53 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Queries\Exceptions as ExceptionsQuery;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Exceptions extends Card
 {
     use Concerns\HasPeriod, Concerns\RemembersQueries;
 
     /**
-     * The view type
+     * Ordering.
      *
-     * @var 'count'|'last_occurrence'
+     * @var 'count'|'latest'
      */
-    #[Url(as: 'exceptions_by')]
+    #[Url(as: 'exceptions')]
     public string $orderBy = 'count';
 
     /**
      * Render the component.
      */
-    public function render(ExceptionsQuery $query): Renderable
+    public function render(): Renderable
     {
-        $orderBy = match ($this->orderBy) {
-            'last_occurrence' => 'last_occurrence',
-            default => 'count'
-        };
+        [$exceptions, $time, $runAt] = $this->remember(
+            fn () => Pulse::aggregate(
+                'exception',
+                ['max', 'count'],
+                $this->periodAsInterval(),
+                match ($this->orderBy) {
+                    'latest' => 'max',
+                    default => 'count'
+                },
+            )->map(function ($row) {
+                [$class, $location] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
-        [$exceptions, $time, $runAt] = $this->remember(fn ($interval) => $query($interval, $orderBy), $orderBy);
+                return (object) [
+                    'class' => $class,
+                    'location' => $location,
+                    'latest' => $row->max,
+                    'count' => $row->count,
+                ];
+            }),
+            $this->orderBy
+        );
 
         return View::make('pulse::livewire.exceptions', [
             'time' => $time,

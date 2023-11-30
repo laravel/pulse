@@ -1,20 +1,10 @@
 <?php
 
-use Illuminate\Auth\AuthManager;
-use Illuminate\Auth\GuardHelpers;
-use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Facade;
-use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Pulse as PulseInstance;
 use Laravel\Pulse\Recorders\SlowQueries;
 
 it('ingests queries', function () {
@@ -26,21 +16,40 @@ it('ingests queries', function () {
 
     DB::connection()->statement('select * from users');
 
-    expect(Pulse::entries())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
+    Pulse::store();
 
-    Pulse::store(app(Ingest::class));
-
-    expect(Pulse::entries())->toHaveCount(0);
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:00',
-        'user_id' => null,
-        'sql' => 'select * from users',
-        'duration' => 5000,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp - 5,
+        'type' => 'slow_query',
+        'value' => 5000,
     ]);
-    expect($queries[0]->location)->not->toBe('');
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->not->toBeNull();
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    expect($aggregates)->toHaveCount(8);
+    expect($aggregates[0])->toHaveProperties([
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
+        'period' => 60,
+        'type' => 'slow_query',
+        'aggregate' => 'count',
+        'value' => 1,
+    ]);
+    $key = json_decode($aggregates[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->not->toBeNull();
+    expect($aggregates[1])->toHaveProperties([
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
+        'period' => 60,
+        'type' => 'slow_query',
+        'aggregate' => 'max',
+        'value' => 5000,
+    ]);
+    $key = json_decode($aggregates[1]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->not->toBeNull();
 });
 
 it('can disable capturing the location', function () {
@@ -51,18 +60,40 @@ it('can disable capturing the location', function () {
     });
 
     DB::connection()->statement('select * from users');
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
-    expect(Pulse::entries())->toHaveCount(0);
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0])->toHaveProperties([
-        'date' => '2000-01-02 03:04:00',
-        'user_id' => null,
-        'sql' => 'select * from users',
-        'location' => '',
-        'duration' => 5000,
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp - 5,
+        'type' => 'slow_query',
+        'value' => 5000,
     ]);
+    $key = json_decode($entries[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->toBeNull();
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    expect($aggregates)->toHaveCount(8);
+    expect($aggregates[0])->toHaveProperties([
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
+        'period' => 60,
+        'type' => 'slow_query',
+        'aggregate' => 'count',
+        'value' => 1,
+    ]);
+    $key = json_decode($aggregates[0]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->toBeNull();
+    expect($aggregates[1])->toHaveProperties([
+        'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
+        'period' => 60,
+        'type' => 'slow_query',
+        'aggregate' => 'max',
+        'value' => 5000,
+    ]);
+    $key = json_decode($aggregates[1]->key);
+    expect($key[0])->toBe('select * from users');
+    expect($key[1])->toBeNull();
 });
 
 it('does not ingest queries under the slow query threshold', function () {
@@ -72,9 +103,9 @@ it('does not ingest queries under the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 });
 
 it('ingests queries equal to the slow query threshold', function () {
@@ -84,9 +115,9 @@ it('ingests queries equal to the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(1));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });
 
 it('ingests queries over the slow query threshold', function () {
@@ -96,114 +127,9 @@ it('ingests queries over the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
+    Pulse::store();
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(1));
-});
-
-it('captures the authenticated user', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    Auth::login(User::make(['id' => '567']));
-
-    DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
-
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0]->user_id)->toBe('567');
-});
-
-it('captures the authenticated user if they login after the query', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    DB::table('users')->count();
-    Auth::login(User::make(['id' => '567']));
-    Pulse::store(app(Ingest::class));
-
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0]->user_id)->toBe('567');
-});
-
-it('captures the authenticated user if they logout after the query', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    Auth::login(User::make(['id' => '567']));
-
-    DB::table('users')->count();
-    Auth::logout();
-    Pulse::store(app(Ingest::class));
-
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0]->user_id)->toBe('567');
-});
-
-it('does not trigger an inifite loop when retriving the authenticated user from the database', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    Config::set('auth.guards.db', ['driver' => 'db']);
-    Auth::extend('db', fn () => new class implements Guard
-    {
-        use GuardHelpers;
-
-        public function validate(array $credentials = [])
-        {
-            return true;
-        }
-
-        public function user()
-        {
-            static $count = 0;
-
-            if (++$count > 5) {
-                throw new RuntimeException('Infinite loop detected.');
-            }
-
-            return User::first();
-        }
-    })->shouldUse('db');
-
-    DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
-
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(1);
-    expect($queries[0]->user_id)->toBe(null);
-});
-
-it('quietly fails if an exception is thrown while preparing the entry payload', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    App::forgetInstance(PulseInstance::class);
-    Facade::clearResolvedInstance(PulseInstance::class);
-    App::when(PulseInstance::class)
-        ->needs(AuthManager::class)
-        ->give(fn (Application $app) => new class($app) extends AuthManager
-        {
-            public function hasUser()
-            {
-                throw new RuntimeException('Error checking for user.');
-            }
-        });
-
-    DB::table('users')->count();
-    Pulse::store(app(Ingest::class));
-
-    Pulse::ignore(fn () => expect(DB::table('pulse_slow_queries')->count())->toBe(0));
-});
-
-it('handles multiple users being logged in', function () {
-    Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
-    Pulse::withUser(null, fn () => DB::table('users')->count());
-    Auth::login(User::make(['id' => '567']));
-    DB::table('users')->count();
-    Auth::login(User::make(['id' => '789']));
-    DB::table('users')->count();
-
-    Pulse::store(app(Ingest::class));
-
-    $queries = Pulse::ignore(fn () => DB::table('pulse_slow_queries')->get());
-    expect($queries)->toHaveCount(3);
-    expect($queries[0]->user_id)->toBe(null);
-    expect($queries[1]->user_id)->toBe('567');
-    expect($queries[2]->user_id)->toBe('789');
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });
 
 it('can ignore queries', function () {
@@ -212,9 +138,8 @@ it('can ignore queries', function () {
         '/(["`])pulse_[\w]+?\1/', // Pulse tables
     ]);
 
-    DB::table('pulse_slow_queries')->count();
-
-    expect(Pulse::entries())->toHaveCount(0);
+    expect(Pulse::store())->toBe(0);
+    DB::table('pulse_entries')->count();
 });
 
 it('can sample', function () {
@@ -232,9 +157,7 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toEqualWithDelta(1, 4);
-
-    Pulse::flushEntries();
+    expect(Pulse::store())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -252,9 +175,7 @@ it('can sample at zero', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toBe(0);
-
-    Pulse::flushEntries();
+    expect(Pulse::store())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -272,7 +193,5 @@ it('can sample at one', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(count(Pulse::entries()))->toBe(10);
-
-    Pulse::flushEntries();
+    expect(Pulse::store())->toBe(10);
 });

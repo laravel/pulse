@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
+/**
+ * @internal
+ */
 class PeriodSelector extends Component
 {
     /**

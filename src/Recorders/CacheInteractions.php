@@ -3,26 +3,17 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Config\Repository;
-use Laravel\Pulse\Contracts\Grouping;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
  * @internal
  */
-class CacheInteractions implements Grouping
+class CacheInteractions
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_cache_interactions';
+    use Concerns\Groups, Concerns\Ignores, Concerns\Sampling;
 
     /**
      * The events to listen for.
@@ -47,47 +38,27 @@ class CacheInteractions implements Grouping
     /**
      * Record the cache interaction.
      */
-    public function record(CacheHit|CacheMissed $event): ?Entry
+    public function record(CacheHit|CacheMissed $event): void
     {
-        $now = new CarbonImmutable();
+        [$timestamp, $class, $key] = [
+            CarbonImmutable::now()->getTimestamp(),
+            $event::class,
+            $event->key,
+        ];
 
-        if (! $this->shouldSample() || $this->shouldIgnore($event->key)) {
-            return null;
-        }
-
-        return new Entry($this->table, [
-            'date' => $now->toDateTimeString(),
-            'hit' => $event instanceof CacheHit,
-            'key' => $this->group($event->key),
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
-    }
-
-    /**
-     * Return a closure that groups the given value.
-     *
-     * @return Closure(): string
-     */
-    public function group(string $value): Closure
-    {
-        return function () use ($value) {
-            foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-                $group = preg_replace($pattern, $replacement, $value, count: $count);
-
-                if ($count > 0 && $group !== null) {
-                    return $group;
-                }
+        $this->pulse->lazy(function () use ($timestamp, $class, $key) {
+            if (! $this->shouldSample() || $this->shouldIgnore($key)) {
+                return;
             }
 
-            return $value;
-        };
-    }
-
-    /**
-     * Return the column that grouping should be applied to.
-     */
-    public function groupColumn(): string
-    {
-        return 'key';
+            $this->pulse->record(
+                type: match ($class) { // @phpstan-ignore match.unhandled
+                    CacheHit::class => 'cache_hit',
+                    CacheMissed::class => 'cache_miss',
+                },
+                key: $this->group($key),
+                timestamp: $timestamp,
+            )->count();
+        });
     }
 }

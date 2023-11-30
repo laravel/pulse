@@ -3,13 +3,11 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Queries\Usage;
+use Laravel\Pulse\Support\CacheStoreResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
@@ -23,7 +21,7 @@ class WorkCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:work';
+    public $signature = 'pulse:work {--stop-when-empty : Stop when the stream is empty}';
 
     /**
      * The command's description.
@@ -36,55 +34,31 @@ class WorkCommand extends Command
      * Handle the command.
      */
     public function handle(
-        Pulse $pulse,
         Ingest $ingest,
         Storage $storage,
-        CacheManager $cache,
-        Usage $usage,
+        CacheStoreResolver $cache,
     ): int {
-        $lastRestart = $cache->get('laravel:pulse:restart');
+        $lastRestart = $cache->store()->get('laravel:pulse:restart');
 
-        $lastWarmedAt = with($cache->get('laravel:pulse:work:warmed_at'), fn (?int $timestamp) => $timestamp === null
-            ? null
-            : CarbonImmutable::createFromTimestamp($timestamp));
-
-        $lastTrimmedStorageAt = (new CarbonImmutable)->startOfMinute();
+        $lastTrimmedStorageAt = CarbonImmutable::now()->startOfMinute();
 
         while (true) {
-            $now = new CarbonImmutable;
+            $now = CarbonImmutable::now();
 
-            if ($lastRestart !== $cache->get('laravel:pulse:restart')) {
-                $this->info('Pulse restart signal detected. Goodbye.', 'v');
-
+            if ($lastRestart !== $cache->store()->get('laravel:pulse:restart')) {
                 return self::SUCCESS;
             }
 
-            $this->info('Storing data.', 'v');
+            $ingest->store($storage);
 
-            $count = $ingest->store($storage);
-
-            $this->info("Stored [$count] entries.", 'v');
-
-            if ($lastWarmedAt === null || $now->subSeconds(10)->greaterThan($lastWarmedAt)) {
-                $this->info('Warming queries.', 'v');
-
-                $usage->warm($now, $lastWarmedAt);
-
-                $cache->forever('laravel:pulse:work:warmed_at', $now->timestamp);
-
-                $lastWarmedAt = $now;
-
-                $this->info('Queries warmed.', 'v');
-            }
-
-            if ($now->subHour()->greaterThan($lastTrimmedStorageAt)) {
-                $this->info('Trimming tables.', 'v');
-
-                $storage->trim($pulse->tables());
+            if ($now->subMinutes(10)->greaterThan($lastTrimmedStorageAt)) {
+                $storage->trim();
 
                 $lastTrimmedStorageAt = $now;
+            }
 
-                $this->info('Tables trimmed.', 'v');
+            if ($this->option('stop-when-empty')) {
+                return self::SUCCESS;
             }
 
             Sleep::for(1)->second();

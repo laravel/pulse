@@ -2,23 +2,28 @@
 
 namespace Laravel\Pulse;
 
-use Illuminate\Auth\AuthManager;
-use Illuminate\Config\Repository;
+use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+/**
+ * @internal
+ *
+ * @mixin \Laravel\Pulse\Contracts\Storage
+ */
 class Pulse
 {
-    use Concerns\ConfiguresAfterResolving;
+    use Concerns\ConfiguresAfterResolving, ForwardsCalls;
 
     /**
      * The list of metric recorders.
@@ -28,21 +33,28 @@ class Pulse
     protected Collection $recorders;
 
     /**
-     * The list of queued entries or updates.
+     * The list of queued items.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
+     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
      */
     protected Collection $entries;
 
     /**
-     * Indicates if Pulse should record entries.
+     * The list of queued lazy entry and value resolvers.
+     *
+     * @var \Illuminate\Support\Collection<int, callable>
+     */
+    protected Collection $lazy;
+
+    /**
+     * Indicates if Pulse should be recording.
      */
     protected bool $shouldRecord = true;
 
     /**
      * The entry filters.
      *
-     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)>
+     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)>
      */
     protected Collection $filters;
 
@@ -66,13 +78,6 @@ class Pulse
     protected int|string|null $rememberedUserId = null;
 
     /**
-     * The callback that should be used to authorize Pulse users.
-     *
-     * @var ?callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)
-     */
-    protected $authorizeUsing = null;
-
-    /**
      * Indicates if Pulse migrations will be run.
      */
     protected bool $runsMigrations = true;
@@ -87,15 +92,13 @@ class Pulse
     /**
      * Create a new Pulse instance.
      */
-    public function __construct(
-        protected Application $app,
-        protected AuthManager $auth,
-        protected Repository $config,
-    ) {
+    public function __construct(protected Application $app)
+    {
         $this->filters = collect([]);
         $this->recorders = collect([]);
-
-        $this->flushEntries();
+        $this->recorders = collect([]);
+        $this->entries = collect([]);
+        $this->lazy = collect([]);
     }
 
     /**
@@ -117,9 +120,7 @@ class Pulse
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
-                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event))
-                    ->filter()
-                    ->each($this->record(...)))
+                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event)))
             ))
         );
 
@@ -127,9 +128,7 @@ class Pulse
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
             ->each(function ($recorder) {
                 $record = function (...$args) use ($recorder) {
-                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args))
-                        ->filter()
-                        ->each($this->record(...)));
+                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args)));
                 };
 
                 $this->app->call($recorder->register(...), ['record' => $record]);
@@ -141,12 +140,66 @@ class Pulse
     }
 
     /**
-     * Record the given entry.
+     * Record an entry.
      */
-    public function record(Entry|Update $entry): self
-    {
+    public function record(
+        string $type,
+        string $key,
+        int $value = 1,
+        DateTimeInterface|int $timestamp = null,
+    ): Entry {
+        if ($timestamp === null) {
+            $timestamp = CarbonImmutable::now();
+        }
+
+        $entry = new Entry(
+            timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
+            type: $type,
+            key: $key,
+            value: $value,
+        );
+
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
+        }
+
+        return $entry;
+    }
+
+    /**
+     * Record a value.
+     */
+    public function set(
+        string $type,
+        string $key,
+        mixed $value,
+        DateTimeInterface|int $timestamp = null,
+    ): Value {
+        if ($timestamp === null) {
+            $timestamp = CarbonImmutable::now();
+        }
+
+        $value = new Value(
+            timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
+            type: $type,
+            key: $key,
+            value: $value,
+        );
+
+        if ($this->shouldRecord) {
+            $this->entries[] = $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Lazily capture items.
+     */
+    public function lazy(callable $closure): self
+    {
+        if ($this->shouldRecord) {
+            $this->lazy[] = $closure;
         }
 
         return $this;
@@ -157,13 +210,13 @@ class Pulse
      */
     public function report(Throwable $e): self
     {
-        $this->rescue(fn () => $this->app['events']->dispatch(new ExceptionReported($e)));
+        $this->rescue(fn () => $this->app->make('events')->dispatch(new ExceptionReported($e)));
 
         return $this;
     }
 
     /**
-     * Start recording entries.
+     * Start recording.
      */
     public function startRecording(): self
     {
@@ -173,7 +226,7 @@ class Pulse
     }
 
     /**
-     * Stop recording entries.
+     * Stop recording.
      */
     public function stopRecording(): self
     {
@@ -183,7 +236,7 @@ class Pulse
     }
 
     /**
-     * Execute the given callback without recording entries.
+     * Execute the given callback without recording.
      *
      * @template TReturn
      *
@@ -204,29 +257,20 @@ class Pulse
     }
 
     /**
-     * The pending entries to be recorded.
-     *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>
-     */
-    public function entries()
-    {
-        return $this->entries;
-    }
-
-    /**
      * Flush the queue.
      */
-    public function flushEntries(): self
+    public function flush(): self
     {
         $this->entries = collect([]);
+        $this->lazy = collect([]);
 
         return $this;
     }
 
     /**
-     * Filter incoming entries using the provided filter.
+     * Filter items before storage using the provided filter.
      *
-     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Update): bool)  $filter
+     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)  $filter
      */
     public function filter(callable $filter): self
     {
@@ -236,44 +280,33 @@ class Pulse
     }
 
     /**
-     * Store the queued entries.
+     * Store the queued items.
      */
-    public function store(Ingest $ingest): self
+    public function store(): int
     {
+        $ingest = $this->app->make(Ingest::class);
+
+        $this->lazy->each(fn ($lazy) => $lazy());
+
         $this->rescue(fn () => $ingest->ingest(
-            $this->entries->map(fn ($entry) => $entry->resolve())->filter($this->shouldRecord(...)),
+            $this->entries->filter($this->shouldRecord(...)),
         ));
 
-        Lottery::odds(...$this->config->get('pulse.ingest.trim_lottery'))
+        Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
         $this->rememberedUserId = null;
 
-        return $this->flushEntries();
+        return tap($this->entries->count(), $this->flush(...));
     }
 
     /**
      * Determine if the given entry should be recorded.
      */
-    protected function shouldRecord(Entry|Update $entry): bool
+    protected function shouldRecord(Entry|Value $entry): bool
     {
         return $this->filters->every(fn (callable $filter) => $filter($entry));
-    }
-
-    /**
-     * Get the tables used by the recorders.
-     *
-     * @return \Illuminate\Support\Collection<int, string>
-     */
-    public function tables(): Collection
-    {
-        return $this->recorders
-            ->map(fn ($recorder) => $recorder->table ?? null)
-            ->flatten()
-            ->filter()
-            ->unique()
-            ->values();
     }
 
     /**
@@ -313,7 +346,7 @@ class Pulse
      *
      * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)  $callback
      */
-    public function resolveUsersUsing(callable $callback): self
+    public function users(callable $callback): self
     {
         $this->usersResolver = $callback;
 
@@ -331,13 +364,23 @@ class Pulse
             return $this->authenticatedUserIdResolver;
         }
 
-        if ($this->auth->hasUser()) {
-            $id = $this->auth->id();
+        $auth = $this->app->make('auth');
+
+        if ($auth->hasUser()) {
+            $id = $auth->id();
 
             return fn () => $id;
         }
 
-        return fn () => $this->auth->id() ?? $this->rememberedUserId;
+        return fn () => $auth->id() ?? $this->rememberedUserId;
+    }
+
+    /**
+     * Resolve the authenticated user id.
+     */
+    public function resolveAuthenticatedUserId(): string|int|null
+    {
+        return $this->authenticatedUserIdResolver()();
     }
 
     /**
@@ -381,26 +424,6 @@ class Pulse
     public function rememberUser(Authenticatable $user): self
     {
         $this->rememberedUserId = $user->getAuthIdentifier();
-
-        return $this;
-    }
-
-    /**
-     * Determine if the given request can access the Pulse dashboard.
-     */
-    public function authorize(Request $request): bool|Response
-    {
-        return ($this->authorizeUsing ?: fn () => $this->app->environment('local'))($request);
-    }
-
-    /**
-     * Set the callback that should be used to authorize Pulse users.
-     *
-     * @param  callable(\Illuminate\Http\Request): (bool|\Symfony\Component\HttpFoundation\Response)  $callback
-     */
-    public function authorizeUsing(callable $callback): self
-    {
-        $this->authorizeUsing = $callback;
 
         return $this;
     }
@@ -471,5 +494,18 @@ class Pulse
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
+    }
+
+    /**
+     * Forward calls to the storage driver.
+     *
+     * @param  string  $method
+     * @param  array<mixed>  $parameters
+     */
+    public function __call($method, $parameters): mixed
+    {
+        $storage = $this->app->make(Storage::class);
+
+        return $this->forwardCallTo($storage, $method, $parameters);
     }
 }

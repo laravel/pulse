@@ -23,25 +23,11 @@
         </x-slot:actions>
     </x-pulse::card-header>
 
-    <x-pulse::card-body :expand="$expand" wire:poll.5s="">
-        <div
-            x-data="{
-                loadingNewDataset: false,
-                init() {
-                    Livewire.on('period-changed', () => (this.loadingNewDataset = true))
-
-                    Livewire.hook('commit', ({ component, succeed }) => {
-                        if (component.name === $wire.__instance.name) {
-                            succeed(() => this.loadingNewDataset = false)
-                        }
-                    })
-                }
-            }"
-            :class="[loadingNewDataset ? 'opacity-25 animate-pulse' : '', 'space-y-6']"
-        >
-            @if ($allCacheInteractions->count === 0)
-                <x-pulse::no-results />
-            @else
+    <x-pulse::scroll :expand="$expand" wire:poll.5s="">
+        @if ($allCacheInteractions->hits === 0 && $allCacheInteractions->misses === 0)
+            <x-pulse::no-results />
+        @else
+            <div class="flex flex-col gap-6">
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
@@ -58,9 +44,9 @@
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             @if ($config['sample_rate'] < 1)
-                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}">~{{ number_format(($allCacheInteractions->count - $allCacheInteractions->hits) * (1 / $config['sample_rate'])) }}</span>
+                                <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->misses) }}">~{{ number_format(($allCacheInteractions->misses) * (1 / $config['sample_rate'])) }}</span>
                             @else
-                                {{ number_format($allCacheInteractions->count - $allCacheInteractions->hits) }}
+                                {{ number_format($allCacheInteractions->misses) }}
                             @endif
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
@@ -69,7 +55,7 @@
                     </div>
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ $allCacheInteractions->count > 0 ? round(($allCacheInteractions->hits / $allCacheInteractions->count) * 100, 2).'%' : '-' }}
+                            {{ round($allCacheInteractions->hits / ($allCacheInteractions->hits + $allCacheInteractions->misses) * 100, 2).'%' }}
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Hit Rate
@@ -86,7 +72,7 @@
                         </colgroup>
                         <x-pulse::thead>
                             <tr>
-                                <x-pulse::th class="text-left">Key</x-pulse::th>
+                                <x-pulse::th>Key</x-pulse::th>
                                 <x-pulse::th class="text-right">Hits</x-pulse::th>
                                 <x-pulse::th class="text-right">Misses</x-pulse::th>
                                 <x-pulse::th class="text-right whitespace-nowrap">Hit Rate</x-pulse::th>
@@ -101,22 +87,22 @@
                                             {{ $interaction->key }}
                                         </code>
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                    <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                         @if ($config['sample_rate'] < 1)
                                             <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->hits) }}">~{{ number_format($interaction->hits * (1 / $config['sample_rate'])) }}</span>
                                         @else
                                             {{ number_format($interaction->hits) }}
                                         @endif
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
+                                    <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                         @if ($config['sample_rate'] < 1)
-                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->count - $interaction->hits) }}">~{{ number_format(($interaction->count - $interaction->hits) * (1 / $config['sample_rate'])) }}</span>
+                                            <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($interaction->misses) }}">~{{ number_format($interaction->misses * (1 / $config['sample_rate'])) }}</span>
                                         @else
-                                            {{ number_format($interaction->count - $interaction->hits) }}
+                                            {{ number_format($interaction->misses) }}
                                         @endif
                                     </x-pulse::td>
-                                    <x-pulse::td class="text-right text-gray-700 dark:text-gray-300 font-bold text-sm tabular-nums">
-                                        {{ $interaction->count > 0 ? round(($interaction->hits / $interaction->count) * 100, 2).'%' : '-' }}
+                                    <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
+                                        {{ round($interaction->hits / ($interaction->hits + $interaction->misses) * 100, 2).'%' }}
                                     </x-pulse::td>
                                 </tr>
                             @endforeach
@@ -127,7 +113,7 @@
                         <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
                     @endif
                 </div>
-            @endif
-        </div>
-    </x-pulse::card-body>
+            </div>
+        @endif
+    </x-pulse::scroll>
 </x-pulse::card>

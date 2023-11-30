@@ -4,12 +4,16 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Queries\Queues as QueuesQuery;
-use Laravel\Pulse\Recorders\Jobs;
+use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Recorders\Queues as QueuesRecorder;
 use Livewire\Attributes\Lazy;
 
+/**
+ * @internal
+ */
 #[Lazy]
 class Queues extends Card
 {
@@ -18,11 +22,15 @@ class Queues extends Card
     /**
      * Render the component.
      */
-    public function render(QueuesQuery $query): Renderable
+    public function render(): Renderable
     {
-        [$queues, $time, $runAt] = $this->remember($query);
+        [$queues, $time, $runAt] = $this->remember(fn () => Pulse::graph(
+            ['queued', 'processing', 'processed', 'released', 'failed'],
+            'count',
+            $this->periodAsInterval(),
+        ));
 
-        if (request()->hasHeader('X-Livewire')) {
+        if (Request::hasHeader('X-Livewire')) {
             $this->dispatch('queues-chart-update', queues: $queues);
         }
 
@@ -31,7 +39,7 @@ class Queues extends Card
             'showConnection' => $queues->keys()->map(fn ($queue) => Str::before($queue, ':'))->unique()->count() > 1,
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.Jobs::class),
+            'config' => Config::get('pulse.recorders.'.QueuesRecorder::class),
         ]);
     }
 }

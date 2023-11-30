@@ -6,10 +6,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Foundation\Application;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Pulse;
 use Throwable;
@@ -19,14 +18,7 @@ use Throwable;
  */
 class Exceptions
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-    use ConfiguresAfterResolving;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_exceptions';
+    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -51,54 +43,62 @@ class Exceptions
     /**
      * Record the exception.
      */
-    public function record(Throwable $e): ?Entry
+    public function record(Throwable $e): void
     {
-        $now = new CarbonImmutable();
+        $timestamp = CarbonImmutable::now()->getTimestamp();
 
-        $class = $this->getClass($e);
+        $this->pulse->lazy(function () use ($timestamp, $e) {
+            $class = $this->resolveClass($e);
 
-        if (! $this->shouldSample() || $this->shouldIgnore($class)) {
-            return null;
-        }
+            if (! $this->shouldSample() || $this->shouldIgnore($class)) {
+                return;
+            }
 
-        return new Entry($this->table, [
-            'date' => $now->toDateTimeString(),
-            'class' => $class,
-            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation($e) : '',
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
+            $location = $this->config->get('pulse.recorders.'.self::class.'.location')
+                ? $this->resolveLocation($e)
+                : null;
+
+            $this->pulse->record(
+                type: 'exception',
+                key: json_encode([$class, $location], flags: JSON_THROW_ON_ERROR),
+                timestamp: $timestamp,
+                value: $timestamp,
+            )->max()->count();
+        });
     }
 
     /**
-     * Get the exception class to record.
+     * Resolve the exception class to record.
      *
      * @return class-string<Throwable>
      */
-    protected function getClass(Throwable $e): string
+    protected function resolveClass(Throwable $e): string
     {
-        return match (true) { // @phpstan-ignore return.type
-            $e instanceof \Illuminate\View\ViewException,
-            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => get_class($e->getPrevious()), // @phpstan-ignore class.notFound class.notFound argument.type
-            default => get_class($e),
+        $previous = $e->getPrevious();
+
+        return match (true) {
+            $e instanceof \Illuminate\View\ViewException && $previous,
+            $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException && $previous => $previous::class, // @phpstan-ignore class.notFound
+            default => $e::class,
         };
     }
 
     /**
-     * Get the exception location to record.
+     * Resolve the exception location to record.
      */
-    protected function getLocation(Throwable $e): string
+    protected function resolveLocation(Throwable $e): string
     {
         return match (true) {
-            $e instanceof \Illuminate\View\ViewException => $this->getLocationFromViewException($e),
+            $e instanceof \Illuminate\View\ViewException => $this->resolveLocationFromViewException($e),
             $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => $this->formatLocation($e->getFile(), $e->getLine()), // @phpstan-ignore class.notFound class.notFound class.notFound
-            default => $this->getLocationFromTrace($e)
+            default => $this->resolveLocationFromTrace($e)
         };
     }
 
     /*
-     * Get the location of the original view file instead of the cached version.
+     * Resolve the location of the original view file instead of the cached version.
      */
-    protected function getLocationFromViewException(Throwable $e): string
+    protected function resolveLocationFromViewException(Throwable $e): string
     {
         // Getting the line number in the view file is a bit tricky.
         preg_match('/\(View: (?P<path>.*?)\)/', $e->getMessage(), $matches);
@@ -107,9 +107,9 @@ class Exceptions
     }
 
     /**
-     * Get the location for the given exception.
+     * Resolve the location for the given exception.
      */
-    protected function getLocationFromTrace(Throwable $e): string
+    protected function resolveLocationFromTrace(Throwable $e): string
     {
         $firstNonVendorFrame = collect($e->getTrace())
             ->firstWhere(fn (array $frame) => isset($frame['file']) && ! $this->isInternalFile($frame['file']));

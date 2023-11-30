@@ -3,16 +3,15 @@
 namespace Laravel\Pulse\Http\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Request;
-use Laravel\Pulse\Pulse;
-use Symfony\Component\HttpFoundation\Response;
 
 class Authorize
 {
     /**
      * Create a new middleware instance.
      */
-    public function __construct(protected Pulse $pulse)
+    public function __construct(protected Gate $gate)
     {
         //
     }
@@ -22,12 +21,8 @@ class Authorize
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        $response = $this->pulse->authorize($request);
+        $this->gate->authorize('viewPulse');
 
-        if ($response instanceof Response) {
-            return $response;
-        }
-
-        return $response ? $next($request) : abort(403);
+        return $next($request);
     }
 }

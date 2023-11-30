@@ -1,34 +1,40 @@
 <?php
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowOutgoingRequests;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
-    Pulse::authorizeUsing(fn () => true);
-
     $this
         ->get('/pulse')
         ->assertSeeLivewire(SlowOutgoingRequests::class);
 });
 
 it('renders slow outgoing requests', function () {
-    Pulse::ignore(fn () => DB::table('pulse_outgoing_requests')->insert([
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 1234, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.com', 'duration' => 2468, 'slow' => true],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 123, 'slow' => false],
-        ['date' => '2000-01-02 03:04:05', 'uri' => 'GET http://example.org', 'duration' => 1234, 'slow' => true],
-    ]));
-    Carbon::setTestNow('2000-01-02 03:04:15');
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.org']), 1)->max()->count();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1234)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 2468)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.org']), 1234)->max()->count();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1000)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1000)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.org']), 1000)->max()->count();
+
+    Pulse::store();
 
     Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
-        ->assertViewHas('time')
-        ->assertViewHas('runAt', '2000-01-02 03:04:15')
         ->assertViewHas('slowOutgoingRequests', collect([
-            (object) ['method' => 'GET', 'uri' => 'http://example.com', 'count' => 2, 'slowest' => 2468],
-            (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 1, 'slowest' => 1234],
+            (object) ['method' => 'GET', 'uri' => 'http://example.com', 'count' => 4, 'slowest' => 2468],
+            (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 2, 'slowest' => 1234],
         ]))
         ->assertViewHas('supported', true);
 });

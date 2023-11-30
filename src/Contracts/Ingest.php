@@ -7,19 +7,19 @@ use Illuminate\Support\Collection;
 interface Ingest
 {
     /**
-     * Ingest the entries and updates.
+     * Ingest the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Update>  $items
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
      */
     public function ingest(Collection $items): void;
 
     /**
-     * Trim the ingested entries.
+     * Trim the ingest.
      */
     public function trim(): void;
 
     /**
-     * Store the ingested entries.
+     * Store the ingested items.
      */
     public function store(Storage $storage): int;
 }

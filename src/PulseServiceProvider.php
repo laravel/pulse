@@ -3,11 +3,12 @@
 namespace Laravel\Pulse;
 
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
@@ -16,12 +17,15 @@ use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
-use Laravel\Pulse\Ingests\Redis as RedisIngest;
-use Laravel\Pulse\Ingests\Storage as StorageIngest;
-use Laravel\Pulse\Storage\Database as DatabaseStorage;
+use Laravel\Pulse\Ingests\RedisIngest;
+use Laravel\Pulse\Ingests\StorageIngest;
+use Laravel\Pulse\Storage\DatabaseStorage;
 use Livewire\LivewireManager;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 class PulseServiceProvider extends ServiceProvider
 {
     /**
@@ -33,7 +37,7 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
+        if (! $this->app->make('config')->get('pulse.enabled')) {
             return;
         }
 
@@ -48,10 +52,10 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerIngest(): void
     {
-        $this->app->bind(Ingest::class, fn (Application $app) => match ($app['config']->get('pulse.ingest.driver')) {
-            'storage' => $app[StorageIngest::class],
-            'redis' => $app[RedisIngest::class],
-            default => throw new RuntimeException("Unknown ingest driver [{$app['config']->get('pulse.ingest.driver')}]."),
+        $this->app->bind(Ingest::class, fn (Application $app) => match ($app->make('config')->get('pulse.ingest.driver')) {
+            'storage' => $app->make(StorageIngest::class),
+            'redis' => $app->make(RedisIngest::class),
+            default => throw new RuntimeException("Unknown ingest driver [{$app->make('config')->get('pulse.ingest.driver')}]."),
         });
     }
 
@@ -60,12 +64,13 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app['config']->get('pulse.enabled')) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
+        if (! $this->app->make('config')->get('pulse.enabled')) {
             return;
         }
 
-        $this->app[Pulse::class]->register($this->app['config']->get('pulse.recorders')); // @phpstan-ignore offsetAccess.nonOffsetAccessible offsetAccess.nonOffsetAccessible
+        $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
 
+        $this->registerAuthorization();
         $this->registerRoutes();
         $this->listenForEvents();
         $this->registerComponents();
@@ -76,6 +81,16 @@ class PulseServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register the package authorization.
+     */
+    protected function registerAuthorization(): void
+    {
+        $this->callAfterResolving(Gate::class, function (Gate $gate, Application $app) {
+            $gate->define('viewPulse', fn ($user = null) => $app->environment('local'));
+        });
+    }
+
+    /**
      * Register the package routes.
      */
     protected function registerRoutes(): void
@@ -83,9 +98,9 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->callAfterResolving('router', function (Router $router, Application $app) {
                 $router->group([
-                    'domain' => $app['config']->get('pulse.domain', null),
-                    'prefix' => $app['config']->get('pulse.path'),
-                    'middleware' => $app['config']->get('pulse.middleware', 'web'),
+                    'domain' => $app->make('config')->get('pulse.domain', null),
+                    'prefix' => $app->make('config')->get('pulse.path'),
+                    'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
                 ], function (Router $router) {
                     $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                         return $view->make('pulse::dashboard');
@@ -103,7 +118,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
                 $event->listen(function (Logout $event) use ($app) {
-                    $pulse = $app[Pulse::class];
+                    $pulse = $app->make(Pulse::class);
 
                     $pulse->rescue(fn () => $pulse->rememberUser($event->user));
                 });
@@ -112,19 +127,19 @@ class PulseServiceProvider extends ServiceProvider
                     Looping::class,
                     WorkerStopping::class,
                 ], function ($event) use ($app) {
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app->make(Pulse::class)->store();
                 });
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
                 $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app->make(Pulse::class)->store();
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
                 $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app[Pulse::class]->store($app[Ingest::class]);
+                    $app->make(Pulse::class)->store();
                 });
             });
         });
@@ -140,7 +155,7 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $livewire->addPersistentMiddleware($app['config']->get('pulse.middleware', []));
+            $livewire->addPersistentMiddleware($app->make('config')->get('pulse.middleware', []));
 
             $livewire->component('pulse.cache', Livewire\Cache::class);
             $livewire->component('pulse.usage', Livewire\Usage::class);
@@ -148,7 +163,7 @@ class PulseServiceProvider extends ServiceProvider
             $livewire->component('pulse.servers', Livewire\Servers::class);
             $livewire->component('pulse.slow-jobs', Livewire\SlowJobs::class);
             $livewire->component('pulse.exceptions', Livewire\Exceptions::class);
-            $livewire->component('pulse.slow-routes', Livewire\SlowRoutes::class);
+            $livewire->component('pulse.slow-requests', Livewire\SlowRequests::class);
             $livewire->component('pulse.slow-queries', Livewire\SlowQueries::class);
             $livewire->component('pulse.period-selector', Livewire\PeriodSelector::class);
             $livewire->component('pulse.slow-outgoing-requests', Livewire\SlowOutgoingRequests::class);
@@ -169,7 +184,7 @@ class PulseServiceProvider extends ServiceProvider
     protected function registerMigrations(): void
     {
         $this->callAfterResolving('migrator', function (Migrator $migrator, Application $app) {
-            if ($app[Pulse::class]->runsMigrations()) {
+            if ($app->make(Pulse::class)->runsMigrations()) {
                 $migrator->path(__DIR__.'/../database/migrations');
             }
         });
@@ -201,7 +216,6 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\WorkCommand::class,
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
-                Commands\RegroupCommand::class,
                 Commands\PurgeCommand::class,
             ]);
         }

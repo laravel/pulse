@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -14,13 +13,7 @@ use Laravel\Pulse\Pulse;
  */
 class SlowQueries
 {
-    use Concerns\Ignores;
-    use Concerns\Sampling;
-
-    /**
-     * The table to record to.
-     */
-    public string $table = 'pulse_slow_queries';
+    use Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds;
 
     /**
      * The events to listen for.
@@ -42,31 +35,39 @@ class SlowQueries
     /**
      * Record a slow query.
      */
-    public function record(QueryExecuted $event): ?Entry
+    public function record(QueryExecuted $event): void
     {
-        $now = new CarbonImmutable();
+        [$timestampMs, $duration, $sql, $location] = [
+            CarbonImmutable::now()->getTimestampMs(),
+            (int) $event->time,
+            $event->sql,
+            $this->config->get('pulse.recorders.'.self::class.'.location')
+                ? $this->resolveLocation()
+                : null,
+        ];
 
-        if ($event->time < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-            return null;
-        }
+        $this->pulse->lazy(function () use ($timestampMs, $duration, $sql, $location) {
+            if (
+                $this->underThreshold($duration) ||
+                ! $this->shouldSample() ||
+                $this->shouldIgnore($sql)
+            ) {
+                return;
+            }
 
-        if (! $this->shouldSample() || $this->shouldIgnore($event->sql)) {
-            return null;
-        }
-
-        return new Entry($this->table, [
-            'date' => $now->subMilliseconds((int) $event->time)->toDateTimeString(),
-            'sql' => $event->sql,
-            'location' => $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : '',
-            'duration' => (int) $event->time,
-            'user_id' => $this->pulse->authenticatedUserIdResolver(),
-        ]);
+            $this->pulse->record(
+                type: 'slow_query',
+                key: json_encode([$sql, $location], flags: JSON_THROW_ON_ERROR),
+                value: $duration,
+                timestamp: (int) (($timestampMs - $duration) / 1000),
+            )->max()->count();
+        });
     }
 
     /**
-     * Get the location of the query.
+     * Resolve the location of the query.
      */
-    protected function getLocation(): string
+    protected function resolveLocation(): string
     {
         $backtrace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))->skip(2);
 
