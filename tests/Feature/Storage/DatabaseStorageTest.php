@@ -68,6 +68,14 @@ it('combines duplicate average aggregates before upserting', function () {
     expect($aggregates['key2']->value)->toEqual(100);
     expect($aggregates['key1']->count)->toEqual(3);
     expect($aggregates['key2']->count)->toEqual(1);
+
+    Pulse::record('type', 'key1', 400)->avg();
+    Pulse::record('type', 'key1', 400)->avg();
+    Pulse::record('type', 'key1', 400)->avg();
+    Pulse::store();
+    $aggregate = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('period', 60)->where('key', 'key1')->first());
+    expect($aggregate->value)->toEqual(250);
+    expect($aggregate->count)->toEqual(6);
 });
 
 test('one or more aggregates for a single type', function () {
