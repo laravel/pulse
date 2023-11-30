@@ -36,8 +36,8 @@ return new class extends Migration
             $table->unsignedInteger('timestamp');
             $table->string('type');
             $table->text('key');
-            $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
-            $table->unsignedInteger('value')->nullable();
+            $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))');
+            $table->bigInteger('value')->nullable();
 
             $table->index('timestamp'); // For trimming...
             $table->index('type'); // For purging...
@@ -50,9 +50,9 @@ return new class extends Migration
             $table->unsignedMediumInteger('period');
             $table->string('type');
             $table->text('key');
-            $table->char('key_hash', 16)->charset('binary')->virtualAs('UNHEX(MD5(`key`))');
+            $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))');
             $table->string('aggregate');
-            $table->unsignedInteger('value');
+            $table->float('value', null, null);
             $table->unsignedInteger('count')->nullable();
 
             $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"...
