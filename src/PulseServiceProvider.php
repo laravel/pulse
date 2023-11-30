@@ -146,9 +146,9 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
             $event->listen([
-                \Laravel\Octane\Events\RequestReceived::class,
-                \Laravel\Octane\Events\TaskReceived::class,
-                \Laravel\Octane\Events\TickReceived::class,
+                \Laravel\Octane\Events\RequestReceived::class, // @phpstan-ignore class.notFound
+                \Laravel\Octane\Events\TaskReceived::class, // @phpstan-ignore class.notFound
+                \Laravel\Octane\Events\TickReceived::class, // @phpstan-ignore class.notFound
             ], function ($event) {
                 if ($event->sandbox->resolved(Pulse::class)) {
                     $event->sandbox->make(Pulse::class)->setContainer($event->sandbox);

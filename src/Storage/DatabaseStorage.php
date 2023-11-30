@@ -316,7 +316,7 @@ class DatabaseStorage implements Storage
      */
     public function aggregate(
         string $type,
-        string|array $aggregates,
+        array|string $aggregates,
         CarbonInterval $interval,
         string $orderBy = null,
         string $direction = 'desc',
