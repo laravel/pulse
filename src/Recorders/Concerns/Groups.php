@@ -8,7 +8,7 @@ namespace Laravel\Pulse\Recorders\Concerns;
 trait Groups
 {
     /**
-     * The grouped value.
+     * Group the value based on the configured grouping rules.
      */
     protected function group(string $value): string
     {

@@ -15,7 +15,7 @@ use Laravel\Pulse\Pulse;
  */
 class SlowJobs
 {
-    use Concerns\Ignores, Concerns\Sampling;
+    use Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds;
 
     /**
      * The time the last job started processing.
@@ -74,17 +74,17 @@ class SlowJobs
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
             if (
+                $this->underThreshold($duration = $timestampMs - $lastJobStartedProcessingAt) ||
                 ! $this->shouldSample() ||
-                $this->shouldIgnore($name) ||
-                ($duration = $timestampMs - $lastJobStartedProcessingAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')
+                $this->shouldIgnore($name)
             ) {
                 return;
             }
 
             $this->pulse->record(
-                'slow_job',
-                $name,
-                $duration,
+                type: 'slow_job',
+                key: $name,
+                value: $duration,
                 timestamp: $timestamp,
             )->max()->count();
         });

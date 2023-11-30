@@ -18,7 +18,7 @@ use Throwable;
  */
 class SlowOutgoingRequests
 {
-    use Concerns\Groups, Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
+    use Concerns\Groups, Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -54,9 +54,9 @@ class SlowOutgoingRequests
 
         $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
             if (
+                $this->underThreshold($duration = $endedAt - $startedAt) ||
                 ! $this->shouldSample() ||
-                $this->shouldIgnore($uri) ||
-                ($duration = $endedAt - $startedAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')
+                $this->shouldIgnore($uri)
             ) {
                 return;
             }
