@@ -23,12 +23,13 @@ return new class extends Migration
         Schema::create('pulse_values', function (Blueprint $table) {
             $table->unsignedInteger('timestamp');
             $table->string('type');
-            $table->string('key');
+            $table->text('key');
+            $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))');
             $table->text('value');
 
             $table->index('timestamp'); // For trimming...
             $table->index('type'); // For fast lookups and purging...
-            $table->unique(['type', 'key']); // For data integrity...
+            $table->unique(['type', 'key_hash']); // For data integrity...
         });
 
         Schema::create('pulse_entries', function (Blueprint $table) {
