@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse ignoreMigrations()
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
  * @method static void rescue(callable $callback)
+ * @method static \Laravel\Pulse\Pulse setContainer(\Illuminate\Contracts\Foundation\Application $container)
  * @method static void afterResolving(\Illuminate\Contracts\Foundation\Application $app, string $class, \Closure $callback)
  * @method static void trim()
  * @method static void purge(array $types = null)
