@@ -6,8 +6,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Recorders\Jobs;
 use Laravel\Pulse\Recorders\SlowRequests;
+use Laravel\Pulse\Recorders\UserJobs;
 use Laravel\Pulse\Recorders\UserRequests;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -78,7 +78,7 @@ class Usage extends Card
             'runAt' => $runAt,
             'userRequestsConfig' => Config::get('pulse.recorders.'.UserRequests::class),
             'slowRequestsConfig' => Config::get('pulse.recorders.'.SlowRequests::class),
-            'jobsConfig' => Config::get('pulse.recorders.'.Jobs::class),
+            'jobsConfig' => Config::get('pulse.recorders.'.UserJobs::class),
             'userRequestCounts' => $userRequestCounts,
         ]);
     }
