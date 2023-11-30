@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\RejectedPromise;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Http\Client\Factory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
 use Psr\Http\Message\RequestInterface;
@@ -35,8 +35,8 @@ class SlowOutgoingRequests
      */
     public function register(callable $record, Application $app): void
     {
-        if (method_exists(HttpFactory::class, 'globalMiddleware')) {
-            $this->afterResolving($app, HttpFactory::class, fn (HttpFactory $factory) => $factory->globalMiddleware($this->middleware($record)));
+        if (method_exists(Factory::class, 'globalMiddleware')) {
+            $this->afterResolving($app, Factory::class, fn (Factory $factory) => $factory->globalMiddleware($this->middleware($record)));
         }
     }
 
