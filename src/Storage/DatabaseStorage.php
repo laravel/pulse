@@ -83,7 +83,7 @@ class DatabaseStorage implements Storage
                     ->table('pulse_values')
                     ->upsert(
                         $chunk->map->attributes()->all(),
-                        ['type', 'key'],
+                        ['type', 'key_hash'],
                         ['timestamp', 'value']
                     )
                 );
