@@ -18,7 +18,11 @@ use Throwable;
  */
 class SlowOutgoingRequests
 {
-    use Concerns\Groups, Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds, ConfiguresAfterResolving;
+    use Concerns\Groups,
+        Concerns\Ignores,
+        Concerns\Sampling,
+        Concerns\Thresholds,
+        ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.

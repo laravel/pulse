@@ -18,7 +18,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class UserRequests
 {
-    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
+    use Concerns\Ignores,
+        Concerns\Sampling,
+        Concerns\LivewireRoutes,
+        ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -48,27 +51,21 @@ class UserRequests
     public function record(Carbon $startedAt, Request $request, Response $response): void
     {
         if (
-            ! ($userId = $this->pulse->resolveAuthenticatedUserId()) ||
-            ! ($route = $request->route()) instanceof Route ||
+            ($userId = $this->pulse->resolveAuthenticatedUserId()) === null ||
+            ! $request->route() instanceof Route ||
             ! $this->shouldSample()
         ) {
             return;
         }
 
-        $path = $route->getDomain().Str::start($route->uri(), '/');
-
-        if ($route->named('*livewire.update')) {
-            $snapshot = json_decode($request->input('components.0.snapshot'), flags: JSON_THROW_ON_ERROR);
-
-            if (isset($snapshot->memo->path)) {
-                $path = Str::start($snapshot->memo->path, '/');
-            }
-        }
-
-        if ($this->shouldIgnore($path)) {
+        if ($this->shouldIgnore($this->resolveRoutePath($request)[0])) {
             return;
         }
 
-        $this->pulse->record('user_request', $userId, timestamp: $startedAt->getTimestamp())->count();
+        $this->pulse->record(
+            type: 'user_request',
+            key: (string) $userId,
+            timestamp: $startedAt->getTimestamp()
+        )->count();
     }
 }

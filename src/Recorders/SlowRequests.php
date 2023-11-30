@@ -18,7 +18,11 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SlowRequests
 {
-    use Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds, ConfiguresAfterResolving;
+    use Concerns\Ignores,
+        Concerns\Sampling,
+        Concerns\Thresholds,
+        Concerns\LivewireRoutes,
+        ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -48,38 +52,22 @@ class SlowRequests
     public function record(Carbon $startedAt, Request $request, Response $response): void
     {
         if (
-            ! (($route = $request->route()) instanceof Route) ||
+            ! $request->route() instanceof Route ||
             $this->underThreshold($duration = $startedAt->diffInMilliseconds()) ||
             ! $this->shouldSample()
         ) {
             return;
         }
 
-        $path = $route->getDomain().Str::start($route->uri(), '/');
-        $via = null;
-
-        if ($route->named('*livewire.update')) {
-            $snapshot = json_decode($request->input('components.0.snapshot'), flags: JSON_THROW_ON_ERROR);
-
-            if (isset($snapshot->memo->path)) {
-                $via = 'via '.$path;
-                $path = Str::start($snapshot->memo->path, '/');
-            }
-        }
+        [$path, $via] = $this->resolveRoutePath($request);
 
         if ($this->shouldIgnore($path)) {
             return;
         }
 
-        $key = json_encode([
-            $request->method(),
-            $path,
-            $via ?? $route->getActionName(),
-        ], flags: JSON_THROW_ON_ERROR);
-
         $this->pulse->record(
             type: 'slow_request',
-            key: $key,
+            key: json_encode([$request->method(), $path, $via], flags: JSON_THROW_ON_ERROR),
             value: $duration,
             timestamp: $startedAt,
         )->max()->count();
