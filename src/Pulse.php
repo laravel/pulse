@@ -360,7 +360,6 @@ class Pulse
      */
     public function authenticatedUserIdResolver(): callable
     {
-        // TODO review all this now we have `lazy`
         if ($this->authenticatedUserIdResolver !== null) {
             return $this->authenticatedUserIdResolver;
         }

@@ -542,7 +542,7 @@ it('handles a job that was manually failed', function () {
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
-        type: ['queued', 'processing', 'failed', 'processed'], // TODO: Should processed be captured when manually failed?
+        type: ['queued', 'processing', 'failed', 'processed'],
         aggregate: 'count',
         key: 'database:default',
         value: 1,

@@ -44,50 +44,50 @@ class DatabaseStorage implements Storage
             return;
         }
 
-        // TODO: Transactions!
+        $this->connection()->transaction(function () use ($items) {
+            [$entries, $values] = $items->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
 
-        [$entries, $values] = $items->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
+            $entries
+                ->reject->isOnlyBuckets()
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->connection()
+                    ->table('pulse_entries')
+                    ->insert($chunk->map->attributes()->all())
+                );
 
-        $entries
-            ->reject->isOnlyBuckets()
-            ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->connection()
-                ->table('pulse_entries')
-                ->insert($chunk->map->attributes()->all())
-            );
+            $periods = [
+                (int) (CarbonInterval::hour()->totalSeconds / 60),
+                (int) (CarbonInterval::hours(6)->totalSeconds / 60),
+                (int) (CarbonInterval::hours(24)->totalSeconds / 60),
+                (int) (CarbonInterval::days(7)->totalSeconds / 60),
+            ];
 
-        $periods = [
-            (int) (CarbonInterval::hour()->totalSeconds / 60),
-            (int) (CarbonInterval::hours(6)->totalSeconds / 60),
-            (int) (CarbonInterval::hours(24)->totalSeconds / 60),
-            (int) (CarbonInterval::days(7)->totalSeconds / 60),
-        ];
+            $this
+                ->aggregateAttributes($entries->filter->isCount(), $periods, 'count')
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
-        $this
-            ->aggregateAttributes($entries->filter->isCount(), $periods, 'count')
-            ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
+            $this
+                ->aggregateAttributes($entries->filter->isMax(), $periods, 'max')
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
-        $this
-            ->aggregateAttributes($entries->filter->isMax(), $periods, 'max')
-            ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
+            $this
+                ->aggregateAttributes($entries->filter->isAvg(), $periods, 'avg')
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
-        $this
-            ->aggregateAttributes($entries->filter->isAvg(), $periods, 'avg')
-            ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
-
-        $values
-            ->chunk($this->config->get('pulse.storage.database.chunk'))
-            ->each(fn ($chunk) => $this->connection()
-                ->table('pulse_values')
-                ->upsert(
-                    $chunk->map->attributes()->all(),
-                    ['type', 'key'],
-                    ['timestamp', 'value']
-                )
-            );
+            $values
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->connection()
+                    ->table('pulse_values')
+                    ->upsert(
+                        $chunk->map->attributes()->all(),
+                        ['type', 'key'],
+                        ['timestamp', 'value']
+                    )
+                );
+        });
     }
 
     /**
