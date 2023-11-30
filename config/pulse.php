@@ -182,22 +182,6 @@ return [
             ],
         ],
 
-        Recorders\UserJobs::class => [
-            'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
-            'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
-            'ignore' => [
-                // '/^Package\\\\Jobs\\\\/',
-            ],
-        ],
-
-        Recorders\UserRequests::class => [
-            'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
-            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
-            'ignore' => [
-                '#^/pulse$#', // Pulse dashboard...
-            ],
-        ],
-
         Recorders\SlowQueries::class => [
             'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
@@ -220,6 +204,22 @@ return [
         Recorders\SystemStats::class => [
             'server_name' => env('PULSE_SERVER_NAME', gethostname()),
             'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
+        ],
+
+        Recorders\UserJobs::class => [
+            'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
+            'ignore' => [
+                // '/^Package\\\\Jobs\\\\/',
+            ],
+        ],
+
+        Recorders\UserRequests::class => [
+            'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
+            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
+            'ignore' => [
+                '#^/pulse$#', // Pulse dashboard...
+            ],
         ],
     ],
 ];
