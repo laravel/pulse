@@ -43,50 +43,47 @@ class SlowOutgoingRequests
     /**
      * Record the outgoing request.
      */
-    public function record(RequestInterface $request, CarbonImmutable $startedAt): void
+    public function record(RequestInterface $request, int $startedAt): void
     {
-        $endedAt = CarbonImmutable::now();
+        [$timestamp, $endedAt, $method, $uri] = with(CarbonImmutable::now(), fn ($now) => [
+            $now->getTimestamp(),
+            $now->getTimestampMs(),
+            $request->getMethod(),
+            $request->getUri(),
+        ]);
 
-        if (! $this->shouldSample() || $this->shouldIgnore($request->getUri())) {
-            return;
-        }
+        $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
+            if (! $this->shouldSample() || $this->shouldIgnore($uri)) {
+                return;
+            }
 
-        $duration = $startedAt->diffInMilliseconds($endedAt);
+            if (($duration = $endedAt - $startedAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+                return;
+            }
 
-        if ($duration < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-            return;
-        }
-
-        $this->pulse->record(
-            type: 'slow_outgoing_request',
-            // this returns a stirng now
-            key: $this->group(json_encode([$request->getMethod(), $request->getUri()], flags: JSON_THROW_ON_ERROR)),
-            value: $duration,
-            timestamp: $startedAt,
-        )->max()->count();
+            $this->pulse->record(
+                type: 'slow_outgoing_request',
+                key: json_encode([$method, $this->group($uri)], flags: JSON_THROW_ON_ERROR),
+                value: $duration,
+                timestamp: $timestamp,
+            )->max()->count();
+        });
     }
 
     /**
-     * Return a closure that groups the given value.
+     * The grouped value.
      */
-    public function group(string $key): string
+    protected function group(string $value): string
     {
-        // TODO
-        return 'TODO';
+        foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
+            $group = preg_replace($pattern, $replacement, $value, count: $count);
 
-        return function () use ($key) {
-            [$method, $uri] = json_decode($key, flags: JSON_THROW_ON_ERROR);
-
-            foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
-                $group = preg_replace($pattern, $replacement, $uri, count: $count);
-
-                if ($count > 0 && $group !== null) {
-                    return json_encode([$method, $group], flags: JSON_THROW_ON_ERROR);
-                }
+            if ($count > 0 && $group !== null) {
+                return $group;
             }
+        }
 
-            return $key;
-        };
+        return $value;
     }
 
     /**
@@ -95,7 +92,7 @@ class SlowOutgoingRequests
     protected function middleware(callable $record): callable
     {
         return fn (callable $handler) => function (RequestInterface $request, array $options) use ($handler, $record) {
-            $startedAt = CarbonImmutable::now();
+            $startedAt = CarbonImmutable::now()->getTimestampMs();
 
             return $handler($request, $options)->then(function (ResponseInterface $response) use ($request, $startedAt, $record) {
                 $record($request, $startedAt);

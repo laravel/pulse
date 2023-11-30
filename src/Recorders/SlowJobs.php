@@ -53,8 +53,10 @@ class SlowJobs
             return;
         }
 
+        $now = CarbonImmutable::now();
+
         if ($event instanceof JobProcessing) {
-            $this->lastJobStartedProcessingAt = CarbonImmutable::now()->getTimestampMs();
+            $this->lastJobStartedProcessingAt = $now->getTimestampMs();
 
             return;
         }
@@ -63,28 +65,28 @@ class SlowJobs
             return;
         }
 
-        [$timestamp, $timestampMs, $name, $lastJobStartedProcessingAt] = with(CarbonImmutable::now(), fn ($now) => [
+        [$timestamp, $timestampMs, $name, $lastJobStartedProcessingAt] = [
             $now->getTimestamp(),
             $now->getTimestampMs(),
             $event->job->resolveName(),
             tap($this->lastJobStartedProcessingAt, fn () => ($this->lastJobStartedProcessingAt = null)),
-        ]);
+        ];
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
             if (! $this->shouldSample() || $this->shouldIgnore($name)) {
                 return;
             }
 
-            $duration = $timestampMs - $lastJobStartedProcessingAt;
-
-            if ($duration >= $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-                $this->pulse->record(
-                    'slow_job',
-                    $name,
-                    $duration,
-                    timestamp: $timestamp,
-                )->max()->count();
+            if (($duration = $timestampMs - $lastJobStartedProcessingAt) < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
+                return;
             }
+
+            $this->pulse->record(
+                'slow_job',
+                $name,
+                $duration,
+                timestamp: $timestamp,
+            )->max()->count();
         });
     }
 }

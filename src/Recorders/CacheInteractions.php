@@ -65,7 +65,7 @@ class CacheInteractions
     /**
      * The grouped value.
      */
-    public function group(string $value): string
+    protected function group(string $value): string
     {
         foreach ($this->config->get('pulse.recorders.'.self::class.'.groups') as $pattern => $replacement) {
             $group = preg_replace($pattern, $replacement, $value, count: $count);

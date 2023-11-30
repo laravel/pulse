@@ -16,12 +16,8 @@ it('ingests queries', function () {
 
     DB::connection()->statement('select * from users');
 
-    expect(Pulse::queue())->toHaveCount(1);
-    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
-
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -66,7 +62,6 @@ it('can disable capturing the location', function () {
     DB::connection()->statement('select * from users');
     Pulse::store();
 
-    expect(Pulse::queue())->toHaveCount(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -143,9 +138,8 @@ it('can ignore queries', function () {
         '/(["`])pulse_[\w]+?\1/', // Pulse tables
     ]);
 
+    expect(Pulse::store())->toBe(0);
     DB::table('pulse_entries')->count();
-
-    expect(Pulse::queue())->toHaveCount(0);
 });
 
 it('can sample', function () {
@@ -163,9 +157,7 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::queue()->count())->toEqualWithDelta(1, 4);
-
-    Pulse::flush();
+    expect(Pulse::store())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -183,9 +175,7 @@ it('can sample at zero', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::queue())->toHaveCount(0);
-
-    Pulse::flush();
+    expect(Pulse::store())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -203,7 +193,5 @@ it('can sample at one', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::queue())->toHaveCount(10);
-
-    Pulse::flush();
+    expect(Pulse::store())->toBe(10);
 });

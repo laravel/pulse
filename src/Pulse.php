@@ -263,16 +263,6 @@ class Pulse
     }
 
     /**
-     * The pending items to be recorded.
-     *
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value|callable>
-     */
-    public function queue()
-    {
-        return $this->entries->merge($this->lazy); // @phpstan-ignore argument.type
-    }
-
-    /**
      * Flush the queue.
      */
     public function flush(): self
