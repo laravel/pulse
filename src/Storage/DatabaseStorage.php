@@ -51,7 +51,7 @@ class DatabaseStorage implements Storage
             ->chunk($this->config->get('pulse.storage.database.chunk'))
             ->each(fn ($chunk) => $this->connection()
                 ->table('pulse_entries')
-                ->insert($chunk->map->attributes()->toArray())
+                ->insert($chunk->map->attributes()->all())
             );
 
         $periods = [
@@ -81,7 +81,7 @@ class DatabaseStorage implements Storage
             ->each(fn ($chunk) => $this->connection()
                 ->table('pulse_values')
                 ->upsert(
-                    $chunk->map->attributes()->toArray(),
+                    $chunk->map->attributes()->all(),
                     ['type', 'key'],
                     ['timestamp', 'value']
                 )

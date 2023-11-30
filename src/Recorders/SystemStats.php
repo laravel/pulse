@@ -73,7 +73,7 @@ class SystemStats
                     'total' => $total = intval(round(disk_total_space($directory) / 1024 / 1024)), // MB
                     'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
                 ])
-                ->toArray(),
+                ->all(),
         ], flags: JSON_THROW_ON_ERROR), $event->time);
     }
 }
