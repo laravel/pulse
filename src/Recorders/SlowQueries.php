@@ -59,7 +59,7 @@ class SlowQueries
                 type: 'slow_query',
                 key: json_encode([$sql, $location], flags: JSON_THROW_ON_ERROR),
                 value: $duration,
-                timestamp: $timestampMs - $duration,
+                timestamp: (int) (($timestampMs - $duration) / 1000),
             )->max()->count();
         });
     }

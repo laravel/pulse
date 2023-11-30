@@ -28,6 +28,7 @@ uses(TestCase::class)
     ->beforeEach(function () {
         Model::unguard();
         Http::preventStrayRequests();
+        Pulse::flush();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
         Gate::define('viewPulse', fn ($user = null) => true);
     })

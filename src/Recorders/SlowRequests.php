@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SlowRequests
 {
-    use Concerns\Ignores, Concerns\Sampling, ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\Sampling, Concerns\Thresholds, ConfiguresAfterResolving;
 
     /**
      * Create a new recorder instance.
@@ -48,8 +48,8 @@ class SlowRequests
     public function record(Carbon $startedAt, Request $request, Response $response): void
     {
         if (
-            ($duration = $startedAt->diffInMilliseconds()) < $this->config->get('pulse.recorders.'.self::class.'.threshold') ||
-            ! ($route = $request->route()) instanceof Route ||
+            ! (($route = $request->route()) instanceof Route) ||
+            $this->underThreshold($duration = $startedAt->diffInMilliseconds()) ||
             ! $this->shouldSample()
         ) {
             return;
@@ -87,7 +87,7 @@ class SlowRequests
         if ($userId = $this->pulse->resolveAuthenticatedUserId()) {
             $this->pulse->record(
                 type: 'slow_user_request',
-                key: $userId,
+                key: (string) $userId,
                 timestamp: $startedAt,
             )->count();
         }
