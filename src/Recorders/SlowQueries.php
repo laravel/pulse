@@ -37,32 +37,37 @@ class SlowQueries
      */
     public function record(QueryExecuted $event): void
     {
-        $now = CarbonImmutable::now();
+        [$timestampMs, $duration, $sql, $location] = [
+            CarbonImmutable::now()->getTimestampMs(),
+            (int) $event->time,
+            $event->sql,
+            $this->config->get('pulse.recorders.'.self::class.'.location')
+                ? $this->resolveLocation()
+                : null,
+        ];
 
-        if ($event->time < $this->config->get('pulse.recorders.'.self::class.'.threshold')) {
-            return;
-        }
+        $this->pulse->lazy(function () use ($timestampMs, $duration, $sql, $location) {
+            if (
+                $this->underThreshold($duration) ||
+                ! $this->shouldSample() ||
+                $this->shouldIgnore($sql)
+            ) {
+                return;
+            }
 
-        if (! $this->shouldSample() || $this->shouldIgnore($event->sql)) {
-            return;
-        }
-
-        $location = $this->config->get('pulse.recorders.'.self::class.'.location') ? $this->getLocation() : null;
-
-        $key = json_encode([$event->sql, $location], flags: JSON_THROW_ON_ERROR);
-
-        $this->pulse->record(
-            type: 'slow_query',
-            key: $key,
-            value: (int) $event->time,
-            timestamp: $now->subMilliseconds((int) $event->time),
-        )->max()->count();
+            $this->pulse->record(
+                type: 'slow_query',
+                key: json_encode([$sql, $location], flags: JSON_THROW_ON_ERROR),
+                value: $duration,
+                timestamp: $timestampMs - $duration,
+            )->max()->count();
+        });
     }
 
     /**
-     * Get the location of the query.
+     * Resolve the location of the query.
      */
-    protected function getLocation(): string
+    protected function resolveLocation(): string
     {
         $backtrace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))->skip(2);
 
