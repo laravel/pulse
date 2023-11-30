@@ -51,8 +51,6 @@ class WorkCommand extends Command
 
             $ingest->store($storage);
 
-            // TODO now we have our bucket strategy, how often should we trim
-            // to keep the smallest amount of data possible.
             if ($now->subMinutes(10)->greaterThan($lastTrimmedStorageAt)) {
                 $storage->trim();
 

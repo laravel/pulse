@@ -4,8 +4,6 @@ namespace Laravel\Pulse;
 
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
-use Illuminate\Auth\AuthManager;
-use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Events\Dispatcher;
@@ -94,12 +92,8 @@ class Pulse
     /**
      * Create a new Pulse instance.
      */
-    public function __construct(
-        protected Application $app,
-        // TODO these should be resolved from the container instead of injected.
-        protected AuthManager $auth,
-        protected Repository $config,
-    ) {
+    public function __construct(protected Application $app)
+    {
         $this->filters = collect([]);
         $this->recorders = collect([]);
         $this->recorders = collect([]);
@@ -298,7 +292,7 @@ class Pulse
             $this->entries->filter($this->shouldRecord(...)),
         ));
 
-        Lottery::odds(...$this->config->get('pulse.ingest.trim_lottery'))
+        Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
@@ -371,13 +365,15 @@ class Pulse
             return $this->authenticatedUserIdResolver;
         }
 
-        if ($this->auth->hasUser()) {
-            $id = $this->auth->id();
+        $auth = $this->app->make('auth');
+
+        if ($auth->hasUser()) {
+            $id = $auth->id();
 
             return fn () => $id;
         }
 
-        return fn () => $this->auth->id() ?? $this->rememberedUserId;
+        return fn () => $auth->id() ?? $this->rememberedUserId;
     }
 
     /**
