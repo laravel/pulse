@@ -497,6 +497,19 @@ class Pulse
     }
 
     /**
+     * Set the container instance.
+     *
+     * @param  \Illuminate\Contracts\Foundation\Application  $container
+     * @return $this
+     */
+    public function setContainer($container)
+    {
+        $this->app = $container;
+
+        return $this;
+    }
+
+    /**
      * Forward calls to the storage driver.
      *
      * @param  string  $method
