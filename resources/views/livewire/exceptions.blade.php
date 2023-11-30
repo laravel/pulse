@@ -51,7 +51,7 @@
                                     </p>
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
-                                    {{ $exception->latest !== null ? Carbon\CarbonImmutable::parse($exception->latest)->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) : 'Unknown' }}
+                                    {{ $exception->latest->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) }}
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     @if ($config['sample_rate'] < 1)

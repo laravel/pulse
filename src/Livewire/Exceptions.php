@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Livewire;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
@@ -46,7 +47,7 @@ class Exceptions extends Card
                 return (object) [
                     'class' => $class,
                     'location' => $location,
-                    'latest' => $row->max,
+                    'latest' => CarbonImmutable::createFromTimestamp($row->max),
                     'count' => $row->count,
                 ];
             }),

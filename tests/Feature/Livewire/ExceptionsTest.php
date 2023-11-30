@@ -36,7 +36,7 @@ it('renders exceptions', function () {
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now()->timestamp],
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now()->timestamp],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now()],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now()],
         ]));
 });
