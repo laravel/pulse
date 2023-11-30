@@ -8,7 +8,6 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Notification as BaseNotification;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Config;
@@ -35,8 +34,6 @@ function queueAggregates()
 
 it('ingests bus dispatched jobs', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     Bus::dispatchToQueue(new MyJob);
 
@@ -54,8 +51,6 @@ it('ingests bus dispatched jobs', function () {
 
 it('ingests queued closures', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     dispatch(function () {
         throw new RuntimeException('Nope');
@@ -75,7 +70,6 @@ it('ingests queued closures', function () {
     /*
      * Work the job for the first time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -90,7 +84,6 @@ it('ingests queued closures', function () {
     /*
      * Work the job for the second time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
 
@@ -112,8 +105,6 @@ it('ingests queued closures', function () {
 
 it('ingests jobs pushed to the queue', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     Queue::push('MyJob');
     Pulse::store();
@@ -130,8 +121,6 @@ it('ingests jobs pushed to the queue', function () {
 
 it('ingests queued listeners', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
     Event::listen(MyEvent::class, MyListenerThatFails::class);
 
     /*
@@ -152,7 +141,6 @@ it('ingests queued listeners', function () {
     /*
      * Work the job for the first time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -167,7 +155,6 @@ it('ingests queued listeners', function () {
     /*
      * Work the job for the second time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -188,8 +175,6 @@ it('ingests queued listeners', function () {
 
 it('ingests queued mail', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
      * Dispatch the mail.
@@ -209,7 +194,6 @@ it('ingests queued mail', function () {
     /*
      * Work the job for the first time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
 
@@ -225,7 +209,6 @@ it('ingests queued mail', function () {
     /*
      * Work the job for the second time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -246,11 +229,6 @@ it('ingests queued mail', function () {
 
 it('ingests queued notifications', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence([
-        \Ramsey\Uuid\Uuid::fromString('e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd'),
-        \Ramsey\Uuid\Uuid::fromString('e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd'),
-    ]);
 
     /*
      * Dispatch the notification.
@@ -270,7 +248,6 @@ it('ingests queued notifications', function () {
     /*
      * Work the job for the first time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -285,7 +262,6 @@ it('ingests queued notifications', function () {
     /*
      * Work the job for the second time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -306,8 +282,6 @@ it('ingests queued notifications', function () {
 
 it('ingests queued commands', function () {
     Config::set('queue.default', 'database');
-    Carbon::setTestNow('2000-01-02 03:04:05');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
      * Dispatch the command.
@@ -327,7 +301,6 @@ it('ingests queued commands', function () {
     /*
      * Work the job for the first time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -342,7 +315,6 @@ it('ingests queued commands', function () {
     /*
      * Work the job for the second time.
      */
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -363,12 +335,10 @@ it('ingests queued commands', function () {
 
 it('handles a job throwing exceptions and failing', function () {
     Config::set('queue.default', 'database');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
      * Dispatch the job.
      */
-    Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobWithMultipleAttemptsThatAlwaysThrows);
     Pulse::store();
 
@@ -386,7 +356,6 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the first time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -402,7 +371,6 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the second time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -424,7 +392,6 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the third time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:20');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -451,12 +418,10 @@ it('handles a job throwing exceptions and failing', function () {
 
 it('handles a failure and then a successful job', function () {
     Config::set('queue.default', 'database');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
      * Dispatch the job.
      */
-    Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
     Pulse::store();
 
@@ -474,7 +439,6 @@ it('handles a failure and then a successful job', function () {
      * Work the job for the first time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:10');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
@@ -490,7 +454,6 @@ it('handles a failure and then a successful job', function () {
      * Work the job for the second time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:15');
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -511,12 +474,10 @@ it('handles a failure and then a successful job', function () {
 
 it('handles a job that was manually failed', function () {
     Config::set('queue.default', 'database');
-    Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
      * Dispatch the job.
      */
-    Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MyJobThatManuallyFails);
     Pulse::store();
 
@@ -534,7 +495,6 @@ it('handles a job that was manually failed', function () {
      * Work the job for the first time.
      */
 
-    Carbon::setTestNow('2000-01-02 03:04:10');
     app(ExceptionHandler::class)->reportable(fn (\Throwable $e) => throw $e);
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
     app()->forgetInstance(ExceptionHandler::class);
@@ -731,28 +691,6 @@ class MyJobWithMultipleAttemptsThatAlwaysThrows implements ShouldQueue
 
     public function handle()
     {
-        static $attempts = 0;
-
-        $attempts++;
-
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(11 * $attempts));
-
-        throw new RuntimeException('Nope');
-    }
-}
-
-class MyJobWithMultipleAttemptsThatGetQuicker implements ShouldQueue
-{
-    public $tries = 3;
-
-    public function handle()
-    {
-        static $attempts = 0;
-
-        $attempts++;
-
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(100 - $attempts));
-
         throw new RuntimeException('Nope');
     }
 }
@@ -766,8 +704,6 @@ class MyJobThatPassesOnTheSecondAttempt implements ShouldQueue
     public function handle()
     {
         static::$attempts++;
-
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(100 - static::$attempts));
 
         if (static::$attempts === 1) {
             throw new RuntimeException('Nope');
@@ -789,8 +725,6 @@ class MyJobThatManuallyFails implements ShouldQueue
 
     public function handle()
     {
-        Carbon::setTestNow(Carbon::now()->addMilliseconds(100));
-
         $this->fail();
     }
 }
