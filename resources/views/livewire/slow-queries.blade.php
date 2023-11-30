@@ -37,7 +37,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
     </x-pulse::card-header>
 
     <x-pulse::scroll :expand="$expand" wire:poll.5s="">
-        @if (count($slowQueries) === 0)
+        @if ($slowQueries->isEmpty())
             <x-pulse::no-results />
         @else
             <x-pulse::table>

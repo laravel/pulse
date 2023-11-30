@@ -22,7 +22,7 @@
 
     <x-pulse::scroll :expand="$expand" wire:poll.5s="">
         <div class="min-h-full flex flex-col">
-            @if (count($exceptions) === 0)
+            @if ($exceptions->isEmpty())
                 <x-pulse::no-results />
             @else
                 <x-pulse::table>

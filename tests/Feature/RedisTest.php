@@ -12,7 +12,7 @@ use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Support\RedisAdapter;
 
-beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.config('database.redis.default.port').' FLUSHALL')->throw());
+beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.Config::get('database.redis.default.port').' FLUSHALL')->throw());
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -43,7 +43,7 @@ it('runs the same commands while storing', function ($driver) {
         new Entry(timestamp: 1700752211, type: 'foo', key: 'baz', value: 456),
     ]));
     $output = Process::timeout(1)
-        ->run('redis-cli -p '.config('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:ingest')
+        ->run('redis-cli -p '.Config::get('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:ingest')
         ->throw()
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();

@@ -34,7 +34,7 @@
     </x-pulse::card-header>
 
     <x-pulse::scroll :expand="$expand" wire:poll.5s="">
-        @if (count($queues) === 0)
+        @if ($queues->isEmpty())
             <x-pulse::no-results />
         @else
             <div class="grid gap-3 mx-px mb-px">

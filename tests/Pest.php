@@ -3,6 +3,7 @@
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Process;
@@ -100,7 +101,7 @@ function prependListener(string $event, callable $listener): void
 
 function captureRedisCommands(callable $callback)
 {
-    $port = config('database.redis.default.port');
+    $port = Config::get('database.redis.default.port');
 
     $process = Process::timeout(10)->start("redis-cli -p {$port} MONITOR");
 

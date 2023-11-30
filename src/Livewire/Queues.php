@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
@@ -26,7 +27,7 @@ class Queues extends Card
             $this->periodAsInterval(),
         ));
 
-        if (request()->hasHeader('X-Livewire')) {
+        if (Request::hasHeader('X-Livewire')) {
             $this->dispatch('queues-chart-update', queues: $queues);
         }
 
