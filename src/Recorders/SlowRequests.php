@@ -8,7 +8,6 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,9 +18,9 @@ use Symfony\Component\HttpFoundation\Response;
 class SlowRequests
 {
     use Concerns\Ignores,
+        Concerns\LivewireRoutes,
         Concerns\Sampling,
         Concerns\Thresholds,
-        Concerns\LivewireRoutes,
         ConfiguresAfterResolving;
 
     /**

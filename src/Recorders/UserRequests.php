@@ -8,7 +8,6 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,8 +18,8 @@ use Symfony\Component\HttpFoundation\Response;
 class UserRequests
 {
     use Concerns\Ignores,
-        Concerns\Sampling,
         Concerns\LivewireRoutes,
+        Concerns\Sampling,
         ConfiguresAfterResolving;
 
     /**
