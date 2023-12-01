@@ -18,8 +18,6 @@ $rows = ! empty($rows) ? $rows : 1;
     x-data="{
         loading: false,
         init() {
-            Livewire.on('period-changed', () => (this.loading = true))
-
             Livewire.hook('commit', ({ component, succeed }) => {
                 if (component.id === $wire.__instance.id) {
                     succeed(() => this.loading = false)

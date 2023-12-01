@@ -5,8 +5,6 @@
         loading: false,
         init() {
             @if (isset($_instance))
-                Livewire.on('period-changed', () => (this.loading = true))
-
                 Livewire.hook('commit', ({ component, succeed }) => {
                     if (component.id === $wire.__instance.id) {
                         succeed(() => this.loading = false)
