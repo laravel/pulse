@@ -52,7 +52,7 @@ return new class extends Migration
             $table->text('key');
             $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))');
             $table->string('aggregate');
-            $table->float('value', null, null);
+            $table->decimal('value', 20, 2);
             $table->unsignedInteger('count')->nullable();
 
             $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"...
