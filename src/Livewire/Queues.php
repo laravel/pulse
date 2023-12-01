@@ -30,6 +30,8 @@ class Queues extends Card
             $this->periodAsInterval(),
         ));
 
+        $queues = $queues->sortKeys();
+
         if (Request::hasHeader('X-Livewire')) {
             $this->dispatch('queues-chart-update', queues: $queues);
         }
