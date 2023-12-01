@@ -41,7 +41,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 <div wire:key="{{ $slug.$this->period }}-indicator" class="flex items-center {{ $servers->count() > 1 ? 'py-2' : '' }}" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
                         <div class="w-5 flex justify-center mr-1">
-                            <div class="h-1 w-1 bg-green-500 rounded-full animate-ping"></div>
+                            <div class="h-1 w-1 bg-green-500 rounded-full animate-pulse"></div>
                         </div>
                     @else
                         <x-pulse::icons.signal-slash class="w-5 h-5 stroke-red-500 mr-1" />
