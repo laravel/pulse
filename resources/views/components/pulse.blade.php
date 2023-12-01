@@ -19,7 +19,6 @@
         <script>
             {!! Laravel\Pulse\Facades\Pulse::js() !!}
         </script>
-        @livewireScripts
     </head>
     <body class="font-sans antialiased">
         <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
@@ -53,6 +52,7 @@
             </main>
         </div>
 
+        @livewireScripts
         @stack('scripts')
     </body>
 </html>
