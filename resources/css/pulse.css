@@ -5,3 +5,17 @@
 [x-cloak] {
     display: none;
 }
+
+@layer utilities {
+    .soft-scrollbar::-webkit-scrollbar {
+        @apply w-1 h-1 cursor-pointer;
+    }
+
+    .soft-scrollbar::-webkit-scrollbar-track {
+        @apply bg-gray-300 dark:bg-gray-500;
+    }
+
+    .soft-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-gray-500 dark:bg-gray-300;
+    }
+}
