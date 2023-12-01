@@ -45,7 +45,7 @@
             </header>
 
             <main class="pt-6 px-6 pb-12">
-                <div {{ $attributes->merge(['class' => "mx-auto grid default:grid-cols-{$cols} default:gap-6" . ($fullWidth ? '' : ' container')]) }}">
+                <div {{ $attributes->merge(['class' => "mx-auto grid default:grid-cols-{$cols} default:gap-6" . ($fullWidth ? '' : ' container')]) }}>
                     {{ $slot }}
                 </div>
             </main>
