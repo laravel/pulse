@@ -465,7 +465,7 @@ class DatabaseStorage implements Storage
 
                     foreach ($types as $type) {
                         $query->selectRaw(match ($aggregate) {
-                            'count' => 'count(case when (`type` = ?) then `value` else null end)',
+                            'count' => 'count(case when (`type` = ?) then true else null end)',
                             'max' => 'max(case when (`type` = ?) then `value` else null end)',
                             'avg' => 'avg(case when (`type` = ?) then `value` else null end)',
                         }." as `{$type}`", [$type]);
