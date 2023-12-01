@@ -160,6 +160,11 @@ return [
             ],
         ],
 
+        Recorders\Servers::class => [
+            'server_name' => env('PULSE_SERVER_NAME', gethostname()),
+            'directories' => explode(':', env('PULSE_SERVER_DIRECTORIES', '/')),
+        ],
+
         Recorders\SlowJobs::class => [
             'enabled' => env('PULSE_SLOW_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_JOBS_SAMPLE_RATE', 1),
@@ -200,11 +205,6 @@ return [
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
             ],
-        ],
-
-        Recorders\SystemStats::class => [
-            'server_name' => env('PULSE_SERVER_NAME', gethostname()),
-            'directories' => explode(':', env('PULSE_DIRECTORIES', '/')),
         ],
 
         Recorders\UserJobs::class => [
