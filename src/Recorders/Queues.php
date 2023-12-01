@@ -54,7 +54,7 @@ class Queues
             CarbonImmutable::now()->getTimestamp(),
             $event::class,
             match ($event::class) {
-                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? 'default'),
+                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? $this->getDefaultQueue($event->connectionName)),
                 default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
             },
             match ($event::class) {
@@ -88,5 +88,13 @@ class Queues
                 timestamp: $timestamp,
             )->count()->onlyBuckets();
         });
+    }
+
+    /**
+     * Get the default queue for the connection
+     */
+    protected function getDefaultQueue(string $connection): string
+    {
+        return $this->config->get('queue.connections.'.$connection.'.queue', 'default');
     }
 }

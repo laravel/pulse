@@ -633,6 +633,24 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     );
 });
 
+it('uses the connection default queue when a job has no queue specified', function () {
+    Config::set('queue.default', 'database');
+    Config::set('queue.connections.database.queue', 'custom-default');
+
+    Bus::dispatchToQueue(new MyJob);
+    Pulse::store();
+    expect(Queue::size())->toBe(1);
+
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(4);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: 'queued',
+        aggregate: 'count',
+        key: 'database:custom-default',
+        value: 1,
+    );
+});
+
 class MyJob implements ShouldQueue
 {
     public function handle()
