@@ -293,6 +293,7 @@ class DatabaseStorage implements Storage
             ->orderBy('bucket')
             ->get()
             ->groupBy('key')
+            ->sortKeys()
             ->map(fn ($readings) => $structure->merge($readings
                 ->groupBy('type')
                 ->map(fn ($readings) => $padding->merge(
