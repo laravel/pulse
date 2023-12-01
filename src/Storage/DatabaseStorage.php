@@ -154,8 +154,8 @@ class DatabaseStorage implements Storage
         return $this->upsert(
             $values,
             match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => 'on duplicate key update `value` = `value` + 1',
-                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = "pulse_aggregates"."value" + 1',
+                'mysql' => 'on duplicate key update `value` = `value` + values(`value`)',
+                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = "pulse_aggregates"."value" + "excluded"."value"',
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
             }
         );
@@ -188,8 +188,8 @@ class DatabaseStorage implements Storage
         return $this->upsert(
             $values,
             match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => 'on duplicate key update `value` = (`value` * `count` + values(`value`)) / (`count` + 1), `count` = `count` + values(`count`)',
-                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = ("pulse_aggregates"."value" * "pulse_aggregates"."count" + "excluded"."value") / ("pulse_aggregates"."count" + 1), "count" = "pulse_aggregates"."count" + "excluded"."count"',
+                'mysql' => 'on duplicate key update `value` = (`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`)), `count` = `count` + values(`count`)',
+                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = ("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count"), "count" = "pulse_aggregates"."count" + "excluded"."count"',
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
             }
         );
