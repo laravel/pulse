@@ -65,8 +65,8 @@ class Usage extends Card
                             'id' => $row->key,
                             'name' => $user['name'] ?? 'Unknown',
                             'extra' => $user['extra'] ?? $user['email'] ?? '',
-                            'avatar' => $user['avatar'] ?? ($user['email'] ?? false
-                                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user['email']))))
+                            'avatar' => $user['avatar'] ?? ($user['email']
+                                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', strtolower(trim($user['email']))))
                                 : null),
                         ],
                         'count' => (int) $row->count,
