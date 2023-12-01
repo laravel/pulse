@@ -17,17 +17,6 @@ trait HasPeriod
     public ?string $period = '1_hour';
 
     /**
-     * Handle the period-changed event.
-     *
-     * @param  '1_hour'|'6_hours'|'24_hours'|'7_days'  $period
-     */
-    #[On('period-changed')]
-    public function updatePeriod(string $period): void
-    {
-        $this->period = $period;
-    }
-
-    /**
      * The period as an Interval instance.
      */
     public function periodAsInterval(): CarbonInterval

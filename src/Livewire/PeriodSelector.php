@@ -27,16 +27,4 @@ class PeriodSelector extends Component
     {
         return View::make('pulse::livewire.period-selector');
     }
-
-    /**
-     * Set the selected period.
-     *
-     * @param  '1_hour'|'6_hours'|'24_hours'|'7_days'  $period
-     */
-    public function setPeriod(string $period): void
-    {
-        $this->period = $period;
-
-        $this->dispatch('period-changed', period: $period);
-    }
 }
