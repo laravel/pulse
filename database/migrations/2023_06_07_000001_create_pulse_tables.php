@@ -45,7 +45,6 @@ return new class extends Migration
             $table->unsignedInteger('timestamp');
             $table->string('type');
             $table->text('key');
-            $table->bigInteger('value')->nullable();
             match ($driver = $connection->getDriverName()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->char('key_hash', 32)->storedAs('md5("key")'),
