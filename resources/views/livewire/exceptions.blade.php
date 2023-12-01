@@ -41,7 +41,7 @@
                     <tbody>
                         @foreach ($exceptions->take(100) as $exception)
                             <tr class="h-2 first:h-0"></tr>
-                            <tr wire:key="{{ $exception->class.$exception->location }}">
+                            <tr wire:key="{{ $exception->class.$exception->location.$this->period }}">
                                 <x-pulse::td class="max-w-[1px]">
                                     <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $exception->class }}">
                                         {{ $exception->class }}
