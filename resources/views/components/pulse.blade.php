@@ -15,6 +15,8 @@
             {!! Laravel\Pulse\Facades\Pulse::css() !!}
         </style>
 
+        @livewireStyles
+
         <script>
             {!! Laravel\Pulse\Facades\Pulse::js() !!}
         </script>
@@ -51,6 +53,7 @@
             </main>
         </div>
 
+        @livewireScripts
         @stack('scripts')
     </body>
 </html>
