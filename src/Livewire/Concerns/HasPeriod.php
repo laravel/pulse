@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonInterval;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 
 trait HasPeriod
