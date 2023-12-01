@@ -126,7 +126,7 @@ class PulseServiceProvider extends ServiceProvider
                 $event->listen([
                     Looping::class,
                     WorkerStopping::class,
-                ], function ($event) use ($app) {
+                ], function () use ($app) {
                     $app->make(Pulse::class)->store();
                 });
             });
