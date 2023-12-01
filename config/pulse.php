@@ -138,8 +138,8 @@ return [
                 '/^[a-zA-Z0-9]{40}$/', // Session IDs...
             ],
             'groups' => [
-                // '/:\d+/' => ':*',
                 '/^job-exceptions:.*/' => 'job-exceptions:*',
+                // '/:\d+/' => ':*',
             ],
         ],
 
