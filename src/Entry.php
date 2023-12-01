@@ -23,7 +23,7 @@ class Entry
         public int $timestamp,
         public string $type,
         public string $key,
-        public int $value = 1,
+        public ?int $value = null,
     ) {
         //
     }
@@ -103,7 +103,7 @@ class Entry
     /**
      * Fetch the entry attributes for persisting.
      *
-     * @return array<string, mixed>
+     * @return array{timestamp: int, type: string, key: string, value: ?int}
      */
     public function attributes(): array
     {

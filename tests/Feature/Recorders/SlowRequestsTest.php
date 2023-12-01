@@ -115,7 +115,7 @@ it('captures slow requests per user', function () {
     expect($entries[0]->type)->toBe('slow_user_request');
     expect($entries[0]->key)->toBe('4321');
     expect($entries[0]->key_hash)->toBe(hex2bin(md5('4321')));
-    expect($entries[0]->value)->toBe(1);
+    expect($entries[0]->value)->toBeNull();
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_user_request')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(4);

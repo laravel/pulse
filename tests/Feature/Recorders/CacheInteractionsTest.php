@@ -21,13 +21,13 @@ it('ingests cache interactions', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_hit',
         'key' => 'hit-key',
-        'value' => 1,
+        'value' => null,
     ]);
     expect($entries[1])->toHaveProperties([
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'miss-key',
-        'value' => 1,
+        'value' => null,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
@@ -73,7 +73,7 @@ it('stores the original keys by default', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'users:1234:profile',
-        'value' => 1,
+        'value' => null,
     ]);
 });
 
@@ -92,7 +92,7 @@ it('can normalize cache keys', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'users:{user}:profile',
-        'value' => 1,
+        'value' => null,
     ]);
 });
 
@@ -111,7 +111,7 @@ it('can use back references in normalized cache keys', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'bar:foo',
-        'value' => 1,
+        'value' => null,
     ]);
 });
 
@@ -130,7 +130,7 @@ it('uses the original key if no matching pattern is found', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'actual-key',
-        'value' => 1,
+        'value' => null,
     ]);
 });
 
@@ -150,7 +150,7 @@ it('can provide regex flags in normalization key', function () {
         'timestamp' => now()->timestamp,
         'type' => 'cache_miss',
         'key' => 'lowercase-key',
-        'value' => 1,
+        'value' => null,
     ]);
 });
 

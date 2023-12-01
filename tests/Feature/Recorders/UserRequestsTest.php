@@ -25,7 +25,7 @@ it('captures authenticated requests', function () {
         'timestamp' => now()->timestamp,
         'type' => 'user_request',
         'key' => '567',
-        'value' => 1,
+        'value' => null,
     ]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);

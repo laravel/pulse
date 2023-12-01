@@ -145,7 +145,7 @@ class Pulse
     public function record(
         string $type,
         string $key,
-        int $value = 1,
+        int $value = null,
         DateTimeInterface|int $timestamp = null,
     ): Entry {
         if ($timestamp === null) {
