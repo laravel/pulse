@@ -4,6 +4,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\CacheInteractions;
 
@@ -179,4 +180,14 @@ it('can sample', function () {
     Cache::get('foo');
 
     expect(Pulse::store())->toEqualWithDelta(1, 4);
+});
+
+it('groups job exception keys', function () {
+    Cache::get('job-exceptions:'.Str::uuid());
+
+    Pulse::store();
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('job-exceptions:*');
 });
