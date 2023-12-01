@@ -104,7 +104,7 @@ class PulseServiceProvider extends ServiceProvider
                 ], function (Router $router) {
                     $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                         return $view->make('pulse::dashboard');
-                    });
+                    })->name('pulse');
                 });
             });
         });
