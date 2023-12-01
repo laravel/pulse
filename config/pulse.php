@@ -139,7 +139,7 @@ return [
             ],
             'groups' => [
                 // '/:\d+/' => ':*',
-                '/^job-exceptions:.*/' => 'job-exceptions:*'
+                '/^job-exceptions:.*/' => 'job-exceptions:*',
             ],
         ],
 
