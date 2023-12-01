@@ -83,6 +83,11 @@ class Pulse
     protected bool $runsMigrations = true;
 
     /**
+     * Indicates if Pulse routes will be registered.
+     */
+    protected bool $registersRoutes = true;
+
+    /**
      * Handle exceptions using the given callback.
      *
      * @var ?callable(\Throwable): mixed
@@ -465,6 +470,24 @@ class Pulse
     public function ignoreMigrations(): self
     {
         $this->runsMigrations = false;
+
+        return $this;
+    }
+
+    /**
+     * Determine if Pulse may register routes.
+     */
+    public function registersRoutes(): bool
+    {
+        return $this->registersRoutes;
+    }
+
+    /**
+     * Configure Pulse to not register its routes.
+     */
+    public function ignoreRoutes(): self
+    {
+        $this->registersRoutes = false;
 
         return $this;
     }
