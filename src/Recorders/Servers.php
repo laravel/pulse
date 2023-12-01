@@ -11,7 +11,7 @@ use RuntimeException;
 /**
  * @internal
  */
-class SystemStats
+class Servers
 {
     /**
      * The events to listen for.
