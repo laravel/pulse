@@ -40,8 +40,7 @@ class Servers extends Card
                         'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
                         'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
                     ];
-                })
-                ->sortBy('name');
+                });
         });
 
         if (Request::hasHeader('X-Livewire')) {
