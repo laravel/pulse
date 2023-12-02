@@ -96,6 +96,6 @@ class SlowQueries
      */
     protected function formatLocation(string $file, ?int $line): string
     {
-        return Str::replaceFirst(base_path('/'), '', $file).(is_int($line) ? (':'.$line) : '');
+        return Str::replaceFirst(base_path(DIRECTORY_SEPARATOR), '', $file).(is_int($line) ? (':'.$line) : '');
     }
 }
