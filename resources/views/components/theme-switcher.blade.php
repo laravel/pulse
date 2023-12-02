@@ -48,15 +48,15 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
     <div x-show="menu" class="z-10 absolute origin-top-right right-0 bg-white dark:bg-gray-800 rounded-md ring-1 ring-gray-900/5 shadow-xl flex flex-col" style="display: none;" @click="menu = false">
         <button class="flex items-center px-4 py-2 gap-3 hover:bg-gray-100 dark:hover:bg-gray-700" :class="theme === 'light' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'" @click="lightMode()">
             <x-pulse::icons.sun class="w-5 h-5" />
-            Light
+            {{ __('Light') }}
         </button>
         <button class="flex items-center px-4 py-2 gap-3 hover:bg-gray-100 dark:hover:bg-gray-700" :class="theme === 'dark' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'" @click="darkMode()">
             <x-pulse::icons.moon class="w-5 h-5" />
-            Dark
+            {{ __('Dark') }}
         </button>
         <button class="flex items-center px-4 py-2 gap-3 hover:bg-gray-100 dark:hover:bg-gray-700" :class="theme === undefined ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'" @click="systemMode()">
             <x-pulse::icons.computer-desktop class="w-5 h-5" />
-            System
+            {{ __('System') }}
         </button>
     </div>
 </div>

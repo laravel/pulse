@@ -30,6 +30,7 @@
         "illuminate/redis": "^10.20",
         "illuminate/routing": "^10.20",
         "illuminate/support": "^10.20",
+        "illuminate/translation": "^10.20",
         "illuminate/view": "^10.20",
         "livewire/livewire": "^3.0",
         "nesbot/carbon": "^2.67"

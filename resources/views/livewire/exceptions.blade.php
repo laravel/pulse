@@ -1,8 +1,8 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
-        name="Exceptions"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="past {{ $this->periodForHumans() }}"
+        name="{{ __('Exceptions') }}"
+        title="{{ __('Time: :timems', ['time' => number_format($time)]) }}; {{ __('Run at:') }} {{ $runAt }};"
+        details="{{ __('past :period', ['period' => $this->periodForHumans()]) }}"
     >
         <x-slot:icon>
             <x-pulse::icons.bug-ant />
@@ -10,10 +10,10 @@
         <x-slot:actions>
             <x-pulse::select
                 wire:model.live="orderBy"
-                label="Sort by"
+                label="{{ __('Sort by') }}"
                 :options="[
-                    'count' => 'count',
-                    'latest' => 'latest',
+                    'count' => __('count'),
+                    'latest' => __('latest'),
                 ]"
                 @change="loading = true"
             />
@@ -33,9 +33,9 @@
                     </colgroup>
                     <x-pulse::thead>
                         <tr>
-                            <x-pulse::th>Type</x-pulse::th>
-                            <x-pulse::th class="text-right">Latest</x-pulse::th>
-                            <x-pulse::th class="text-right">Count</x-pulse::th>
+                            <x-pulse::th>{{ __('Type') }}</x-pulse::th>
+                            <x-pulse::th class="text-right">{{ __('Latest') }}</x-pulse::th>
+                            <x-pulse::th class="text-right">{{ __('Count') }}</x-pulse::th>
                         </tr>
                     </x-pulse::thead>
                     <tbody>
@@ -55,7 +55,7 @@
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     @if ($config['sample_rate'] < 1)
-                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($exception->count) }}">~{{ number_format($exception->count * (1 / $config['sample_rate'])) }}</span>
+                                        <span title="{{ __('Sample rate:') }} {{ $config['sample_rate'] }}, {{ __('Raw value:') }} {{ number_format($exception->count) }}">~{{ number_format($exception->count * (1 / $config['sample_rate'])) }}</span>
                                     @else
                                         {{ number_format($exception->count) }}
                                     @endif
@@ -67,7 +67,7 @@
             @endif
 
             @if ($exceptions->count() > 100)
-                <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+                <div class="mt-2 text-xs text-gray-400 text-center">{{ __('Limited to 100 entries') }}</div>
             @endif
         </div>
     </x-pulse::scroll>

@@ -16,9 +16,9 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
 @endphp
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
-        name="Slow Queries"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
+        name="{{ __('Slow Queries') }}"
+        title="{{ __('Time: :timems', ['time' => number_format($time)]) }}; {{ __('Run at:') }} {{ $runAt }};"
+        details="{{ __(':timems threshold, past :period', ['time' => $config['threshold'], 'period' => $this->periodForHumans()]) }}"
     >
         <x-slot:icon>
             <x-pulse::icons.circle-stack />
@@ -26,10 +26,10 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         <x-slot:actions>
             <x-pulse::select
                 wire:model.live="orderBy"
-                label="Sort by"
+                label="{{ __('Sort by') }}"
                 :options="[
-                    'slowest' => 'slowest',
-                    'count' => 'count',
+                    'slowest' => '{{ __("slowest") }}',
+                    'count' => '{{ __("count") }}',
                 ]"
                 @change="loading = true"
             />
@@ -48,9 +48,9 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th>Query</x-pulse::th>
-                        <x-pulse::th class="text-right">Count</x-pulse::th>
-                        <x-pulse::th class="text-right">Slowest</x-pulse::th>
+                        <x-pulse::th>{{ __('Query') }}</x-pulse::th>
+                        <x-pulse::th class="text-right">{{ __('Count') }}</x-pulse::th>
+                        <x-pulse::th class="text-right">{{ __('Slowest') }}</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
                 <tbody>
@@ -72,16 +72,16 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                 @if ($config['sample_rate'] < 1)
-                                    <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($query->count) }}">~{{ number_format($query->count * (1 / $config['sample_rate'])) }}</span>
+                                    <span title="{{ __('Sample rate:') }} {{ $config['sample_rate'] }}, {{ __('Raw value:') }} {{ number_format($query->count) }}">~{{ number_format($query->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
                                     {{ number_format($query->count) }}
                                 @endif
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($query->slowest === null)
-                                    <strong>Unknown</strong>
+                                    <strong>{{ __('Unknown') }}</strong>
                                 @else
-                                    <strong>{{ number_format($query->slowest) ?: '<1' }}</strong> ms
+                                    <strong>{{ number_format($query->slowest) ?: '<1' }}</strong> {{ __('ms') }}
                                 @endif
                             </x-pulse::td>
                         </tr>
@@ -91,7 +91,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
         @endif
 
         @if ($slowQueries->count() > 100)
-            <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+            <div class="mt-2 text-xs text-gray-400 text-center">{{ __('Limited to 100 entries') }}</div>
         @endif
     </x-pulse::scroll>
 </x-pulse::card>

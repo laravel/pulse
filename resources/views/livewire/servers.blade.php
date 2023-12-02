@@ -1,12 +1,12 @@
 @php
 $friendlySize = function(int $mb, int $precision = 0) {
     if ($mb >= 1024 * 1024) {
-        return round($mb / 1024 / 1024, $precision) . 'TB';
+        return round($mb / 1024 / 1024, $precision) . __('TB');
     }
     if ($mb >= 1024) {
-        return round($mb / 1024, $precision) . 'GB';
+        return round($mb / 1024, $precision) . __('GB');
     }
-    return round($mb, $precision) . 'MB';
+    return round($mb, $precision) . __('MB');
 };
 
 $cols = ! empty($cols) ? $cols : 'full';
@@ -32,11 +32,11 @@ $rows = ! empty($rows) ? $rows : 1;
         <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(min-content,2fr),max-content,minmax(min-content,2fr),minmax(max-content,1fr)]">
             <div></div>
             <div></div>
-            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">CPU</div>
+            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">{{ __('CPU') }}</div>
             <div></div>
-            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Memory</div>
+            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">{{ __('Memory') }}</div>
             <div></div>
-            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Storage</div>
+            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">{{ __('Storage') }}</div>
             @foreach ($servers as $slug => $server)
                 <div wire:key="{{ $slug.$this->period }}-indicator" class="flex items-center {{ $servers->count() > 1 ? 'py-2' : '' }}" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
@@ -70,7 +70,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                             labels: @js($server->cpu->keys()),
                                             datasets: [
                                                 {
-                                                    label: 'CPU Percent',
+                                                    label: '{{ __('CPU Percent') }}',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
                                                     borderCapStyle: 'round',
@@ -167,7 +167,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                             labels: @js($server->memory->keys()),
                                             datasets: [
                                                 {
-                                                    label: 'Memory Used',
+                                                    label: '{{ __('Memory Used') }}',
                                                     borderColor: '#9333ea',
                                                     borderWidth: 2,
                                                     borderCapStyle: 'round',
@@ -242,7 +242,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 </div>
                 <div wire:key="{{ $slug.$this->period }}-storage" class="flex items-center gap-8 {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
-                        <div class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
+                        <div class="flex items-center gap-4" title="{{ __('Directory:') }} {{ $storage->directory }}">
                             <div class="whitespace-nowrap tabular-nums">
                                 <span class="text-xl font-bold text-gray-700 dark:text-gray-200">{{ $friendlySize($storage->used) }}</span>
                                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">/ {{ $friendlySize($storage->total) }}</span>
@@ -257,7 +257,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                             {
                                                 type: 'doughnut',
                                                 data: {
-                                                    labels: ['Used', 'Free'],
+                                                    labels: ['{{ __('Used') }}', '{{ __('Free') }}'],
                                                     datasets: [
                                                         {
                                                             data: [

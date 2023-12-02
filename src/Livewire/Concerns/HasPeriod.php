@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonInterval;
+use Illuminate\Support\Facades\Lang;
 use Livewire\Attributes\Url;
 
 trait HasPeriod
@@ -33,11 +34,11 @@ trait HasPeriod
      */
     public function periodForHumans(): string
     {
-        return match ($this->period) {
-            '6_hours' => '6 hours',
-            '24_hours' => '24 hours',
-            '7_days' => '7 days',
-            default => 'hour',
+        return match ($this->period) { // @phpstan-ignore-line
+            '6_hours' => Lang::get('6 hours'),
+            '24_hours' => Lang::get('24 hours'),
+            '7_days' => Lang::get('7 days'),
+            default => Lang::get('hour'),
         };
     }
 }

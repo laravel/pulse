@@ -3,9 +3,9 @@
 @endphp
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
-        name="Slow Outgoing Requests"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $config['threshold'] }}ms threshold, past {{ $this->periodForHumans() }}"
+        name="{{ __('Slow Outgoing Requests') }}"
+        title="{{ __('Time: :timems', ['time' => number_format($time)]) }}; {{ __('Run at:') }} {{ $runAt }};"
+        details="{{ __(':timems threshold, past :period', ['time' => $config['threshold'], 'period' => $this->periodForHumans()]) }}"
     >
         <x-slot:icon>
             <x-pulse::icons.cloud-arrow-up />
@@ -13,11 +13,11 @@
         <x-slot:actions>
             @php
                 $count = count($config['groups']);
-                $message = sprintf(
-                    "URIs may be normalized using groups.\n\nThere %s currently %d %s configured.",
-                    $count === 1 ? 'is' : 'are',
+                $message = trans_choice(
+                    '{1} URIs may be normalized using groups.\n\nThere is currently :count group configured.|' .
+                    '{2,*} URIs may be normalized using groups.\n\nThere are currently :count groups configured.',
                     $count,
-                    Str::plural('group', $count)
+                    compact('count')
                 );
             @endphp
             <button title="{{ $message }}" @click="alert('{{ str_replace("\n", '\n', $message) }}')">
@@ -26,10 +26,10 @@
 
             <x-pulse::select
                 wire:model.live="orderBy"
-                label="Sort by"
+                label="{{ __('Sort by') }}"
                 :options="[
-                    'slowest' => 'slowest',
-                    'count' => 'count',
+                    'slowest' => '{{ __("slowest") }}',
+                    'count' => '{{ __("count") }}',
                 ]"
                 @change="loading = true"
             />
@@ -40,7 +40,7 @@
         @if (! $supported)
             <div class="h-full flex flex-col items-center justify-center p-4 py-6">
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-full text-xs leading-none px-2 py-1 text-gray-500 dark:text-gray-400">
-                    Requires laravel/framework v10.14+
+                    {{ __('Requires laravel/framework :version', ['version' => 'v10.14+']) }}
                 </div>
             </div>
         @else
@@ -56,10 +56,10 @@
                     </colgroup>
                     <x-pulse::thead>
                         <tr>
-                            <x-pulse::th>Method</x-pulse::th>
-                            <x-pulse::th>URI</x-pulse::th>
-                            <x-pulse::th class="text-right">Count</x-pulse::th>
-                            <x-pulse::th class="text-right">Slowest</x-pulse::th>
+                            <x-pulse::th>{{ __('Method') }}</x-pulse::th>
+                            <x-pulse::th>{{ __('URI') }}</x-pulse::th>
+                            <x-pulse::th class="text-right">{{ __('Count') }}</x-pulse::th>
+                            <x-pulse::th class="text-right">{{ __('Slowest') }}</x-pulse::th>
                         </tr>
                     </x-pulse::thead>
                     <tbody>
@@ -81,16 +81,16 @@
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     @if ($config['sample_rate'] < 1)
-                                        <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($request->count) }}">~{{ number_format($request->count * (1 / $config['sample_rate'])) }}</span>
+                                        <span title="{{ __('Sample rate:') }} {{ $config['sample_rate'] }}, {{ __('Raw value:') }} {{ number_format($request->count) }}">~{{ number_format($request->count * (1 / $config['sample_rate'])) }}</span>
                                     @else
                                         {{ number_format($request->count) }}
                                     @endif
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                     @if ($request->slowest === null)
-                                        <strong>Unknown</strong>
+                                        <strong>{{ __('Unknown') }}</strong>
                                     @else
-                                        <strong>{{ number_format($request->slowest) ?: '<1' }}</strong> ms
+                                        <strong>{{ number_format($request->slowest) ?: '<1' }}</strong> {{ __('ms') }}
                                     @endif
                                 </x-pulse::td>
                             </tr>
@@ -99,7 +99,7 @@
                 </x-pulse::table>
 
                 @if ($slowOutgoingRequests->count() > 100)
-                    <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
+                    <div class="mt-2 text-xs text-gray-400 text-center">{{ __('Limited to 100 entries') }}</div>
                 @endif
             @endif
         @endif
