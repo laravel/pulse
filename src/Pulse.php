@@ -96,7 +96,6 @@ class Pulse
     {
         $this->filters = collect([]);
         $this->recorders = collect([]);
-        $this->recorders = collect([]);
         $this->entries = collect([]);
         $this->lazy = collect([]);
     }
