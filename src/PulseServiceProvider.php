@@ -12,6 +12,7 @@ use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
@@ -95,18 +96,14 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        $this->app->booted(function () {
-            $this->callAfterResolving('router', function (Router $router, Application $app) {
-                $router->group([
-                    'domain' => $app->make('config')->get('pulse.domain', null),
-                    'prefix' => $app->make('config')->get('pulse.path'),
-                    'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
-                ], function (Router $router) {
-                    $router->get('/', function (Pulse $pulse, ViewFactory $view) {
-                        return $view->make('pulse::dashboard');
-                    })->name('pulse');
-                });
-            });
+        Route::group([
+            'domain' => app()->make('config')->get('pulse.domain', null),
+            'prefix' => app()->make('config')->get('pulse.path'),
+            'middleware' => app()->make('config')->get('pulse.middleware', 'web'),
+        ], function () {
+            Route::get('/', function (Pulse $pulse, ViewFactory $view) {
+                return $view->make('pulse::dashboard');
+            })->name('pulse');
         });
     }
 
