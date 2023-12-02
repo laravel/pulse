@@ -21,6 +21,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pulse_values', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->unsignedInteger('timestamp');
             $table->string('type');
             $table->text('key');
@@ -33,6 +34,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_entries', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->unsignedInteger('timestamp');
             $table->string('type');
             $table->text('key');
@@ -46,6 +48,7 @@ return new class extends Migration
         });
 
         Schema::create('pulse_aggregates', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->unsignedInteger('bucket');
             $table->unsignedMediumInteger('period');
             $table->string('type');
