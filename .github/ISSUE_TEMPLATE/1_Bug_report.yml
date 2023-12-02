@@ -25,6 +25,13 @@ body:
       placeholder: 8.1.4
     validations:
       required: true
+  - type: input
+    attributes:
+      label: Database Driver & Version
+      description: If applicable, provide the database driver and version you are using.
+      placeholder: "MySQL 8.0.31 for macOS 13.0 on arm64 (Homebrew)"
+    validations:
+      required: false
   - type: textarea
     attributes:
       label: Description
