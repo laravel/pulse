@@ -85,8 +85,8 @@ class SlowQueries
      */
     protected function isInternalFile(string $file): bool
     {
-        return Str::startsWith($file, base_path('vendor/laravel/pulse'))
-            || Str::startsWith($file, base_path('vendor/laravel/framework'))
+        return Str::startsWith($file, base_path('vendor'.DIRECTORY_SEPARATOR.'laravel'.DIRECTORY_SEPARATOR.'pulse'))
+            || Str::startsWith($file, base_path('vendor'.DIRECTORY_SEPARATOR.'laravel'.DIRECTORY_SEPARATOR.'framework'))
             || $file === base_path('artisan')
             || $file === public_path('index.php');
     }
