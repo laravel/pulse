@@ -54,7 +54,7 @@ class Exceptions
                 return;
             }
 
-            $location = $this->config->get('pulse.recorders.'.static::class.'.location')
+            $location = $this->config->get('pulse.recorders.'.self::class.'.location')
                 ? $this->resolveLocation($e)
                 : null;
 

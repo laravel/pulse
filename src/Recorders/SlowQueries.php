@@ -41,7 +41,7 @@ class SlowQueries
             CarbonImmutable::now()->getTimestampMs(),
             (int) $event->time,
             $event->sql,
-            $this->config->get('pulse.recorders.'.static::class.'.location')
+            $this->config->get('pulse.recorders.'.self::class.'.location')
                 ? $this->resolveLocation()
                 : null,
         ];
