@@ -35,6 +35,5 @@ it('renders slow outgoing requests', function () {
         ->assertViewHas('slowOutgoingRequests', collect([
             (object) ['method' => 'GET', 'uri' => 'http://example.com', 'count' => 4, 'slowest' => 2468],
             (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 2, 'slowest' => 1234],
-        ]))
-        ->assertViewHas('supported', true);
+        ]));
 });

@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
@@ -59,7 +58,6 @@ class SlowOutgoingRequests extends Card
             'runAt' => $runAt,
             'config' => Config::get('pulse.recorders.'.SlowOutgoingRequestsRecorder::class),
             'slowOutgoingRequests' => $slowOutgoingRequests,
-            'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);
     }
 }
