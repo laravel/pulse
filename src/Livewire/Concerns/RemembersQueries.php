@@ -4,6 +4,9 @@ namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
+use Closure;
+use DateInterval;
+use DateTimeInterface;
 use Illuminate\Support\Benchmark;
 use Illuminate\Support\Facades\App;
 use Laravel\Pulse\Support\CacheStoreResolver;
@@ -15,9 +18,9 @@ trait RemembersQueries
      *
      * @return array{0: mixed, 1: float, 2: string}
      */
-    public function remember(callable $query, string $key = '', int $ttl = 5): array
+    public function remember(callable $query, string $key = '', DateTimeInterface|DateInterval|Closure|int|null $ttl = 5): array
     {
-        return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, CarbonInterval::seconds($ttl), function () use ($query) {
+        return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, $ttl, function () use ($query) {
             $start = CarbonImmutable::now()->toDateTimeString();
 
             [$value, $duration] = Benchmark::value(fn () => $query($this->periodAsInterval()));
