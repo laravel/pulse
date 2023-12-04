@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\CarbonInterval;
+use Illuminate\Foundation\Testing\Concerns\InteractsWithRedis;
 use Illuminate\Process\Exceptions\ProcessFailedException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -16,13 +17,10 @@ use Laravel\Pulse\Support\RedisAdapter;
 use Laravel\Pulse\Support\RedisClientException;
 use Tests\StorageFake;
 
-beforeEach(function () {
-    try {
-        Process::timeout(1)->run('redis-cli -p '.Config::get('database.redis.default.port').' FLUSHALL')->throw();
-    } catch (ProcessFailedException $e) {
-        $this->markTestSkipped('Unable to run `redis-cli`');
-    }
-});
+uses(InteractsWithRedis::class);
+
+beforeEach(fn () => $this->setUpRedis());
+afterEach(fn () => $this->tearDownRedis());
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
