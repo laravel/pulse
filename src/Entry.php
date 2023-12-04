@@ -93,7 +93,7 @@ class Entry
     }
 
     /**
-     * Determine whether the entry is marked for average aggregation.
+     * Determine whether to only save aggregate bucket data for the entry.
      */
     public function isOnlyBuckets(): bool
     {
