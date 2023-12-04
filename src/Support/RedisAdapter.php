@@ -6,7 +6,9 @@ use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;
 use Predis\Client as Predis;
+use Predis\Command\RawCommand;
 use Predis\Pipeline\Pipeline;
+use Predis\Response\ServerException as PredisServerException;
 use Redis as PhpRedis;
 use RuntimeException;
 
@@ -33,11 +35,12 @@ class RedisAdapter
      */
     public function xadd(string $key, array $dictionary): string|Pipeline|PhpRedis
     {
-        return match (true) {
-            $this->client() instanceof PhpRedis => $this->client()->xadd($key, '*', $dictionary),
-            $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xadd($key, $dictionary), // @phpstan-ignore method.notFound
-        };
+        return $this->handle([
+            'XADD',
+            $this->config->get('database.redis.options.prefix').$key,
+            '*',
+            ...collect($dictionary)->keys()->zip($dictionary)->flatten()->all(),
+        ]);
     }
 
     /**
@@ -47,7 +50,19 @@ class RedisAdapter
      */
     public function xrange(string $key, string $start, string $end, int $count = null): array
     {
-        return $this->client()->xrange(...array_filter(func_get_args())); // @phpstan-ignore method.notFound
+        return collect($this->handle([
+            'XRANGE',
+            $this->config->get('database.redis.options.prefix').$key,
+            $start,
+            $end,
+            ...$count !== null ? ['COUNT', "$count"] : [],
+        ]))->mapWithKeys(fn ($value, $key) => [
+            $value[0] => collect($value[1])
+                ->chunk(2)
+                ->map->values()
+                ->mapWithKeys(fn ($value, $key) => [$value[0] => $value[1]])
+                ->all(),
+        ])->all();
     }
 
     /**
@@ -55,11 +70,13 @@ class RedisAdapter
      */
     public function xtrim(string $key, string $strategy, string $strategyModifier, string|int $threshold): int
     {
-        return match (true) {
-            $this->client() instanceof PhpRedis => $this->client()->rawCommand('XTRIM', $this->config->get('database.redis.options.prefix').$key, $strategy, $strategyModifier, (string) $threshold),
-            $this->client() instanceof Predis ||
-            $this->client() instanceof Pipeline => $this->client()->xtrim($key, [$strategy, $strategyModifier], (string) $threshold), // @phpstan-ignore method.notFound
-        };
+        return $this->handle([
+            'XTRIM',
+            $this->config->get('database.redis.options.prefix').$key,
+            $strategy,
+            $strategyModifier,
+            $threshold,
+        ]);
     }
 
     /**
@@ -69,7 +86,11 @@ class RedisAdapter
      */
     public function xdel(string $stream, Collection|array $keys): int
     {
-        return $this->client()->xdel($stream, Collection::unwrap($keys)); // @phpstan-ignore method.notFound
+        return $this->handle([
+            'XDEL',
+            $this->config->get('database.redis.options.prefix').$stream,
+            ...$keys,
+        ]);
     }
 
     /**
@@ -80,16 +101,40 @@ class RedisAdapter
      */
     public function pipeline(callable $closure): array
     {
-        if ($this->client() instanceof Pipeline) {
-            throw new RuntimeException('Pipelines are not able to be nested.');
-        }
-
         // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
         return $this->connection->pipeline(fn (Pipeline|PhpRedis $client) => $closure(new self($this->connection, $this->config, $client))); // @phpstan-ignore method.notFound
     }
 
     /**
-     * Get the Redis client instance.
+     * Run the given command.
+     */
+    protected function handle($args): mixed
+    {
+        try {
+            return tap($this->run($args), function ($result) {
+                if ($result === false && $this->client() instanceof PhpRedis) {
+                    throw new RedisClientException($this->client()->getLastError());
+                }
+            });
+        } catch (PredisServerException $e) {
+            throw new RedisClientException($e->getMessage(), previous: $e);
+        }
+    }
+
+    /**
+     * Run the given command.
+     */
+    protected function run($args): mixed
+    {
+        return match (true) {
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
+            $this->client() instanceof Predis,
+            $this->client() instanceof Pipeline => $this->client()->executeCommand(new RawCommand($args)),
+        };
+    }
+
+    /**
+     * Retrieve the Redis client.
      */
     protected function client(): PhpRedis|Predis|Pipeline
     {
