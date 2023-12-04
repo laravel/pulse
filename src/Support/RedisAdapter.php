@@ -10,7 +10,6 @@ use Predis\Command\RawCommand;
 use Predis\Pipeline\Pipeline;
 use Predis\Response\ServerException as PredisServerException;
 use Redis as PhpRedis;
-use RuntimeException;
 
 /**
  * @internal
