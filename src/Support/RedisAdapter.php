@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Support;
 
-use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;

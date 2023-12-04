@@ -1,16 +1,11 @@
 <?php
 
-use Carbon\CarbonInterval;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Redis as FacadesRedis;
-use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\RedisIngest;
-use Laravel\Pulse\Support\RedisAdapter;
 use Tests\StorageFake;
 
 beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.Config::get('database.redis.default.port').' FLUSHALL')->throw());
