@@ -33,8 +33,9 @@ jobs:
       matrix:
         php: [8.2, 8.3]
         laravel: [10]
+        stability: [prefer-lowest, prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability {{ matrix.stability }}
 
     steps:
       - name: Checkout code
@@ -55,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
            composer require "illuminate/contracts=^${{ matrix.laravel }}" --dev --no-update
-           composer update --prefer-dist --no-interaction --no-progress
+           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest
