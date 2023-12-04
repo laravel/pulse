@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Livewire\Concerns;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval;
 use Closure;
 use DateInterval;
 use DateTimeInterface;
