@@ -95,17 +95,15 @@ class PulseServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        $this->app->booted(function () {
-            $this->callAfterResolving('router', function (Router $router, Application $app) {
-                $router->group([
-                    'domain' => $app->make('config')->get('pulse.domain', null),
-                    'prefix' => $app->make('config')->get('pulse.path'),
-                    'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
-                ], function (Router $router) {
-                    $router->get('/', function (Pulse $pulse, ViewFactory $view) {
-                        return $view->make('pulse::dashboard');
-                    })->name('pulse');
-                });
+        $this->callAfterResolving('router', function (Router $router, Application $app) {
+            $router->group([
+                'domain' => $app->make('config')->get('pulse.domain', null),
+                'prefix' => $app->make('config')->get('pulse.path'),
+                'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
+            ], function (Router $router) {
+                $router->get('/', function (Pulse $pulse, ViewFactory $view) {
+                    return $view->make('pulse::dashboard');
+                })->name('pulse');
             });
         });
     }
