@@ -211,7 +211,7 @@ class DatabaseStorage implements Storage
 
         foreach ($entries as $entry) {
             foreach ($this->periods() as $period) {
-                // TODO: add back the comment
+                // Exclude entries that would be trimmed.
                 if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
                     continue;
                 }
@@ -250,6 +250,7 @@ class DatabaseStorage implements Storage
 
         foreach ($entries as $entry) {
             foreach ($this->periods() as $period) {
+                // Exclude entries that would be trimmed.
                 if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
                     continue;
                 }
@@ -288,6 +289,7 @@ class DatabaseStorage implements Storage
 
         foreach ($entries as $entry) {
             foreach ($this->periods() as $period) {
+                // Exclude entries that would be trimmed.
                 if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
                     continue;
                 }
