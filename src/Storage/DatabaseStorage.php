@@ -8,7 +8,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Arr;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Laravel\Pulse\Contracts\Storage;
@@ -142,13 +142,16 @@ class DatabaseStorage implements Storage
      */
     protected function upsertCount(array $values): bool
     {
-        return $this->upsert(
+        return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
-            match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => 'on duplicate key update `value` = `value` + values(`value`)',
-                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = "pulse_aggregates"."value" + "excluded"."value"',
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-            }
+            ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
+            [
+                'value' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('`value` + values(`value`)'),
+                    'pgsql' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                }
+            ]
         );
     }
 
@@ -159,13 +162,16 @@ class DatabaseStorage implements Storage
      */
     protected function upsertMax(array $values): bool
     {
-        return $this->upsert(
+        return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
-            match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => 'on duplicate key update `value` = greatest(`value`, values(`value`))',
-                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = greatest("pulse_aggregates"."value", "excluded"."value")',
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-            }
+            ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
+            [
+                'value' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('greatest(`value`, values(`value`))'),
+                    'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                }
+            ]
         );
     }
 
@@ -176,31 +182,22 @@ class DatabaseStorage implements Storage
      */
     protected function upsertAvg(array $values): bool
     {
-        return $this->upsert(
+        return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
-            match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => 'on duplicate key update `value` = (`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`)), `count` = `count` + values(`count`)',
-                'pgsql' => 'on conflict ("bucket", "period", "type", "aggregate", "key_hash") do update set "value" = ("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count"), "count" = "pulse_aggregates"."count" + "excluded"."count"',
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-            }
+            ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
+            [
+                'value' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
+                    'pgsql' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                },
+                'count' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('`count` + values(`count`)'),
+                    'pgsql' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                },
+            ]
         );
-    }
-
-    /**
-     * Perform an "upsert" query with an "on duplicate key" clause.
-     *
-     * @param  list<AggregateRow>  $values
-     */
-    protected function upsert(array $values, string $onDuplicateKeyClause): bool
-    {
-        $sql = $this->db->connection()->getQueryGrammar()->compileInsert(
-            $this->connection()->table('pulse_aggregates'),
-            $values
-        );
-
-        $sql .= ' '.$onDuplicateKeyClause;
-
-        return $this->connection()->statement($sql, Arr::flatten($values, 1));
     }
 
     /**
