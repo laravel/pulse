@@ -140,7 +140,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertCount(array $values): bool
+    protected function upsertCount(array $values): int
     {
         return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
@@ -160,7 +160,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertMax(array $values): bool
+    protected function upsertMax(array $values): int
     {
         return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
@@ -180,7 +180,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<AggregateRow>  $values
      */
-    protected function upsertAvg(array $values): bool
+    protected function upsertAvg(array $values): int
     {
         return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
