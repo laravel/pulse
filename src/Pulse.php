@@ -144,8 +144,8 @@ class Pulse
     public function record(
         string $type,
         string $key,
-        int $value = null,
-        DateTimeInterface|int $timestamp = null,
+        ?int $value = null,
+        DateTimeInterface|int|null $timestamp = null,
     ): Entry {
         if ($timestamp === null) {
             $timestamp = CarbonImmutable::now();
@@ -172,7 +172,7 @@ class Pulse
         string $type,
         string $key,
         string $value,
-        DateTimeInterface|int $timestamp = null,
+        DateTimeInterface|int|null $timestamp = null,
     ): Value {
         if ($timestamp === null) {
             $timestamp = CarbonImmutable::now();
