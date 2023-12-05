@@ -49,14 +49,14 @@ class RedisAdapter
      */
     public function xrange(string $key, string $start, string $end, int $count = null): array
     {
-        return collect($this->handle([
+        return collect($this->handle([ // @phpstan-ignore return.type argument.templateType argument.templateType
             'XRANGE',
             $this->config->get('database.redis.options.prefix').$key,
             $start,
             $end,
             ...$count !== null ? ['COUNT', "$count"] : [],
         ]))->mapWithKeys(fn ($value, $key) => [
-            $value[0] => collect($value[1])
+            $value[0] => collect($value[1]) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk(2)
                 ->map->values()
                 ->mapWithKeys(fn ($value, $key) => [$value[0] => $value[1]])
@@ -74,7 +74,7 @@ class RedisAdapter
             $this->config->get('database.redis.options.prefix').$key,
             $strategy,
             $strategyModifier,
-            $threshold,
+            (string) $threshold,
         ]);
     }
 
@@ -106,13 +106,15 @@ class RedisAdapter
 
     /**
      * Run the given command.
+     *
+     * @param  list<string>  $args
      */
-    protected function handle($args): mixed
+    protected function handle(array $args): mixed
     {
         try {
             return tap($this->run($args), function ($result) {
                 if ($result === false && $this->client() instanceof PhpRedis) {
-                    throw new RedisClientException($this->client()->getLastError());
+                    throw new RedisClientException($this->client()->getLastError() ?? 'An unknown error occurred.');
                 }
             });
         } catch (PredisServerException $e) {
@@ -122,13 +124,15 @@ class RedisAdapter
 
     /**
      * Run the given command.
+     *
+     * @param  list<string>  $args
      */
-    protected function run($args): mixed
+    protected function run(array $args): mixed
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
             $this->client() instanceof Predis,
-            $this->client() instanceof Pipeline => $this->client()->executeCommand(new RawCommand($args)),
+            $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
         };
     }
 
