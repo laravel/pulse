@@ -8,7 +8,6 @@ use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
-use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
@@ -75,7 +74,6 @@ class PulseServiceProvider extends ServiceProvider
         $this->listenForEvents();
         $this->registerComponents();
         $this->registerResources();
-        $this->registerMigrations();
         $this->registerPublishing();
         $this->registerCommands();
     }
@@ -191,18 +189,6 @@ class PulseServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the package's migrations.
-     */
-    protected function registerMigrations(): void
-    {
-        $this->callAfterResolving('migrator', function (Migrator $migrator, Application $app) {
-            if ($app->make(Pulse::class)->runsMigrations()) {
-                $migrator->path(__DIR__.'/../database/migrations');
-            }
-        });
-    }
-
-    /**
      * Register the package's publishable resources.
      */
     protected function registerPublishing(): void
@@ -215,6 +201,10 @@ class PulseServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views/dashboard.blade.php' => resource_path('views/vendor/pulse/dashboard.blade.php'),
             ], ['pulse', 'pulse-dashboard']);
+
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], ['pulse', 'pulse-migrations']);
         }
     }
 

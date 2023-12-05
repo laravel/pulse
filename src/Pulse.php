@@ -78,11 +78,6 @@ class Pulse
     protected int|string|null $rememberedUserId = null;
 
     /**
-     * Indicates if Pulse migrations will be run.
-     */
-    protected bool $runsMigrations = true;
-
-    /**
      * Indicates if Pulse routes will be registered.
      */
     protected bool $registersRoutes = true;
@@ -454,24 +449,6 @@ class Pulse
         }
 
         return $content;
-    }
-
-    /**
-     * Determine if Pulse may run migrations.
-     */
-    public function runsMigrations(): bool
-    {
-        return $this->runsMigrations;
-    }
-
-    /**
-     * Configure Pulse to not register its migrations.
-     */
-    public function ignoreMigrations(): self
-    {
-        $this->runsMigrations = false;
-
-        return $this;
     }
 
     /**
