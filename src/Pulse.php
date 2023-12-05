@@ -329,9 +329,9 @@ class Pulse
         if ($this->usersResolver) {
             return collect(($this->usersResolver)($ids));
         } elseif (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
+            return \App\Models\User::whereKey($ids)->get(['id', 'name']);
         } elseif (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
+            return \App\User::whereKey($ids)->get(['id', 'name']);
         }
 
         return $ids->map(fn (string|int $id) => [
