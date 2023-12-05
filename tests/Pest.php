@@ -55,6 +55,10 @@ uses(TestCase::class)
 expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, int $count = null, int $timestamp = null) {
     $this->toBeInstanceOf(Collection::class);
 
+    $values = $this->value->each(function (stdClass $value) {
+        unset($value->id);
+    });
+
     $types = (array) $type;
     $timestamp ??= now()->timestamp;
 
