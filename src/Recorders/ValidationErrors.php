@@ -3,16 +3,10 @@
 namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Events\RequestHandled;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
-use Illuminate\Support\Carbon;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
-use Symfony\Component\HttpFoundation\Response;
 use stdClass;
 
 /**
@@ -79,4 +73,3 @@ class ValidationErrors
         });
     }
 }
-

@@ -6,10 +6,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Recorders\SlowRequests as SlowRequestsRecorder;
 use Laravel\Pulse\Recorders\ValidationErrors as ValidationErrorsRecorder;
 use Livewire\Attributes\Lazy;
-use Livewire\Attributes\Url;
 
 /**
  * @internal
@@ -60,4 +58,3 @@ class ValidationErrors extends Card
         ]);
     }
 }
-
