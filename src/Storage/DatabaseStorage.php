@@ -150,7 +150,7 @@ class DatabaseStorage implements Storage
                     'mysql' => new Expression('`value` + values(`value`)'),
                     'pgsql' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-                }
+                },
             ]
         );
     }
@@ -170,7 +170,7 @@ class DatabaseStorage implements Storage
                     'mysql' => new Expression('greatest(`value`, values(`value`))'),
                     'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-                }
+                },
             ]
         );
     }
