@@ -15,6 +15,8 @@
             {!! Laravel\Pulse\Facades\Pulse::css() !!}
         </style>
 
+        @stack('styles')
+
         @livewireStyles
 
         <script>
