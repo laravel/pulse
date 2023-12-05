@@ -77,7 +77,6 @@ class Pulse
      */
     protected int|string|null $rememberedUserId = null;
 
-
     /**
      * Indicates if Pulse routes will be registered.
      */
@@ -451,7 +450,6 @@ class Pulse
 
         return $content;
     }
-
 
     /**
      * Determine if Pulse may register routes.
