@@ -100,7 +100,7 @@ class PulseServiceProvider extends ServiceProvider
                 $router->group([
                     'domain' => $app->make('config')->get('pulse.domain', null),
                     'prefix' => $app->make('config')->get('pulse.path'),
-                    'middleware' => $app->make('config')->get('pulse.middleware', 'web'),
+                    'middleware' => $app->make('config')->get('pulse.middleware'),
                 ], function (Router $router) {
                     $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                         return $view->make('pulse::dashboard');
