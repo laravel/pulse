@@ -55,8 +55,8 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                 </x-pulse::thead>
                 <tbody>
                     @foreach ($slowQueries->take(100) as $query)
-                        <tr class="h-2 first:h-0"></tr>
-                        <tr wire:key="{{ md5($query->sql.$query->location).$this->period }}">
+                        <tr wire:key="{{ md5($query->sql.$query->location) }}-spacer" class="h-2 first:h-0"></tr>
+                        <tr wire:key="{{ md5($query->sql.$query->location) }}-row">
                             <x-pulse::td class="!p-0 truncate max-w-[1px]">
                                 <div class="relative">
                                     <div class="bg-gray-700 dark:bg-gray-800 py-4 rounded-md text-gray-100 block text-xs whitespace-nowrap overflow-x-auto [scrollbar-color:theme(colors.gray.500)_transparent] [scrollbar-width:thin]">
