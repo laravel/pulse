@@ -39,7 +39,7 @@ class StorageFake implements Storage
      *
      * @param  list<string>  $types
      */
-    public function purge(?array $types = null): void
+    public function purge(array $types = null): void
     {
         //
     }
@@ -61,7 +61,7 @@ class StorageFake implements Storage
      *     >
      * >
      */
-    public function values(string $type, ?array $keys = null): Collection
+    public function values(string $type, array $keys = null): Collection
     {
         return new Collection();
     }
@@ -93,7 +93,7 @@ class StorageFake implements Storage
         string $type,
         array|string $aggregates,
         CarbonInterval $interval,
-        ?string $orderBy = null,
+        string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {
@@ -110,7 +110,7 @@ class StorageFake implements Storage
         string|array $types,
         string $aggregate,
         CarbonInterval $interval,
-        ?string $orderBy = null,
+        string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {

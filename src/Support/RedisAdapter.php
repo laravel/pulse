@@ -47,7 +47,7 @@ class RedisAdapter
      *
      * @return array<string, array<string, string>>
      */
-    public function xrange(string $key, string $start, string $end, ?int $count = null): array
+    public function xrange(string $key, string $start, string $end, int $count = null): array
     {
         return collect($this->handle([ // @phpstan-ignore return.type argument.templateType argument.templateType
             'XRANGE',
