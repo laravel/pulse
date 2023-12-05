@@ -12,6 +12,7 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use PHPUnit\Framework\Assert;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 /*
@@ -96,7 +97,7 @@ function keyHash(string $string): string
 {
     return match (DB::connection()->getDriverName()) {
         'mysql' => hex2bin(md5($string)),
-        'pgsql' => md5($string),
+        'pgsql' => Uuid::fromString(md5($string)),
     };
 }
 
