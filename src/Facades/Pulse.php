@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static string js()
  * @method static bool runsMigrations()
  * @method static \Laravel\Pulse\Pulse ignoreMigrations()
+ * @method static bool registersRoutes()
+ * @method static \Laravel\Pulse\Pulse ignoreRoutes()
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
  * @method static void rescue(callable $callback)
  * @method static \Laravel\Pulse\Pulse setContainer(\Illuminate\Contracts\Foundation\Application $container)
