@@ -55,13 +55,6 @@ class DatabaseStorage implements Storage
                     ->insert($chunk->map->attributes()->all())
                 );
 
-            $periods = [
-                (int) (CarbonInterval::hour()->totalSeconds / 60),
-                (int) (CarbonInterval::hours(6)->totalSeconds / 60),
-                (int) (CarbonInterval::hours(24)->totalSeconds / 60),
-                (int) (CarbonInterval::days(7)->totalSeconds / 60),
-            ];
-
             $this
                 ->aggregateCounts($entries->filter->isCount())
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
@@ -690,7 +683,7 @@ class DatabaseStorage implements Storage
     }
 
     /**
-     * Wrap a value in keyword identifiers
+     * Wrap a value in keyword identifiers.
      */
     protected function wrap(string $value): string
     {

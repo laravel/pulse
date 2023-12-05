@@ -10,7 +10,7 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-  tests:
+  mysql:
     runs-on: ubuntu-22.04
 
     services:
@@ -18,7 +18,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_DATABASE: testing
+          MYSQL_DATABASE: forge
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -35,7 +35,7 @@ jobs:
         laravel: [10]
         stability: [prefer-lowest, prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MySQL 5.7
 
     steps:
       - name: Checkout code
@@ -62,3 +62,57 @@ jobs:
         env:
           DB_CONNECTION: mysql
           DB_USERNAME: root
+
+  pgsql:
+    runs-on: ubuntu-22.04
+
+    services:
+      postgresql:
+        image: postgres:14
+        env:
+          POSTGRES_DB: forge
+          POSTGRES_USER: forge
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.2, 8.3]
+        laravel: [10]
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - PostgreSQL 14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, redis, pcntl, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install redis-cli
+        run: sudo apt-get install -qq redis-tools
+
+      - name: Install dependencies
+        run: |
+           composer require "illuminate/contracts=^${{ matrix.laravel }}" --dev --no-update
+           composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Execute tests
+        run: vendor/bin/pest
+        env:
+          DB_CONNECTION: pgsql
+          DB_PASSWORD: password

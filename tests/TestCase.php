@@ -24,25 +24,10 @@ abstract class TestCase extends OrchestraTestCase
         $this->loadMigrationsFrom(__DIR__.'/migrations');
     }
 
-    protected function defineEnvironment($app)
+    protected function defineEnvironment($app): void
     {
         tap($app['config'], function (Repository $config) {
             $config->set('queue.failed.driver', 'null');
-            // TODO: Make this configurable for the environnment.
-            $config->set('database.default', 'pgsql');
-            $config->set('database.connections.pgsql', [
-                'driver' => 'pgsql',
-                'host' => env('DB_HOST', '127.0.0.1'),
-                'port' => 5432,
-                'database' => 'testing',
-                'username' => 'pulse',
-                'password' => 'secret',
-                'charset' => 'utf8',
-                'prefix' => '',
-                'prefix_indexes' => true,
-                'search_path' => 'public',
-                'sslmode' => 'prefer',
-            ]);
         });
     }
 }
