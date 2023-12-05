@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $connection = $this->getConnection() ?? DB::connection();
+        $connection = DB::connection($this->getConnection());
 
         Schema::create('pulse_values', function (Blueprint $table) use ($connection) {
             $table->engine = 'InnoDB';
