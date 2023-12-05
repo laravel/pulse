@@ -56,7 +56,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
     $this->toBeInstanceOf(Collection::class);
 
     $values = $this->value->each(function (stdClass $value) {
-         unset($value->id);
+        unset($value->id);
     });
 
     $types = (array) $type;
