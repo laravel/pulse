@@ -443,10 +443,10 @@ class DatabaseStorage implements Storage
 
                 foreach ($aggregates as $aggregate) {
                     $query->selectRaw(match ($aggregate) {
-                        'count' => 'sum('.$this->wrap('count').')',
-                        'max' => 'max('.$this->wrap('max').')',
-                        'avg' => 'avg('.$this->wrap('avg').')',
-                    }.' as '.$this->wrap($aggregate));
+                        'count' => "sum({$this->wrap('count')})",
+                        'max' => "max({$this->wrap('max')})",
+                        'avg' => "avg({$this->wrap('avg')})",
+                    }." as {$this->wrap($aggregate)}");
                 }
 
                 $query->fromSub(function (Builder $query) use ($type, $aggregates, $interval) {
@@ -462,9 +462,9 @@ class DatabaseStorage implements Storage
                     foreach ($aggregates as $aggregate) {
                         $query->selectRaw(match ($aggregate) {
                             'count' => 'count(*)',
-                            'max' => 'max('.$this->wrap('value').')',
-                            'avg' => 'avg('.$this->wrap('value').')',
-                        }.' as '.$this->wrap($aggregate));
+                            'max' => "max({$this->wrap('value')})",
+                            'avg' => "avg({$this->wrap('value')})",
+                        }." as {$this->wrap($aggregate)}");
                     }
 
                     $query
@@ -482,12 +482,12 @@ class DatabaseStorage implements Storage
                             foreach ($aggregates as $aggregate) {
                                 if ($aggregate === $currentAggregate) {
                                     $query->selectRaw(match ($aggregate) {
-                                        'count' => 'sum('.$this->wrap('value').')',
-                                        'max' => 'max('.$this->wrap('value').')',
-                                        'avg' => 'avg('.$this->wrap('value').')',
-                                    }.' as '.$this->wrap($aggregate));
+                                        'count' => "sum({$this->wrap('value')})",
+                                        'max' => "max({$this->wrap('value')})",
+                                        'avg' => "avg({$this->wrap('value')})",
+                                    }." as {$this->wrap($aggregate)}");
                                 } else {
-                                    $query->selectRaw('null as '.$this->wrap($aggregate));
+                                    $query->selectRaw("null as {$this->wrap($aggregate)}");
                                 }
                             }
 
@@ -545,10 +545,10 @@ class DatabaseStorage implements Storage
 
                 foreach ($types as $type) {
                     $query->selectRaw(match ($aggregate) {
-                        'count' => 'sum('.$this->wrap($type).')',
-                        'max' => 'max('.$this->wrap($type).')',
-                        'avg' => 'avg('.$this->wrap($type).')',
-                    }.' as '.$this->wrap($type));
+                        'count' => "sum({$this->wrap($type)})",
+                        'max' => "max({$this->wrap($type)})",
+                        'avg' => "avg({$this->wrap($type)})",
+                    }." as {$this->wrap($type)}");
                 }
 
                 $query->fromSub(function (Builder $query) use ($types, $aggregate, $interval) {
@@ -563,10 +563,10 @@ class DatabaseStorage implements Storage
 
                     foreach ($types as $type) {
                         $query->selectRaw(match ($aggregate) {
-                            'count' => 'count(case when ('.$this->wrap('type').' = ?) then true else null end)',
-                            'max' => 'max(case when ('.$this->wrap('type').' = ?) then '.$this->wrap('value').' else null end)',
-                            'avg' => 'avg(case when ('.$this->wrap('type').' = ?) then '.$this->wrap('value').' else null end)',
-                        }.' as '.$this->wrap($type), [$type]);
+                            'count' => "count(case when ({$this->wrap('type')} = ?) then true else null end)",
+                            'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                            'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                        }." as {$this->wrap($type)}", [$type]);
                     }
 
                     $query
@@ -582,10 +582,10 @@ class DatabaseStorage implements Storage
 
                         foreach ($types as $type) {
                             $query->selectRaw(match ($aggregate) {
-                                'count' => 'sum(case when ('.$this->wrap('type').' = ?) then '.$this->wrap('value').' else null end)',
-                                'max' => 'max(case when ('.$this->wrap('type').' = ?) then '.$this->wrap('value').' else null end)',
-                                'avg' => 'avg(case when ('.$this->wrap('type').' = ?) then '.$this->wrap('value').' else null end)',
-                            }.' as '.$this->wrap($type), [$type]);
+                                'count' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                            }." as {$this->wrap($type)}", [$type]);
                         }
 
                         $query
@@ -633,18 +633,18 @@ class DatabaseStorage implements Storage
         return $this->connection()->query()
             ->addSelect('type')
             ->selectRaw(match ($aggregate) {
-                'count' => 'sum('.$this->wrap('count').')',
-                'max' => 'max('.$this->wrap('max').')',
-                'avg' => 'avg('.$this->wrap('avg').')',
-            }.' as '.$this->wrap($aggregate))
+                'count' => "sum({$this->wrap('count')})",
+                'max' => "max({$this->wrap('max')})",
+                'avg' => "avg({$this->wrap('avg')})",
+            }." as {$this->wrap($aggregate)}")
             ->fromSub(fn (Builder $query) => $query
                 // Tail
                 ->addSelect('type')
                 ->selectRaw(match ($aggregate) {
                     'count' => 'count(*)',
-                    'max' => 'max('.$this->wrap('value').')',
-                    'avg' => 'avg('.$this->wrap('value').')',
-                }.' as '.$this->wrap($aggregate))
+                    'max' => "max({$this->wrap('value')})",
+                    'avg' => "avg({$this->wrap('value')})",
+                }." as {$this->wrap($aggregate)}")
                 ->from('pulse_entries')
                 ->whereIn('type', $types)
                 ->where('timestamp', '>=', $tailStart)
@@ -654,10 +654,10 @@ class DatabaseStorage implements Storage
                 ->unionAll(fn (Builder $query) => $query
                     ->select('type')
                     ->selectRaw(match ($aggregate) {
-                        'count' => 'sum('.$this->wrap('value').')',
-                        'max' => 'max('.$this->wrap('value').')',
-                        'avg' => 'avg('.$this->wrap('value').')',
-                    }.' as '.$this->wrap($aggregate))
+                        'count' => "sum({$this->wrap('value')})",
+                        'max' => "max({$this->wrap('value')})",
+                        'avg' => "avg({$this->wrap('value')})",
+                    }." as {$this->wrap($aggregate)}")
                     ->from('pulse_aggregates')
                     ->where('period', $period)
                     ->whereIn('type', $types)
