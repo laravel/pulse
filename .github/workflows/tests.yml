@@ -35,7 +35,7 @@ jobs:
         laravel: [10]
         stability: [prefer-lowest, prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability {{ matrix.stability }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }}
 
     steps:
       - name: Checkout code
