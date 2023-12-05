@@ -185,18 +185,17 @@ class DatabaseStorage implements Storage
         return $this->connection()->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
-            [
-                'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
-                    'pgsql' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
-                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-                },
-                'count' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('`count` + values(`count`)'),
-                    'pgsql' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
-                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
-                },
-            ]
+            match ($driver = $this->connection()->getDriverName()) {
+                'mysql' => [
+                    'value' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
+                    'count' => new Expression('`count` + values(`count`)'),
+                ],
+                'pgsql' => [
+                    'value' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
+                    'count' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
+                ],
+                default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+            }
         );
     }
 
