@@ -45,14 +45,14 @@ class Servers
         $memoryTotal = match (PHP_OS_FAMILY) {
             'Darwin' => intval(`sysctl hw.memsize | grep -Eo '[0-9]+'` / 1024 / 1024),
             'Linux' => intval(`cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'` / 1024),
-            'Windows' => intval(trim(`wmic ComputerSystem get TotalPhysicalMemory | more +1`) / 1024 / 1024),
+            'Windows' => intval(((int) trim(`wmic ComputerSystem get TotalPhysicalMemory | more +1`)) / 1024 / 1024),
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
         $memoryUsed = match (PHP_OS_FAMILY) {
             'Darwin' => $memoryTotal - intval(intval(`vm_stat | grep 'Pages free' | grep -Eo '[0-9]+'`) * intval(`pagesize`) / 1024 / 1024), // MB
             'Linux' => $memoryTotal - intval(`cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'` / 1024), // MB
-            'Windows' => $memoryTotal - intval(trim(`wmic OS get FreePhysicalMemory | more +1`) / 1024), // MB
+            'Windows' => $memoryTotal - intval(((int) trim(`wmic OS get FreePhysicalMemory | more +1`)) / 1024), // MB
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
