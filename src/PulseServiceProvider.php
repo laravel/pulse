@@ -78,10 +78,6 @@ class PulseServiceProvider extends ServiceProvider
         $this->registerResources();
         $this->registerPublishing();
         $this->registerCommands();
-
-        AboutCommand::add('Pulse', fn () => [
-            'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
-        ]);
     }
 
     /**
@@ -225,6 +221,10 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
                 Commands\PurgeCommand::class,
+            ]);
+
+            AboutCommand::add('Pulse', fn () => [
+                'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
             ]);
         }
     }
