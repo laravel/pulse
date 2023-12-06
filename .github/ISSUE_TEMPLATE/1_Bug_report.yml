@@ -28,7 +28,7 @@ body:
   - type: input
     attributes:
       label: Livewire Version
-      description: Provide the Livew version that you are using.
+      description: Provide the Livewire version that you are using.
       placeholder: 3.0.2
     validations:
       required: true
