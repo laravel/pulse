@@ -7,8 +7,11 @@ use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
@@ -88,6 +91,13 @@ class Pulse
      * @var ?callable(\Throwable): mixed
      */
     protected $handleExceptionsUsing = null;
+
+    /**
+     * The CSS paths to include on the dashboard.
+     *
+     * @var list<string|Htmlable>
+     */
+    protected $css = [__DIR__.'/../dist/pulse.css'];
 
     /**
      * Create a new Pulse instance.
@@ -428,15 +438,29 @@ class Pulse
     }
 
     /**
-     * Return the compiled CSS from the vendor directory.
+     * Register or return CSS for the Pulse dashboard.
+     *
+     * @param  string|Htmlable|list<string|Htmlable>|null  $css
      */
-    public function css(): string
+    public function css(string|Htmlable|array|null $css = null): string|self
     {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
-            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
+        if (func_num_args() === 1) {
+            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css))));
+
+            return $this;
         }
 
-        return $content;
+        return collect($this->css)->reduce(function ($carry, $css) {
+            if ($css instanceof Htmlable) {
+                return $carry.Str::finish($css->toHtml(), PHP_EOL);
+            } else {
+                if (($contents = @file_get_contents($css)) === false) {
+                    throw new RuntimeException("Unable to load Pulse dashboard CSS path [$css].");
+                }
+
+                return $carry."<style>{$contents}</style>".PHP_EOL;
+            }
+        }, '');
     }
 
     /**
@@ -448,7 +472,7 @@ class Pulse
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return $content;
+        return "<script>{$content}</script>".PHP_EOL;
     }
 
     /**
