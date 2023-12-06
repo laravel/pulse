@@ -5,8 +5,10 @@ namespace Laravel\Pulse\Commands;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
+use Illuminate\Console\Concerns\InteractsWithSignals;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Events\IsolatedBeat;
 use Laravel\Pulse\Events\SharedBeat;
@@ -20,6 +22,9 @@ use Symfony\Component\Console\Attribute\AsCommand;
 #[AsCommand(name: 'pulse:check')]
 class CheckCommand extends Command
 {
+    use InteractsWithSignals;
+    use InteractsWithTime;
+
     /**
      * The command's signature.
      *
@@ -42,6 +47,10 @@ class CheckCommand extends Command
         CacheStoreResolver $cache,
         Dispatcher $event,
     ): int {
+        $this->trap([SIGINT, SIGTERM], function () use ($cache) {
+            $cache->store()->set('laravel:pulse:restart', $this->currentTime());
+        });
+
         $lastRestart = $cache->store()->get('laravel:pulse:restart');
 
         $interval = CarbonInterval::seconds(5);
