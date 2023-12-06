@@ -440,7 +440,7 @@ class Pulse
      *
      * @param  string|list<string>|null  $path
      */
-    public function css(string|array $path = null): string|self
+    public function css(string|array|null $path = null): string|self
     {
         if (is_string($path)) {
             $path = [$path];
