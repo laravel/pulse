@@ -27,6 +27,13 @@ body:
       required: true
   - type: input
     attributes:
+      label: Livewire Version
+      description: Provide the Livew version that you are using.
+      placeholder: 3.0.2
+    validations:
+      required: true
+  - type: input
+    attributes:
       label: Database Driver & Version
       description: If applicable, provide the database driver and version you are using.
       placeholder: "MySQL 8.0.31 for macOS 13.0 on arm64 (Homebrew)"
