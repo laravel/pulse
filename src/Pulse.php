@@ -9,6 +9,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
@@ -88,6 +89,13 @@ class Pulse
      * @var ?callable(\Throwable): mixed
      */
     protected $handleExceptionsUsing = null;
+
+    /**
+     * The CSS paths to include on the dashboard.
+     *
+     * @var list<string>
+     */
+    protected $css = [__DIR__.'/../dist/pulse.css'];
 
     /**
      * Create a new Pulse instance.
@@ -428,15 +436,29 @@ class Pulse
     }
 
     /**
-     * Return the compiled CSS from the vendor directory.
+     * Register or return the compiled CSS from disk.
+     *
+     * @param  string|list<string>|null  $path
      */
-    public function css(): string
+    public function css(string|array $path = null): string|self
     {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
-            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
+        if (is_string($path)) {
+            $path = [$path];
         }
 
-        return $content;
+        if ($path !== null) {
+            $this->css = array_values(array_unique(array_merge($this->css, $path)));
+
+            return $this;
+        }
+
+        return collect($this->css)->reduce(function ($carry, $path) {
+            if (($content = @file_get_contents($path)) === false) {
+                throw new RuntimeException("Unable to load Pulse dashboard CSS path [$path].");
+            }
+
+            return $carry.Str::finish($content, PHP_EOL);
+        }, '');
     }
 
     /**

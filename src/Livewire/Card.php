@@ -4,7 +4,9 @@ namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
+use Laravel\Pulse\Facades\Pulse;
 use Livewire\Component;
+use Livewire\Livewire;
 
 abstract class Card extends Component
 {
@@ -42,5 +44,21 @@ abstract class Card extends Component
             'rows' => $this->rows ?? null,
             'class' => $this->class,
         ]);
+    }
+
+    /**
+     * Capture component-specific CSS.
+     */
+    public function dehydrate(): void
+    {
+        if (Livewire::isLivewireRequest()) {
+            return;
+        }
+
+        if (! property_exists($this, 'css')) {
+            return;
+        }
+
+        Pulse::css($this->css);
     }
 }
