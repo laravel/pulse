@@ -48,17 +48,25 @@ abstract class Card extends Component
 
     /**
      * Capture component-specific CSS.
+     *
+     * @return void
      */
-    public function dehydrate(): void
+    public function dehydrate()
     {
         if (Livewire::isLivewireRequest()) {
             return;
         }
 
-        if (! property_exists($this, 'css')) {
-            return;
-        }
+        Pulse::css($this->css());
+    }
 
-        Pulse::css($this->css);
+    /**
+     * Define any CSS that should be loaded for the component.
+     *
+     * @return string|\Illuminate\Contracts\Support\Htmlable|array<int, string|\Illuminate\Contracts\Support\Htmlable>|null
+     */
+    protected function css()
+    {
+        return null;
     }
 }

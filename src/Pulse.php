@@ -7,6 +7,8 @@ use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
@@ -93,7 +95,7 @@ class Pulse
     /**
      * The CSS paths to include on the dashboard.
      *
-     * @var list<string>
+     * @var list<string|Htmlable>
      */
     protected $css = [__DIR__.'/../dist/pulse.css'];
 
@@ -436,28 +438,28 @@ class Pulse
     }
 
     /**
-     * Register or return the compiled CSS from disk.
+     * Register or return CSS for the Pulse dashboard.
      *
-     * @param  string|list<string>|null  $path
+     * @param  string|Htmlable|list<string|Htmlable>|null  $css
      */
-    public function css(string|array|null $path = null): string|self
+    public function css(string|Htmlable|array $css = null): string|self
     {
-        if (is_string($path)) {
-            $path = [$path];
-        }
-
-        if ($path !== null) {
-            $this->css = array_values(array_unique(array_merge($this->css, $path)));
+        if (func_num_args() === 1) {
+            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css))));
 
             return $this;
         }
 
-        return collect($this->css)->reduce(function ($carry, $path) {
-            if (($content = @file_get_contents($path)) === false) {
-                throw new RuntimeException("Unable to load Pulse dashboard CSS path [$path].");
-            }
+        return collect($this->css)->reduce(function ($carry, $css) {
+            if ($css instanceof Htmlable) {
+                return $carry.Str::finish($css->toHtml(), PHP_EOL);
+            } else {
+                if (($contents = @file_get_contents($css)) === false) {
+                    throw new RuntimeException("Unable to load Pulse dashboard CSS path [$css].");
+                }
 
-            return $carry.Str::finish($content, PHP_EOL);
+                return $carry."<style>{$contents}</style>".PHP_EOL;
+            }
         }, '');
     }
 
@@ -470,7 +472,7 @@ class Pulse
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return $content;
+        return "<script>{$content}</script>".PHP_EOL;
     }
 
     /**
