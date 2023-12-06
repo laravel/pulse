@@ -11,7 +11,7 @@ it('loads custom css using a path', function () {
 
     $css = Pulse::css();
 
-    expect($css)->toContain(<<<HTML
+    expect($css)->toContain(<<<'HTML'
         <style>.custom-class {
             color: purple;
         }
