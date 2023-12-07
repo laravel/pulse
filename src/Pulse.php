@@ -20,8 +20,6 @@ use RuntimeException;
 use Throwable;
 
 /**
- * @internal
- *
  * @mixin \Laravel\Pulse\Contracts\Storage
  */
 class Pulse
