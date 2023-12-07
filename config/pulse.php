@@ -83,6 +83,7 @@ return [
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),
             'chunk' => 1000,
+            'max_retention' => env('PULSE_REDIS_MAX_RETENTION', '7 days'),
         ],
     ],
 

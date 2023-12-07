@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
@@ -59,7 +60,7 @@ class RedisIngest implements Ingest
             $this->stream,
             'MINID',
             '~',
-            CarbonImmutable::now()->subWeek()->getTimestampMs()
+            $this->trimBefore(),
         );
     }
 
@@ -106,5 +107,15 @@ class RedisIngest implements Ingest
         return new RedisAdapter($this->redis->connection(
             $this->config->get('pulse.ingest.redis.connection')
         ), $this->config);
+    }
+
+    /**
+     * The timestamp, in milliseconds, to trim before.
+     */
+    protected function trimBefore(): int
+    {
+        return CarbonImmutable::now()->subMilliseconds(
+            (int) CarbonInterval::fromString($this->config->get('pulse.ingest.redis.max_retention', '7 days'))->totalMilliseconds
+        )->getTimestampMs();
     }
 }
