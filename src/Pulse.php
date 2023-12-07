@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Events\EntryRecorded;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
 use Throwable;
@@ -170,6 +171,8 @@ class Pulse
 
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
+
+            $this->rescue(fn () => $this->app->make('events')->dispatch(new EntryRecorded($entry)));
         }
 
         return $entry;
