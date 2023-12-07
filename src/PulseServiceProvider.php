@@ -36,10 +36,6 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app->make('config')->get('pulse.enabled')) {
-            return;
-        }
-
         $this->app->singleton(Pulse::class);
         $this->app->bind(Storage::class, DatabaseStorage::class);
 
@@ -63,15 +59,15 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app->make('config')->get('pulse.enabled')) {
-            return;
+        if ($enabled = $this->app->make('config')->get('pulse.enabled')) {
+            $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
+            $this->listenForEvents();
+        } else {
+            $this->app->make(Pulse::class)->stopRecording();
         }
-
-        $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
 
         $this->registerAuthorization();
         $this->registerRoutes();
-        $this->listenForEvents();
         $this->registerComponents();
         $this->registerResources();
         $this->registerPublishing();
