@@ -20,7 +20,7 @@
                     Str::plural('group', $count)
                 );
             @endphp
-            <button title="{{ $message }}" @click="alert('{{ str_replace("\n", '\n', $message) }}')">
+            <button title="{{ $message }}" @@click="alert('{{ str_replace("\n", '\n', $message) }}')">
                 <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
             </button>
 
@@ -31,7 +31,7 @@
                     'slowest' => 'slowest',
                     'count' => 'count',
                 ]"
-                @change="loading = true"
+                @@change="loading = true"
             />
         </x-slot:actions>
     </x-pulse::card-header>

@@ -20,7 +20,7 @@
                     Str::plural('group', $count)
                 );
             @endphp
-            <button title="{{ $message }}" @click="alert('{{ str_replace("\n", '\n', $message) }}')">
+            <button title="{{ $message }}" @@click="alert('{{ str_replace("\n", '\n', $message) }}')">
                 <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
             </button>
         </x-slot:actions>
@@ -32,7 +32,7 @@
         @else
             <div class="flex flex-col gap-6">
                 <div class="grid grid-cols-3 gap-3 text-center">
-                    <div class="flex flex-col justify-center @sm:block">
+                    <div class="flex flex-col justify-center @@sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             @if ($config['sample_rate'] < 1)
                                 <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->hits) }}">~{{ number_format($allCacheInteractions->hits * (1 / $config['sample_rate'])) }}</span>
@@ -44,7 +44,7 @@
                             Hits
                         </span>
                     </div>
-                    <div class="flex flex-col justify-center @sm:block">
+                    <div class="flex flex-col justify-center @@sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             @if ($config['sample_rate'] < 1)
                                 <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($allCacheInteractions->misses) }}">~{{ number_format(($allCacheInteractions->misses) * (1 / $config['sample_rate'])) }}</span>
@@ -56,7 +56,7 @@
                             Misses
                         </span>
                     </div>
-                    <div class="flex flex-col justify-center @sm:block">
+                    <div class="flex flex-col justify-center @@sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
                             {{ round($allCacheInteractions->hits / ($allCacheInteractions->hits + $allCacheInteractions->misses) * 100, 2).'%' }}
                         </span>

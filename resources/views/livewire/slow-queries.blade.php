@@ -31,7 +31,7 @@ $sqlFormatter = new SqlFormatter(new HtmlHighlighter([
                     'slowest' => 'slowest',
                     'count' => 'count',
                 ]"
-                @change="loading = true"
+                @@change="loading = true"
             />
         </x-slot:actions>
     </x-pulse::card-header>

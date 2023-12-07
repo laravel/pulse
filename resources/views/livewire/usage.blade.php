@@ -28,7 +28,7 @@
                         'jobs' => 'dispatching jobs',
                     ]"
                     class="flex-1"
-                    @change="loading = true"
+                    @@change="loading = true"
                 />
             @endif
         </x-slot:actions>
@@ -38,7 +38,7 @@
         @if ($userRequestCounts->isEmpty())
             <x-pulse::no-results />
         @else
-            <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
+            <div class="grid grid-cols-1 @@lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
                 @foreach ($userRequestCounts as $userRequestCount)
                     <x-pulse::user-card wire:key="{{ $userRequestCount->user->id }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">
                         @if ($userRequestCount->user->avatar ?? false)

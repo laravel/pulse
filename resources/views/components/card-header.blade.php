@@ -1,5 +1,5 @@
 @props(['name' => '', 'title' => '', 'details' => null])
-<header class="flex flex-wrap justify-between items-center gap-4 mb-3 @md:mb-6">
+<header class="flex flex-wrap justify-between items-center gap-4 mb-3 @@md:mb-6">
     <div class="flex-1 basis-0 flex-grow-[10000] max-w-full">
         <div class="flex overflow-hidden gap-2 items-start">
             @if (isset($icon))
