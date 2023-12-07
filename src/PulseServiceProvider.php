@@ -225,6 +225,7 @@ class PulseServiceProvider extends ServiceProvider
 
             AboutCommand::add('Pulse', fn () => [
                 'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
+                'Enabled' => json_encode(config('pulse.enabled')),
             ]);
         }
     }
