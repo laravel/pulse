@@ -23,6 +23,10 @@ return new class extends Migration
     {
         $connection = DB::connection($this->getConnection());
 
+        if ('sqlite' === $connection->getDriverName()) {
+            return;
+        }
+
         Schema::create('pulse_values', function (Blueprint $table) use ($connection) {
             $table->id();
             $table->unsignedInteger('timestamp');
