@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Support\RedisAdapter;
-use Laravel\Pulse\Support\RedisClientException;
+use Laravel\Pulse\Support\RedisServerException;
 use Tests\StorageFake;
 
 beforeEach(function () {
@@ -137,4 +137,8 @@ it('throws exception on failure', function ($driver) {
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
 
     $redis->xtrim('stream-name', 'FOO', 'a', 'xyz');
-})->with(['predis', 'phpredis'])->throws(RedisClientException::class, 'ERR syntax error');
+})->with(['predis', 'phpredis'])->throws(RedisServerException::class, 'The Redis version does not support the command or some of its arguments [XTRIM laravel_database_stream-name FOO a xyz]. Redis error: [ERR syntax error].');
+
+it('prepends the error message with the run command', function () {
+    throw RedisServerException::whileRunningCommand('FOO BAR', 'Something happened');
+})->throws(RedisServerException::class, 'Error running command [FOO BAR]. Redis error: [Something happened].');
