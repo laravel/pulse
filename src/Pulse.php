@@ -338,10 +338,14 @@ class Pulse
     {
         if ($this->usersResolver) {
             return collect(($this->usersResolver)($ids));
-        } elseif (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
-        } elseif (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
+        }
+
+        if (class_exists($class = \App\Models\User::class) || class_exists($class = \App\User::class)) {
+            return $class::whereKey($ids)->get()->map(fn ($user) => [
+                'id' => $user->getKey(),
+                'name' => $user->name,
+                'email' => $user->email,
+            ]);
         }
 
         return $ids->map(fn (string|int $id) => [
