@@ -42,8 +42,8 @@ class Cache extends Card
                 ->map(function ($row) {
                     return (object) [
                         'key' => $row->key,
-                        'hits' => $row->cache_hit,
-                        'misses' => $row->cache_miss,
+                        'hits' => $row->cache_hit ?? 0,
+                        'misses' => $row->cache_miss ?? 0,
                     ];
                 }),
             'keys'
