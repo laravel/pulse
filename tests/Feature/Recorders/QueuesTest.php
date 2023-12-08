@@ -70,7 +70,7 @@ it('ingests queued closures', function () {
     /*
      * Work the job for the first time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -84,7 +84,7 @@ it('ingests queued closures', function () {
     /*
      * Work the job for the second time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
 
     $aggregates = queueAggregates();
@@ -141,7 +141,7 @@ it('ingests queued listeners', function () {
     /*
      * Work the job for the first time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -155,7 +155,7 @@ it('ingests queued listeners', function () {
     /*
      * Work the job for the second time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -194,7 +194,7 @@ it('ingests queued mail', function () {
     /*
      * Work the job for the first time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
 
     $aggregates = queueAggregates();
@@ -209,7 +209,7 @@ it('ingests queued mail', function () {
     /*
      * Work the job for the second time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -248,7 +248,7 @@ it('ingests queued notifications', function () {
     /*
      * Work the job for the first time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -262,7 +262,7 @@ it('ingests queued notifications', function () {
     /*
      * Work the job for the second time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -301,7 +301,7 @@ it('ingests queued commands', function () {
     /*
      * Work the job for the first time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -315,7 +315,7 @@ it('ingests queued commands', function () {
     /*
      * Work the job for the second time.
      */
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -356,7 +356,7 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the first time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -371,7 +371,7 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the second time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -392,7 +392,7 @@ it('handles a job throwing exceptions and failing', function () {
      * Work the job for the third time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -439,7 +439,7 @@ it('handles a failure and then a successful job', function () {
      * Work the job for the first time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -454,7 +454,7 @@ it('handles a failure and then a successful job', function () {
      * Work the job for the second time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -496,7 +496,7 @@ it('handles a job that was manually failed', function () {
      */
 
     app(ExceptionHandler::class)->reportable(fn (\Throwable $e) => throw $e);
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     app()->forgetInstance(ExceptionHandler::class);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
@@ -522,7 +522,7 @@ it('can ignore jobs', function () {
      * Work the job for the first time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(1);
     expect(queueAggregates())->toHaveCount(0);
 
@@ -530,7 +530,7 @@ it('can ignore jobs', function () {
      * Work the job for the second time.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     expect(queueAggregates())->toHaveCount(0);
 });
@@ -615,7 +615,7 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
         value: 1,
     );
 
-    Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
