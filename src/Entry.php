@@ -7,7 +7,7 @@ class Entry
     /**
      * The aggregations to perform on the entry.
      *
-     * @var list<'count'|'max'|'sum'|'avg'>
+     * @var list<'count'|'min'|'max'|'sum'|'avg'>
      */
     protected array $aggregations = [];
 
@@ -34,6 +34,16 @@ class Entry
     public function count(): static
     {
         $this->aggregations[] = 'count';
+
+        return $this;
+    }
+
+    /**
+     * Capture the minimum aggregate.
+     */
+    public function min(): static
+    {
+        $this->aggregations[] = 'min';
 
         return $this;
     }
@@ -81,7 +91,7 @@ class Entry
     /**
      * Return the aggregations for the entry.
      *
-     * @return list<'count'|'max'|'sum'|'avg'>
+     * @return list<'count'|'min'|'max'|'sum'|'avg'>
      */
     public function aggregations(): array
     {
@@ -94,6 +104,14 @@ class Entry
     public function isCount(): bool
     {
         return in_array('count', $this->aggregations);
+    }
+
+    /**
+     * Determine whether the entry is marked for minimum aggregation.
+     */
+    public function isMin(): bool
+    {
+        return in_array('min', $this->aggregations);
     }
 
     /**
