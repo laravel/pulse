@@ -11,15 +11,11 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600" rel="stylesheet" />
 
-        <style>
-            {!! Laravel\Pulse\Facades\Pulse::css() !!}
-        </style>
+        {!! Laravel\Pulse\Facades\Pulse::css() !!}
 
         @livewireStyles
 
-        <script>
-            {!! Laravel\Pulse\Facades\Pulse::js() !!}
-        </script>
+        {!! Laravel\Pulse\Facades\Pulse::js() !!}
     </head>
     <body class="font-sans antialiased">
         <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">

@@ -41,8 +41,8 @@
                 </x-pulse::thead>
                 <tbody>
                     @foreach ($slowRequests->take(100) as $slowRequest)
-                        <tr class="h-2 first:h-0"></tr>
-                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri.$this->period }}">
+                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri }}-spacer" class="h-2 first:h-0"></tr>
+                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri }}-row">
                             <x-pulse::td>
                                 <x-pulse::http-method-badge :method="$slowRequest->method" />
                             </x-pulse::td>

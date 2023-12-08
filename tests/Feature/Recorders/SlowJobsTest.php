@@ -32,7 +32,7 @@ it('records slow jobs', function () {
      */
 
     Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get());
     expect($entries)->toHaveCount(1);
@@ -79,7 +79,7 @@ it('skips jobs under the threshold', function () {
      */
 
     Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get()))->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
@@ -106,7 +106,7 @@ it('can ignore jobs', function () {
      * Work the job.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
 
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get()))->toHaveCount(0);
@@ -140,7 +140,7 @@ it('can sample', function () {
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toEqualWithDelta(1, 4);
@@ -175,7 +175,7 @@ it('can sample at zero', function () {
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(0);
@@ -210,7 +210,7 @@ it('can sample at one', function () {
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
     expect(Queue::size())->toBe(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(10);

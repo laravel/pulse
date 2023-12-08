@@ -1,3 +1,6 @@
+/.idea
+/.fleet
+/.vscode
 /node_modules
 /public/app.js.LICENSE.txt
 /vendor
@@ -5,3 +8,4 @@ composer.lock
 /phpunit.xml
 .phpunit.result.cache
 .env
+.idea

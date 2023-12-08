@@ -4,6 +4,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Process;
@@ -11,6 +12,7 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use PHPUnit\Framework\Assert;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 /*
@@ -52,8 +54,12 @@ uses(TestCase::class)
 |
 */
 
-expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, int $count = null, int $timestamp = null) {
+expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, ?int $count = null, ?int $timestamp = null) {
     $this->toBeInstanceOf(Collection::class);
+
+    $values = $this->value->each(function (stdClass $value) {
+        unset($value->id);
+    });
 
     $types = (array) $type;
     $timestamp ??= now()->timestamp;
@@ -68,7 +74,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
                 'type' => $type,
                 'aggregate' => $aggregate,
                 'key' => $key,
-                'key_hash' => hex2bin(md5($key)),
+                'key_hash' => keyHash($key),
                 'value' => $value,
                 'count' => $count,
             ];
@@ -90,6 +96,14 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+function keyHash(string $string): string
+{
+    return match (DB::connection()->getDriverName()) {
+        'mysql' => hex2bin(md5($string)),
+        'pgsql' => Uuid::fromString(md5($string)),
+    };
+}
 
 function prependListener(string $event, callable $listener): void
 {
@@ -146,4 +160,9 @@ function captureRedisCommands(callable $callback)
     } finally {
         $process->running() && $process->signal(SIGINT);
     }
+}
+
+function avatar(string $email)
+{
+    return sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($email))));
 }

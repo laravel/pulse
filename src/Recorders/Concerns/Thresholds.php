@@ -9,6 +9,6 @@ trait Thresholds
      */
     protected function underThreshold(int|float $duration): bool
     {
-        return $duration < $this->config->get('pulse.recorders.'.self::class.'.threshold');
+        return $duration < $this->config->get('pulse.recorders.'.static::class.'.threshold');
     }
 }
