@@ -69,6 +69,14 @@ class Entry
     }
 
     /**
+     * Return the aggregations for the entry.
+     */
+    public function aggregations(): array
+    {
+        return $this->aggregations;
+    }
+
+    /**
      * Determine whether the entry is marked for count aggregation.
      */
     public function isCount(): bool

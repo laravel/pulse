@@ -55,18 +55,28 @@ class DatabaseStorage implements Storage
                     ->insert($chunk->map->attributes()->all())
                 );
 
+            [$counts, $maximums, $averages] = array_values($entries
+                ->reduce(function ($carry, $entry) {
+                    foreach ($entry->aggregations() as $aggregation) {
+                        $carry[$aggregation][] = $entry;
+                    }
+
+                    return $carry;
+                }, ['count' => [], 'max' => [], 'avg' => []])
+            );
+
             $this
-                ->aggregateCounts($entries->filter->isCount())
+                ->aggregateCounts(collect($counts))
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
             $this
-                ->aggregateMaximums($entries->filter->isMax())
+                ->aggregateMaximums(collect($maximums))
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
             $this
-                ->aggregateAverages($entries->filter->isAvg())
+                ->aggregateAverages(collect($averages))
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
