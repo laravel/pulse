@@ -112,13 +112,13 @@ class RedisAdapter
     protected function handle(array $args): mixed
     {
         try {
-            return tap($this->run($args), function ($result) {
+            return tap($this->run($args), function ($result) use ($args) {
                 if ($result === false && $this->client() instanceof PhpRedis) {
-                    throw new RedisClientException($this->client()->getLastError() ?? 'An unknown error occurred.');
+                    throw RedisServerException::whileRunningCommand(implode(' ', $args), $this->client()->getLastError() ?? 'An unknown error occurred.');
                 }
             });
         } catch (PredisServerException $e) {
-            throw new RedisClientException($e->getMessage(), previous: $e);
+            throw RedisServerException::whileRunningCommand(implode(' ', $args), $e->getMessage(), previous: $e);
         }
     }
 

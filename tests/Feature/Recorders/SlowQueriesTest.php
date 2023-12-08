@@ -28,7 +28,7 @@ it('ingests queries', function () {
     $key = json_decode($entries[0]->key);
     expect($key[0])->toBe('select * from users');
     expect($key[1])->not->toBeNull();
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
@@ -72,7 +72,7 @@ it('can disable capturing the location', function () {
     $key = json_decode($entries[0]->key);
     expect($key[0])->toBe('select * from users');
     expect($key[1])->toBeNull();
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
