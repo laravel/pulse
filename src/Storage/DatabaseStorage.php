@@ -127,7 +127,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<string>  $types
      */
-    public function purge(array $types = null): void
+    public function purge(?array $types = null): void
     {
         if ($types === null) {
             $this->connection()->table('pulse_values')->truncate();
@@ -252,7 +252,7 @@ class DatabaseStorage implements Storage
      *     >
      * >
      */
-    public function values(string $type, array $keys = null): Collection
+    public function values(string $type, ?array $keys = null): Collection
     {
         return $this->connection()
             ->table('pulse_values')
@@ -319,7 +319,7 @@ class DatabaseStorage implements Storage
         string $type,
         array|string $aggregates,
         CarbonInterval $interval,
-        string $orderBy = null,
+        ?string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {
@@ -422,7 +422,7 @@ class DatabaseStorage implements Storage
         string|array $types,
         string $aggregate,
         CarbonInterval $interval,
-        string $orderBy = null,
+        ?string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {

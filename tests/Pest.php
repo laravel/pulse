@@ -52,7 +52,7 @@ uses(TestCase::class)
 |
 */
 
-expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, int $count = null, int $timestamp = null) {
+expect()->extend('toContainAggregateForAllPeriods', function (string|array $type, string $aggregate, string $key, int $value, ?int $count = null, ?int $timestamp = null) {
     $this->toBeInstanceOf(Collection::class);
 
     $types = (array) $type;

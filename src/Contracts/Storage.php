@@ -24,7 +24,7 @@ interface Storage
      *
      * @param  list<string>  $types
      */
-    public function purge(array $types = null): void;
+    public function purge(?array $types = null): void;
 
     /**
      * Retrieve values for the given type.
@@ -43,7 +43,7 @@ interface Storage
      *     >
      * >
      */
-    public function values(string $type, array $keys = null): Collection;
+    public function values(string $type, ?array $keys = null): Collection;
 
     /**
      * Retrieve aggregate values for plotting on a graph.
@@ -69,7 +69,7 @@ interface Storage
         string $type,
         string|array $aggregates,
         CarbonInterval $interval,
-        string $orderBy = null,
+        ?string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection;
@@ -84,7 +84,7 @@ interface Storage
         string|array $types,
         string $aggregate,
         CarbonInterval $interval,
-        string $orderBy = null,
+        ?string $orderBy = null,
         string $direction = 'desc',
         int $limit = 101,
     ): Collection;

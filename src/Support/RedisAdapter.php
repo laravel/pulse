@@ -124,7 +124,7 @@ class RedisAdapter
      *
      * @return array<string, array<string, string>>
      */
-    public function xrange(string $key, string $start, string $end, int $count = null): array
+    public function xrange(string $key, string $start, string $end, ?int $count = null): array
     {
         return $this->client()->xrange(...array_filter(func_get_args())); // @phpstan-ignore method.notFound
     }
