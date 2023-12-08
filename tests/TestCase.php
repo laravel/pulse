@@ -4,25 +4,21 @@ namespace Tests;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Orchestra\Testbench\Attributes\WithMigration;
+use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithWorkbench;
 
     protected $enablesPackageDiscoveries = true;
 
-    protected function getPackageProviders($app): array
+    protected function setUp(): void
     {
-        return [
-            \Laravel\Pulse\PulseServiceProvider::class,
-        ];
-    }
+        $this->usesTestingFeature(new WithMigration('laravel', 'queue'));
 
-    protected function defineDatabaseMigrations(): void
-    {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadMigrationsFrom(__DIR__.'/migrations');
+        parent::setUp();
     }
 
     protected function defineEnvironment($app): void
