@@ -7,7 +7,7 @@ class Entry
     /**
      * The aggregations to perform on the entry.
      *
-     * @var list<'count'|'max'|'avg'>
+     * @var list<'count'|'max'|'sum'|'avg'>
      */
     protected array $aggregations = [];
 
@@ -49,6 +49,16 @@ class Entry
     }
 
     /**
+     * Capture the sum aggregate.
+     */
+    public function sum(): static
+    {
+        $this->aggregations[] = 'sum';
+
+        return $this;
+    }
+
+    /**
      * Capture the average aggregate.
      */
     public function avg(): static
@@ -70,6 +80,8 @@ class Entry
 
     /**
      * Return the aggregations for the entry.
+     *
+     * @return list<'count'|'max'|'sum'|'avg'>
      */
     public function aggregations(): array
     {
@@ -90,6 +102,14 @@ class Entry
     public function isMax(): bool
     {
         return in_array('max', $this->aggregations);
+    }
+
+    /**
+     * Determine whether the entry is marked for sum aggregation.
+     */
+    public function isSum(): bool
+    {
+        return in_array('sum', $this->aggregations);
     }
 
     /**
