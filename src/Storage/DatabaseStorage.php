@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
+use Closure;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
@@ -66,27 +67,27 @@ class DatabaseStorage implements Storage
             );
 
             $this
-                ->aggregateCounts(collect($counts)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateCounts(collect($counts)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
             $this
-                ->aggregateMinimums(collect($minimums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateMinimums(collect($minimums)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMin($chunk->all()));
 
             $this
-                ->aggregateMaximums(collect($maximums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateMaximums(collect($maximums)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
             $this
-                ->aggregateSums(collect($sums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateSums(collect($sums)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertSum($chunk->all()));
 
             $this
-                ->aggregateAverages(collect($averages)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateAverages(collect($averages)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
@@ -260,168 +261,89 @@ class DatabaseStorage implements Storage
     }
 
     /**
-     * Get the count aggregates
+     * Pre-aggregate entry counts.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateCounts(Collection $entries): Collection
+    protected function preaggregateCounts(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'count',
-                        'key' => $entry->key,
-                        'value' => 1,
-                    ];
-                } else {
-                    $aggregates[$key]['value']++;
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'count', fn ($aggregate) => [
+            ...$aggregate,
+            'value' => ($aggregate['value'] ?? 0) + 1,
+        ]);
     }
 
     /**
-     * Get the minimum aggregates
+     * Pre-aggregate entry minimums.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateMinimums(Collection $entries): Collection
+    protected function preaggregateMinimums(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'min',
-                        'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                    ];
-                } else {
-                    $aggregates[$key]['value'] = (int) min($aggregates[$key]['value'], $entry->value);
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'min', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : (int) min($aggregate['value'], $entry->value),
+        ]);
     }
 
     /**
-     * Get the maximum aggregates
+     * Pre-aggregate entry maximums.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateMaximums(Collection $entries): Collection
+    protected function preaggregateMaximums(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'max',
-                        'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                    ];
-                } else {
-                    $aggregates[$key]['value'] = (int) max($aggregates[$key]['value'], $entry->value);
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'max', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : (int) max($aggregate['value'], $entry->value),
+        ]);
     }
 
     /**
-     * Get the sum aggregates
+     * Pre-aggregate entry sums.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateSums(Collection $entries): Collection
+    protected function preaggregateSums(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'sum',
-                        'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                    ];
-                } else {
-                    $aggregates[$key]['value'] = (int) ($aggregates[$key]['value'] + $entry->value);
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'sum', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ($aggregate['value'] ?? 0) + $entry->value,
+        ]);
     }
 
     /**
-     * Get the average aggregates
+     * Pre-aggregate entry averages.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateAverages(Collection $entries): Collection
+    protected function preaggregateAverages(Collection $entries): Collection
+    {
+        return $this->preaggregate($entries, 'avg', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : ($aggregate['value'] * $aggregate['count'] + $entry->value) / ($aggregate['count'] + 1),
+            'count' => ($aggregate['count'] ?? 0) + 1,
+        ]);
+    }
+
+    /**
+     * Pre-aggregate entries with a callback.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     */
+    protected function preaggregate(Collection $entries, string $aggregate, Closure $callback): Collection
     {
         $aggregates = [];
 
@@ -437,18 +359,15 @@ class DatabaseStorage implements Storage
                 $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
 
                 if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
+                    $aggregates[$key] = $callback([
                         'bucket' => $bucket,
                         'period' => $period,
                         'type' => $entry->type,
-                        'aggregate' => 'avg',
+                        'aggregate' => $aggregate,
                         'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                        'count' => 1,
-                    ];
+                    ], $entry);
                 } else {
-                    $aggregates[$key]['value'] = ($aggregates[$key]['value'] * $aggregates[$key]['count'] + $entry->value) / ($aggregates[$key]['count'] + 1);
-                    $aggregates[$key]['count']++;
+                    $aggregates[$key] = $callback($aggregates[$key], $entry);
                 }
             }
         }
