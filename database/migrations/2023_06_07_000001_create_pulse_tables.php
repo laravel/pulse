@@ -27,13 +27,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
-            $table->text('key');
+            $table->mediumText('key');
             match ($driver = $connection->getDriverName()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
             };
-            $table->text('value');
+            $table->mediumText('value');
 
             $table->index('timestamp'); // For trimming...
             $table->index('type'); // For fast lookups and purging...
@@ -44,7 +44,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
-            $table->text('key');
+            $table->mediumText('key');
             match ($driver = $connection->getDriverName()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
@@ -63,7 +63,7 @@ return new class extends Migration
             $table->unsignedInteger('bucket');
             $table->unsignedMediumInteger('period');
             $table->string('type');
-            $table->text('key');
+            $table->mediumText('key');
             match ($driver = $connection->getDriverName()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
