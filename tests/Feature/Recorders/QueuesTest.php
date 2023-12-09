@@ -24,7 +24,7 @@ use function Orchestra\Testbench\Pest\defineEnvironment;
 
 defineEnvironment(function ($app) {
     $app['config']->set([
-        'queue.default' => 'database'
+        'queue.default' => 'database',
     ]);
 });
 
