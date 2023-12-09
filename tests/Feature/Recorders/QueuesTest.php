@@ -20,11 +20,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
-use Orchestra\Testbench\Attributes\WithMigration;
 
 use function Orchestra\Testbench\Pest\defineEnvironment;
-use function Orchestra\Testbench\Pest\setUp;
-use function Orchestra\Testbench\Pest\usesTestingFeature;
 
 defineEnvironment(function ($app) {
     tap($app['config'], function (Repository $config) {
