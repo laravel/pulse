@@ -202,7 +202,9 @@ class PulseServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views/dashboard.blade.php' => resource_path('views/vendor/pulse/dashboard.blade.php'),
             ], ['pulse', 'pulse-dashboard']);
 
-            $this->publishes([
+            $method = method_exists($this, 'publishesMigrations') ? 'publishesMigrations' : 'publishes';
+
+            $this->{$method}([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
             ], ['pulse', 'pulse-migrations']);
         }
