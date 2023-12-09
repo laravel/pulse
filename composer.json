@@ -38,10 +38,8 @@
         "guzzlehttp/guzzle": "^7.7",
         "mockery/mockery": "^1.0",
         "orchestra/pest-plugin-testbench": "2.x-dev",
-        "orchestra/testbench": "^8.16",
-        "orchestra/testbench-core": "dev-interacts-with-pest as 8.17.1",
+        "orchestra/testbench": "8.x-dev",
         "pestphp/pest": "^2.0",
-        "pestphp/pest-plugin-laravel": "^2.2",
         "phpstan/phpstan": "^1.11",
         "predis/predis": "^1.0 || ^2.0"
     },
