@@ -20,6 +20,14 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
 
+use function Orchestra\Testbench\Pest\defineEnvironment;
+
+defineEnvironment(function ($app) {
+    $app['config']->set([
+        'queue.default' => 'database'
+    ]);
+});
+
 function queueAggregates()
 {
     return Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereIn('type', [
@@ -33,8 +41,6 @@ function queueAggregates()
 }
 
 it('ingests bus dispatched jobs', function () {
-    Config::set('queue.default', 'database');
-
     Bus::dispatchToQueue(new MyJob);
 
     Pulse::store();
@@ -50,7 +56,6 @@ it('ingests bus dispatched jobs', function () {
 });
 
 it('ingests queued closures', function () {
-    Config::set('queue.default', 'database');
 
     dispatch(function () {
         throw new RuntimeException('Nope');
@@ -104,8 +109,6 @@ it('ingests queued closures', function () {
 });
 
 it('ingests jobs pushed to the queue', function () {
-    Config::set('queue.default', 'database');
-
     Queue::push('MyJob');
     Pulse::store();
 
@@ -120,7 +123,6 @@ it('ingests jobs pushed to the queue', function () {
 });
 
 it('ingests queued listeners', function () {
-    Config::set('queue.default', 'database');
     Event::listen(MyEvent::class, MyListenerThatFails::class);
 
     /*
@@ -174,7 +176,6 @@ it('ingests queued listeners', function () {
 });
 
 it('ingests queued mail', function () {
-    Config::set('queue.default', 'database');
 
     /*
      * Dispatch the mail.
@@ -228,8 +229,6 @@ it('ingests queued mail', function () {
 });
 
 it('ingests queued notifications', function () {
-    Config::set('queue.default', 'database');
-
     /*
      * Dispatch the notification.
      */
@@ -281,8 +280,6 @@ it('ingests queued notifications', function () {
 });
 
 it('ingests queued commands', function () {
-    Config::set('queue.default', 'database');
-
     /*
      * Dispatch the command.
      */
@@ -334,8 +331,6 @@ it('ingests queued commands', function () {
 });
 
 it('handles a job throwing exceptions and failing', function () {
-    Config::set('queue.default', 'database');
-
     /*
      * Dispatch the job.
      */
@@ -417,8 +412,6 @@ it('handles a job throwing exceptions and failing', function () {
 });
 
 it('handles a failure and then a successful job', function () {
-    Config::set('queue.default', 'database');
-
     /*
      * Dispatch the job.
      */
@@ -473,8 +466,6 @@ it('handles a failure and then a successful job', function () {
 });
 
 it('handles a job that was manually failed', function () {
-    Config::set('queue.default', 'database');
-
     /*
      * Dispatch the job.
      */
@@ -510,7 +501,6 @@ it('handles a job that was manually failed', function () {
 });
 
 it('can ignore jobs', function () {
-    Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.ignore', [
         '/My/',
     ]);
@@ -536,7 +526,6 @@ it('can ignore jobs', function () {
 });
 
 it('can sample', function () {
-    Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.sample_rate', 0.1);
 
     Bus::dispatchToQueue(new MyJob);
@@ -556,7 +545,6 @@ it('can sample', function () {
 });
 
 it('can sample at zero', function () {
-    Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.sample_rate', 0);
 
     Bus::dispatchToQueue(new MyJob);
@@ -575,7 +563,6 @@ it('can sample at zero', function () {
 });
 
 it('can sample at one', function () {
-    Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.sample_rate', 1);
 
     Bus::dispatchToQueue(new MyJob);
@@ -594,7 +581,6 @@ it('can sample at one', function () {
 });
 
 it("doesn't sample subsequent events for jobs that aren't initially sampled", function () {
-    Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.sample_rate', 0.5);
     Str::createUuidsUsingSequence([
         '9a6569d9-ce2e-4e3a-924f-48e2de48a3b3', // Always sampled
@@ -634,7 +620,6 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
 });
 
 it('uses the connection default queue when a job has no queue specified', function () {
-    Config::set('queue.default', 'database');
     Config::set('queue.connections.database.queue', 'custom-default');
 
     Bus::dispatchToQueue(new MyJob);

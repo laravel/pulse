@@ -7,8 +7,10 @@ use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Value;
 use Tests\StorageFake;
 
+use function Pest\Laravel\instance;
+
 it('can filter records', function () {
-    App::instance(Storage::class, $storage = new StorageFake);
+    instance(Storage::class, $storage = new StorageFake);
 
     Pulse::filter(fn ($value) => $value::class === Entry::class && $value->key === 'keep' ||
         $value::class === Value::class && $value->key === 'keep');
@@ -27,7 +29,7 @@ it('can filter records', function () {
 });
 
 it('can lazily capture entries', function () {
-    App::instance(Storage::class, $storage = new StorageFake);
+    instance(Storage::class, $storage = new StorageFake);
 
     Pulse::record('entry', 'eager');
     Pulse::lazy(function () {
@@ -49,7 +51,7 @@ it('can lazily capture entries', function () {
 });
 
 it('can flush the queue', function () {
-    App::instance(Storage::class, $storage = new StorageFake);
+    instance(Storage::class, $storage = new StorageFake);
 
     Pulse::record('entry', 'eager');
     Pulse::lazy(function () {
