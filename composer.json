@@ -1,6 +1,6 @@
 {
     "name": "laravel/pulse",
-    "description": "",
+    "description": "Laravel Pulse is a real-time application performance monitoring tool and dashboard for your Laravel application.",
     "keywords": ["laravel"],
     "homepage": "https://github.com/laravel/pulse",
     "license": "MIT",
