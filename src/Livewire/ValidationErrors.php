@@ -22,16 +22,6 @@ class ValidationErrors extends Card
      */
     public function render(): Renderable
     {
-        $bits = [
-            ['POST', '/users', 'App\\Http\\Controllers\\UserController@store', 'password'],
-            ['PATCH', '/episodes', 'App\\Http\\Controllers\\EpisodeController@update', 'version'],
-            ['POST', '/shows', 'App\\Http\\Controllers\\ShowController@store', 'website'],
-            ['POST', '/episodes', 'App\\Http\\Controllers\\EpisodeController@store', 'version'],
-            ['DELETE', '/episodes', 'App\\Http\\Controllers\\EpisodeController@delete', 'title_confirmation'],
-            ['POST', '/episodes', 'App\\Http\\Controllers\\EpisodeController@store', 'custom_feed_url'],
-            ['PATCH', '/users', 'App\\Http\\Controllers\\UserController@update', 'password'],
-        ];
-
         [$validationErrors, $time, $runAt] = $this->remember(
             fn () => Pulse::aggregate(
                 'validation_error',

@@ -4,20 +4,19 @@ namespace Laravel\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
 use Illuminate\Foundation\Http\Events\RequestHandled;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
+use Illuminate\Support\ViewErrorBag;
 use Laravel\Pulse\Pulse;
 use stdClass;
+use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 /**
  * @internal
  */
 class ValidationErrors
 {
-    use Concerns\Ignores,
-        Concerns\LivewireRoutes,
-        Concerns\Sampling,
-        ConfiguresAfterResolving;
+    use Concerns\Ignores, Concerns\LivewireRoutes, Concerns\Sampling;
 
     /**
      * The events to listen for.
@@ -39,7 +38,7 @@ class ValidationErrors
     }
 
     /**
-     * Record the request.
+     * Record validation errors.
      */
     public function record(RequestHandled $event): void
     {
@@ -49,27 +48,88 @@ class ValidationErrors
         ];
 
         $this->pulse->lazy(function () use ($request, $response) {
-            $errors = [];
-
-            if (
-                ! $request->inertia('X-Inertia') ||
-                ! is_array($response->original) ||
-                ! (($response->original['props']['errors'] ?? null) instanceof stdClass)
-            ) {
+            if ($this->shouldSample()) {
                 return;
             }
 
-            $errors = (array) $response->original['props']['errors'];
-            $names = array_keys($errors);
-
             [$path, $via] = $this->resolveRoutePath($request);
 
-            foreach ($names as $name) {
+            if ($this->shouldIgnore($path)) {
+                return;
+            }
+
+            foreach ($this->parseValidationErrors($request, $response) as $name) {
                 $this->pulse->record(
                     'validation_error',
                     json_encode([$request->method(), $path, $via, $name], flags: JSON_THROW_ON_ERROR),
                 )->count();
             }
         });
+    }
+
+    /**
+     * Parse validation errors.
+     */
+    protected function parseValidationErrors(Request $request, BaseResponse $response): array
+    {
+        return $this->parseSessionValidationErrors($request, $response)
+            ?? $this->parseJsonValidationErrors($response, $response)
+            ?? $this->parseInertiaValidationErrors($request, $response)
+            ?? [];
+    }
+
+    /**
+     * Parse session validation errors.
+     */
+    protected function parseSessionValidationErrors(Request $request, BaseResponse $response): ?array
+    {
+        if (
+            $response->getStatusCode() !== 422 ||
+            ! $request->hasSession() ||
+            ! $request->session()->get('errors', null) instanceof ViewErrorBag
+        ) {
+            return null;
+        }
+
+        return $request->session()->get('errors')->keys();
+    }
+
+    /**
+     * Parse JSON validation errors.
+     */
+    protected function parseJsonValidationErrors(Request $request, BaseResponse $response): ?array
+    {
+        if (
+            $response->getStatusCode() !== 422 ||
+            ! $response instanceof JsonResponse ||
+            ! is_array($response->original) ||
+            ! array_key_exists('errors', $response->original) ||
+            ! is_array($response->original['errors']) ||
+            ! array_is_list($response->original['errors'])
+        ) {
+            return null;
+        }
+
+        return array_keys($response->original['errors']);
+    }
+
+    /**
+     * Parse Inertia validation errors.
+     */
+    protected function parseInertiaValidationErrors(Request $request, BaseResponse $response): ?array
+    {
+        if (
+            ! $request->header('X-Inertia') ||
+            ! $response instanceof JsonResponse ||
+            ! is_array($response->original) ||
+            ! array_key_exists('props', $response->original) ||
+            ! is_array($response->original['props']) ||
+            ! array_key_exists('errors', $response->original['props']) ||
+            ! $response->original['props']['errors'] instanceof stdClass
+        ) {
+            return null;
+        }
+
+        return array_keys((array) $response->original['props']['errors']);
     }
 }
