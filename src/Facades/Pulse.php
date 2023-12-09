@@ -35,10 +35,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static void trim()
  * @method static void purge(array $types = null)
  * @method static \Illuminate\Support\Collection values(string $type, array $keys = null)
- * @method static \Illuminate\Support\Collection graph(array $types, string $aggregate, \Carbon\CarbonInterval $interval)
- * @method static \Illuminate\Support\Collection aggregate(string $type, array $aggregates, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
- * @method static \Illuminate\Support\Collection aggregateTypes(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
- * @method static \Illuminate\Support\Collection aggregateTotal(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval)
+ * @method static \Illuminate\Support\Collection graph(array $types,  $aggregate, \Carbon\CarbonInterval $interval)
+ * @method static \Illuminate\Support\Collection aggregate(string $type, |array $aggregates, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTypes(string|array $types,  $aggregate, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTotal(string|array $types,  $aggregate, \Carbon\CarbonInterval $interval)
  *
  * @see \Laravel\Pulse\Pulse
  */
