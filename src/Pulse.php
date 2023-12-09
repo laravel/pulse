@@ -157,9 +157,7 @@ class Pulse
         ?int $value = null,
         DateTimeInterface|int|null $timestamp = null,
     ): Entry {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
@@ -184,9 +182,7 @@ class Pulse
         string $value,
         DateTimeInterface|int|null $timestamp = null,
     ): Value {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
