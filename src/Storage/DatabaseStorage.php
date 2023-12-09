@@ -4,6 +4,7 @@ namespace Laravel\Pulse\Storage;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
+use Closure;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
@@ -55,18 +56,38 @@ class DatabaseStorage implements Storage
                     ->insert($chunk->map->attributes()->all())
                 );
 
+            [$counts, $minimums, $maximums, $sums, $averages] = array_values($entries
+                ->reduce(function ($carry, $entry) {
+                    foreach ($entry->aggregations() as $aggregation) {
+                        $carry[$aggregation][] = $entry;
+                    }
+
+                    return $carry;
+                }, ['count' => [], 'min' => [], 'max' => [], 'sum' => [], 'avg' => []])
+            );
+
             $this
-                ->aggregateCounts($entries->filter->isCount())
+                ->preaggregateCounts(collect($counts)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
             $this
-                ->aggregateMaximums($entries->filter->isMax())
+                ->preaggregateMinimums(collect($minimums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->upsertMin($chunk->all()));
+
+            $this
+                ->preaggregateMaximums(collect($maximums)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
             $this
-                ->aggregateAverages($entries->filter->isAvg())
+                ->preaggregateSums(collect($sums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->chunk($this->config->get('pulse.storage.database.chunk'))
+                ->each(fn ($chunk) => $this->upsertSum($chunk->all()));
+
+            $this
+                ->preaggregateAverages(collect($averages)) // @phpstan-ignore argument.templateType argument.templateType
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
@@ -156,6 +177,26 @@ class DatabaseStorage implements Storage
     }
 
     /**
+     * Insert new records or update the existing ones and the minimum.
+     *
+     * @param  list<AggregateRow>  $values
+     */
+    protected function upsertMin(array $values): int
+    {
+        return $this->connection()->table('pulse_aggregates')->upsert(
+            $values,
+            ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
+            [
+                'value' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('least(`value`, values(`value`))'),
+                    'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                },
+            ]
+        );
+    }
+
+    /**
      * Insert new records or update the existing ones and the maximum.
      *
      * @param  list<AggregateRow>  $values
@@ -169,6 +210,26 @@ class DatabaseStorage implements Storage
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('greatest(`value`, values(`value`))'),
                     'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
+                    default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
+                },
+            ]
+        );
+    }
+
+    /**
+     * Insert new records or update the existing ones and the sum.
+     *
+     * @param  list<AggregateRow>  $values
+     */
+    protected function upsertSum(array $values): int
+    {
+        return $this->connection()->table('pulse_aggregates')->upsert(
+            $values,
+            ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
+            [
+                'value' => match ($driver = $this->connection()->getDriverName()) {
+                    'mysql' => new Expression('`value` + values(`value`)'),
+                    'pgsql' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -200,90 +261,89 @@ class DatabaseStorage implements Storage
     }
 
     /**
-     * Get the count aggregates
+     * Pre-aggregate entry counts.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateCounts(Collection $entries): Collection
+    protected function preaggregateCounts(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'count',
-                        'key' => $entry->key,
-                        'value' => 1,
-                    ];
-                } else {
-                    $aggregates[$key]['value']++;
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'count', fn ($aggregate) => [
+            ...$aggregate,
+            'value' => ($aggregate['value'] ?? 0) + 1,
+        ]);
     }
 
     /**
-     * Get the maximum aggregates
+     * Pre-aggregate entry minimums.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateMaximums(Collection $entries): Collection
+    protected function preaggregateMinimums(Collection $entries): Collection
     {
-        $aggregates = [];
-
-        foreach ($entries as $entry) {
-            foreach ($this->periods() as $period) {
-                // Exclude entries that would be trimmed.
-                if ($entry->timestamp < CarbonImmutable::now()->subMinutes($period)->getTimestamp()) {
-                    continue;
-                }
-
-                $bucket = (int) (floor($entry->timestamp / $period) * $period);
-
-                $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
-
-                if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
-                        'bucket' => $bucket,
-                        'period' => $period,
-                        'type' => $entry->type,
-                        'aggregate' => 'max',
-                        'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                    ];
-                } else {
-                    $aggregates[$key]['value'] = (int) max($aggregates[$key]['value'], $entry->value);
-                }
-            }
-        }
-
-        return collect(array_values($aggregates));
+        return $this->preaggregate($entries, 'min', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : (int) min($aggregate['value'], $entry->value),
+        ]);
     }
 
     /**
-     * Get the average aggregates
+     * Pre-aggregate entry maximums.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
      * @return \Illuminate\Support\Collection<int, AggregateRow>
      */
-    protected function aggregateAverages(Collection $entries): Collection
+    protected function preaggregateMaximums(Collection $entries): Collection
+    {
+        return $this->preaggregate($entries, 'max', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : (int) max($aggregate['value'], $entry->value),
+        ]);
+    }
+
+    /**
+     * Pre-aggregate entry sums.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     */
+    protected function preaggregateSums(Collection $entries): Collection
+    {
+        return $this->preaggregate($entries, 'sum', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ($aggregate['value'] ?? 0) + $entry->value,
+        ]);
+    }
+
+    /**
+     * Pre-aggregate entry averages.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     */
+    protected function preaggregateAverages(Collection $entries): Collection
+    {
+        return $this->preaggregate($entries, 'avg', fn ($aggregate, $entry) => [
+            ...$aggregate,
+            'value' => ! isset($aggregate['value'])
+                ? $entry->value
+                : ($aggregate['value'] * $aggregate['count'] + $entry->value) / ($aggregate['count'] + 1),
+            'count' => ($aggregate['count'] ?? 0) + 1,
+        ]);
+    }
+
+    /**
+     * Pre-aggregate entries with a callback.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
+     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     */
+    protected function preaggregate(Collection $entries, string $aggregate, Closure $callback): Collection
     {
         $aggregates = [];
 
@@ -299,18 +359,15 @@ class DatabaseStorage implements Storage
                 $key = $entry->type.':'.$period.':'.$bucket.':'.$entry->key;
 
                 if (! isset($aggregates[$key])) {
-                    $aggregates[$key] = [
+                    $aggregates[$key] = $callback([
                         'bucket' => $bucket,
                         'period' => $period,
                         'type' => $entry->type,
-                        'aggregate' => 'avg',
+                        'aggregate' => $aggregate,
                         'key' => $entry->key,
-                        'value' => (int) $entry->value,
-                        'count' => 1,
-                    ];
+                    ], $entry);
                 } else {
-                    $aggregates[$key]['value'] = ($aggregates[$key]['value'] * $aggregates[$key]['count'] + $entry->value) / ($aggregates[$key]['count'] + 1);
-                    $aggregates[$key]['count']++;
+                    $aggregates[$key] = $callback($aggregates[$key], $entry);
                 }
             }
         }
@@ -364,11 +421,15 @@ class DatabaseStorage implements Storage
      * Retrieve aggregate values for plotting on a graph.
      *
      * @param  list<string>  $types
-     * @param  'count'|'max'|'avg'  $aggregate
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
+        if (! in_array($aggregate, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
+            throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
+        }
+
         $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
         $maxDataPoints = 60;
@@ -405,10 +466,12 @@ class DatabaseStorage implements Storage
     /**
      * Retrieve aggregate values for the given type.
      *
-     * @param  'count'|'max'|'avg'|list<'count'|'max'|'avg'>  $aggregates
+     * @param  'count'|'min'|'max'|'sum'|'avg'|list<'count'|'min'|'max'|'sum'|'avg'>  $aggregates
      * @return \Illuminate\Support\Collection<int, object{
      *     key: string,
+     *     min?: int,
      *     max?: int,
+     *     sum?: int,
      *     avg?: int,
      *     count?: int
      * }>
@@ -423,7 +486,7 @@ class DatabaseStorage implements Storage
     ): Collection {
         $aggregates = is_array($aggregates) ? $aggregates : [$aggregates];
 
-        if ($invalid = array_diff($aggregates, $allowed = ['count', 'max', 'avg'])) {
+        if ($invalid = array_diff($aggregates, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
             throw new InvalidArgumentException('Invalid aggregate type(s) ['.implode(', ', $invalid).'], allowed types: ['.implode(', ', $allowed).'].');
         }
 
@@ -445,7 +508,9 @@ class DatabaseStorage implements Storage
                 foreach ($aggregates as $aggregate) {
                     $query->selectRaw(match ($aggregate) {
                         'count' => "sum({$this->wrap('count')})",
+                        'min' => "min({$this->wrap('min')})",
                         'max' => "max({$this->wrap('max')})",
+                        'sum' => "sum({$this->wrap('sum')})",
                         'avg' => "avg({$this->wrap('avg')})",
                     }." as {$this->wrap($aggregate)}");
                 }
@@ -463,7 +528,9 @@ class DatabaseStorage implements Storage
                     foreach ($aggregates as $aggregate) {
                         $query->selectRaw(match ($aggregate) {
                             'count' => 'count(*)',
+                            'min' => "min({$this->wrap('value')})",
                             'max' => "max({$this->wrap('value')})",
+                            'sum' => "sum({$this->wrap('value')})",
                             'avg' => "avg({$this->wrap('value')})",
                         }." as {$this->wrap($aggregate)}");
                     }
@@ -484,7 +551,9 @@ class DatabaseStorage implements Storage
                                 if ($aggregate === $currentAggregate) {
                                     $query->selectRaw(match ($aggregate) {
                                         'count' => "sum({$this->wrap('value')})",
+                                        'min' => "min({$this->wrap('value')})",
                                         'max' => "max({$this->wrap('value')})",
+                                        'sum' => "sum({$this->wrap('value')})",
                                         'avg' => "avg({$this->wrap('value')})",
                                     }." as {$this->wrap($aggregate)}");
                                 } else {
@@ -513,7 +582,7 @@ class DatabaseStorage implements Storage
      * Retrieve aggregate values for the given types.
      *
      * @param  string|list<string>  $types
-     * @param  'count'|'max'|'avg'  $aggregate
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<int, object>
      */
     public function aggregateTypes(
@@ -524,7 +593,7 @@ class DatabaseStorage implements Storage
         string $direction = 'desc',
         int $limit = 101,
     ): Collection {
-        if (! in_array($aggregate, $allowed = ['count', 'max', 'avg'])) {
+        if (! in_array($aggregate, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
         }
 
@@ -547,7 +616,9 @@ class DatabaseStorage implements Storage
                 foreach ($types as $type) {
                     $query->selectRaw(match ($aggregate) {
                         'count' => "sum({$this->wrap($type)})",
+                        'min' => "min({$this->wrap($type)})",
                         'max' => "max({$this->wrap($type)})",
+                        'sum' => "sum({$this->wrap($type)})",
                         'avg' => "avg({$this->wrap($type)})",
                     }." as {$this->wrap($type)}");
                 }
@@ -565,7 +636,9 @@ class DatabaseStorage implements Storage
                     foreach ($types as $type) {
                         $query->selectRaw(match ($aggregate) {
                             'count' => "count(case when ({$this->wrap('type')} = ?) then true else null end)",
+                            'min' => "min(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                             'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                            'sum' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                             'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                         }." as {$this->wrap($type)}", [$type]);
                     }
@@ -584,7 +657,9 @@ class DatabaseStorage implements Storage
                         foreach ($types as $type) {
                             $query->selectRaw(match ($aggregate) {
                                 'count' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'min' => "min(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                                 'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'sum' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                                 'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                             }." as {$this->wrap($type)}", [$type]);
                         }
@@ -609,7 +684,7 @@ class DatabaseStorage implements Storage
      * Retrieve an aggregate total for the given types.
      *
      * @param  string|list<string>  $types
-     * @param  'count'|'max'|'avg'  $aggregate
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
@@ -617,7 +692,7 @@ class DatabaseStorage implements Storage
         string $aggregate,
         CarbonInterval $interval,
     ): Collection {
-        if (! in_array($aggregate, $allowed = ['count', 'max', 'avg'])) {
+        if (! in_array($aggregate, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
         }
 
@@ -635,7 +710,9 @@ class DatabaseStorage implements Storage
             ->addSelect('type')
             ->selectRaw(match ($aggregate) {
                 'count' => "sum({$this->wrap('count')})",
+                'min' => "min({$this->wrap('min')})",
                 'max' => "max({$this->wrap('max')})",
+                'sum' => "sum({$this->wrap('sum')})",
                 'avg' => "avg({$this->wrap('avg')})",
             }." as {$this->wrap($aggregate)}")
             ->fromSub(fn (Builder $query) => $query
@@ -643,7 +720,9 @@ class DatabaseStorage implements Storage
                 ->addSelect('type')
                 ->selectRaw(match ($aggregate) {
                     'count' => 'count(*)',
+                    'min' => "min({$this->wrap('value')})",
                     'max' => "max({$this->wrap('value')})",
+                    'sum' => "sum({$this->wrap('value')})",
                     'avg' => "avg({$this->wrap('value')})",
                 }." as {$this->wrap($aggregate)}")
                 ->from('pulse_entries')
@@ -656,7 +735,9 @@ class DatabaseStorage implements Storage
                     ->select('type')
                     ->selectRaw(match ($aggregate) {
                         'count' => "sum({$this->wrap('value')})",
+                        'min' => "min({$this->wrap('value')})",
                         'max' => "max({$this->wrap('value')})",
+                        'sum' => "sum({$this->wrap('value')})",
                         'avg' => "avg({$this->wrap('value')})",
                     }." as {$this->wrap($aggregate)}")
                     ->from('pulse_aggregates')
