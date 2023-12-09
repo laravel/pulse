@@ -2,6 +2,7 @@
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -19,13 +20,16 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
+use Orchestra\Testbench\Attributes\WithMigration;
 
 use function Orchestra\Testbench\Pest\defineEnvironment;
+use function Orchestra\Testbench\Pest\setUp;
+use function Orchestra\Testbench\Pest\usesTestingFeature;
 
 defineEnvironment(function ($app) {
-    $app['config']->set([
-        'queue.default' => 'database'
-    ]);
+    tap($app['config'], function (Repository $config) {
+        $config->set('queue.default', 'database');
+    });
 });
 
 function queueAggregates()

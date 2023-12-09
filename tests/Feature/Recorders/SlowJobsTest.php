@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -14,9 +15,9 @@ use Laravel\Pulse\Recorders\SlowJobs;
 use function Orchestra\Testbench\Pest\defineEnvironment;
 
 defineEnvironment(function ($app) {
-    $app['config']->set([
-        'queue.default' => 'database'
-    ]);
+    tap($app['config'], function (Repository $config) {
+        $config->set('queue.default', 'database');
+    });
 });
 
 it('records slow jobs', function () {
