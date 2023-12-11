@@ -50,7 +50,7 @@ class Usage extends Card
                         'slow_requests' => 'slow_user_request',
                         'jobs' => 'user_job',
                     },
-                    'count', // @phpstan-ignore argument.type
+                    'count',
                     $this->periodAsInterval(),
                     limit: 10,
                 );
