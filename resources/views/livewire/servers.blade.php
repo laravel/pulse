@@ -60,85 +60,11 @@ $rows = ! empty($rows) ? $rows : 1;
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
-                        x-data="{
-                            init() {
-                                let chart = new Chart(
-                                    this.$refs.canvas,
-                                    {
-                                        type: 'line',
-                                        data: {
-                                            labels: @js($server->cpu->keys()),
-                                            datasets: [
-                                                {
-                                                    label: 'CPU Percent',
-                                                    borderColor: '#9333ea',
-                                                    borderWidth: 2,
-                                                    borderCapStyle: 'round',
-                                                    data: @js($server->cpu->values()),
-                                                    pointHitRadius: 10,
-                                                    pointStyle: false,
-                                                    tension: 0.2,
-                                                    spanGaps: false,
-                                                },
-                                            ],
-                                        },
-                                        options: {
-                                            maintainAspectRatio: false,
-                                            layout: {
-                                                autoPadding: false,
-                                            },
-                                            scales: {
-                                                x: {
-                                                    display: false,
-                                                    grid: {
-                                                        display: false,
-                                                    },
-                                                },
-                                                y: {
-                                                    display: false,
-                                                    min: 0,
-                                                    max: 100,
-                                                    grid: {
-                                                        display: false,
-                                                    },
-                                                },
-                                            },
-                                            plugins: {
-                                                legend: {
-                                                    display: false,
-                                                },
-                                                tooltip: {
-                                                    mode: 'index',
-                                                    position: 'nearest',
-                                                    intersect: false,
-                                                    callbacks: {
-                                                        title: () => '',
-                                                        label: (context) => `${context.label} - ${context.formattedValue}%`
-                                                    },
-                                                    displayColors: false,
-                                                },
-                                            },
-                                        },
-                                    }
-                                )
-
-                                Livewire.on('servers-chart-update', ({ servers }) => {
-                                    if (chart === undefined) {
-                                        return
-                                    }
-
-                                    if (servers['{{ $slug }}'] === undefined && chart) {
-                                        chart.destroy()
-                                        chart = undefined
-                                        return
-                                    }
-
-                                    chart.data.labels = Object.keys(servers['{{ $slug }}'].cpu)
-                                    chart.data.datasets[0].data = Object.values(servers['{{ $slug }}'].cpu)
-                                    chart.update()
-                                })
-                            }
-                        }"
+                        x-data="cpuChart({
+                            slug: '{{ $slug }}',
+                            labels: @js($server->cpu->keys()),
+                            data: @js($server->cpu->values()),
+                        })"
                     >
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
@@ -157,85 +83,12 @@ $rows = ! empty($rows) ? $rows : 1;
                     <div
                         wire:ignore
                         class="w-full min-w-[5rem] max-w-xs h-9 relative"
-                        x-data="{
-                            init() {
-                                let chart = new Chart(
-                                    this.$refs.canvas,
-                                    {
-                                        type: 'line',
-                                        data: {
-                                            labels: @js($server->memory->keys()),
-                                            datasets: [
-                                                {
-                                                    label: 'Memory Used',
-                                                    borderColor: '#9333ea',
-                                                    borderWidth: 2,
-                                                    borderCapStyle: 'round',
-                                                    data: @js($server->memory->values()),
-                                                    pointHitRadius: 10,
-                                                    pointStyle: false,
-                                                    tension: 0.2,
-                                                    spanGaps: false,
-                                                },
-                                            ],
-                                        },
-                                        options: {
-                                            maintainAspectRatio: false,
-                                            layout: {
-                                                autoPadding: false,
-                                            },
-                                            scales: {
-                                                x: {
-                                                    display: false,
-                                                    grid: {
-                                                        display: false,
-                                                    },
-                                                },
-                                                y: {
-                                                    display: false,
-                                                    min: 0,
-                                                    max: {{ $server->memory_total }},
-                                                    grid: {
-                                                        display: false,
-                                                    },
-                                                },
-                                            },
-                                            plugins: {
-                                                legend: {
-                                                    display: false,
-                                                },
-                                                tooltip: {
-                                                    mode: 'index',
-                                                    position: 'nearest',
-                                                    intersect: false,
-                                                    callbacks: {
-                                                        title: () => '',
-                                                        label: (context) => `${context.label} - ${context.formattedValue} MB`
-                                                    },
-                                                    displayColors: false,
-                                                },
-                                            },
-                                        },
-                                    }
-                                )
-
-                                Livewire.on('servers-chart-update', ({ servers }) => {
-                                    if (chart === undefined) {
-                                        return
-                                    }
-
-                                    if (servers['{{ $slug }}'] === undefined && chart) {
-                                        chart.destroy()
-                                        chart = undefined
-                                        return
-                                    }
-
-                                    chart.data.labels = Object.keys(servers['{{ $slug }}'].memory)
-                                    chart.data.datasets[0].data = Object.values(servers['{{ $slug }}'].memory)
-                                    chart.update()
-                                })
-                            }
-                        }"
+                        x-data="memoryChart({
+                            slug: '{{ $slug }}',
+                            labels: @js($server->memory->keys()),
+                            data: @js($server->memory->values()),
+                            total: @js($server->memory_total),
+                        })"
                     >
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
@@ -250,70 +103,12 @@ $rows = ! empty($rows) ? $rows : 1;
 
                             <div
                                 wire:ignore
-                                x-data="{
-                                    init() {
-                                        let chart = new Chart(
-                                            this.$refs.canvas,
-                                            {
-                                                type: 'doughnut',
-                                                data: {
-                                                    labels: ['Used', 'Free'],
-                                                    datasets: [
-                                                        {
-                                                            data: [
-                                                                {{ $storage->used }},
-                                                                {{ $storage->total - $storage->used }},
-                                                            ],
-                                                            backgroundColor: [
-                                                                '#9333ea',
-                                                                '#c084fc30',
-                                                            ],
-                                                            hoverBackgroundColor: [
-                                                                '#9333ea',
-                                                                '#c084fc30',
-                                                            ],
-                                                        },
-                                                    ],
-                                                },
-                                                options: {
-                                                    borderWidth: 0,
-                                                    plugins: {
-                                                        legend: {
-                                                            display: false,
-                                                        },
-                                                        tooltip: {
-                                                            enabled: false,
-                                                            callbacks: {
-                                                                label: (context) => context.formattedValue + ' MB',
-                                                            },
-                                                            displayColors: false,
-                                                        },
-                                                    },
-                                                },
-                                            }
-                                        )
-
-                                        Livewire.on('servers-chart-update', ({ servers }) => {
-                                            const storage = servers['{{ $slug }}']?.storage?.find(storage => storage.directory === '{{ $storage->directory }}')
-
-                                            if (chart === undefined) {
-                                                return
-                                            }
-
-                                            if (storage === undefined && chart) {
-                                                chart.destroy()
-                                                chart = undefined
-                                                return
-                                            }
-
-                                            chart.data.datasets[0].data = [
-                                                storage.used,
-                                                storage.total - storage.used,
-                                            ]
-                                            chart.update()
-                                        })
-                                    }
-                                }"
+                                x-data="storageChart({
+                                    slug: '{{ $slug }}',
+                                    directory: '{{ $storage->directory }}',
+                                    used: {{ $storage->used }},
+                                    total: {{ $storage->total }},
+                                })"
                             >
                                 <canvas x-ref="canvas" class="h-8 w-8"></canvas>
                             </div>
@@ -324,3 +119,232 @@ $rows = ! empty($rows) ? $rows : 1;
         </div>
     @endif
 </section>
+
+@script
+<script>
+Alpine.data('cpuChart', (config) => ({
+    init() {
+        let chart = new Chart(
+            this.$refs.canvas,
+            {
+                type: 'line',
+                data: {
+                    labels: config.labels,
+                    datasets: [
+                        {
+                            label: 'CPU Percent',
+                            borderColor: '#9333ea',
+                            borderWidth: 2,
+                            borderCapStyle: 'round',
+                            data: config.data,
+                            pointHitRadius: 10,
+                            pointStyle: false,
+                            tension: 0.2,
+                            spanGaps: false,
+                        },
+                    ],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        autoPadding: false,
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: {
+                                display: false,
+                            },
+                        },
+                        y: {
+                            display: false,
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                display: false,
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            position: 'nearest',
+                            intersect: false,
+                            callbacks: {
+                                title: () => '',
+                                label: (context) => `${context.label} - ${context.formattedValue}%`
+                            },
+                            displayColors: false,
+                        },
+                    },
+                },
+            }
+        )
+
+        Livewire.on('servers-chart-update', ({ servers }) => {
+            if (chart === undefined) {
+                return
+            }
+
+            if (servers[config.slug] === undefined && chart) {
+                chart.destroy()
+                chart = undefined
+                return
+            }
+
+            chart.data.labels = Object.keys(servers[config.slug].cpu)
+            chart.data.datasets[0].data = Object.values(servers[config.slug].cpu)
+            chart.update()
+        })
+    }
+}))
+
+Alpine.data('memoryChart', (config) => ({
+    init() {
+        let chart = new Chart(
+            this.$refs.canvas,
+            {
+                type: 'line',
+                data: {
+                    labels: config.labels,
+                    datasets: [
+                        {
+                            label: 'Memory Used',
+                            borderColor: '#9333ea',
+                            borderWidth: 2,
+                            borderCapStyle: 'round',
+                            data: config.data,
+                            pointHitRadius: 10,
+                            pointStyle: false,
+                            tension: 0.2,
+                            spanGaps: false,
+                        },
+                    ],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        autoPadding: false,
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: {
+                                display: false,
+                            },
+                        },
+                        y: {
+                            display: false,
+                            min: 0,
+                            max: config.total,
+                            grid: {
+                                display: false,
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            position: 'nearest',
+                            intersect: false,
+                            callbacks: {
+                                title: () => '',
+                                label: (context) => `${context.label} - ${context.formattedValue} MB`
+                            },
+                            displayColors: false,
+                        },
+                    },
+                },
+            }
+        )
+
+        Livewire.on('servers-chart-update', ({ servers }) => {
+            if (chart === undefined) {
+                return
+            }
+
+            if (servers[config.slug] === undefined && chart) {
+                chart.destroy()
+                chart = undefined
+                return
+            }
+
+            chart.data.labels = Object.keys(servers[config.slug].memory)
+            chart.data.datasets[0].data = Object.values(servers[config.slug].memory)
+            chart.update()
+        })
+    }
+}))
+
+Alpine.data('storageChart', (config) => ({
+    init() {
+        let chart = new Chart(
+            this.$refs.canvas,
+            {
+                type: 'doughnut',
+                data: {
+                    labels: ['Used', 'Free'],
+                    datasets: [
+                        {
+                            data: [
+                                config.used,
+                                config.total - config.used,
+                            ],
+                            backgroundColor: [
+                                '#9333ea',
+                                '#c084fc30',
+                            ],
+                            hoverBackgroundColor: [
+                                '#9333ea',
+                                '#c084fc30',
+                            ],
+                        },
+                    ],
+                },
+                options: {
+                    borderWidth: 0,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            enabled: false,
+                            callbacks: {
+                                label: (context) => context.formattedValue + ' MB',
+                            },
+                            displayColors: false,
+                        },
+                    },
+                },
+            }
+        )
+
+        Livewire.on('servers-chart-update', ({ servers }) => {
+            const storage = servers[config.slug]?.storage?.find(storage => storage.directory === config.directory)
+
+            if (chart === undefined) {
+                return
+            }
+
+            if (storage === undefined && chart) {
+                chart.destroy()
+                chart = undefined
+                return
+            }
+
+            chart.data.datasets[0].data = [
+                storage.used,
+                storage.total - storage.used,
+            ]
+            chart.update()
+        })
+    }
+}))
+</script>
+@endscript

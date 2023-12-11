@@ -4,10 +4,10 @@ namespace Laravel\Pulse\Livewire;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Attributes\Lazy;
+use Livewire\Livewire;
 
 /**
  * @internal
@@ -43,7 +43,7 @@ class Servers extends Card
                 });
         });
 
-        if (Request::hasHeader('X-Livewire')) {
+        if (Livewire::isLivewireRequest()) {
             $this->dispatch('servers-chart-update', servers: $servers);
         }
 
