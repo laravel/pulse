@@ -38,6 +38,18 @@
         @if ($userRequestCounts->isEmpty())
             <x-pulse::no-results />
         @else
+            @unless ($successfullyResolved)
+                <div class="mb-2 col-span-full flex justify-between items-center text-purple-700 dark:text-purple-200 bg-purple-50 dark:bg-purple-800/20 p-3 rounded">
+                    <p class="text-xs font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="w-4 h-4 fill-purple-500 dark:fill-purple-400">
+                            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                        </svg>
+                        Unable to resolve users
+                    </p>
+                    <a class="text-xs font-medium hover:text-purple-800 dark:hover:text-purple-100" href="https://laravel.com/docs/pulse#application-usage-card">Documentation<span aria-hidden="true"> →</span></a>
+                </div>
+            @endunless
+
             <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
                 @foreach ($userRequestCounts as $userRequestCount)
                     <x-pulse::user-card wire:key="{{ $userRequestCount->user->id }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">

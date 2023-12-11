@@ -83,6 +83,7 @@ class Usage extends Card
             'slowRequestsConfig' => Config::get('pulse.recorders.'.SlowRequests::class),
             'jobsConfig' => Config::get('pulse.recorders.'.UserJobs::class),
             'userRequestCounts' => $userRequestCounts,
+            'successfullyResolved' => $userRequestCounts->doesntContain('user.name', 'Unknown'),
         ]);
     }
 }
