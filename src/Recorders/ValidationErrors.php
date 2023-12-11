@@ -84,13 +84,14 @@ class ValidationErrors
     protected function parseSessionValidationErrors(Request $request, BaseResponse $response): ?array
     {
         if (
-            $response->getStatusCode() !== 422 ||
+            $response->getStatusCode() !== 302 ||
             ! $request->hasSession() ||
             ! $request->session()->get('errors', null) instanceof ViewErrorBag
         ) {
             return null;
         }
 
+        // TODO: error bags
         return $request->session()->get('errors')->keys();
     }
 
