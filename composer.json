@@ -31,7 +31,7 @@
         "illuminate/routing": "^10.21",
         "illuminate/support": "^10.21",
         "illuminate/view": "^10.21",
-        "livewire/livewire": "^3.02",
+        "livewire/livewire": "^3.2",
         "nesbot/carbon": "^2.67"
     },
     "require-dev": {
