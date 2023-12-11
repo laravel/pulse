@@ -43,7 +43,7 @@
                     <x-pulse::user-card wire:key="{{ $userRequestCount->user->id }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">
                         @if ($userRequestCount->user->avatar ?? false)
                             <x-slot:avatar>
-                                <img height="32" width="32" src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full">
+                                <img src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full w-8 h-8 object-cover">
                             </x-slot:avatar>
                         @endif
 
