@@ -68,14 +68,8 @@
                                 class="h-14"
                                 x-data="queueChart({
                                     queue: '{{ $queue }}',
-                                    labels: @js($readings->first()->keys()),
-                                    queued: @js($readings->get('queued')->values()),
-                                    processing: @js($readings->get('processing')->values()),
-                                    released: @js($readings->get('released')->values()),
-                                    processed: @js($readings->get('processed')->values()),
-                                    failed: @js($readings->get('failed')->values()),
-                                    highest: {{ $highest }},
-                                    sample_rate: {{ $config['sample_rate'] }},
+                                    readings: @js($readings),
+                                    sampleRate: {{ $config['sample_rate'] }},
                                 })"
                             >
                                 <canvas x-ref="canvas" class="ring-1 ring-gray-900/5 dark:ring-gray-100/10 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm"></canvas>
@@ -97,36 +91,36 @@ Alpine.data('queueChart', (config) => ({
             {
                 type: 'line',
                 data: {
-                    labels: config.labels,
+                    labels: this.labels(config.readings),
                     datasets: [
                         {
                             label: 'Queued',
                             borderColor: 'rgba(107,114,128,0.5)',
-                            data: config.queued,
+                            data: this.scale(config.readings.queued),
                             order: 4,
                         },
                         {
                             label: 'Processing',
                             borderColor: 'rgba(147,51,234,0.5)',
-                            data: config.processing,
+                            data: this.scale(config.readings.processing),
                             order: 3,
                         },
                         {
                             label: 'Released',
                             borderColor: '#eab308',
-                            data: config.released,
+                            data: this.scale(config.readings.released),
                             order: 2,
                         },
                         {
                             label: 'Processed',
                             borderColor: '#9333ea',
-                            data: config.processed,
+                            data: this.scale(config.readings.processed),
                             order: 1,
                         },
                         {
                             label: 'Failed',
                             borderColor: '#e11d48',
-                            data: config.failed,
+                            data: this.scale(config.readings.failed),
                             order: 0,
                         },
                     ],
@@ -159,7 +153,7 @@ Alpine.data('queueChart', (config) => ({
                         y: {
                             display: false,
                             min: 0,
-                            max: config.highest,
+                            max: this.highest(config.readings),
                         },
                     },
                     plugins: {
@@ -172,7 +166,7 @@ Alpine.data('queueChart', (config) => ({
                             intersect: false,
                             callbacks: {
                                 beforeBody: (context) => context
-                                    .map(item => `${item.dataset.label}: ${config.sample_rate < 1 ? '~' : ''}${item.formattedValue}`)
+                                    .map(item => `${item.dataset.label}: ${config.sampleRate < 1 ? '~' : ''}${item.formattedValue}`)
                                     .join(', '),
                                 label: () => null,
                             },
@@ -193,15 +187,24 @@ Alpine.data('queueChart', (config) => ({
                 return
             }
 
-            chart.data.labels = Object.keys(Object.values(queues[config.queue])[0])
-            chart.options.scales.y.max = Math.max(...Object.values(queues[config.queue]).map(readings => Math.max(...Object.values(readings))))
-            chart.data.datasets[0].data = Object.values(queues[config.queue].queued).map(value => value * (1 / config.sample_rate ))
-            chart.data.datasets[1].data = Object.values(queues[config.queue].processing).map(value => value * (1 / config.sample_rate ))
-            chart.data.datasets[2].data = Object.values(queues[config.queue].released).map(value => value * (1 / config.sample_rate ))
-            chart.data.datasets[3].data = Object.values(queues[config.queue].processed).map(value => value * (1 / config.sample_rate ))
-            chart.data.datasets[4].data = Object.values(queues[config.queue].failed).map(value => value * (1 / config.sample_rate ))
+            chart.data.labels = this.labels(queues[config.queue])
+            chart.options.scales.y.max = this.highest(queues[config.queue])
+            chart.data.datasets[0].data = this.scale(queues[config.queue].queued)
+            chart.data.datasets[1].data = this.scale(queues[config.queue].processing)
+            chart.data.datasets[2].data = this.scale(queues[config.queue].released)
+            chart.data.datasets[3].data = this.scale(queues[config.queue].processed)
+            chart.data.datasets[4].data = this.scale(queues[config.queue].failed)
             chart.update()
         })
+    },
+    labels(readings) {
+        return Object.keys(readings.queued)
+    },
+    scale(data) {
+        return Object.values(data).map(value => value * (1 / config.sampleRate ))
+    },
+    highest(readings) {
+        return Math.max(...Object.values(readings).map(dataset => Math.max(...Object.values(dataset)))) * (1 / config.sampleRate)
     }
 }))
 </script>
