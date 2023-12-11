@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse report(\Throwable $e)
  * @method static \Laravel\Pulse\Pulse startRecording()
  * @method static \Laravel\Pulse\Pulse stopRecording()
- * @method static mixed|null ignore(callable $callback)
+ * @method static mixed ignore(callable $callback)
  * @method static \Laravel\Pulse\Pulse flush()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
  * @method static int store()
@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static callable authenticatedUserIdResolver()
  * @method static string|int|null resolveAuthenticatedUserId()
  * @method static \Laravel\Pulse\Pulse resolveAuthenticatedUserIdUsing(callable $callback)
- * @method static mixed|null withUser(\Illuminate\Contracts\Auth\Authenticatable|string|int|null $user, callable $callback)
+ * @method static mixed withUser(\Illuminate\Contracts\Auth\Authenticatable|string|int|null $user, callable $callback)
  * @method static \Laravel\Pulse\Pulse rememberUser(\Illuminate\Contracts\Auth\Authenticatable $user)
  * @method static \Laravel\Pulse\Pulse|string css(string|\Illuminate\Contracts\Support\Htmlable|array|null $css = null)
  * @method static string js()
@@ -35,10 +35,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static void trim()
  * @method static void purge(array $types = null)
  * @method static \Illuminate\Support\Collection values(string $type, array $keys = null)
- * @method static \Illuminate\Support\Collection graph(array $types,  $aggregate, \Carbon\CarbonInterval $interval)
- * @method static \Illuminate\Support\Collection aggregate(string $type, |array $aggregates, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
- * @method static \Illuminate\Support\Collection aggregateTypes(string|array $types,  $aggregate, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
- * @method static \Illuminate\Support\Collection aggregateTotal(string|array $types,  $aggregate, \Carbon\CarbonInterval $interval)
+ * @method static \Illuminate\Support\Collection graph(array $types, string $aggregate, \Carbon\CarbonInterval $interval)
+ * @method static \Illuminate\Support\Collection aggregate(string $type, string|array $aggregates, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTypes(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval, string|null $orderBy = null, string $direction = 'desc', int $limit = 101)
+ * @method static \Illuminate\Support\Collection aggregateTotal(string|array $types, string $aggregate, \Carbon\CarbonInterval $interval)
  *
  * @see \Laravel\Pulse\Pulse
  */
