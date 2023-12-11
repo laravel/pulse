@@ -66,120 +66,17 @@
                             <div
                                 wire:ignore
                                 class="h-14"
-                                x-data="{
-                                    init() {
-                                        let chart = new Chart(
-                                            this.$refs.canvas,
-                                            {
-                                                type: 'line',
-                                                data: {
-                                                    labels: @js($readings->first()->keys()),
-                                                    datasets: [
-                                                        {
-                                                            label: 'Queued',
-                                                            borderColor: 'rgba(107,114,128,0.5)',
-                                                            data: @js($readings->get('queued')->values()->map(fn ($value) => $value * (1 / $config['sample_rate']))),
-                                                            order: 4,
-                                                        },
-                                                        {
-                                                            label: 'Processing',
-                                                            borderColor: 'rgba(147,51,234,0.5)',
-                                                            data: @js($readings->get('processing')->values()->map(fn ($value) => $value * (1 / $config['sample_rate']))),
-                                                            order: 3,
-                                                        },
-                                                        {
-                                                            label: 'Released',
-                                                            borderColor: '#eab308',
-                                                            data: @js($readings->get('released')->values()->map(fn ($value) => $value * (1 / $config['sample_rate']))),
-                                                            order: 2,
-                                                        },
-                                                        {
-                                                            label: 'Processed',
-                                                            borderColor: '#9333ea',
-                                                            data: @js($readings->get('processed')->values()->map(fn ($value) => $value * (1 / $config['sample_rate']))),
-                                                            order: 1,
-                                                        },
-                                                        {
-                                                            label: 'Failed',
-                                                            borderColor: '#e11d48',
-                                                            data: @js($readings->get('failed')->values()->map(fn ($value) => $value * (1 / $config['sample_rate']))),
-                                                            order: 0,
-                                                        },
-                                                    ],
-                                                },
-                                                options: {
-                                                    maintainAspectRatio: false,
-                                                    layout: {
-                                                        autoPadding: false,
-                                                        padding: {
-                                                            top: 1,
-                                                        },
-                                                    },
-                                                    datasets: {
-                                                        line: {
-                                                            borderWidth: 2,
-                                                            borderCapStyle: 'round',
-                                                            pointHitRadius: 10,
-                                                            pointStyle: false,
-                                                            tension: 0.2,
-                                                            spanGaps: false,
-                                                            segment: {
-                                                                borderColor: (ctx) => ctx.p0.raw === 0 && ctx.p1.raw === 0 ? 'transparent' : undefined,
-                                                            }
-                                                        }
-                                                    },
-                                                    scales: {
-                                                        x: {
-                                                            display: false,
-                                                        },
-                                                        y: {
-                                                            display: false,
-                                                            min: 0,
-                                                            max: @js($highest),
-                                                        },
-                                                    },
-                                                    plugins: {
-                                                        legend: {
-                                                            display: false,
-                                                        },
-                                                        tooltip: {
-                                                            mode: 'index',
-                                                            position: 'nearest',
-                                                            intersect: false,
-                                                            callbacks: {
-                                                                beforeBody: (context) => context
-                                                                    .map(item => `${item.dataset.label}: {{ $config['sample_rate'] < 1 ? '~' : ''}}${item.formattedValue}`)
-                                                                    .join(', '),
-                                                                label: () => null,
-                                                            },
-                                                        },
-                                                    },
-                                                },
-                                            }
-                                        )
-
-                                        Livewire.on('queues-chart-update', ({ queues }) => {
-                                            if (chart === undefined) {
-                                                return
-                                            }
-
-                                            if (queues['{{ $queue }}'] === undefined && chart) {
-                                                chart.destroy()
-                                                chart = undefined
-                                                return
-                                            }
-
-                                            chart.data.labels = Object.keys(Object.values(queues['{{ $queue }}'])[0])
-                                            chart.options.scales.y.max = Math.max(...Object.values(queues['{{ $queue }}']).map(readings => Math.max(...Object.values(readings))))
-                                            chart.data.datasets[0].data = Object.values(queues['{{ $queue }}']['queued']).map(value => value * (1 / {{ $config['sample_rate']}}))
-                                            chart.data.datasets[1].data = Object.values(queues['{{ $queue }}']['processing']).map(value => value * (1 / {{ $config['sample_rate']}}))
-                                            chart.data.datasets[2].data = Object.values(queues['{{ $queue }}']['released']).map(value => value * (1 / {{ $config['sample_rate']}}))
-                                            chart.data.datasets[3].data = Object.values(queues['{{ $queue }}']['processed']).map(value => value * (1 / {{ $config['sample_rate']}}))
-                                            chart.data.datasets[4].data = Object.values(queues['{{ $queue }}']['failed']).map(value => value * (1 / {{ $config['sample_rate']}}))
-                                            chart.update()
-                                        })
-                                    }
-                                }"
+                                x-data="queueChart({
+                                    queue: '{{ $queue }}',
+                                    labels: @js($readings->first()->keys()),
+                                    queued: @js($readings->get('queued')->values()),
+                                    processing: @js($readings->get('processing')->values()),
+                                    released: @js($readings->get('released')->values()),
+                                    processed: @js($readings->get('processed')->values()),
+                                    failed: @js($readings->get('failed')->values()),
+                                    highest: {{ $highest }},
+                                    sample_rate: {{ $config['sample_rate'] }},
+                                })"
                             >
                                 <canvas x-ref="canvas" class="ring-1 ring-gray-900/5 dark:ring-gray-100/10 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm"></canvas>
                             </div>
@@ -190,3 +87,122 @@
         @endif
     </x-pulse::scroll>
 </x-pulse::card>
+
+@script
+<script>
+Alpine.data('queueChart', (config) => ({
+    init() {
+        let chart = new Chart(
+            this.$refs.canvas,
+            {
+                type: 'line',
+                data: {
+                    labels: config.labels,
+                    datasets: [
+                        {
+                            label: 'Queued',
+                            borderColor: 'rgba(107,114,128,0.5)',
+                            data: config.queued,
+                            order: 4,
+                        },
+                        {
+                            label: 'Processing',
+                            borderColor: 'rgba(147,51,234,0.5)',
+                            data: config.processing,
+                            order: 3,
+                        },
+                        {
+                            label: 'Released',
+                            borderColor: '#eab308',
+                            data: config.released,
+                            order: 2,
+                        },
+                        {
+                            label: 'Processed',
+                            borderColor: '#9333ea',
+                            data: config.processed,
+                            order: 1,
+                        },
+                        {
+                            label: 'Failed',
+                            borderColor: '#e11d48',
+                            data: config.failed,
+                            order: 0,
+                        },
+                    ],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        autoPadding: false,
+                        padding: {
+                            top: 1,
+                        },
+                    },
+                    datasets: {
+                        line: {
+                            borderWidth: 2,
+                            borderCapStyle: 'round',
+                            pointHitRadius: 10,
+                            pointStyle: false,
+                            tension: 0.2,
+                            spanGaps: false,
+                            segment: {
+                                borderColor: (ctx) => ctx.p0.raw === 0 && ctx.p1.raw === 0 ? 'transparent' : undefined,
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                        },
+                        y: {
+                            display: false,
+                            min: 0,
+                            max: config.highest,
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            position: 'nearest',
+                            intersect: false,
+                            callbacks: {
+                                beforeBody: (context) => context
+                                    .map(item => `${item.dataset.label}: ${config.sample_rate < 1 ? '~' : ''}${item.formattedValue}`)
+                                    .join(', '),
+                                label: () => null,
+                            },
+                        },
+                    },
+                },
+            }
+        )
+
+        Livewire.on('queues-chart-update', ({ queues }) => {
+            if (chart === undefined) {
+                return
+            }
+
+            if (queues[config.queue] === undefined && chart) {
+                chart.destroy()
+                chart = undefined
+                return
+            }
+
+            chart.data.labels = Object.keys(Object.values(queues[config.queue])[0])
+            chart.options.scales.y.max = Math.max(...Object.values(queues[config.queue]).map(readings => Math.max(...Object.values(readings))))
+            chart.data.datasets[0].data = Object.values(queues[config.queue].queued).map(value => value * (1 / config.sample_rate ))
+            chart.data.datasets[1].data = Object.values(queues[config.queue].processing).map(value => value * (1 / config.sample_rate ))
+            chart.data.datasets[2].data = Object.values(queues[config.queue].released).map(value => value * (1 / config.sample_rate ))
+            chart.data.datasets[3].data = Object.values(queues[config.queue].processed).map(value => value * (1 / config.sample_rate ))
+            chart.data.datasets[4].data = Object.values(queues[config.queue].failed).map(value => value * (1 / config.sample_rate ))
+            chart.update()
+        })
+    }
+}))
+</script>
+@endscript
