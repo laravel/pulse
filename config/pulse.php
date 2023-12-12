@@ -78,7 +78,10 @@ return [
     'ingest' => [
         'driver' => env('PULSE_INGEST_DRIVER', 'storage'),
 
-        'trim_lottery' => [1, 1_000],
+        'trim' => [
+            'lottery' => [1, 1_000],
+            'keep' => '7 days',
+        ],
 
         'redis' => [
             'connection' => env('PULSE_REDIS_CONNECTION'),

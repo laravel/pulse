@@ -310,7 +310,10 @@ class Pulse
             return $entries->count();
         }) ?? 0;
 
-        Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
+        // TODO remove fallback when tagging v1
+        $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
+
+        Lottery::odds(...$odds)
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
