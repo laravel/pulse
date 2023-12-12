@@ -297,6 +297,7 @@ class Pulse
             $this->entries->filter($this->shouldRecord(...)),
         ));
 
+        // TODO remove fallback when tagging v1
         $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
 
         Lottery::odds(...$odds)
