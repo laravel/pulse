@@ -9,6 +9,7 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -50,18 +51,22 @@ class Queues
             return;
         }
 
-        [$timestamp, $class, $connection, $uuid, $name] = [
+        [$timestamp, $class, $connection, $queue, $uuid, $name] = [
             CarbonImmutable::now()->getTimestamp(),
-            $event::class,
-            match ($event::class) {
-                JobQueued::class => $event->connectionName.':'.($event->job->queue ?? $this->getDefaultQueue($event->connectionName)),
-                default => $event->job->getConnectionName().':'.$event->job->getQueue(), // @phpstan-ignore method.nonObject method.nonObject
+            $class = $event::class,
+            match ($class) {
+                JobQueued::class => $event->connectionName,
+                default => $event->job->getConnectionName(),
             },
-            match ($event::class) {
+            match ($class) {
+                JobQueued::class => $event->job->queue ?? null,
+                default => $event->job->getQueue(),
+            },
+            match ($class) {
                 JobQueued::class => $event->payload()['uuid'],
                 default => $event->job->uuid(), // @phpstan-ignore method.nonObject
             },
-            match ($event::class) {
+            match ($class) {
                 JobQueued::class => match (true) {
                     is_string($event->job) => $event->job,
                     method_exists($event->job, 'displayName') => $event->job->displayName(),
@@ -71,10 +76,14 @@ class Queues
             },
         ];
 
-        $this->pulse->lazy(function () use ($timestamp, $class, $uuid, $name, $connection) {
+        $this->pulse->lazy(function () use ($timestamp, $class, $connection, $queue, $uuid, $name) {
             if (! $this->shouldSampleDeterministically($uuid) || $this->shouldIgnore($name)) {
                 return;
             }
+
+            $queue = $queue === null
+                ? $this->getDefaultQueue($connection)
+                : $this->normalizeSqsQueue($connection, $queue);
 
             $this->pulse->record(
                 type: match ($class) { // @phpstan-ignore match.unhandled
@@ -84,7 +93,7 @@ class Queues
                     JobReleasedAfterException::class => 'released',
                     JobFailed::class => 'failed',
                 },
-                key: $connection,
+                key: "{$connection}:{$queue}",
                 timestamp: $timestamp,
             )->count()->onlyBuckets();
         });
@@ -96,5 +105,31 @@ class Queues
     protected function getDefaultQueue(string $connection): string
     {
         return $this->config->get('queue.connections.'.$connection.'.queue', 'default');
+    }
+
+    /**
+     * Normalize the SQS queue name.
+     */
+    protected function normalizeSqsQueue(string $connection, string $queue): string
+    {
+        $config = $this->config->get("queue.connections.{$connection}") ?? [];
+
+        if (($config['driver'] ?? null) !== 'sqs') {
+            return $connection;
+        }
+
+        if ($config['prefix'] ?? null) {
+            $prefix = preg_quote($config['prefix'], '#');
+
+            $queue = preg_replace("#^{$prefix}/#", '', $queue);
+        }
+
+        if ($config['suffix'] ?? null) {
+            $suffix = preg_quote($config['suffix'], '#');
+
+            $queue = preg_replace("#{$suffix}$#", '', $queue);
+        }
+
+        return $queue;
     }
 }
