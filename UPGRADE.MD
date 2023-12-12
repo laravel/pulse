@@ -4,7 +4,7 @@
 
 ## Required
 
-- [Added a `highlight` configuration option to `pulse.recorders.SlowQueries` configuration block](https://github.com/laravel/pulse/pull/185).
+- [Added a `highlight` configuration option to `pulse.recorders.SlowQueries` configuration block](https://github.com/laravel/pulse/pull/172).
 
 ## Optional
 
