@@ -43,7 +43,7 @@ class CacheInteractions
         [$timestamp, $class, $key] = [
             CarbonImmutable::now()->getTimestamp(),
             $event::class,
-            $event->key,
+            (string) $event->key,
         ];
 
         $this->pulse->lazy(function () use ($timestamp, $class, $key) {
