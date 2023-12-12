@@ -114,7 +114,7 @@ class Queues
         $config = $this->config->get("queue.connections.{$connection}") ?? [];
 
         if (($config['driver'] ?? null) !== 'sqs') {
-            return $connection;
+            return $queue;
         }
 
         if ($config['prefix'] ?? null) {
