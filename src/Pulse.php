@@ -129,18 +129,16 @@ class Pulse
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
-                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event)))
+                fn ($event) => $this->rescue(fn () => $recorder->record($event))
             ))
         );
 
         $recorders
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
             ->each(function ($recorder) {
-                $record = function (...$args) use ($recorder) {
-                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args)));
-                };
-
-                $this->app->call($recorder->register(...), ['record' => $record]);
+                $this->app->call($recorder->register(...), [
+                    'record' => fn (...$args) => $this->rescue(fn () => $recorder->record(...$args)),
+                ]);
             });
 
         $this->recorders = collect([...$this->recorders, ...$recorders]);
@@ -267,7 +265,10 @@ class Pulse
     public function flush(): self
     {
         $this->entries = collect([]);
+
         $this->lazy = collect([]);
+
+        $this->rememberedUserId = null;
 
         return $this;
     }
@@ -289,21 +290,33 @@ class Pulse
      */
     public function store(): int
     {
+        $entries = $this->rescue(function () {
+            $this->lazy->each(fn ($lazy) => $lazy());
+
+            return $this->entries->filter($this->shouldRecord(...));
+        }) ?? collect([]);
+
+        if ($entries->isEmpty()) {
+            $this->flush();
+
+            return 0;
+        }
+
         $ingest = $this->app->make(Ingest::class);
 
-        $this->lazy->each(fn ($lazy) => $lazy());
+        $count = $this->rescue(function () use ($entries, $ingest) {
+            $ingest->ingest($entries);
 
-        $this->rescue(fn () => $ingest->ingest(
-            $this->entries->filter($this->shouldRecord(...)),
-        ));
+            return $entries->count();
+        }) ?? 0;
 
         Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
-        $this->rememberedUserId = null;
+        $this->flush();
 
-        return tap($this->entries->count(), $this->flush(...));
+        return $count;
     }
 
     /**
@@ -508,15 +521,20 @@ class Pulse
     /**
      * Execute the given callback handling any exceptions.
      *
-     * @param  (callable(): mixed)  $callback
+     * @template TReturn
+     *
+     * @param  (callable(): TReturn)  $callback
+     * @return TReturn|null
      */
-    public function rescue(callable $callback): void
+    public function rescue(callable $callback): mixed
     {
         try {
-            $callback();
+            return $callback();
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
+
+        return null;
     }
 
     /**
