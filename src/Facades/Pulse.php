@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool registersRoutes()
  * @method static \Laravel\Pulse\Pulse ignoreRoutes()
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
- * @method static void rescue(callable $callback)
+ * @method static |null rescue(callable $callback)
  * @method static \Laravel\Pulse\Pulse setContainer(\Illuminate\Contracts\Foundation\Application $container)
  * @method static void afterResolving(\Illuminate\Contracts\Foundation\Application $app, string $class, \Closure $callback)
  * @method static void trim()
