@@ -55,14 +55,14 @@ class Queues
             $class = $event::class,
             match ($class) {
                 JobQueued::class => $event->connectionName,
-                default => $event->job->getConnectionName(),
+                default => $event->job->getConnectionName(), // @phpstan-ignore method.nonObject
             },
             match ($class) {
                 JobQueued::class => $event->job->queue ?? null,
-                default => $event->job->getQueue(),
+                default => $event->job->getQueue(), // @phpstan-ignore method.nonObject
             },
             match ($class) {
-                JobQueued::class => $event->payload()['uuid'],
+                JobQueued::class => $event->payload()['uuid'], // @phpstan-ignore method.notFound
                 default => $event->job->uuid(), // @phpstan-ignore method.nonObject
             },
             match ($class) {
@@ -120,13 +120,13 @@ class Queues
         if ($config['prefix'] ?? null) {
             $prefix = preg_quote($config['prefix'], '#');
 
-            $queue = preg_replace("#^{$prefix}/#", '', $queue);
+            $queue = preg_replace("#^{$prefix}/#", '', $queue) ?? $queue;
         }
 
         if ($config['suffix'] ?? null) {
             $suffix = preg_quote($config['suffix'], '#');
 
-            $queue = preg_replace("#{$suffix}$#", '', $queue);
+            $queue = preg_replace("#{$suffix}$#", '', $queue) ?? $queue;
         }
 
         return $queue;
