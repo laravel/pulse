@@ -73,7 +73,8 @@ class CustomCardWithCssHtmlable extends Card
 
     protected function css()
     {
-        return new class implements Htmlable {
+        return new class implements Htmlable
+        {
             public function toHtml()
             {
                 return '<link rel="stylesheet" src="https://example.com/cdn/custom-card.css">';
