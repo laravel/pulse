@@ -72,7 +72,25 @@ class CheckCommand extends Command
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
+            $this->writeOutput();
             $pulse->store();
         }
+    }
+
+     /**
+     * Write the output for the Check Command.
+     *
+     * @return void
+     */
+    protected function writeOutput()
+    {
+        $this->output->write(
+            sprintf(
+                '  <fg=gray>%s</> ',
+                now()->format('Y-m-d H:i:s')
+            )
+        );
+
+        return $this->output->writeln(' <fg=green;options=bold>RECORDING</>');
     }
 }
