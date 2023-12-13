@@ -1,7 +1,7 @@
 <?php
 
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders;
 
 return [
