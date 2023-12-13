@@ -1,6 +1,7 @@
 <?php
 
 use Laravel\Pulse\Http\Middleware\Authorize;
+use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders;
 
 return [
@@ -134,12 +135,7 @@ return [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
             'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
             'ignore' => [
-                '/^laravel:pulse:/', // Internal Pulse keys...
-                '/^illuminate:/', // Internal Laravel keys...
-                '/^telescope:/', // Internal Telescope keys...
-                '/^nova/', // Internal Nova keys...
-                '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze / Jetstream authentication rate limiting...
-                '/^[a-zA-Z0-9]{40}$/', // Session IDs...
+                ...Pulse::vendorCacheKeys(),
             ],
             'groups' => [
                 '/^job-exceptions:.*/' => 'job-exceptions:*',
