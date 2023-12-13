@@ -25,7 +25,8 @@ class CheckCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:check';
+    public $signature = 'pulse:check
+                        {--once : Take a snapshot once and exit}';
 
     /**
      * The command's description.
@@ -42,6 +43,12 @@ class CheckCommand extends Command
         CacheStoreResolver $cache,
         Dispatcher $event,
     ): int {
+        if ($this->option('once')) {
+            $this->check($pulse, $cache, $event);
+
+            return self::SUCCESS;
+        }
+
         $lastRestart = $cache->store()->get('laravel:pulse:restart');
 
         $interval = CarbonInterval::seconds(5);
@@ -61,18 +68,33 @@ class CheckCommand extends Command
                 return self::SUCCESS;
             }
 
-            $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
-
-            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
-
-            if (
-                ($lockProvider ??= $cache->store()->getStore()) instanceof LockProvider &&
-                $lockProvider->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()
-            ) {
-                $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
-            }
-
-            $pulse->store();
+            $this->check($pulse, $cache, $event, $now, $interval);
         }
+    }
+
+    /**
+     * Check the current server's pulse.
+     */
+    protected function check(
+        Pulse $pulse,
+        CacheStoreResolver $cache,
+        Dispatcher $event,
+        ?CarbonImmutable $now = null,
+        ?CarbonInterval $interval = null
+    ): void {
+        $now ?: CarbonImmutable::now();
+
+        $lastSnapshotAt = $interval ? $now->floorSeconds((int) $interval->totalSeconds) : $now;
+
+        $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
+
+        if (
+            ($lockProvider ??= $cache->store()->getStore()) instanceof LockProvider &&
+            $lockProvider->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()
+        ) {
+            $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
+        }
+
+        $pulse->store();
     }
 }
