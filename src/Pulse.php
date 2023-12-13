@@ -494,7 +494,7 @@ class Pulse
     /**
      * The default "vendor" cache keys that should be ignored by Pulse.
      */
-    public static function vendorCacheKeys(): array
+    public static function defaultVendorCacheKeys(): array
     {
         return [
             '/(^laravel_vapor_job_attemp(t?)s:)/', // Laravel Vapor keys...

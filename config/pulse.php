@@ -135,7 +135,7 @@ return [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
             'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
             'ignore' => [
-                ...Pulse::vendorCacheKeys(),
+                ...Pulse::defaultVendorCacheKeys(),
             ],
             'groups' => [
                 '/^job-exceptions:.*/' => 'job-exceptions:*',
