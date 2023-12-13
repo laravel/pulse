@@ -82,7 +82,7 @@ class CheckCommand extends Command
      *
      * @return void
      */
-    protected function writeOutput()
+    protected function writeOutput(): void
     {
         $this->output->write(
             sprintf(
@@ -91,6 +91,6 @@ class CheckCommand extends Command
             )
         );
 
-        return $this->output->writeln(' <fg=green;options=bold>RECORDING</>');
+        $this->output->writeln(' <fg=green;options=bold>RECORDING</>');
     }
 }
