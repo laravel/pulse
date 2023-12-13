@@ -6,7 +6,6 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues as QueuesRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Livewire;
@@ -17,17 +16,14 @@ use Livewire\Livewire;
 #[Lazy]
 class Queues extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * Render the component.
      */
     public function render(): Renderable
     {
-        [$queues, $time, $runAt] = $this->remember(fn () => Pulse::graph(
+        [$queues, $time, $runAt] = $this->remember(fn () => $this->graph(
             ['queued', 'processing', 'processed', 'released', 'failed'],
             'count',
-            $this->periodAsInterval(),
         ));
 
         if (Livewire::isLivewireRequest()) {

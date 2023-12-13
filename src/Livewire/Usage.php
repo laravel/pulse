@@ -18,8 +18,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Usage extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * The type of usage to show.
      *
@@ -44,14 +42,13 @@ class Usage extends Card
 
         [$userRequestCounts, $time, $runAt] = $this->remember(
             function () use ($type) {
-                $counts = Pulse::aggregate(
+                $counts = $this->aggregate(
                     match ($type) {
                         'requests' => 'user_request',
                         'slow_requests' => 'slow_user_request',
                         'jobs' => 'user_job',
                     },
                     'count',
-                    $this->periodAsInterval(),
                     limit: 10,
                 );
 

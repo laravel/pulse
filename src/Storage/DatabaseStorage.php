@@ -394,23 +394,17 @@ class DatabaseStorage implements Storage
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<
-     *     int,
-     *     array<
-     *         string,
-     *         array{
-     *             timestamp: int,
-     *             type: string,
-     *             key: string,
-     *             value: string
-     *         }
-     *     >
-     * >
+     * @return \Illuminate\Support\Collection<string, object{
+     *     timestamp: int,
+     *     key: string,
+     *     value: string
+     * }>
      */
     public function values(string $type, ?array $keys = null): Collection
     {
         return $this->connection()
             ->table('pulse_values')
+            ->select('timestamp', 'key', 'value')
             ->where('type', $type)
             ->when($keys, fn ($query) => $query->whereIn('key', $keys))
             ->get()

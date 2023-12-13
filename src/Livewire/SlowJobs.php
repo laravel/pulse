@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowJobs as SlowJobsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -16,8 +15,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowJobs extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * Ordering.
      *
@@ -32,10 +29,9 @@ class SlowJobs extends Card
     public function render(): Renderable
     {
         [$slowJobs, $time, $runAt] = $this->remember(
-            fn () => Pulse::aggregate(
+            fn () => $this->aggregate(
                 'slow_job',
                 ['max', 'count'],
-                $this->periodAsInterval(),
                 match ($this->orderBy) {
                     'count' => 'count',
                     default => 'max',
