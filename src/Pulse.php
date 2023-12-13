@@ -445,7 +445,7 @@ class Pulse
     public function css(string|Htmlable|array|null $css = null): string|self
     {
         if (func_num_args() === 1) {
-            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css))));
+            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css)), SORT_REGULAR));
 
             return $this;
         }
