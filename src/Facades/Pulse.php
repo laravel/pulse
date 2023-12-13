@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pulse\Pulse rememberUser(\Illuminate\Contracts\Auth\Authenticatable $user)
  * @method static \Laravel\Pulse\Pulse|string css(string|\Illuminate\Contracts\Support\Htmlable|array|null $css = null)
  * @method static string js()
+ * @method static array vendorCacheKeys()
  * @method static bool registersRoutes()
  * @method static \Laravel\Pulse\Pulse ignoreRoutes()
  * @method static \Laravel\Pulse\Pulse handleExceptionsUsing(callable $callback)
