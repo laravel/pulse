@@ -195,6 +195,7 @@ return [
             'location' => env('PULSE_SLOW_QUERIES_LOCATION', true),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables...
+                '/(["`])telescope_[\w]+?\1/', // Telescope tables...        
             ],
         ],
 
