@@ -205,6 +205,7 @@ return [
             'threshold' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
+                '#^/telescope#', // Telescope dashboard...
             ],
         ],
 
@@ -221,6 +222,7 @@ return [
             'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
+                '#^/telescope#', // Telescope dashboard...
             ],
         ],
     ],
