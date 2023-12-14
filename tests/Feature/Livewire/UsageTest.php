@@ -42,7 +42,7 @@ it('renders top 10 users making requests', function (string $query, string $type
     Pulse::record($type, $users[1]->id)->count();
     Pulse::record($type, $users[2]->id)->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])

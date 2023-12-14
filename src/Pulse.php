@@ -286,9 +286,9 @@ class Pulse
     }
 
     /**
-     * Store the queued items.
+     * Ingest the entries.
      */
-    public function store(): int
+    public function ingest(): int
     {
         $entries = $this->rescue(function () {
             $this->lazy->each(fn ($lazy) => $lazy());
@@ -305,7 +305,7 @@ class Pulse
         $ingest = $this->app->make(Ingest::class);
 
         $count = $this->rescue(function () use ($entries, $ingest) {
-            $ingest->ingest($entries);
+            $this->ignore(fn () => $ingest->ingest($entries));
 
             return $entries->count();
         }) ?? 0;
@@ -314,12 +314,30 @@ class Pulse
         $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
 
         Lottery::odds(...$odds)
-            ->winner(fn () => $this->rescue($ingest->trim(...)))
+            ->winner(fn () => $this->rescue(fn () => $this->ignore($ingest->trim(...))))
             ->choose();
 
         $this->flush();
 
         return $count;
+    }
+
+    /**
+     * Digest the entries.
+     */
+    public function digest(): int
+    {
+        return $this->ignore(
+            fn () => $this->app->make(Ingest::class)->store($this->app->make(Storage::class))
+        );
+    }
+
+    /**
+     * Determine if Pulse wants to ingest entries.
+     */
+    public function wantsIngesting(): bool
+    {
+        return $this->lazy->isNotEmpty() || $this->entries->isNotEmpty();
     }
 
     /**
@@ -581,6 +599,6 @@ class Pulse
     {
         $storage = $this->app->make(Storage::class);
 
-        return $this->forwardCallTo($storage, $method, $parameters);
+        return $this->ignore(fn () => $this->forwardCallTo($storage, $method, $parameters));
     }
 }
