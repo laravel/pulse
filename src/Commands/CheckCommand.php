@@ -25,8 +25,7 @@ class CheckCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:check
-                        {--once : Take a snapshot once and exit}';
+    public $signature = 'pulse:check {--once : Take a snapshot once and exit}';
 
     /**
      * The command's description.
