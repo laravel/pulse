@@ -49,3 +49,25 @@ it('renders cache statistics', function () {
             (object) ['key' => 'bar', 'hits' => 2, 'misses' => 2],
         ]));
 });
+
+it('does not round numbers up', function () {
+    for ($i = 0; $i < 20_000; $i++) {
+        Pulse::record('cache_hit', 'foo')->count()->onlyBuckets();
+    }
+    Pulse::record('cache_miss', 'foo')->count()->onlyBuckets();
+    Pulse::store();
+
+    Livewire::test(Cache::class, ['lazy' => false])
+        ->assertDontSeeHtml("100.00%\n")
+        ->assertSeeHtml("99.99%\n");
+});
+
+it('does not show decimals for round numbers', function () {
+    Pulse::record('cache_hit', 'foo')->count()->onlyBuckets();
+    Pulse::record('cache_miss', 'foo')->count()->onlyBuckets();
+    Pulse::store();
+
+    Livewire::test(Cache::class, ['lazy' => false])
+        ->assertDontSeeHtml("50.00%\n")
+        ->assertSeeHtml("50%\n");
+});

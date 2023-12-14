@@ -1,7 +1,8 @@
 providers:
   - Laravel\Pulse\PulseServiceProvider
 
-migrations: true
+migrations:
+  - database/migrations
 
 workbench:
   start: '/'

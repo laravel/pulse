@@ -7,8 +7,11 @@ use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
@@ -90,6 +93,13 @@ class Pulse
     protected $handleExceptionsUsing = null;
 
     /**
+     * The CSS paths to include on the dashboard.
+     *
+     * @var list<string|Htmlable>
+     */
+    protected $css = [__DIR__.'/../dist/pulse.css'];
+
+    /**
      * Create a new Pulse instance.
      */
     public function __construct(protected Application $app)
@@ -119,18 +129,16 @@ class Pulse
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
-                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event)))
+                fn ($event) => $this->rescue(fn () => $recorder->record($event))
             ))
         );
 
         $recorders
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
             ->each(function ($recorder) {
-                $record = function (...$args) use ($recorder) {
-                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args)));
-                };
-
-                $this->app->call($recorder->register(...), ['record' => $record]);
+                $this->app->call($recorder->register(...), [
+                    'record' => fn (...$args) => $this->rescue(fn () => $recorder->record(...$args)),
+                ]);
             });
 
         $this->recorders = collect([...$this->recorders, ...$recorders]);
@@ -147,9 +155,7 @@ class Pulse
         ?int $value = null,
         DateTimeInterface|int|null $timestamp = null,
     ): Entry {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
@@ -174,9 +180,7 @@ class Pulse
         string $value,
         DateTimeInterface|int|null $timestamp = null,
     ): Value {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
@@ -261,7 +265,10 @@ class Pulse
     public function flush(): self
     {
         $this->entries = collect([]);
+
         $this->lazy = collect([]);
+
+        $this->rememberedUserId = null;
 
         return $this;
     }
@@ -283,21 +290,36 @@ class Pulse
      */
     public function store(): int
     {
+        $entries = $this->rescue(function () {
+            $this->lazy->each(fn ($lazy) => $lazy());
+
+            return $this->entries->filter($this->shouldRecord(...));
+        }) ?? collect([]);
+
+        if ($entries->isEmpty()) {
+            $this->flush();
+
+            return 0;
+        }
+
         $ingest = $this->app->make(Ingest::class);
 
-        $this->lazy->each(fn ($lazy) => $lazy());
+        $count = $this->rescue(function () use ($entries, $ingest) {
+            $ingest->ingest($entries);
 
-        $this->rescue(fn () => $ingest->ingest(
-            $this->entries->filter($this->shouldRecord(...)),
-        ));
+            return $entries->count();
+        }) ?? 0;
 
-        Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
+        // TODO remove fallback when tagging v1
+        $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
+
+        Lottery::odds(...$odds)
             ->winner(fn () => $this->rescue($ingest->trim(...)))
             ->choose();
 
-        $this->rememberedUserId = null;
+        $this->flush();
 
-        return tap($this->entries->count(), $this->flush(...));
+        return $count;
     }
 
     /**
@@ -328,10 +350,14 @@ class Pulse
     {
         if ($this->usersResolver) {
             return collect(($this->usersResolver)($ids));
-        } elseif (class_exists(\App\Models\User::class)) {
-            return \App\Models\User::whereKey($ids)->get(['id', 'name', 'email']);
-        } elseif (class_exists(\App\User::class)) {
-            return \App\User::whereKey($ids)->get(['id', 'name', 'email']);
+        }
+
+        if (class_exists($class = \App\Models\User::class) || class_exists($class = \App\User::class)) {
+            return $class::whereKey($ids)->get()->map(fn ($user) => [
+                'id' => $user->getKey(),
+                'name' => $user->name,
+                'email' => $user->email,
+            ]);
         }
 
         return $ids->map(fn (string|int $id) => [
@@ -428,15 +454,29 @@ class Pulse
     }
 
     /**
-     * Return the compiled CSS from the vendor directory.
+     * Register or return CSS for the Pulse dashboard.
+     *
+     * @param  string|Htmlable|list<string|Htmlable>|null  $css
      */
-    public function css(): string
+    public function css(string|Htmlable|array|null $css = null): string|self
     {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.css')) === false) {
-            throw new RuntimeException('Unable to load Pulse dashboard CSS.');
+        if (func_num_args() === 1) {
+            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css)), SORT_REGULAR));
+
+            return $this;
         }
 
-        return $content;
+        return collect($this->css)->reduce(function ($carry, $css) {
+            if ($css instanceof Htmlable) {
+                return $carry.Str::finish($css->toHtml(), PHP_EOL);
+            } else {
+                if (($contents = @file_get_contents($css)) === false) {
+                    throw new RuntimeException("Unable to load Pulse dashboard CSS path [$css].");
+                }
+
+                return $carry."<style>{$contents}</style>".PHP_EOL;
+            }
+        }, '');
     }
 
     /**
@@ -448,7 +488,25 @@ class Pulse
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return $content;
+        return "<script>{$content}</script>".PHP_EOL;
+    }
+
+    /**
+     * The default "vendor" cache keys that should be ignored by Pulse.
+     *
+     * @return list<string>
+     */
+    public static function defaultVendorCacheKeys(): array
+    {
+        return [
+            '/(^laravel_vapor_job_attemp(t?)s:)/', // Laravel Vapor keys...
+            '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze / Jetstream keys...
+            '/^[a-zA-Z0-9]{40}$/', // Session IDs...
+            '/^illuminate:/', // Laravel keys...
+            '/^laravel:pulse:/', // Pulse keys...
+            '/^nova/', // Nova keys...
+            '/^telescope:/', // Telescope keys...
+        ];
     }
 
     /**
@@ -484,15 +542,20 @@ class Pulse
     /**
      * Execute the given callback handling any exceptions.
      *
-     * @param  (callable(): mixed)  $callback
+     * @template TReturn
+     *
+     * @param  (callable(): TReturn)  $callback
+     * @return TReturn|null
      */
-    public function rescue(callable $callback): void
+    public function rescue(callable $callback): mixed
     {
         try {
-            $callback();
+            return $callback();
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
+
+        return null;
     }
 
     /**

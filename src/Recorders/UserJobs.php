@@ -45,7 +45,7 @@ class UserJobs
         [$timestamp, $name, $userIdResolver] = [
             CarbonImmutable::now()->getTimestamp(),
             match (true) {
-                is_string($event->job) => $event->job,
+                is_string($name = $event->job) => $name,
                 method_exists($event->job, 'displayName') => $event->job->displayName(),
                 default => $event->job::class,
             },

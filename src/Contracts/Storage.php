@@ -30,18 +30,11 @@ interface Storage
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<
-     *     int,
-     *     array<
-     *         string,
-     *         array{
-     *             timestamp: int,
-     *             type: string,
-     *             key: string,
-     *             value: string
-     *         }
-     *     >
-     * >
+     * @return \Illuminate\Support\Collection<string, object{
+     *     timestamp: int,
+     *     key: string,
+     *     value: string
+     * }>
      */
     public function values(string $type, ?array $keys = null): Collection;
 
@@ -49,6 +42,7 @@ interface Storage
      * Retrieve aggregate values for plotting on a graph.
      *
      * @param  list<string>  $types
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection;
@@ -56,9 +50,10 @@ interface Storage
     /**
      * Retrieve aggregate values for the given type.
      *
-     * @param  list<string>  $aggregates
+     * @param  'count'|'min'|'max'|'sum'|'avg'|list<'count'|'min'|'max'|'sum'|'avg'>  $aggregates
      * @return \Illuminate\Support\Collection<int, object{
      *     key: string,
+     *     min?: int,
      *     max?: int,
      *     sum?: int,
      *     avg?: int,
@@ -78,6 +73,7 @@ interface Storage
      * Retrieve aggregate values for the given types.
      *
      * @param  string|list<string>  $types
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<int, object>
      */
     public function aggregateTypes(
@@ -93,6 +89,7 @@ interface Storage
      * Retrieve an aggregate total for the given types.
      *
      * @param  string|list<string>  $types
+     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return \Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(

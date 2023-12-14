@@ -33,6 +33,7 @@ uses(TestCase::class)
         Pulse::flush();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
         Gate::define('viewPulse', fn ($user = null) => true);
+        Config::set('pulse.ingest.trim.lottery', [0, 1]);
     })
     ->afterEach(function () {
         Str::createUuidsNormally();
@@ -160,4 +161,9 @@ function captureRedisCommands(callable $callback)
     } finally {
         $process->running() && $process->signal(SIGINT);
     }
+}
+
+function avatar(string $email)
+{
+    return sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($email))));
 }
