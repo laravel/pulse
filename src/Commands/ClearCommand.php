@@ -11,7 +11,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
  * @internal
  */
 #[AsCommand(name: 'pulse:clear')]
-class PurgeCommand extends Command
+class ClearCommand extends Command
 {
     use ConfirmableTrait;
 

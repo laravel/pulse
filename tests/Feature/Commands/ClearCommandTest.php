@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 
-it('purges Pulse data', function () {
+it('clears Pulse data', function () {
     Pulse::set('foo', 'bar', 'baz');
     Pulse::record('foo', 'bar', 123)->max()->count();
     Pulse::store();
@@ -13,7 +13,7 @@ it('purges Pulse data', function () {
     expect(DB::table('pulse_entries')->count())->toBe(1);
     expect(DB::table('pulse_aggregates')->count())->toBe(8);
 
-    Artisan::call('pulse:purge');
+    Artisan::call('pulse:clear');
 
     expect(DB::table('pulse_values')->count())->toBe(0);
     expect(DB::table('pulse_entries')->count())->toBe(0);
@@ -31,7 +31,7 @@ it('can specify types', function () {
     expect(DB::table('pulse_entries')->count())->toBe(2);
     expect(DB::table('pulse_aggregates')->count())->toBe(16);
 
-    Artisan::call('pulse:purge --type delete-me');
+    Artisan::call('pulse:clear --type delete-me');
 
     expect(DB::table('pulse_values')->where('type', 'keep-me')->count())->toBe(1);
     expect(DB::table('pulse_values')->where('type', 'delete-me')->count())->toBe(0);
