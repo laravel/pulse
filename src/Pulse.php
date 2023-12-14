@@ -494,7 +494,7 @@ class Pulse
     /**
      * The default "vendor" cache keys that should be ignored by Pulse.
      *
-     * @return array<int, string>
+     * @return list<string>
      */
     public static function defaultVendorCacheKeys(): array
     {
