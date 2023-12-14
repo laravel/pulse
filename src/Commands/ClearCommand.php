@@ -10,8 +10,8 @@ use Symfony\Component\Console\Attribute\AsCommand;
 /**
  * @internal
  */
-#[AsCommand(name: 'pulse:purge')]
-class PurgeCommand extends Command
+#[AsCommand(name: 'pulse:clear')]
+class ClearCommand extends Command
 {
     use ConfirmableTrait;
 
@@ -20,7 +20,7 @@ class PurgeCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:purge {--type=* : Only clear the specified type(s)}
+    public $signature = 'pulse:clear {--type=* : Only clear the specified type(s)}
                                      {--force : Force the operation to run when in production}';
 
     /**
@@ -28,7 +28,14 @@ class PurgeCommand extends Command
      *
      * @var string
      */
-    public $description = 'Purge Pulse data';
+    public $description = 'Delete all Pulse data from storage';
+
+    /**
+     * The console command name aliases.
+     *
+     * @var array
+     */
+    protected $aliases = ['pulse:purge'];
 
     /**
      * Handle the command.

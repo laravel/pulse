@@ -214,7 +214,7 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\WorkCommand::class,
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
-                Commands\PurgeCommand::class,
+                Commands\ClearCommand::class,
             ]);
         }
     }
