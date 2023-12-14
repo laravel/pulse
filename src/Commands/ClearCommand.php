@@ -31,6 +31,13 @@ class ClearCommand extends Command
     public $description = 'Delete all Pulse data from storage';
 
     /**
+     * The console command name aliases.
+     *
+     * @var array
+     */
+    protected $aliases = ['pulse:purge'];
+
+    /**
      * Handle the command.
      */
     public function handle(Storage $storage): int
