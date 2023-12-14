@@ -220,7 +220,7 @@ return [
             'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
             'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
             'ignore' => [
-                '#^/' . env('PULSE_PATH', 'pulse') . '$#', // Pulse dashboard...
+                '#^/'.env('PULSE_PATH', 'pulse').'$#', // Pulse dashboard...
             ],
         ],
     ],
