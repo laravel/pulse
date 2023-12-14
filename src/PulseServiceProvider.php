@@ -201,10 +201,6 @@ class PulseServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
             ], ['pulse', 'pulse-migrations']);
-
-            $this->publishes([
-                __DIR__.'/../public' => public_path('vendor/pulse'),
-            ], ['pulse', 'laravel-assets']);
         }
     }
 
