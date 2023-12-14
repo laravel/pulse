@@ -28,7 +28,7 @@ class ClearCommand extends Command
      *
      * @var string
      */
-    public $description = 'Clear Pulse data';
+    public $description = 'Delete all Pulse data from storage';
 
     /**
      * Handle the command.
