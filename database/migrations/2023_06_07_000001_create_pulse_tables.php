@@ -9,18 +9,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Get the migration connection name.
-     */
-    public function getConnection(): ?string
-    {
-        return Config::get('pulse.storage.database.connection');
-    }
-
-    /**
      * Run the migrations.
      */
     public function up(): void
     {
+        if (! $this->shouldRun()) {
+            return;
+        }
+
         $connection = DB::connection($this->getConnection());
 
         Schema::create('pulse_values', function (Blueprint $table) use ($connection) {
@@ -88,5 +84,21 @@ return new class extends Migration
         Schema::dropIfExists('pulse_values');
         Schema::dropIfExists('pulse_entries');
         Schema::dropIfExists('pulse_aggregates');
+    }
+
+    /**
+     * Get the migration connection name.
+     */
+    public function getConnection(): ?string
+    {
+        return Config::get('pulse.storage.database.connection');
+    }
+
+    /**
+     * Determine if the migration should run.
+     */
+    public function shouldRun(): bool
+    {
+        return ! App::environment('testing') || config('pulse.enabled');
     }
 };
