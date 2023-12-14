@@ -2,12 +2,14 @@
 
 namespace Laravel\Pulse;
 
+use Composer\InstalledVersions;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
@@ -215,6 +217,11 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
                 Commands\ClearCommand::class,
+            ]);
+
+            AboutCommand::add('Pulse', fn () => [
+                'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
+                'Enabled' => AboutCommand::format(config('pulse.enabled'), console: fn ($value) => $value ? '<fg=yellow;options=bold>ENABLED</>' : 'OFF'),
             ]);
         }
     }
