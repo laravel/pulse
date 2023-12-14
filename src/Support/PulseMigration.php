@@ -28,7 +28,7 @@ class PulseMigration extends Migration
             return true;
         }
 
-        if (! App::environment('testing') ) {
+        if (! App::environment('testing')) {
             throw new RuntimeException("Pulse does not support the [{$this->driver()}] database driver.");
         }
 
