@@ -82,7 +82,7 @@ class CheckCommand extends Command
         ?CarbonImmutable $now = null,
         ?CarbonInterval $interval = null
     ): void {
-        $now ?: CarbonImmutable::now();
+        $now ??= CarbonImmutable::now();
 
         $lastSnapshotAt = $interval ? $now->floorSeconds((int) $interval->totalSeconds) : $now;
 
