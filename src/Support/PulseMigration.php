@@ -33,14 +33,14 @@ class PulseMigration extends Migration
         }
 
         if (Config::get('pulse.enabled')) {
-            throw new RuntimeException("Pulse does not support the [{$this->driver()}] database driver. You can disable Pulse in your testsuite by setting `<env name=\"PULSE_ENABLED\" value=\"false\"/>` in your project's `phpunit.xml` file.");
+            throw new RuntimeException("Pulse does not support the [{$this->driver()}] database driver. You can disable Pulse in your testsuite by adding `<env name=\"PULSE_ENABLED\" value=\"false\"/>` to your project's `phpunit.xml` file.");
         }
 
         return false;
     }
 
     /**
-     * The database connection driver.
+     * Get the database connection driver.
      */
     protected function driver(): string
     {
