@@ -33,7 +33,7 @@ class ClearCommand extends Command
     /**
      * The console command name aliases.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $aliases = ['pulse:purge'];
 
