@@ -85,8 +85,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: [8.3]
         laravel: [10]
+        stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - PostgreSQL 14
 
@@ -130,9 +131,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.1, 8.2, 8.3]
+        php: [8.3]
         laravel: [10]
-        stability: [prefer-lowest, prefer-stable]
+        stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - SQLite
 
