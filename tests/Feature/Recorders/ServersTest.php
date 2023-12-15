@@ -21,7 +21,8 @@ it('records server information', function () {
     expect($value->timestamp)->toBe(Date::now()->startOfMinute()->timestamp);
     $payload = json_decode($value->value);
     expect($payload->name)->toBe('Foo');
-    expect($payload->cpu)->toBeBetween(0, 100);
+    expect($payload->cpu)->toBeGreaterThanOrEqual(0);
+    expect($payload->cpu)->toBeLessThanOrEqual(100);
     expect($payload->memory_used)->toBeGreaterThan(0);
     expect($payload->memory_total)->toBeGreaterThan(0);
 
