@@ -32,7 +32,7 @@ it('renders slow requests', function () {
     Pulse::record('slow_request', $request1, 1000)->max()->count();
     Pulse::record('slow_request', $request2, 1000)->max()->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
         ->assertViewHas('slowRequests', collect([

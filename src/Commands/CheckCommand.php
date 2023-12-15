@@ -72,7 +72,7 @@ class CheckCommand extends Command
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
-            $pulse->store();
+            $pulse->ingest();
         }
     }
 }

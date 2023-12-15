@@ -17,7 +17,7 @@ it('can filter records', function () {
     Pulse::record('foo', 'keep', 0);
     Pulse::set('baz', 'keep', '');
     Pulse::set('baz', 'ignore', '');
-    Pulse::store();
+    Pulse::ingest();
 
     expect($storage->stored)->toHaveCount(2);
     expect($storage->stored[0])->toBeInstanceOf(Entry::class);
@@ -35,7 +35,7 @@ it('can lazily capture entries', function () {
         Pulse::set('value', 'lazy', '1');
     });
     Pulse::set('value', 'eager', '1');
-    Pulse::store();
+    Pulse::ingest();
 
     expect($storage->stored)->toHaveCount(4);
     expect($storage->stored[0])->toBeInstanceOf(Entry::class);
@@ -57,5 +57,5 @@ it('can flush the queue', function () {
     });
     Pulse::flush();
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });

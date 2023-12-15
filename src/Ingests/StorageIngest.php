@@ -38,9 +38,9 @@ class StorageIngest implements Ingest
     }
 
     /**
-     * Store the ingested items.
+     * Digest the ingested items.
      */
-    public function store(Storage $storage): int
+    public function digest(Storage $storage): int
     {
         return 0;
     }

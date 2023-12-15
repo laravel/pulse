@@ -4,9 +4,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Storage\DatabaseStorage;
 
 it('trims values at or past expiry', function () {
+    Pulse::stopRecording();
     Date::setTestNow('2000-01-08 00:00:05');
     DB::table('pulse_values')->insert([
         ['type' => 'type', 'key' => 'foo', 'value' => 'value', 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:04')->getTimestamp()],
@@ -20,6 +22,7 @@ it('trims values at or past expiry', function () {
 });
 
 it('trims entries at or after week after timestamp', function () {
+    Pulse::stopRecording();
     Date::setTestNow('2000-01-08 00:00:05');
     DB::table('pulse_entries')->insert([
         ['type' => 'foo', 'key' => 'xxxx', 'value' => 1, 'timestamp' => CarbonImmutable::parse('2000-01-01 00:00:04')->getTimestamp()],
@@ -33,6 +36,7 @@ it('trims entries at or after week after timestamp', function () {
 });
 
 it('trims aggregates once the bucket is no longer relevant', function () {
+    Pulse::stopRecording();
     Date::setTestNow('2000-01-08 01:01:05');
 
     DB::table('pulse_aggregates')->insert([

@@ -2,6 +2,7 @@
 
 use Carbon\CarbonInterval;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 
@@ -9,7 +10,7 @@ test('aggregation', function () {
     Pulse::record('type', 'key1', 200)->count()->min()->max()->sum()->avg();
     Pulse::record('type', 'key1', 100)->count()->min()->max()->sum()->avg();
     Pulse::record('type', 'key2', 400)->count()->min()->max()->sum()->avg();
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->orderBy('id')->get());
     expect($entries)->toHaveCount(3);
@@ -64,7 +65,7 @@ test('aggregation', function () {
     expect($aggregates[39])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
 
     Pulse::record('type', 'key1', 600)->count()->min()->max()->sum()->avg();
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->orderBy('id')->get());
     expect($entries)->toHaveCount(4);
@@ -121,6 +122,7 @@ test('aggregation', function () {
 });
 
 it('combines duplicate count aggregates before upserting', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
     DB::listen(fn ($query) => $queries[] = $query);
 
@@ -128,7 +130,7 @@ it('combines duplicate count aggregates before upserting', function () {
     Pulse::record('type', 'key1')->count();
     Pulse::record('type', 'key1')->count();
     Pulse::record('type', 'key2')->count();
-    Pulse::store();
+    Pulse::ingest();
 
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
@@ -142,6 +144,7 @@ it('combines duplicate count aggregates before upserting', function () {
 });
 
 it('combines duplicate min aggregates before upserting', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
     DB::listen(fn ($query) => $queries[] = $query);
 
@@ -149,7 +152,7 @@ it('combines duplicate min aggregates before upserting', function () {
     Pulse::record('type', 'key1', 100)->min();
     Pulse::record('type', 'key1', 300)->min();
     Pulse::record('type', 'key2', 100)->min();
-    Pulse::store();
+    Pulse::ingest();
 
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
@@ -163,6 +166,7 @@ it('combines duplicate min aggregates before upserting', function () {
 });
 
 it('combines duplicate max aggregates before upserting', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
     DB::listen(fn ($query) => $queries[] = $query);
 
@@ -170,7 +174,7 @@ it('combines duplicate max aggregates before upserting', function () {
     Pulse::record('type', 'key1', 300)->max();
     Pulse::record('type', 'key1', 200)->max();
     Pulse::record('type', 'key2', 100)->max();
-    Pulse::store();
+    Pulse::ingest();
 
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
@@ -184,6 +188,7 @@ it('combines duplicate max aggregates before upserting', function () {
 });
 
 it('combines duplicate sum aggregates before upserting', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
     DB::listen(fn ($query) => $queries[] = $query);
 
@@ -191,7 +196,7 @@ it('combines duplicate sum aggregates before upserting', function () {
     Pulse::record('type', 'key1', 300)->sum();
     Pulse::record('type', 'key1', 200)->sum();
     Pulse::record('type', 'key2', 100)->sum();
-    Pulse::store();
+    Pulse::ingest();
 
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
@@ -205,6 +210,7 @@ it('combines duplicate sum aggregates before upserting', function () {
 });
 
 it('combines duplicate average aggregates before upserting', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
     DB::listen(fn ($query) => $queries[] = $query);
 
@@ -212,7 +218,7 @@ it('combines duplicate average aggregates before upserting', function () {
     Pulse::record('type', 'key1', 300)->avg();
     Pulse::record('type', 'key1', 200)->avg();
     Pulse::record('type', 'key2', 100)->avg();
-    Pulse::store();
+    Pulse::ingest();
 
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
@@ -229,7 +235,7 @@ it('combines duplicate average aggregates before upserting', function () {
     Pulse::record('type', 'key1', 400)->avg();
     Pulse::record('type', 'key1', 400)->avg();
     Pulse::record('type', 'key1', 400)->avg();
-    Pulse::store();
+    Pulse::ingest();
     $aggregate = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('period', 60)->where('key', 'key1')->first());
     expect($aggregate->count)->toEqual(6);
     expect($aggregate->value)->toEqual(300);
@@ -268,7 +274,7 @@ test('one or more aggregates for a single type', function () {
     Pulse::record('slow_request', 'GET /bar', 400)->min()->max()->sum()->avg()->count();
     Pulse::record('slow_request', 'GET /bar', 600)->min()->max()->sum()->avg()->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 
@@ -328,7 +334,7 @@ test('one aggregate for multiple types, per key', function () {
     Pulse::record('cache_hit', 'user:*')->count();
     Pulse::record('cache_miss', 'user:*')->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 
@@ -382,7 +388,7 @@ test('one aggregate for multiple types, totals', function () {
     Pulse::record('cache_hit', 'flight:*')->count();
     Pulse::record('cache_miss', 'flight:*')->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Carbon::setTestNow('2000-01-01 13:00:00');
 

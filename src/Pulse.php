@@ -286,40 +286,58 @@ class Pulse
     }
 
     /**
-     * Store the queued items.
+     * Ingest the entries.
      */
-    public function store(): int
+    public function ingest(): int
     {
-        $entries = $this->rescue(function () {
-            $this->lazy->each(fn ($lazy) => $lazy());
+        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
 
-            return $this->entries->filter($this->shouldRecord(...));
-        }) ?? collect([]);
+        return $this->ignore(function () {
+            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
 
-        if ($entries->isEmpty()) {
+            if ($entries->isEmpty()) {
+                $this->flush();
+
+                return 0;
+            }
+
+            $ingest = $this->app->make(Ingest::class);
+
+            $count = $this->rescue(function () use ($entries, $ingest) {
+                $ingest->ingest($entries);
+
+                return $entries->count();
+            }) ?? 0;
+
+            // TODO remove fallback when tagging v1
+            $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
+
+            Lottery::odds(...$odds)
+                ->winner(fn () => $this->rescue(fn () => $ingest->trim(...)))
+                ->choose();
+
             $this->flush();
 
-            return 0;
-        }
+            return $count;
+        });
+    }
 
-        $ingest = $this->app->make(Ingest::class);
+    /**
+     * Digest the entries.
+     */
+    public function digest(): int
+    {
+        return $this->ignore(
+            fn () => $this->app->make(Ingest::class)->digest($this->app->make(Storage::class))
+        );
+    }
 
-        $count = $this->rescue(function () use ($entries, $ingest) {
-            $ingest->ingest($entries);
-
-            return $entries->count();
-        }) ?? 0;
-
-        // TODO remove fallback when tagging v1
-        $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
-
-        Lottery::odds(...$odds)
-            ->winner(fn () => $this->rescue($ingest->trim(...)))
-            ->choose();
-
-        $this->flush();
-
-        return $count;
+    /**
+     * Determine if Pulse wants to ingest entries.
+     */
+    public function wantsIngesting(): bool
+    {
+        return $this->lazy->isNotEmpty() || $this->entries->isNotEmpty();
     }
 
     /**
@@ -579,8 +597,6 @@ class Pulse
      */
     public function __call($method, $parameters): mixed
     {
-        $storage = $this->app->make(Storage::class);
-
-        return $this->forwardCallTo($storage, $method, $parameters);
+        return $this->ignore(fn () => $this->forwardCallTo($this->app->make(Storage::class), $method, $parameters));
     }
 }

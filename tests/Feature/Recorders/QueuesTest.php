@@ -37,7 +37,7 @@ it('ingests bus dispatched jobs', function () {
 
     Bus::dispatchToQueue(new MyJob);
 
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -56,7 +56,7 @@ it('ingests queued closures', function () {
         throw new RuntimeException('Nope');
     });
 
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -71,7 +71,8 @@ it('ingests queued closures', function () {
      * Work the job for the first time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
+
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -85,7 +86,7 @@ it('ingests queued closures', function () {
      * Work the job for the second time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
@@ -107,7 +108,7 @@ it('ingests jobs pushed to the queue', function () {
     Config::set('queue.default', 'database');
 
     Queue::push('MyJob');
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -127,7 +128,7 @@ it('ingests queued listeners', function () {
      * Dispatch the event.
      */
     MyEvent::dispatch();
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -142,7 +143,7 @@ it('ingests queued listeners', function () {
      * Work the job for the first time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -156,7 +157,7 @@ it('ingests queued listeners', function () {
      * Work the job for the second time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -180,7 +181,7 @@ it('ingests queued mail', function () {
      * Dispatch the mail.
      */
     Mail::to('test@example.com')->queue(new MyMailThatFails);
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -195,7 +196,7 @@ it('ingests queued mail', function () {
      * Work the job for the first time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
@@ -210,7 +211,7 @@ it('ingests queued mail', function () {
      * Work the job for the second time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -234,7 +235,7 @@ it('ingests queued notifications', function () {
      * Dispatch the notification.
      */
     Notification::route('mail', 'test@example.com')->notify(new MyNotificationThatFails);
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -249,7 +250,7 @@ it('ingests queued notifications', function () {
      * Work the job for the first time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -263,7 +264,7 @@ it('ingests queued notifications', function () {
      * Work the job for the second time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -287,7 +288,7 @@ it('ingests queued commands', function () {
      * Dispatch the command.
      */
     Artisan::queue(MyCommandThatFails::class);
-    Pulse::store();
+    Pulse::ingest();
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
@@ -302,7 +303,7 @@ it('ingests queued commands', function () {
      * Work the job for the first time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -316,7 +317,7 @@ it('ingests queued commands', function () {
      * Work the job for the second time.
      */
     Artisan::call('queue:work', ['--max-jobs' => 1, '--tries' => 2, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -340,9 +341,9 @@ it('handles a job throwing exceptions and failing', function () {
      * Dispatch the job.
      */
     Bus::dispatchToQueue(new MyJobWithMultipleAttemptsThatAlwaysThrows);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -357,7 +358,7 @@ it('handles a job throwing exceptions and failing', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -372,7 +373,7 @@ it('handles a job throwing exceptions and failing', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -393,7 +394,7 @@ it('handles a job throwing exceptions and failing', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -423,9 +424,9 @@ it('handles a failure and then a successful job', function () {
      * Dispatch the job.
      */
     Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -440,7 +441,7 @@ it('handles a failure and then a successful job', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -455,7 +456,7 @@ it('handles a failure and then a successful job', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -479,9 +480,9 @@ it('handles a job that was manually failed', function () {
      * Dispatch the job.
      */
     Bus::dispatchToQueue(new MyJobThatManuallyFails);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -498,7 +499,7 @@ it('handles a job that was manually failed', function () {
     app(ExceptionHandler::class)->reportable(fn (\Throwable $e) => throw $e);
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     app()->forgetInstance(ExceptionHandler::class);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -516,14 +517,14 @@ it('can ignore jobs', function () {
     ]);
     MyJobThatPassesOnTheSecondAttempt::$attempts = 0;
     Bus::dispatchToQueue(new MyJobThatPassesOnTheSecondAttempt);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
 
     /*
      * Work the job for the first time.
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     expect(queueAggregates())->toHaveCount(0);
 
     /*
@@ -531,7 +532,7 @@ it('can ignore jobs', function () {
      */
 
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(queueAggregates())->toHaveCount(0);
 });
 
@@ -549,9 +550,9 @@ it('can sample', function () {
     Bus::dispatchToQueue(new MyJob);
     Bus::dispatchToQueue(new MyJob);
     Bus::dispatchToQueue(new MyJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(10);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
     expect(queueAggregates()->count())->toEqualWithDelta(1, 4);
 });
 
@@ -570,8 +571,8 @@ it('can sample at zero', function () {
     Bus::dispatchToQueue(new MyJob);
     Bus::dispatchToQueue(new MyJob);
 
-    expect(Queue::size())->toBe(10);
-    expect(Pulse::store())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -589,8 +590,8 @@ it('can sample at one', function () {
     Bus::dispatchToQueue(new MyJob);
     Bus::dispatchToQueue(new MyJob);
 
-    expect(Queue::size())->toBe(10);
-    expect(Pulse::store())->toBe(10);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
+    expect(Pulse::ingest())->toBe(10);
 });
 
 it("doesn't sample subsequent events for jobs that aren't initially sampled", function () {
@@ -603,9 +604,9 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
 
     Bus::dispatchToQueue(new MyJobThatAlwaysFails);
     Bus::dispatchToQueue(new MyJobThatAlwaysFails);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(2);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(2));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -616,7 +617,7 @@ it("doesn't sample subsequent events for jobs that aren't initially sampled", fu
     );
 
     Artisan::call('queue:work', ['--tries' => 2, '--max-jobs' => 4, '--stop-when-empty' => true, '--sleep' => 0]);
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(16);
     expect($aggregates)->toContainAggregateForAllPeriods(
@@ -638,8 +639,8 @@ it('uses the connection default queue when a job has no queue specified', functi
     Config::set('queue.connections.database.queue', 'custom-default');
 
     Bus::dispatchToQueue(new MyJob);
-    Pulse::store();
-    expect(Queue::size())->toBe(1);
+    Pulse::ingest();
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
 
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(4);

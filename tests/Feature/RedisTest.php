@@ -76,7 +76,7 @@ it('runs the same commands while storing', function ($driver) {
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
-    $commands = captureRedisCommands(fn () => $ingest->store(new StorageFake()));
+    $commands = captureRedisCommands(fn () => $ingest->digest(new StorageFake()));
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:ingest" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');

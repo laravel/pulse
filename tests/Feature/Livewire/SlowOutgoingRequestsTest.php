@@ -29,7 +29,7 @@ it('renders slow outgoing requests', function () {
     Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1000)->max()->count();
     Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.org']), 1000)->max()->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
         ->assertViewHas('slowOutgoingRequests', collect([

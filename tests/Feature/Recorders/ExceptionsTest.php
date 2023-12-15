@@ -11,7 +11,7 @@ it('ingests exceptions', function () {
 
     report(new RuntimeException('Expected exception.'));
 
-    expect(Pulse::store())->toBe(1);
+    expect(Pulse::ingest())->toBe(1);
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -51,7 +51,7 @@ it('can disable capturing the location', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
     report(new RuntimeException('Expected exception.'));
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -88,7 +88,7 @@ it('can manually report exceptions', function () {
     Carbon::setTestNow('2000-01-01 00:00:00');
 
     Pulse::report(new MyReportedException('Hello, Pulse!'));
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -109,7 +109,7 @@ it('can ignore exceptions', function () {
 
     report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample', function () {
@@ -126,7 +126,7 @@ it('can sample', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::store())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -143,7 +143,7 @@ it('can sample at zero', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -160,7 +160,7 @@ it('can sample at one', function () {
     report(new MyReportedException());
     report(new MyReportedException());
 
-    expect(Pulse::store())->toBe(10);
+    expect(Pulse::ingest())->toBe(10);
 });
 
 class MyReportedException extends Exception
