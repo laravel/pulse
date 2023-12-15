@@ -293,6 +293,7 @@ class Pulse
         $entries = $this->rescue(function () {
             $this->lazy->each(fn ($lazy) => $lazy());
 
+            // here as well.
             return $this->entries->filter($this->shouldRecord(...));
         }) ?? collect([]);
 
@@ -328,7 +329,7 @@ class Pulse
     public function digest(): int
     {
         return $this->ignore(
-            fn () => $this->app->make(Ingest::class)->store($this->app->make(Storage::class))
+            fn () => $this->app->make(Ingest::class)->digest($this->app->make(Storage::class))
         );
     }
 
