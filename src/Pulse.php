@@ -290,36 +290,36 @@ class Pulse
      */
     public function ingest(): int
     {
-        $entries = $this->rescue(function () {
-            $this->lazy->each(fn ($lazy) => $lazy());
+        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
 
-            return $this->ignore(fn () => $this->entries->filter($this->shouldRecord(...)));
-        }) ?? collect([]);
+        return $this->ignore(function () {
+            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
 
-        if ($entries->isEmpty()) {
+            if ($entries->isEmpty()) {
+                $this->flush();
+
+                return 0;
+            }
+
+            $ingest = $this->app->make(Ingest::class);
+
+            $count = $this->rescue(function () use ($entries, $ingest) {
+                $ingest->ingest($entries);
+
+                return $entries->count();
+            }) ?? 0;
+
+            // TODO remove fallback when tagging v1
+            $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
+
+            Lottery::odds(...$odds)
+                ->winner(fn () => $this->rescue(fn () => $ingest->trim(...)))
+                ->choose();
+
             $this->flush();
 
-            return 0;
-        }
-
-        $ingest = $this->app->make(Ingest::class);
-
-        $count = $this->rescue(function () use ($entries, $ingest) {
-            $this->ignore(fn () => $ingest->ingest($entries));
-
-            return $entries->count();
-        }) ?? 0;
-
-        // TODO remove fallback when tagging v1
-        $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
-
-        Lottery::odds(...$odds)
-            ->winner(fn () => $this->rescue(fn () => $this->ignore($ingest->trim(...))))
-            ->choose();
-
-        $this->flush();
-
-        return $count;
+            return $count;
+        });
     }
 
     /**
