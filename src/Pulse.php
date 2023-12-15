@@ -597,8 +597,6 @@ class Pulse
      */
     public function __call($method, $parameters): mixed
     {
-        $storage = $this->app->make(Storage::class);
-
-        return $this->ignore(fn () => $this->forwardCallTo($storage, $method, $parameters));
+        return $this->ignore(fn () => $this->forwardCallTo($this->app->make(Storage::class), $method, $parameters));
     }
 }
