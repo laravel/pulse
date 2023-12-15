@@ -293,8 +293,7 @@ class Pulse
         $entries = $this->rescue(function () {
             $this->lazy->each(fn ($lazy) => $lazy());
 
-            // here as well.
-            return $this->entries->filter($this->shouldRecord(...));
+            return $this->ignore(fn () => $this->entries->filter($this->shouldRecord(...)));
         }) ?? collect([]);
 
         if ($entries->isEmpty()) {
