@@ -8,8 +8,9 @@ use Laravel\Pulse\Recorders\ValidationErrors;
 
 use function Pest\Laravel\post;
 
-it('captures session based validation errors', function () {
-    Pulse::register([ValidationErrors::class => []]);
+beforeEach(fn () => Pulse::register([ValidationErrors::class => []]));
+
+it('captures validation errors from the session', function () {
     Route::post('users', fn () => Request::validate([
         'email' => 'required',
     ]))->middleware('web');
@@ -28,8 +29,7 @@ it('captures session based validation errors', function () {
     expect($aggregates->pluck('value')->all())->toBe(array_fill(0, 4, '1.00'));
 });
 
-it('captures one entry when a single field as multiple errors', function () {
-    Pulse::register([ValidationErrors::class => []]);
+it('captures one entry for field when multiple errors are present for the given field from the session', function () {
     Route::post('users', fn () => Request::validate([
         'email' => 'string|min:5',
     ]))->middleware('web');
@@ -53,6 +53,23 @@ it('captures one entry when a single field as multiple errors', function () {
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","email"]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->all())->toBe(array_fill(0, 4, '1.00'));
+});
+
+it('captures a generic error when it is unable to parse the validation error fields from the session', function () {
+    Route::post('users', fn () => response('<p>An error occurred.</p>', 422))->middleware('web');
+
+    $response = post('users');
+
+    $response->assertStatus(422);
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","__unknown"]');
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","__unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->all())->toBe(array_fill(0, 4, '1.00'));
 });

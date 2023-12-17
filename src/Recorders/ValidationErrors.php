@@ -73,8 +73,9 @@ class ValidationErrors
     protected function parseValidationErrors(Request $request, BaseResponse $response): array
     {
         return $this->parseSessionValidationErrors($request, $response)
-            ?? $this->parseJsonValidationErrors($response, $response)
+            ?? $this->parseJsonValidationErrors($request, $response)
             ?? $this->parseInertiaValidationErrors($request, $response)
+            ?? $this->parseUnknownValidationErrors($request, $response)
             ?? [];
     }
 
@@ -132,5 +133,17 @@ class ValidationErrors
         }
 
         return array_keys((array) $response->original['props']['errors']);
+    }
+
+    /**
+     * Parse unknown validation errors.
+     */
+    protected function parseUnknownValidationErrors(Request $request, BaseResponse $response): ?array
+    {
+        if ($response->getStatusCode() !== 422) {
+            return null;
+        }
+
+        return ['__unknown'];
     }
 }
