@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\ValidationErrors;
 
-use function Pest\Laravel\from;
 use function Pest\Laravel\post;
 
 it('captures session based validation errors', function () {
@@ -43,7 +42,7 @@ it('captures one entry when a single field as multiple errors', function () {
     $response->assertInvalid([
         'email' => [
             'The email field must be a string.',
-             'The email field must be at least 5 characters.',
+            'The email field must be at least 5 characters.',
         ],
     ]);
     $response->assertInvalid(['email' => 'The email field must be at least 5 characters.']);
