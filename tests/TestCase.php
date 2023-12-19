@@ -16,7 +16,7 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function setUp(): void
     {
-        $this->usesTestingFeature(new WithMigration('laravel', 'queue'));
+        //$this->usesTestingFeature(new WithMigration('laravel', 'queue'));
 
         parent::setUp();
     }

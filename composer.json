@@ -37,6 +37,7 @@
     "require-dev": {
         "guzzlehttp/guzzle": "^7.7",
         "mockery/mockery": "^1.0",
+        "orchestra/pest-plugin-testbench": "^2.0",
         "orchestra/testbench": "^8.16",
         "pestphp/pest": "^2.0",
         "pestphp/pest-plugin-laravel": "^2.2",

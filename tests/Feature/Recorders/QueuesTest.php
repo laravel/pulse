@@ -19,6 +19,15 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
+use Orchestra\Testbench\Attributes\WithMigration;
+
+use function Orchestra\Testbench\Pest\{ resetRefreshDatabaseState, usesTestingFeature };
+
+beforeAll(fn () => resetRefreshDatabaseState());
+
+usesTestingFeature(
+    new WithMigration('laravel', 'queue')
+);
 
 function queueAggregates()
 {
