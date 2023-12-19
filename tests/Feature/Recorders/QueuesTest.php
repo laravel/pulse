@@ -21,7 +21,8 @@ use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
 use Orchestra\Testbench\Attributes\WithMigration;
 
-use function Orchestra\Testbench\Pest\{ resetRefreshDatabaseState, usesTestingFeature };
+use function Orchestra\Testbench\Pest\resetRefreshDatabaseState;
+use function Orchestra\Testbench\Pest\usesTestingFeature;
 
 beforeAll(fn () => resetRefreshDatabaseState());
 
