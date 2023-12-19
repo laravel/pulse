@@ -14,13 +14,6 @@ abstract class TestCase extends OrchestraTestCase
 
     protected $enablesPackageDiscoveries = true;
 
-    protected function setUp(): void
-    {
-        //$this->usesTestingFeature(new WithMigration('laravel', 'queue'));
-
-        parent::setUp();
-    }
-
     protected function defineEnvironment($app): void
     {
         tap($app['config'], function (Repository $config) {
