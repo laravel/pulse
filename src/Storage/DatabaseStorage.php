@@ -53,7 +53,14 @@ class DatabaseStorage implements Storage
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->connection()
                     ->table('pulse_entries')
-                    ->insert($chunk->map->attributes()->all())
+                    ->insert(
+                        $this->requiresManualKeyHash()
+                            ? $chunk->map(fn ($entry) => [
+                                ...($attributes = $entry->attributes()),
+                                'key_hash' => md5($attributes['key']),
+                            ])->all()
+                            : $chunk->map->attributes()->all()
+                    )
                 );
 
             [$counts, $minimums, $maximums, $sums, $averages] = array_values($entries
@@ -96,7 +103,12 @@ class DatabaseStorage implements Storage
                 ->each(fn ($chunk) => $this->connection()
                     ->table('pulse_values')
                     ->upsert(
-                        $chunk->map->attributes()->all(),
+                        $this->requiresManualKeyHash()
+                            ? $chunk->map(fn ($entry) => [
+                                ...($attributes = $entry->attributes()),
+                                'key_hash' => md5($attributes['key']),
+                            ])->all()
+                            : $chunk->map->attributes()->all(),
                         ['type', 'key_hash'],
                         ['timestamp', 'value']
                     )
@@ -169,7 +181,7 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -190,6 +202,7 @@ class DatabaseStorage implements Storage
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('least(`value`, values(`value`))'),
                     'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
+                    'sqlite' => new Expression('min("pulse_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -210,6 +223,7 @@ class DatabaseStorage implements Storage
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('greatest(`value`, values(`value`))'),
                     'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
+                    'sqlite' => new Expression('max("pulse_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -229,7 +243,7 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -251,7 +265,7 @@ class DatabaseStorage implements Storage
                     'value' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
                     'count' => new Expression('`count` + values(`count`)'),
                 ],
-                'pgsql' => [
+                'pgsql', 'sqlite' => [
                     'value' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
                     'count' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
                 ],
@@ -366,6 +380,10 @@ class DatabaseStorage implements Storage
                         'aggregate' => $aggregate,
                         'key' => $entry->key,
                     ], $entry);
+
+                    if ($this->requiresManualKeyHash()) {
+                        $aggregates[$key]['key_hash'] = md5($entry->key);
+                    }
                 } else {
                     $aggregates[$key] = $callback($aggregates[$key], $entry);
                 }
@@ -761,5 +779,13 @@ class DatabaseStorage implements Storage
     protected function wrap(string $value): string
     {
         return $this->connection()->getQueryGrammar()->wrap($value);
+    }
+
+    /**
+     * Determine whether a manually generated key hash is required.
+     */
+    protected function requiresManualKeyHash(): bool
+    {
+        return $this->connection()->getDriverName() === 'sqlite';
     }
 }
