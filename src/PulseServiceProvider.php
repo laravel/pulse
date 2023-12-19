@@ -18,6 +18,7 @@ use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Ingests\NullIngest;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Ingests\StorageIngest;
 use Laravel\Pulse\Storage\DatabaseStorage;
@@ -52,6 +53,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->bind(Ingest::class, fn (Application $app) => match ($app->make('config')->get('pulse.ingest.driver')) {
             'storage' => $app->make(StorageIngest::class),
             'redis' => $app->make(RedisIngest::class),
+            null, 'null' => $app->make(NullIngest::class),
             default => throw new RuntimeException("Unknown ingest driver [{$app->make('config')->get('pulse.ingest.driver')}]."),
         });
     }
