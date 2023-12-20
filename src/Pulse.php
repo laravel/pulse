@@ -85,6 +85,7 @@ class Pulse
      * @var list<string|Htmlable>
      */
     protected $css = [__DIR__.'/../dist/pulse.css'];
+
     /**
      * Indicates that Pulse is over the buffer size.
      */
