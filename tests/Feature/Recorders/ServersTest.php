@@ -6,6 +6,14 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Servers;
+use Orchestra\Testbench\Attributes\WithConfig;
+
+use function Orchestra\Testbench\Pest\usesTestingFeature;
+
+usesTestingFeature(
+    new WithConfig('queue.failed.driver', 'null'),
+);
+
 
 it('records server information', function () {
     Config::set('pulse.recorders.'.Servers::class.'.server_name', 'Foo');

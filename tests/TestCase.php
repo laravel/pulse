@@ -12,11 +12,4 @@ abstract class TestCase extends OrchestraTestCase
     use RefreshDatabase, WithWorkbench;
 
     protected $enablesPackageDiscoveries = true;
-
-    protected function defineEnvironment($app): void
-    {
-        tap($app['config'], function (Repository $config) {
-            $config->set('queue.failed.driver', 'null');
-        });
-    }
 }

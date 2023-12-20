@@ -5,6 +5,13 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Exceptions;
+use Orchestra\Testbench\Attributes\WithConfig;
+
+use function Orchestra\Testbench\Pest\usesTestingFeature;
+
+usesTestingFeature(
+    new WithConfig('queue.failed.driver', 'null'),
+);
 
 it('ingests exceptions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');

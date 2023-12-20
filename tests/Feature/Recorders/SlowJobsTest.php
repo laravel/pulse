@@ -11,13 +11,15 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowJobs;
 use Orchestra\Testbench\Attributes\ResetRefreshDatabaseState;
+use Orchestra\Testbench\Attributes\WithConfig;
 use Orchestra\Testbench\Attributes\WithMigration;
 
 use function Orchestra\Testbench\Pest\usesTestingFeature;
 
 usesTestingFeature(
     new ResetRefreshDatabaseState(),
-    new WithMigration('laravel', 'queue')
+    new WithMigration('laravel', 'queue'),
+    new WithConfig('queue.failed.driver', 'null'),
 );
 
 it('records slow jobs', function () {
