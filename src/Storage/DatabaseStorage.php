@@ -109,7 +109,7 @@ class DatabaseStorage implements Storage
                                 ...($attributes = $entry->attributes()),
                                 'key_hash' => md5($attributes['key']),
                             ])->all()
-                            : $chunk->map->attributes()->all(),
+                            : $chunk->map->attributes()->all(), // @phpstan-ignore method.notFound
                         ['type', 'key_hash'],
                         ['timestamp', 'value']
                     )
