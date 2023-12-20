@@ -17,6 +17,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Ingests\StorageIngest;
@@ -40,6 +41,7 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->app->singleton(Pulse::class);
         $this->app->bind(Storage::class, DatabaseStorage::class);
+        $this->app->singletonIf(ResolvesUsers::class, Users::class);
 
         $this->registerIngest();
     }

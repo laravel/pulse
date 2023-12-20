@@ -40,7 +40,7 @@
         @else
             <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
                 @foreach ($userRequestCounts as $userRequestCount)
-                    <x-pulse::user-card wire:key="{{ $userRequestCount->user->id }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">
+                    <x-pulse::user-card wire:key="{{ $userRequestCount->key }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">
                         @if ($userRequestCount->user->avatar ?? false)
                             <x-slot:avatar>
                                 <img src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full w-8 h-8 object-cover">
