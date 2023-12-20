@@ -346,7 +346,7 @@ class Pulse
         }
 
         // TODO remove fallback when tagging v1
-        $buffer = $this->app['config']->get('pulse.ingest.buffer') ?? 5_000;
+        $buffer = $this->app->make('config')->get('pulse.ingest.buffer') ?? 5_000;
 
         if (($this->entries->count() + $this->lazy->count()) > $buffer) {
             $this->overBufferSize = true;
