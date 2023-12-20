@@ -19,14 +19,13 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
+use Orchestra\Testbench\Attributes\ResetRefreshDatabaseState;
 use Orchestra\Testbench\Attributes\WithMigration;
 
-use function Orchestra\Testbench\Pest\resetRefreshDatabaseState;
 use function Orchestra\Testbench\Pest\usesTestingFeature;
 
-beforeAll(fn () => resetRefreshDatabaseState());
-
 usesTestingFeature(
+    new ResetRefreshDatabaseState(),
     new WithMigration('laravel', 'queue')
 );
 
