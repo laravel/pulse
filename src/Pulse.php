@@ -156,7 +156,7 @@ class Pulse
             value: $value,
         );
 
-        if ($this->shouldRecord($entry)) {
+        if ($this->shouldRecord) {
             $this->entries[] = $entry;
 
             $this->ingestWhenOverBufferSize();
@@ -183,7 +183,7 @@ class Pulse
             value: $value,
         );
 
-        if ($this->shouldRecord($value)) {
+        if ($this->shouldRecord) {
             $this->entries[] = $value;
 
             $this->ingestWhenOverBufferSize();
@@ -290,19 +290,21 @@ class Pulse
     {
         $this->resolveLazyEntries();
 
-        if ($this->entries->isEmpty()) {
-            $this->flush();
-
-            return 0;
-        }
-
         return $this->ignore(function () {
+            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
+
+            if ($entries->isEmpty()) {
+                $this->flush();
+
+                return 0;
+            }
+
             $ingest = $this->app->make(Ingest::class);
 
-            $count = $this->rescue(function () use ($ingest) {
-                $ingest->ingest($this->entries);
+            $count = $this->rescue(function () use ($entries, $ingest) {
+                $ingest->ingest($entries);
 
-                return $this->entries->count();
+                return $entries->count();
             }) ?? 0;
 
             // TODO remove fallback when tagging v1
@@ -378,7 +380,7 @@ class Pulse
      */
     protected function shouldRecord(Entry|Value $entry): bool
     {
-        return $this->shouldRecord && $this->rescue(fn () => $this->filters->every(fn (callable $filter) => $filter($entry)));
+        return $this->filters->every(fn (callable $filter) => $filter($entry));
     }
 
     /**
