@@ -85,6 +85,10 @@ class Pulse
      * @var list<string|Htmlable>
      */
     protected $css = [__DIR__.'/../dist/pulse.css'];
+    /**
+     * Indicates that Pulse is over the buffer size.
+     */
+    protected bool $overBufferSize = false;
 
     /**
      * Create a new Pulse instance.
@@ -151,8 +155,10 @@ class Pulse
             value: $value,
         );
 
-        if ($this->shouldRecord) {
+        if ($this->shouldRecord($entry)) {
             $this->entries[] = $entry;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $entry;
@@ -176,8 +182,10 @@ class Pulse
             value: $value,
         );
 
-        if ($this->shouldRecord) {
+        if ($this->shouldRecord($value)) {
             $this->entries[] = $value;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $value;
@@ -190,6 +198,8 @@ class Pulse
     {
         if ($this->shouldRecord) {
             $this->lazy[] = $closure;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $this;
@@ -277,23 +287,21 @@ class Pulse
      */
     public function ingest(): int
     {
-        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
+        $this->resolveLazyEntries();
+
+        if ($this->entries->isEmpty()) {
+            $this->flush();
+
+            return 0;
+        }
 
         return $this->ignore(function () {
-            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
-
-            if ($entries->isEmpty()) {
-                $this->flush();
-
-                return 0;
-            }
-
             $ingest = $this->app->make(Ingest::class);
 
-            $count = $this->rescue(function () use ($entries, $ingest) {
-                $ingest->ingest($entries);
+            $count = $this->rescue(function () use ($ingest) {
+                $ingest->ingest($this->entries);
 
-                return $entries->count();
+                return $this->entries->count();
             }) ?? 0;
 
             // TODO remove fallback when tagging v1
@@ -328,11 +336,48 @@ class Pulse
     }
 
     /**
+     * Start ingesting entires if over buffer size.
+     */
+    protected function ingestWhenOverBufferSize(): void
+    {
+        if ($this->overBufferSize) {
+            return;
+        }
+
+        // TODO remove fallback when tagging v1
+        $buffer = $this->app['config']->get('pulse.ingest.buffer') ?? 5_000;
+
+        if (($this->entries->count() + $this->lazy->count()) > $buffer) {
+            $this->overBufferSize = true;
+
+            $this->resolveLazyEntries();
+        }
+
+        if ($this->entries->count() > $buffer) {
+            $this->overBufferSize = true;
+
+            $this->ingest();
+        }
+
+        $this->overBufferSize = false;
+    }
+
+    /**
+     * Resolve lazy entries.
+     */
+    protected function resolveLazyEntries(): void
+    {
+        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
+
+        $this->lazy = collect([]);
+    }
+
+    /**
      * Determine if the given entry should be recorded.
      */
     protected function shouldRecord(Entry|Value $entry): bool
     {
-        return $this->filters->every(fn (callable $filter) => $filter($entry));
+        return $this->shouldRecord && $this->rescue(fn () => $this->filters->every(fn (callable $filter) => $filter($entry)));
     }
 
     /**

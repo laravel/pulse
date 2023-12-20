@@ -5,6 +5,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Pulse\Contracts\ResolvesUsers;
+use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
@@ -163,4 +164,77 @@ it('can customize user resolving', function () {
         'name' => 'Foo',
         'extra' => '["123","456"]',
     ]);
+});
+
+it('can limit the buffer size of entries', function () {
+    Config::set('pulse.ingest.buffer', 4);
+
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeFalse();
+
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeFalse();
+});
+
+it('resolves lazy entries when considering the buffer', function () {
+    Config::set('pulse.ingest.buffer', 4);
+
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'key', 'value'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'key', 'value'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeFalse();
+});
+
+it('does not ingest until the concrete entries exceed buffer size', function () {
+    Config::set('pulse.ingest.buffer', 4);
+    Pulse::filter(fn ($entry) => $entry->key === 'keep');
+
+    Pulse::lazy(fn () => Pulse::record('type', 'keep')); // 1
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'keep', 'value')); // 2
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'keep')); // 3
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'keep', 'value'));  // 4
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'reject')); // filtered
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'keep', 'value'));  // 5
+    expect(Pulse::wantsIngesting())->toBeFalse();
+});
+
+it('rescues exceptions that occur while filtering', function () {
+    $handled = false;
+    Pulse::handleExceptionsUsing(function () use (&$handled) {
+        $handled = true;
+    });
+
+    Pulse::filter(function ($entry) {
+        throw new RuntimeException('Whoops!');
+    });
+    Pulse::record('type', 'key');
+
+    expect($handled)->toBe(true);
 });
