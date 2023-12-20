@@ -14,7 +14,6 @@ usesTestingFeature(
     new WithConfig('queue.failed.driver', 'null'),
 );
 
-
 it('records server information', function () {
     Config::set('pulse.recorders.'.Servers::class.'.server_name', 'Foo');
     Date::setTestNow(Date::now()->startOfMinute());
