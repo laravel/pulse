@@ -13,14 +13,14 @@ interface ResolvesUsers
     public function key(Authenticatable $user): int|string|null;
 
     /**
-     * Eager load the users.
+     * Eager load the users with the given keys.
      *
      * @param  Collection<int, int|string|null>  $keys
      */
     public function load(Collection $keys): self;
 
     /**
-     * Resolve the user fields.
+     * Eager load the users with the given keys.
      *
      * @return array{name: string, extra?: string, avatar?: string}
      */
