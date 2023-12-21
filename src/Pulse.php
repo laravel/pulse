@@ -360,6 +360,8 @@ class Pulse
     /**
      * Resolve the users' details using the given closure.
      *
+     * @deprecated
+     *
      * @param  callable(\Illuminate\Support\Collection<int, mixed>): ?iterable<int|string, array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}>  $callback
      */
     public function users(callable $callback): self
