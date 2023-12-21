@@ -353,7 +353,7 @@ class DatabaseStorage implements Storage
     }
 
     /**
-     * Collapse values.
+     * Collapse the given values.
      *
      * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>  $values
      * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>
