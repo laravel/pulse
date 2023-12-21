@@ -4,6 +4,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
@@ -163,4 +164,60 @@ it('can customize user resolving', function () {
         'name' => 'Foo',
         'extra' => '["123","456"]',
     ]);
+});
+
+it('can limit the buffer size of entries', function () {
+    Config::set('pulse.ingest.buffer', 4);
+
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::record('type', 'key');
+    expect(Pulse::wantsIngesting())->toBeFalse();
+
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::set('type', 'key', 'value');
+    expect(Pulse::wantsIngesting())->toBeFalse();
+});
+
+it('resolves lazy entries when considering the buffer', function () {
+    Config::set('pulse.ingest.buffer', 4);
+
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'key', 'value'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::set('type', 'key', 'value'));
+    expect(Pulse::wantsIngesting())->toBeTrue();
+    Pulse::lazy(fn () => Pulse::record('type', 'key'));
+    expect(Pulse::wantsIngesting())->toBeFalse();
+});
+
+it('rescues exceptions that occur while filtering', function () {
+    $handled = false;
+    Pulse::handleExceptionsUsing(function () use (&$handled) {
+        $handled = true;
+    });
+
+    Pulse::filter(function ($entry) {
+        throw new RuntimeException('Whoops!');
+    });
+    Pulse::record('type', 'key');
+    Pulse::ingest();
+
+    expect($handled)->toBe(true);
 });

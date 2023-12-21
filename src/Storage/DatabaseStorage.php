@@ -98,7 +98,8 @@ class DatabaseStorage implements Storage
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
-            $values
+            $this
+                ->collapseValues($values)
                 ->chunk($this->config->get('pulse.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->connection()
                     ->table('pulse_values')
@@ -108,7 +109,7 @@ class DatabaseStorage implements Storage
                                 ...($attributes = $entry->attributes()),
                                 'key_hash' => md5($attributes['key']),
                             ])->all()
-                            : $chunk->map->attributes()->all(),
+                            : $chunk->map->attributes()->all(), // @phpstan-ignore method.notFound
                         ['type', 'key_hash'],
                         ['timestamp', 'value']
                     )
@@ -349,6 +350,17 @@ class DatabaseStorage implements Storage
                 : ($aggregate['value'] * $aggregate['count'] + $entry->value) / ($aggregate['count'] + 1),
             'count' => ($aggregate['count'] ?? 0) + 1,
         ]);
+    }
+
+    /**
+     * Collapse the given values.
+     *
+     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>  $values
+     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>
+     */
+    protected function collapseValues(Collection $values): Collection
+    {
+        return $values->reverse()->unique(fn (Value $value) => [$value->key, $value->type]);
     }
 
     /**

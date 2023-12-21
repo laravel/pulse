@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\CarbonInterval;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -423,4 +424,23 @@ test('one aggregate for multiple types, totals', function () {
         'cache_hit' => 12,
         'cache_miss' => 6,
     ]);
+});
+
+it('collapses values with the same key into a single upsert', function () {
+    $bindings = [];
+    DB::listen(function (QueryExecuted $event) use (&$bindings) {
+        $bindings = $event->bindings;
+    });
+
+    Pulse::set('read_counter', 'post:321', 123);
+    Pulse::set('read_counter', 'post:321', 234);
+    Pulse::set('read_counter', 'post:321', 345);
+    Pulse::ingest();
+
+    expect($bindings)->not->toContain(123);
+    expect($bindings)->not->toContain(234);
+    expect($bindings)->toContain('345');
+    $values = Pulse::ignore(fn () => DB::table('pulse_values')->get());
+    expect($values)->toHaveCount(1);
+    expect($values[0]->value)->toBe('345');
 });

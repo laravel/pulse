@@ -87,6 +87,11 @@ class Pulse
     protected $css = [__DIR__.'/../dist/pulse.css'];
 
     /**
+     * Indicates that Pulse is currently evaluating the buffer.
+     */
+    protected bool $evaluatingBuffer = false;
+
+    /**
      * Create a new Pulse instance.
      */
     public function __construct(protected Application $app)
@@ -153,6 +158,8 @@ class Pulse
 
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $entry;
@@ -178,6 +185,8 @@ class Pulse
 
         if ($this->shouldRecord) {
             $this->entries[] = $value;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $value;
@@ -190,6 +199,8 @@ class Pulse
     {
         if ($this->shouldRecord) {
             $this->lazy[] = $closure;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $this;
@@ -277,7 +288,7 @@ class Pulse
      */
     public function ingest(): int
     {
-        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
+        $this->resolveLazyEntries();
 
         return $this->ignore(function () {
             $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
@@ -325,6 +336,46 @@ class Pulse
     public function wantsIngesting(): bool
     {
         return $this->lazy->isNotEmpty() || $this->entries->isNotEmpty();
+    }
+
+    /**
+     * Start ingesting entires if over buffer size.
+     */
+    protected function ingestWhenOverBufferSize(): void
+    {
+        // To prevent recursion, we track when we are already evaluating the
+        // buffer and resolving entries. When we are we may simply return
+        // and the continue execution. We set the value to false later.
+        if ($this->evaluatingBuffer) {
+            return;
+        }
+
+        // TODO remove fallback when tagging v1
+        $buffer = $this->app->make('config')->get('pulse.ingest.buffer') ?? 5_000;
+
+        if (($this->entries->count() + $this->lazy->count()) > $buffer) {
+            $this->evaluatingBuffer = true;
+
+            $this->resolveLazyEntries();
+        }
+
+        if ($this->entries->count() > $buffer) {
+            $this->evaluatingBuffer = true;
+
+            $this->ingest();
+        }
+
+        $this->evaluatingBuffer = false;
+    }
+
+    /**
+     * Resolve lazy entries.
+     */
+    protected function resolveLazyEntries(): void
+    {
+        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
+
+        $this->lazy = collect([]);
     }
 
     /**
