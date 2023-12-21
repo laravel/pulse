@@ -39,10 +39,14 @@ class Users implements ResolvesUsers
     public function load(Collection $keys): self
     {
         $auth = app('auth');
-        $provider = $auth->createUserProvider(config("auth.guards.{$auth->getDefaultDriver()}.provider"));
+
+        $provider = $auth->createUserProvider(
+            config("auth.guards.{$auth->getDefaultDriver()}.provider")
+        );
 
         if ($provider instanceof EloquentUserProvider) {
             $model = $provider->getModel();
+
             $this->resolvedUsers = $model::findMany($keys);
         } else {
             $this->resolvedUsers = $keys->map(fn ($key) => $provider->retrieveById($key));
