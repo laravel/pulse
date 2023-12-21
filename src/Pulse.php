@@ -87,9 +87,9 @@ class Pulse
     protected $css = [__DIR__.'/../dist/pulse.css'];
 
     /**
-     * Indicates that Pulse is over the buffer size.
+     * Indicates that Pulse is currently evaluating the buffer.
      */
-    protected bool $overBufferSize = false;
+    protected bool $evaluatingBuffer = false;
 
     /**
      * Create a new Pulse instance.
@@ -343,7 +343,10 @@ class Pulse
      */
     protected function ingestWhenOverBufferSize(): void
     {
-        if ($this->overBufferSize) {
+        // To prevent recursion, we track when we are already evaluating the
+        // buffer and resolving entries. When we are we may simply return
+        // and the continue execution. We set the value to false later.
+        if ($this->evaluatingBuffer) {
             return;
         }
 
@@ -351,18 +354,18 @@ class Pulse
         $buffer = $this->app->make('config')->get('pulse.ingest.buffer') ?? 5_000;
 
         if (($this->entries->count() + $this->lazy->count()) > $buffer) {
-            $this->overBufferSize = true;
+            $this->evaluatingBuffer = true;
 
             $this->resolveLazyEntries();
         }
 
         if ($this->entries->count() > $buffer) {
-            $this->overBufferSize = true;
+            $this->evaluatingBuffer = true;
 
             $this->ingest();
         }
 
-        $this->overBufferSize = false;
+        $this->evaluatingBuffer = false;
     }
 
     /**
