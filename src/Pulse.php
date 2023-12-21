@@ -14,6 +14,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
@@ -60,20 +61,6 @@ class Pulse
      * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)>
      */
     protected Collection $filters;
-
-    /**
-     * The users resolver.
-     *
-     * @var ?callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
-     */
-    protected $usersResolver = null;
-
-    /**
-     * The authenticated user ID resolver.
-     *
-     * @var callable(): (int|string|null)
-     */
-    protected $authenticatedUserIdResolver = null;
 
     /**
      * The remembered user's ID.
@@ -361,37 +348,43 @@ class Pulse
     /**
      * Resolve the user details for the given user IDs.
      *
-     * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
+     * @param  \Illuminate\Support\Collection<int, string>  $keys
      */
-    public function resolveUsers(Collection $ids): Collection
+    public function resolveUsers(Collection $keys): ResolvesUsers
     {
-        if ($this->usersResolver) {
-            return collect(($this->usersResolver)($ids));
-        }
+        $resolver = $this->app->make(ResolvesUsers::class);
 
-        if (class_exists($class = \App\Models\User::class) || class_exists($class = \App\User::class)) {
-            return $class::whereKey($ids)->get()->map(fn ($user) => [
-                'id' => $user->getKey(),
-                'name' => $user->name,
-                'email' => $user->email,
-            ]);
-        }
+        return $resolver->load($keys);
+    }
 
-        return $ids->map(fn (string|int $id) => [
-            'id' => $id,
-            'name' => "User ID: {$id}",
-        ]);
+    /**
+     * Resolve the users' details using the given closure.
+     *
+     * @deprecated
+     *
+     * @param  callable(\Illuminate\Support\Collection<int, mixed>): ?iterable<int|string, array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}>  $callback
+     */
+    public function users(callable $callback): self
+    {
+        $this->app->instance(ResolvesUsers::class, new LegacyUsers($callback));
+
+        return $this;
     }
 
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)  $callback
+     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}  $callback
      */
-    public function users(callable $callback): self
+    public function user(callable $callback): self
     {
-        $this->usersResolver = $callback;
+        $resolver = $this->app->make(ResolvesUsers::class);
+
+        if (! method_exists($resolver, 'setFieldResolver')) {
+            throw new RuntimeException('The configured user resolver does not support setting user fields');
+        }
+
+        $resolver->setFieldResolver($callback); // @phpstan-ignore method.nonObject
 
         return $this;
     }
@@ -403,19 +396,26 @@ class Pulse
      */
     public function authenticatedUserIdResolver(): callable
     {
-        if ($this->authenticatedUserIdResolver !== null) {
-            return $this->authenticatedUserIdResolver;
-        }
-
         $auth = $this->app->make('auth');
 
         if ($auth->hasUser()) {
-            $id = $auth->id();
+            $resolver = $this->app->make(ResolvesUsers::class);
+            $key = $resolver->key($auth->user());
 
-            return fn () => $id;
+            return fn () => $key;
         }
 
-        return fn () => $auth->id() ?? $this->rememberedUserId;
+        return function () {
+            $auth = $this->app->make('auth');
+
+            if ($auth->hasUser()) {
+                $resolver = $this->app->make(ResolvesUsers::class);
+
+                return $resolver->key($auth->user());
+            } else {
+                return $this->rememberedUserId;
+            }
+        };
     }
 
     /**
@@ -427,46 +427,13 @@ class Pulse
     }
 
     /**
-     * Resolve the authenticated user ID with the given callback.
-     */
-    public function resolveAuthenticatedUserIdUsing(callable $callback): self
-    {
-        $this->authenticatedUserIdResolver = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Set the user for the given callback.
-     *
-     * @template TReturn
-     *
-     * @param  (callable(): TReturn)  $callback
-     * @return TReturn
-     */
-    public function withUser(Authenticatable|int|string|null $user, callable $callback): mixed
-    {
-        $cachedUserIdResolver = $this->authenticatedUserIdResolver;
-
-        try {
-            $id = $user instanceof Authenticatable
-                ? $user->getAuthIdentifier()
-                : $user;
-
-            $this->authenticatedUserIdResolver = fn () => $id;
-
-            return $callback();
-        } finally {
-            $this->authenticatedUserIdResolver = $cachedUserIdResolver;
-        }
-    }
-
-    /**
      * Remember the authenticated user's ID.
      */
     public function rememberUser(Authenticatable $user): self
     {
-        $this->rememberedUserId = $user->getAuthIdentifier();
+        $resolver = $this->app->make(ResolvesUsers::class);
+
+        $this->rememberedUserId = $resolver->key($user);
 
         return $this;
     }

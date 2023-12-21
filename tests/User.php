@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
+use Illuminate\Support\Facades\Hash;
 
 class User extends AuthUser
 {
@@ -20,6 +21,8 @@ class User extends AuthUser
             {
                 return [
                     'name' => $this->faker->name(),
+                    'email' => $this->faker->safeEmail(),
+                    'password' => Hash::make('password'),
                 ];
             }
         };

@@ -54,21 +54,11 @@ class Usage extends Card
 
                 $users = Pulse::resolveUsers($counts->pluck('key'));
 
-                return $counts->map(function ($row) use ($users) {
-                    $user = $users->firstWhere('id', $row->key);
-
-                    return (object) [
-                        'user' => (object) [
-                            'id' => $row->key,
-                            'name' => $user['name'] ?? 'Unknown',
-                            'extra' => $user['extra'] ?? $user['email'] ?? '',
-                            'avatar' => $user['avatar'] ?? (($user['email'] ?? false)
-                                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user['email']))))
-                                : null),
-                        ],
-                        'count' => (int) $row->count,
-                    ];
-                });
+                return $counts->map(fn ($row) => (object) [
+                    'key' => $row->key,
+                    'user' => (object) $users->fields($row->key),
+                    'count' => (int) $row->count,
+                ]);
             },
             $type
         );
