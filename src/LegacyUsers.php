@@ -32,7 +32,7 @@ class LegacyUsers implements ResolvesUsers
     }
 
     /**
-     * Eager load the users.
+     * Eager load the users with the given keys.
      *
      * @param  Collection<int, int|string|null>  $keys
      */
@@ -44,7 +44,7 @@ class LegacyUsers implements ResolvesUsers
     }
 
     /**
-     * Resolve the user fields.
+     * Resolve the user fields for the user with the given key.
      *
      * @return array{name: string, extra?: string, avatar?: string}
      */
