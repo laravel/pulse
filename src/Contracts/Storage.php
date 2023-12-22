@@ -90,11 +90,11 @@ interface Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, int>
+     * @return float|\Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,
         string $aggregate,
         CarbonInterval $interval,
-    ): Collection;
+    ): float|Collection;
 }
