@@ -372,7 +372,44 @@ test('one aggregate for multiple types, per key', function () {
     ]);
 });
 
-test('one aggregate for multiple types, totals', function () {
+test('total aggregate for a single type', function () {
+    // Add entries outside of the window
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+
+    // Add entries to the "tail"
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Carbon::setTestNow('2000-01-01 12:00:02');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Carbon::setTestNow('2000-01-01 12:00:03');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 12:59:00');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Carbon::setTestNow('2000-01-01 12:59:10');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Carbon::setTestNow('2000-01-01 12:59:20');
+    Pulse::record('cache_hit', 'flight:*')->count();
+    Pulse::record('cache_hit', 'flight:*')->count();
+
+    Pulse::ingest();
+
+    Carbon::setTestNow('2000-01-01 13:00:00');
+
+    $total = Pulse::aggregateTotal('cache_hit', 'count', CarbonInterval::hour());
+
+    expect($total)->toEqual(12);
+});
+
+test('total aggregate for multiple types', function () {
     /*
     | type       | count |
     |------------|-------|

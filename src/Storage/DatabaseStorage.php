@@ -709,18 +709,16 @@ class DatabaseStorage implements Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, int>
+     * @return float|\Illuminate\Support\Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,
         string $aggregate,
         CarbonInterval $interval,
-    ): Collection {
+    ): float|Collection {
         if (! in_array($aggregate, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
         }
-
-        $types = is_array($types) ? $types : [$types];
 
         $now = CarbonImmutable::now();
         $period = $interval->totalSeconds / 60;
@@ -731,7 +729,7 @@ class DatabaseStorage implements Storage
         $tailEnd = $oldestBucket - 1;
 
         return $this->connection()->query()
-            ->addSelect('type')
+            ->when(is_array($types), fn ($query) => $query->addSelect('type'))
             ->selectRaw(match ($aggregate) {
                 'count' => "sum({$this->wrap('count')})",
                 'min' => "min({$this->wrap('min')})",
@@ -750,7 +748,11 @@ class DatabaseStorage implements Storage
                     'avg' => "avg({$this->wrap('value')})",
                 }." as {$this->wrap($aggregate)}")
                 ->from('pulse_entries')
-                ->whereIn('type', $types)
+                ->when(
+                    is_array($types),
+                    fn ($query) => $query->whereIn('type', $types),
+                    fn ($query) => $query->where('type', $types)
+                )
                 ->where('timestamp', '>=', $tailStart)
                 ->where('timestamp', '<=', $tailEnd)
                 ->groupBy('type')
@@ -766,15 +768,22 @@ class DatabaseStorage implements Storage
                     }." as {$this->wrap($aggregate)}")
                     ->from('pulse_aggregates')
                     ->where('period', $period)
-                    ->whereIn('type', $types)
+                    ->when(
+                        is_array($types),
+                        fn ($query) => $query->whereIn('type', $types),
+                        fn ($query) => $query->where('type', $types)
+                    )
                     ->where('aggregate', $aggregate)
                     ->where('bucket', '>=', $oldestBucket)
                     ->groupBy('type')
                 ), as: 'child'
             )
             ->groupBy('type')
-            ->get()
-            ->pluck($aggregate, 'type');
+            ->when(
+                is_array($types),
+                fn ($query) => $query->pluck($aggregate, 'type'),
+                fn ($query) => (float) $query->value($aggregate)
+            );
     }
 
     /**
