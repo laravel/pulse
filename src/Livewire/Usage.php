@@ -56,7 +56,7 @@ class Usage extends Card
 
                 return $counts->map(fn ($row) => (object) [
                     'key' => $row->key,
-                    'user' => (object) $users->fields($row->key),
+                    'user' => $users->find($row->key),
                     'count' => (int) $row->count,
                 ]);
             },

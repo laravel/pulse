@@ -79,12 +79,12 @@ it('resolves users', function () {
 
     $resolved = Pulse::resolveUsers(collect([123, 456]));
 
-    expect($resolved->fields(123))->toBe([
+    expect($resolved->find(123))->toEqual((object) [
         'name' => 'Jess Archer',
         'extra' => 'jess@example.com',
         'avatar' => 'https://gravatar.com/avatar/d72141e224a6aa94fbd060f142e82aaadc05b1fed044017c230ab882523e2673?d=mp',
     ]);
-    expect($resolved->fields(456))->toBe([
+    expect($resolved->find(456))->toEqual((object) [
         'name' => 'Tim MacDonald',
         'extra' => 'tim@example.com',
         'avatar' => 'https://gravatar.com/avatar/8f3b8f8fc3a3ffd7e7d42e0749da576587e4a3a5409c6416439099eeb5b8b67c?d=mp',
@@ -101,9 +101,9 @@ it('can customize the user fields', function () {
         'avatar' => 'https://example.com/avatar.png',
     ]);
 
-    $user = Pulse::resolveUsers(collect([123]))->fields(123);
+    $user = Pulse::resolveUsers(collect([123]))->find(123);
 
-    expect($user)->toBe([
+    expect($user)->toEqual((object) [
         'name' => 'JESS ARCHER',
         'extra' => 11,
         'avatar' => 'https://example.com/avatar.png',
@@ -123,9 +123,9 @@ it('maintains the users method for backwards compatibility', function () {
         ]);
     });
 
-    $user = Pulse::resolveUsers(collect([123]))->fields(123);
+    $user = Pulse::resolveUsers(collect([123]))->find(123);
 
-    expect($user)->toBe([
+    expect($user)->toEqual((object) [
         'name' => 'jess archer',
         'extra' => 11,
         'avatar' => 'https://example.com/avatar.png',
@@ -145,9 +145,9 @@ it('can customize user resolving', function () {
             return $this;
         }
 
-        public function fields(int|string|null $key): array
+        public function find(int|string|null $key): object
         {
-            return [
+            return (object) [
                 'name' => 'Foo',
                 'extra' => $key,
             ];
@@ -159,8 +159,8 @@ it('can customize user resolving', function () {
     expect(Pulse::resolveAuthenticatedUserId())->toBe('["123","456"]');
 
     $users = Pulse::resolveUsers(collect(['["123","456"]']));
-    $user = $users->fields('["123","456"]');
-    expect($user)->toBe([
+    $user = $users->find('["123","456"]');
+    expect($user)->toEqual((object) [
         'name' => 'Foo',
         'extra' => '["123","456"]',
     ]);

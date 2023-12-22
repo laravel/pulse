@@ -44,15 +44,15 @@ class LegacyUsers implements ResolvesUsers
     }
 
     /**
-     * Resolve the user fields for the user with the given key.
+     * Find the user with the given key.
      *
-     * @return array{name: string, extra?: string, avatar?: string}
+     * @return object{name: string, extra?: string, avatar?: string}
      */
-    public function fields(int|string|null $key): array
+    public function find(int|string|null $key): object
     {
         $user = $this->resolvedUsers->firstWhere('id', $key);
 
-        return [
+        return (object) [
             'name' => $user['name'] ?? "ID: $key",
             'extra' => $user['extra'] ?? $user['email'] ?? '',
             'avatar' => $user['avatar'] ?? (($user['email'] ?? false)

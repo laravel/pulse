@@ -19,7 +19,7 @@ class Users implements ResolvesUsers
     /**
      * The field resolver.
      *
-     * @var ?callable(\Illuminate\Contracts\Auth\Authenticatable): array{name: string, extra?: string, avatar?: string}
+     * @var ?callable(\Illuminate\Contracts\Auth\Authenticatable): object{name: string, extra?: string, avatar?: string}
      */
     protected $fieldResolver = null;
 
@@ -56,19 +56,19 @@ class Users implements ResolvesUsers
     }
 
     /**
-     * Resolve the user fields for the user with the given key.
+     * Find the user with the given key.
      *
-     * @return array{name: string, extra?: string, avatar?: string}
+     * @return object{name: string, extra?: string, avatar?: string}
      */
-    public function fields(int|string|null $key): array
+    public function find(int|string|null $key): object
     {
         $user = $this->resolvedUsers->first(fn ($user) => $user->getAuthIdentifier() == $key);
 
         if ($this->fieldResolver !== null && $user !== null) {
-            return ($this->fieldResolver)($user);
+            return (object) ($this->fieldResolver)($user);
         }
 
-        return [
+        return (object) [
             'name' => $user->name ?? "ID: $key",
             'extra' => $user->email ?? '',
             'avatar' => $user->avatar ?? (($user->email ?? false)
@@ -81,7 +81,7 @@ class Users implements ResolvesUsers
     /**
      * Override the field resolver.
      *
-     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): array{name: string, extra?: string, avatar?: string}  $resolver
+     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): object{name: string, extra?: string, avatar?: string}  $resolver
      */
     public function setFieldResolver(callable $resolver): self
     {

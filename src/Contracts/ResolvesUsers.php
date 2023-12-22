@@ -20,9 +20,9 @@ interface ResolvesUsers
     public function load(Collection $keys): self;
 
     /**
-     * Eager load the users with the given keys.
+     * Find the user with the given key.
      *
-     * @return array{name: string, extra?: string, avatar?: string}
+     * @return object{name: string, extra?: string, avatar?: string}
      */
-    public function fields(int|string|null $key): array;
+    public function find(int|string|null $key): object;
 }
