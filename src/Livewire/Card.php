@@ -138,12 +138,12 @@ abstract class Card extends Component
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, int>
+     * @return float|\Illuminate\Support\Collection<string, int>
      */
     protected function aggregateTotal(
         array|string $types,
         string $aggregate,
-    ): Collection {
+    ): float|Collection {
         return Pulse::aggregateTotal($types, $aggregate, $this->periodAsInterval());
     }
 }
