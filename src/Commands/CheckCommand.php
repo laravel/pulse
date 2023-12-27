@@ -67,7 +67,7 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            if ($lock && $lock->get()) {
+            if ($lock?->get()) {
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
