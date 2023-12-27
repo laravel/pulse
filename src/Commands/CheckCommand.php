@@ -48,6 +48,10 @@ class CheckCommand extends Command
 
         $lastSnapshotAt = CarbonImmutable::now()->floorSeconds((int) $interval->totalSeconds);
 
+        $lock = $cache->store()->getStore() instanceof LockProvider
+            ? $cache->store()->lock("laravel:pulse:check", (int) $interval->totalSeconds)
+            : null;
+
         while (true) {
             $now = CarbonImmutable::now();
 
@@ -65,10 +69,7 @@ class CheckCommand extends Command
 
             $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
-            if (
-                ($lockProvider ??= $cache->store()->getStore()) instanceof LockProvider &&
-                $lockProvider->lock("laravel:pulse:check:{$lastSnapshotAt->getTimestamp()}", (int) $interval->totalSeconds)->get()
-            ) {
+            if ($lock && $lock->get()) {
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
 
