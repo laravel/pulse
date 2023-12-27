@@ -67,11 +67,11 @@ class CheckCommand extends Command
 
             $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
 
-            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
-
             if ($lock && $lock->get()) {
                 $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
             }
+
+            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
 
             $pulse->ingest();
         }
