@@ -48,8 +48,8 @@ class CheckCommand extends Command
 
         $lastSnapshotAt = CarbonImmutable::now()->floorSeconds((int) $interval->totalSeconds);
 
-        $lock = $cache->store()->getStore() instanceof LockProvider
-            ? $cache->store()->lock("laravel:pulse:check", (int) $interval->totalSeconds)
+        $lock = ($store = $cache->store()->getStore()) instanceof LockProvider
+            ? $store->lock('laravel:pulse:check', (int) $interval->totalSeconds)
             : null;
 
         while (true) {
