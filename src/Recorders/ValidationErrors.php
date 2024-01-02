@@ -69,6 +69,8 @@ class ValidationErrors
 
     /**
      * Parse validation errors.
+     *
+     * @return array<int, string>
      */
     protected function parseValidationErrors(Request $request, BaseResponse $response): array
     {
@@ -81,6 +83,8 @@ class ValidationErrors
 
     /**
      * Parse session validation errors.
+     *
+     * @return null|array<int, string>
      */
     protected function parseSessionValidationErrors(Request $request, BaseResponse $response): ?array
     {
@@ -98,6 +102,8 @@ class ValidationErrors
 
     /**
      * Parse JSON validation errors.
+     *
+     * @return null|array<int, string>
      */
     protected function parseJsonValidationErrors(Request $request, BaseResponse $response): ?array
     {
@@ -117,6 +123,8 @@ class ValidationErrors
 
     /**
      * Parse Inertia validation errors.
+     *
+     * @return null|array<int, string>
      */
     protected function parseInertiaValidationErrors(Request $request, BaseResponse $response): ?array
     {
@@ -137,6 +145,8 @@ class ValidationErrors
 
     /**
      * Parse unknown validation errors.
+     *
+     * @return null|array<int, string>
      */
     protected function parseUnknownValidationErrors(Request $request, BaseResponse $response): ?array
     {
