@@ -113,7 +113,7 @@ class ValidationErrors
             ! is_array($response->original) ||
             ! array_key_exists('errors', $response->original) ||
             ! is_array($response->original['errors']) ||
-            ! array_is_list($response->original['errors'])
+            array_is_list($response->original['errors'])
         ) {
             return null;
         }
