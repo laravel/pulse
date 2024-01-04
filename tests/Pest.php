@@ -101,7 +101,7 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
 function keyHash(string $string): string
 {
     return match (DB::connection()->getDriverName()) {
-        'mysql' => hex2bin(md5($string)),
+        'mysql', 'mariadb' => hex2bin(md5($string)),
         'pgsql' => Uuid::fromString(md5($string)),
         'sqlite' => md5($string),
     };

@@ -62,6 +62,59 @@ jobs:
         env:
           DB_CONNECTION: mysql
           DB_USERNAME: root
+  
+  mariadb:
+    runs-on: ubuntu-22.04
+
+    services:
+      mysql:
+        image: mariadb:10.5
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: forge
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.1, 8.2, 8.3]
+        laravel: [10]
+        stability: [prefer-lowest, prefer-stable]
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MariaDB 10.5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, redis, pcntl, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install redis-cli
+        run: sudo apt-get install -qq redis-tools
+
+      - name: Install dependencies
+        run: |
+           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+
+      - name: Execute tests
+        run: vendor/bin/pest
+        env:
+          DB_CONNECTION: mysql
+          DB_USERNAME: root
 
   pgsql:
     runs-on: ubuntu-22.04
@@ -159,5 +212,6 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest
+
         env:
           DB_CONNECTION: sqlite
