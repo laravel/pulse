@@ -62,7 +62,7 @@ jobs:
         env:
           DB_CONNECTION: mysql
           DB_USERNAME: root
-  
+
   mariadb:
     runs-on: ubuntu-22.04
 
@@ -212,6 +212,5 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest
-
         env:
           DB_CONNECTION: sqlite
