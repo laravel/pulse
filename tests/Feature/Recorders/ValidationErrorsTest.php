@@ -58,7 +58,6 @@ it('does not capture validation errors from redirects when the "errors" key is n
     expect($aggregates)->toHaveCount(0);
 });
 
-
 it('captures one entry for a field when multiple errors are present for the given field from the session', function () {
     Route::post('users', fn () => Request::validate([
         'email' => 'string|min:5',
