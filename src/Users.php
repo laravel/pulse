@@ -62,7 +62,7 @@ class Users implements ResolvesUsers
      */
     public function find(int|string|null $key): object
     {
-        $user = $this->resolvedUsers->first(fn ($user) => $this->key($user) === $key);
+        $user = $this->resolvedUsers->first(fn ($user) => $this->key($user) == $key);
 
         if ($this->fieldResolver !== null && $user !== null) {
             return (object) ($this->fieldResolver)($user);
