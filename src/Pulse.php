@@ -520,11 +520,15 @@ class Pulse
      */
     public function js(): string
     {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
+        if (($livewire = file_get_contents(__DIR__.'/../../../livewire/livewire/dist/livewire.js')) === false) {
+            throw new RuntimeException('Unable to load the Livewire JavaScript.');
+        }
+
+        if (($pulse = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return "<script>{$content}</script>".PHP_EOL;
+        return "<script>{$livewire}</script>".PHP_EOL."<script>{$pulse}</script>".PHP_EOL;
     }
 
     /**
