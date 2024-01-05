@@ -520,7 +520,9 @@ class Pulse
      */
     public function js(): string
     {
-        if (($livewire = file_get_contents(__DIR__.'/../../../livewire/livewire/dist/livewire.js')) === false) {
+        if (
+            ($livewire = @file_get_contents(__DIR__.'/../../../livewire/livewire/dist/livewire.js')) === false &&
+            ($livewire = @file_get_contents(__DIR__.'/../vendor/livewire/livewire/dist/livewire.js')) === false) {
             throw new RuntimeException('Unable to load the Livewire JavaScript.');
         }
 
