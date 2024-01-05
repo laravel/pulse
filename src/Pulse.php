@@ -526,7 +526,7 @@ class Pulse
             throw new RuntimeException('Unable to load the Livewire JavaScript.');
         }
 
-        if (($pulse = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
+        if (($pulse = @file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
