@@ -47,7 +47,6 @@
             </main>
         </div>
 
-        @stack('scripts')
         {!! Laravel\Pulse\Facades\Pulse::js() !!}
         @livewireScriptConfig
     </body>
