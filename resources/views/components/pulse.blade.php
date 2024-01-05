@@ -14,6 +14,9 @@
 
         {!! Laravel\Pulse\Facades\Pulse::css() !!}
         @livewireStyles
+
+        {!! Laravel\Pulse\Facades\Pulse::js() !!}
+        @livewireScriptConfig
     </head>
     <body class="font-sans antialiased">
         <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
@@ -46,8 +49,5 @@
                 </div>
             </main>
         </div>
-
-        {!! Laravel\Pulse\Facades\Pulse::js() !!}
-        @livewireScriptConfig
     </body>
 </html>
