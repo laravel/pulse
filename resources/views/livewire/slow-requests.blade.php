@@ -51,7 +51,7 @@
                                     {{ $slowRequest->uri }}
                                 </code>
                                 @if ($slowRequest->action)
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $slowRequest->action }}">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $slowRequest->action }}">
                                         {{ $slowRequest->action }}
                                     </p>
                                 @endif
