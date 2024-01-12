@@ -1,18 +1,26 @@
 <?php
 
-use Carbon\CarbonInterval;
-use Illuminate\Support\Collection;
+use Illuminate\Process\Exceptions\ProcessFailedException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Redis as FacadesRedis;
-use Laravel\Pulse\Contracts\Storage;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Support\RedisAdapter;
+use Laravel\Pulse\Support\RedisServerException;
+use Tests\StorageFake;
 
-beforeEach(fn () => Process::timeout(1)->run('redis-cli -p '.Config::get('database.redis.default.port').' FLUSHALL')->throw());
+beforeEach(function () {
+    try {
+        Process::timeout(1)->run('redis-cli -p '.Config::get('database.redis.default.port').' FLUSHALL')->throw();
+    } catch (ProcessFailedException $e) {
+        $this->markTestSkipped('Unable to run `redis-cli`');
+    }
+});
 
 it('runs the same commands while ingesting entries', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -24,13 +32,33 @@ it('runs the same commands while ingesting entries', function ($driver) {
     expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:ingest" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":6:{s:15:\"\x00*\x00aggregations\";a:0:{}s:14:\"\x00*\x00onlyBuckets\";b:0;s:9:\"timestamp\";i:1700752211;s:4:\"type\";s:3:\"foo\";s:3:\"key\";s:3:\"bar\";s:5:\"value\";i:123;}"');
 })->with(['predis', 'phpredis']);
 
-it('runs the same commands while triming the stream', function ($driver) {
+it('keeps 7 days of data, by default, when trimming', function ($driver) {
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946177445000"');
+})->with(['predis', 'phpredis']);
+
+it('can configure days of data to keep when trimming', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
+    Config::set('pulse.ingest.trim.keep', '1 day');
+
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
+
+    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946695845000"');
+})->with(['predis', 'phpredis']);
+
+it('can configure the number of entries to keep when trimming', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
+    Config::set('pulse.ingest.trim.keep', 54321);
+
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
+
+    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same commands while storing', function ($driver) {
@@ -48,155 +76,89 @@ it('runs the same commands while storing', function ($driver) {
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
-    $commands = captureRedisCommands(fn () => $ingest->store(new NullStorage));
+    $commands = captureRedisCommands(fn () => $ingest->digest(new StorageFake()));
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:ingest" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
 })->with(['predis', 'phpredis']);
 
-it('runs the same zincrby command', function ($driver) {
+it('has consistent return for xadd', function ($driver) {
     Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+    $redis = new RedisAdapter(Redis::connection(), App::make('config'));
 
-    $commands = captureRedisCommands(fn () => $redis->zincrby('MYKEY', '55', 'my-member'));
-    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "55" "my-member"');
+    $result = $redis->xadd('stream-name', [
+        'foo' => 1,
+        'bar' => 2,
+    ]);
 
-    $commands = captureRedisCommands(fn () => $redis->zincrby('MYKEY', '-55', 'my-member'));
-    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "-55" "my-member"');
-
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zincrby('MYKEY', '-55', 'my-member')));
-    expect($commands)->toContain('"ZINCRBY" "laravel_database_MYKEY" "-55" "my-member"');
+    expect($result)->toBeString();
+    $parts = explode('-', $result);
+    expect($parts)->toHaveCount(2);
+    expect($parts[0])->toEqualWithDelta(now()->getTimestampMs(), 50);
+    expect($parts[1])->toBe('0');
 })->with(['predis', 'phpredis']);
 
-it('runs the same zrange command', function ($driver) {
+it('has consistent return for xrange', function ($driver) {
     Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+    $redis = new RedisAdapter(Redis::connection(), App::make('config'));
+    $redis->xadd('stream-name', [
+        'foo' => 1,
+        'bar' => 2,
+    ]);
+    $redis->xadd('stream-name', [
+        'foo' => 3,
+        'bar' => 4,
+    ]);
 
-    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: false, withScores: false));
-    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3"');
+    $result = $redis->xrange('stream-name', '-', '+', 1000);
 
-    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: true, withScores: false));
-    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV"');
-
-    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: false, withScores: true));
-    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "WITHSCORES"');
-
-    $commands = captureRedisCommands(fn () => $redis->zrange('MYKEY', 2, 3, reversed: true, withScores: true));
-    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV" "WITHSCORES"');
-
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zrange('MYKEY', 2, 3, reversed: true, withScores: true)));
-    expect($commands)->toContain('"ZRANGE" "laravel_database_MYKEY" "2" "3" "REV" "WITHSCORES"');
+    expect($result)->toBeArray();
+    expect($result)->toHaveCount(2);
+    $values = [
+        ['foo' => '1', 'bar' => '2'],
+        ['foo' => '3', 'bar' => '4'],
+    ];
+    foreach ($result as $key => $value) {
+        $parts = explode('-', $key);
+        expect($parts)->toHaveCount(2);
+        expect($parts[0])->toEqualWithDelta(now()->getTimestampMs(), 50);
+        expect($parts[1])->toBeIn(['0', '1']);
+        expect($value)->toBe(array_shift($values));
+    }
 })->with(['predis', 'phpredis']);
 
-it('runs the same get command', function ($driver) {
+it('has consistent return for xtrim', function ($driver) {
     Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+    $redis = new RedisAdapter(Redis::connection(), App::make('config'));
 
-    $commands = captureRedisCommands(fn () => $redis->get('MYKEY'));
-    expect($commands)->toContain('"GET" "laravel_database_MYKEY"');
+    $redis->xadd('stream-name', [
+        'foo' => 1,
+        'bar' => 2,
+    ]);
+    $redis->xadd('stream-name', [
+        'foo' => 3,
+        'bar' => 4,
+    ]);
 
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $redis->get('MYKEY')));
-    expect($commands)->toContain('"GET" "laravel_database_MYKEY"');
+    Sleep::for(5)->milliseconds();
+
+    $lastKey = $redis->xadd('stream-name', [
+        'foo' => 5,
+        'bar' => 6,
+    ]);
+
+    $result = $redis->xtrim('stream-name', 'MINID', '=', Str::before($lastKey, '-'));
+
+    expect($result)->toBe(2);
 })->with(['predis', 'phpredis']);
 
-it('runs the same set command', function ($driver) {
+it('throws exception on failure', function ($driver) {
     Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
+    $redis = new RedisAdapter(Redis::connection(), App::make('config'));
 
-    $commands = captureRedisCommands(fn () => $redis->set('MYKEY', 'myvalue', CarbonInterval::seconds(5)));
-    expect($commands)->toContain('"SET" "laravel_database_MYKEY" "myvalue" "PX" "5000"');
+    $redis->xtrim('stream-name', 'FOO', 'a', 'xyz');
+})->with(['predis', 'phpredis'])->throws(RedisServerException::class, 'The Redis version does not support the command or some of its arguments [XTRIM laravel_database_stream-name FOO a xyz]. Redis error: [ERR syntax error].');
 
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->set('MYKEY', 'myvalue', CarbonInterval::seconds(5))));
-    expect($commands)->toContain('"SET" "laravel_database_MYKEY" "myvalue" "PX" "5000"');
-})->with(['predis', 'phpredis']);
-
-it('runs the same del command', function ($driver) {
-    Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
-
-    $commands = captureRedisCommands(fn () => $redis->del(['MYKEY', 'MYOTHERKEY']));
-    expect($commands)->toContain('"DEL" "laravel_database_MYKEY" "laravel_database_MYOTHERKEY"');
-
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->del(['MYKEY', 'MYOTHERKEY'])));
-    expect($commands)->toContain('"DEL" "laravel_database_MYKEY" "laravel_database_MYOTHERKEY"');
-})->with(['predis', 'phpredis']);
-
-it('runs the same expire command', function ($driver) {
-    Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
-
-    $commands = captureRedisCommands(fn () => $redis->expire('MYKEY', CarbonInterval::day()));
-    expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
-
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->expire('MYKEY', CarbonInterval::day())));
-    expect($commands)->toContain('"EXPIRE" "laravel_database_MYKEY" "86400"');
-})->with(['predis', 'phpredis']);
-
-it('runs the same remrangebyscore command', function ($driver) {
-    Config::set('database.redis.client', $driver);
-    $redis = new RedisAdapter(FacadesRedis::connection(), App::make('config'));
-
-    $commands = captureRedisCommands(fn () => $redis->zremrangebyscore('MYKEY', 0, 10));
-    expect($commands)->toContain('"ZREMRANGEBYSCORE" "laravel_database_MYKEY" "0" "10"');
-
-    $commands = captureRedisCommands(fn () => $redis->pipeline(fn ($r) => $r->zremrangebyscore('MYKEY', 0, 10)));
-    expect($commands)->toContain('"ZREMRANGEBYSCORE" "laravel_database_MYKEY" "0" "10"');
-})->with(['predis', 'phpredis']);
-
-class NullStorage implements Storage
-{
-    public function store(Collection $items): void
-    {
-        //
-    }
-
-    public function trim(): void
-    {
-        //
-    }
-
-    public function purge(array $types = null): void
-    {
-        //
-    }
-
-    public function values(string $type, array $keys = null): Collection
-    {
-        return collect();
-    }
-
-    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
-    {
-        return collect();
-    }
-
-    public function aggregate(
-        string $type,
-        array|string $aggregates,
-        CarbonInterval $interval,
-        string $orderBy = null,
-        string $direction = 'desc',
-        int $limit = 101,
-    ): Collection {
-        return collect();
-    }
-
-    public function aggregateTypes(
-        string|array $types,
-        string $aggregate,
-        CarbonInterval $interval,
-        string $orderBy = null,
-        string $direction = 'desc',
-        int $limit = 101,
-    ): Collection {
-        return collect();
-    }
-
-    public function aggregateTotal(
-        array|string $types,
-        string $aggregate,
-        CarbonInterval $interval,
-    ): Collection {
-        return collect();
-    }
-}
+it('prepends the error message with the run command', function () {
+    throw RedisServerException::whileRunningCommand('FOO BAR', 'Something happened');
+})->throws(RedisServerException::class, 'Error running command [FOO BAR]. Redis error: [Something happened].');

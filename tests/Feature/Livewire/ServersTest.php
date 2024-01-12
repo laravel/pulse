@@ -36,7 +36,7 @@ it('renders server statistics', function () {
         ],
     ]));
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Servers::class, ['lazy' => false])
         ->assertViewHas('servers', collect([

@@ -1,3 +1,6 @@
+@php
+    use Illuminate\Support\Str;
+@endphp
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Cache"
@@ -55,7 +58,7 @@
                     </div>
                     <div class="flex flex-col justify-center @sm:block">
                         <span class="text-xl uppercase font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                            {{ round($allCacheInteractions->hits / ($allCacheInteractions->hits + $allCacheInteractions->misses) * 100, 2).'%' }}
+                            {{ ((int) ($allCacheInteractions->hits / ($allCacheInteractions->hits + $allCacheInteractions->misses) * 10000)) / 100 }}%
                         </span>
                         <span class="text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
                             Hit Rate
@@ -80,8 +83,8 @@
                         </x-pulse::thead>
                         <tbody>
                             @foreach ($cacheKeyInteractions->take(100) as $interaction)
-                                <tr class="h-2 first:h-0"></tr>
-                                <tr wire:key="{{ $interaction->key.$this->period }}">
+                                <tr wire:key="{{ $interaction->key }}-spacer" class="h-2 first:h-0"></tr>
+                                <tr wire:key="{{ $interaction->key }}-row">
                                     <x-pulse::td class="max-w-[1px]">
                                         <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $interaction->key }}">
                                             {{ $interaction->key }}
@@ -102,7 +105,7 @@
                                         @endif
                                     </x-pulse::td>
                                     <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
-                                        {{ round($interaction->hits / ($interaction->hits + $interaction->misses) * 100, 2).'%' }}
+                                        {{ ((int) ($interaction->hits / ($interaction->hits + $interaction->misses) * 10000)) / 100 }}%
                                     </x-pulse::td>
                                 </tr>
                             @endforeach

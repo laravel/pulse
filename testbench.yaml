@@ -1,12 +1,14 @@
 providers:
   - Laravel\Pulse\PulseServiceProvider
 
-migrations: true
+migrations:
+  - database/migrations
 
 workbench:
-  start: '/'
+  start: '/pulse'
   install: true
-  welcome: true
+  welcome: false
   build:
     - asset-publish
+    - create-sqlite-db
     - migrate-refresh

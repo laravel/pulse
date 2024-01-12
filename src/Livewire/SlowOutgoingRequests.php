@@ -3,10 +3,8 @@
 namespace Laravel\Pulse\Livewire;
 
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowOutgoingRequests as SlowOutgoingRequestsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -17,8 +15,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowOutgoingRequests extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * Ordering.
      *
@@ -33,10 +29,9 @@ class SlowOutgoingRequests extends Card
     public function render(): Renderable
     {
         [$slowOutgoingRequests, $time, $runAt] = $this->remember(
-            fn () => Pulse::aggregate(
+            fn () => $this->aggregate(
                 'slow_outgoing_request',
                 ['max', 'count'],
-                $this->periodAsInterval(),
                 match ($this->orderBy) {
                     'count' => 'count',
                     default => 'max',
@@ -59,7 +54,6 @@ class SlowOutgoingRequests extends Card
             'runAt' => $runAt,
             'config' => Config::get('pulse.recorders.'.SlowOutgoingRequestsRecorder::class),
             'slowOutgoingRequests' => $slowOutgoingRequests,
-            'supported' => method_exists(Factory::class, 'globalMiddleware'),
         ]);
     }
 }

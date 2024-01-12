@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\CacheInteractions as CacheInteractionsRecorder;
 use Livewire\Attributes\Lazy;
 
@@ -24,11 +23,7 @@ class Cache extends Card
     {
         [$cacheInteractions, $allTime, $allRunAt] = $this->remember(
             fn () => with(
-                Pulse::aggregateTotal(
-                    ['cache_hit', 'cache_miss'],
-                    'count',
-                    $this->periodAsInterval(),
-                ),
+                $this->aggregateTotal(['cache_hit', 'cache_miss'], 'count'),
                 fn ($results) => (object) [
                     'hits' => $results['cache_hit'] ?? 0,
                     'misses' => $results['cache_miss'] ?? 0,
@@ -38,12 +33,12 @@ class Cache extends Card
         );
 
         [$cacheKeyInteractions, $keyTime, $keyRunAt] = $this->remember(
-            fn () => Pulse::aggregateTypes(['cache_hit', 'cache_miss'], 'count', $this->periodAsInterval())
+            fn () => $this->aggregateTypes(['cache_hit', 'cache_miss'], 'count')
                 ->map(function ($row) {
                     return (object) [
                         'key' => $row->key,
-                        'hits' => $row->cache_hit,
-                        'misses' => $row->cache_miss,
+                        'hits' => $row->cache_hit ?? 0,
+                        'misses' => $row->cache_miss ?? 0,
                     ];
                 }),
             'keys'

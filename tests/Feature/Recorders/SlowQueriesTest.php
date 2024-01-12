@@ -16,7 +16,7 @@ it('ingests queries', function () {
 
     DB::connection()->statement('select * from users');
 
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -28,7 +28,7 @@ it('ingests queries', function () {
     $key = json_decode($entries[0]->key);
     expect($key[0])->toBe('select * from users');
     expect($key[1])->not->toBeNull();
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
@@ -60,7 +60,7 @@ it('can disable capturing the location', function () {
     });
 
     DB::connection()->statement('select * from users');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -72,7 +72,7 @@ it('can disable capturing the location', function () {
     $key = json_decode($entries[0]->key);
     expect($key[0])->toBe('select * from users');
     expect($key[1])->toBeNull();
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
@@ -103,7 +103,7 @@ it('does not ingest queries under the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::ingest();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
 });
@@ -115,7 +115,7 @@ it('ingests queries equal to the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::ingest();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });
@@ -127,7 +127,7 @@ it('ingests queries over the slow query threshold', function () {
     });
 
     DB::table('users')->count();
-    Pulse::store();
+    Pulse::ingest();
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
 });
@@ -138,8 +138,7 @@ it('can ignore queries', function () {
         '/(["`])pulse_[\w]+?\1/', // Pulse tables
     ]);
 
-    expect(Pulse::store())->toBe(0);
-    DB::table('pulse_entries')->count();
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample', function () {
@@ -157,7 +156,7 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::store())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -175,7 +174,7 @@ it('can sample at zero', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -193,5 +192,5 @@ it('can sample at one', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::store())->toBe(10);
+    expect(Pulse::ingest())->toBe(10);
 });

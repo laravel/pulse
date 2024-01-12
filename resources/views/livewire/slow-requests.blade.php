@@ -41,8 +41,8 @@
                 </x-pulse::thead>
                 <tbody>
                     @foreach ($slowRequests->take(100) as $slowRequest)
-                        <tr class="h-2 first:h-0"></tr>
-                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri.$this->period }}">
+                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri }}-spacer" class="h-2 first:h-0"></tr>
+                        <tr wire:key="{{ $slowRequest->method.$slowRequest->uri }}-row">
                             <x-pulse::td>
                                 <x-pulse::http-method-badge :method="$slowRequest->method" />
                             </x-pulse::td>
@@ -51,7 +51,7 @@
                                     {{ $slowRequest->uri }}
                                 </code>
                                 @if ($slowRequest->action)
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $slowRequest->action }}">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $slowRequest->action }}">
                                         {{ $slowRequest->action }}
                                     </p>
                                 @endif

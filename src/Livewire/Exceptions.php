@@ -6,7 +6,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Exceptions as ExceptionsRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -17,8 +16,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Exceptions extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * Ordering.
      *
@@ -33,10 +30,9 @@ class Exceptions extends Card
     public function render(): Renderable
     {
         [$exceptions, $time, $runAt] = $this->remember(
-            fn () => Pulse::aggregate(
+            fn () => $this->aggregate(
                 'exception',
                 ['max', 'count'],
-                $this->periodAsInterval(),
                 match ($this->orderBy) {
                     'latest' => 'max',
                     default => 'count'

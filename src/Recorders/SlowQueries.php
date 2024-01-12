@@ -85,8 +85,8 @@ class SlowQueries
      */
     protected function isInternalFile(string $file): bool
     {
-        return Str::startsWith($file, base_path('vendor/laravel/pulse'))
-            || Str::startsWith($file, base_path('vendor/laravel/framework'))
+        return Str::startsWith($file, base_path('vendor'.DIRECTORY_SEPARATOR.'laravel'.DIRECTORY_SEPARATOR.'pulse'))
+            || Str::startsWith($file, base_path('vendor'.DIRECTORY_SEPARATOR.'laravel'.DIRECTORY_SEPARATOR.'framework'))
             || $file === base_path('artisan')
             || $file === public_path('index.php');
     }
@@ -96,6 +96,6 @@ class SlowQueries
      */
     protected function formatLocation(string $file, ?int $line): string
     {
-        return Str::replaceFirst(base_path('/'), '', $file).(is_int($line) ? (':'.$line) : '');
+        return Str::replaceFirst(base_path(DIRECTORY_SEPARATOR), '', $file).(is_int($line) ? (':'.$line) : '');
     }
 }

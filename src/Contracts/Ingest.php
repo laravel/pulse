@@ -14,12 +14,12 @@ interface Ingest
     public function ingest(Collection $items): void;
 
     /**
+     * Digest the ingested items.
+     */
+    public function digest(Storage $storage): int;
+
+    /**
      * Trim the ingest.
      */
     public function trim(): void;
-
-    /**
-     * Store the ingested items.
-     */
-    public function store(Storage $storage): int;
 }

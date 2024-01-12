@@ -7,7 +7,7 @@ class Entry
     /**
      * The aggregations to perform on the entry.
      *
-     * @var list<'count'|'max'|'avg'>
+     * @var list<'count'|'min'|'max'|'sum'|'avg'>
      */
     protected array $aggregations = [];
 
@@ -39,11 +39,31 @@ class Entry
     }
 
     /**
+     * Capture the minimum aggregate.
+     */
+    public function min(): static
+    {
+        $this->aggregations[] = 'min';
+
+        return $this;
+    }
+
+    /**
      * Capture the maximum aggregate.
      */
     public function max(): static
     {
         $this->aggregations[] = 'max';
+
+        return $this;
+    }
+
+    /**
+     * Capture the sum aggregate.
+     */
+    public function sum(): static
+    {
+        $this->aggregations[] = 'sum';
 
         return $this;
     }
@@ -69,11 +89,29 @@ class Entry
     }
 
     /**
+     * Return the aggregations for the entry.
+     *
+     * @return list<'count'|'min'|'max'|'sum'|'avg'>
+     */
+    public function aggregations(): array
+    {
+        return $this->aggregations;
+    }
+
+    /**
      * Determine whether the entry is marked for count aggregation.
      */
     public function isCount(): bool
     {
         return in_array('count', $this->aggregations);
+    }
+
+    /**
+     * Determine whether the entry is marked for minimum aggregation.
+     */
+    public function isMin(): bool
+    {
+        return in_array('min', $this->aggregations);
     }
 
     /**
@@ -85,6 +123,14 @@ class Entry
     }
 
     /**
+     * Determine whether the entry is marked for sum aggregation.
+     */
+    public function isSum(): bool
+    {
+        return in_array('sum', $this->aggregations);
+    }
+
+    /**
      * Determine whether the entry is marked for average aggregation.
      */
     public function isAvg(): bool
@@ -93,7 +139,7 @@ class Entry
     }
 
     /**
-     * Determine whether the entry is marked for average aggregation.
+     * Determine whether to only save aggregate bucket data for the entry.
      */
     public function isOnlyBuckets(): bool
     {

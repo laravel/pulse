@@ -7,8 +7,8 @@ body:
   - type: input
     attributes:
       label: Pulse Version
-      description: Provide the Pulse version that you are using.
-      placeholder: 1.0.0
+      description: Provide the **EXACT** Pulse (beta) version that you are using.
+      placeholder: 1.0.0-beta.5
     validations:
       required: true
   - type: input
@@ -25,6 +25,20 @@ body:
       placeholder: 8.1.4
     validations:
       required: true
+  - type: input
+    attributes:
+      label: Livewire Version
+      description: Provide the Livewire version that you are using.
+      placeholder: 3.0.2
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Database Driver & Version
+      description: If applicable, provide the database driver and version you are using.
+      placeholder: "MySQL 8.0.31 for macOS 13.0 on arm64 (Homebrew)"
+    validations:
+      required: false
   - type: textarea
     attributes:
       label: Description

@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Usage;
 use Livewire\Livewire;
+use Orchestra\Testbench\Factories\UserFactory;
 
 it('includes the card on the dashboard', function () {
     $this
@@ -16,7 +16,6 @@ it('includes the card on the dashboard', function () {
 
 it('renders top 10 users making requests', function (string $query, string $type) {
     $users = User::factory(3)->create();
-    Pulse::users(fn () => $users);
 
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
@@ -42,14 +41,14 @@ it('renders top 10 users making requests', function (string $query, string $type
     Pulse::record($type, $users[1]->id)->count();
     Pulse::record($type, $users[2]->id)->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])
         ->assertViewHas('userRequestCounts', collect([
-            (object) ['count' => 6, 'user' => (object) ['id' => $users[0]->id, 'name' => $users[0]->name, 'extra' => '', 'avatar' => null]],
-            (object) ['count' => 4, 'user' => (object) ['id' => $users[1]->id, 'name' => $users[1]->name, 'extra' => '', 'avatar' => null]],
-            (object) ['count' => 2, 'user' => (object) ['id' => $users[2]->id, 'name' => $users[2]->name, 'extra' => '', 'avatar' => null]],
+            (object) ['key' => $users[0]->id, 'count' => 6, 'user' => (object) ['name' => $users[0]->name, 'extra' => $users[0]->email, 'avatar' => avatar($users[0]->email)]],
+            (object) ['key' => $users[1]->id, 'count' => 4, 'user' => (object) ['name' => $users[1]->name, 'extra' => $users[1]->email, 'avatar' => avatar($users[1]->email)]],
+            (object) ['key' => $users[2]->id, 'count' => 2, 'user' => (object) ['name' => $users[2]->name, 'extra' => $users[2]->email, 'avatar' => avatar($users[2]->email)]],
         ]));
 })->with([
     ['requests', 'user_request'],
@@ -63,16 +62,9 @@ class User extends AuthUser
 
     protected static function newFactory()
     {
-        return new class extends Factory
+        return new class extends UserFactory
         {
             protected $model = User::class;
-
-            public function definition()
-            {
-                return [
-                    'name' => $this->faker->name(),
-                ];
-            }
         };
     }
 }

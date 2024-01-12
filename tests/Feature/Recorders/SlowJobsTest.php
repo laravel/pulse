@@ -22,9 +22,9 @@ it('records slow jobs', function () {
 
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
 
     /*
@@ -32,8 +32,8 @@ it('records slow jobs', function () {
      */
 
     Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(0);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
@@ -69,9 +69,9 @@ it('skips jobs under the threshold', function () {
 
     Carbon::setTestNow('2000-01-02 03:04:05');
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
 
     /*
@@ -79,8 +79,8 @@ it('skips jobs under the threshold', function () {
      */
 
     Carbon::setTestNow('2000-01-02 03:04:10');
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
-    expect(Queue::size())->toBe(0);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get()))->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
 });
@@ -97,18 +97,18 @@ it('can ignore jobs', function () {
      */
 
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(1);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
 
     /*
      * Work the job.
      */
 
-    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
 
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->get()))->toHaveCount(0);
     expect(Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'slow_job')->get()))->toHaveCount(0);
 });
@@ -132,17 +132,17 @@ it('can sample', function () {
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(10);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
 
     /*
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toEqualWithDelta(1, 4);
 
     Pulse::flush();
@@ -167,17 +167,17 @@ it('can sample at zero', function () {
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(10);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
 
     /*
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(0);
 
     Pulse::flush();
@@ -202,17 +202,17 @@ it('can sample at one', function () {
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
     Bus::dispatchToQueue(new MySlowJob);
-    Pulse::store();
+    Pulse::ingest();
 
-    expect(Queue::size())->toBe(10);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
 
     /*
      * Work the jobs.
      */
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
-    expect(Queue::size())->toBe(0);
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(10);
 
     Pulse::flush();

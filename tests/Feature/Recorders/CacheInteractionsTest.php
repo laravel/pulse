@@ -14,7 +14,7 @@ it('ingests cache interactions', function () {
     Cache::put('hit-key', 1);
     Cache::get('hit-key');
     Cache::get('miss-key');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(2);
@@ -53,20 +53,20 @@ it('ingests cache interactions', function () {
 it('ignores internal illuminate cache interactions', function () {
     Cache::get('illuminate:');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('ignores internal pulse cache interactions', function () {
     Cache::get('laravel:pulse:');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('stores the original keys by default', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
 
     Cache::get('users:1234:profile');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -85,7 +85,7 @@ it('can normalize cache keys', function () {
         '/users:\d+:profile/' => 'users:{user}:profile',
     ]);
     Cache::get('users:1234:profile');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -104,7 +104,7 @@ it('can use back references in normalized cache keys', function () {
         '/^([^:]+):([^:]+):baz/' => '\2:\1',
     ]);
     Cache::get('foo:bar:baz');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -123,7 +123,7 @@ it('uses the original key if no matching pattern is found', function () {
         '/\d/' => 'foo',
     ]);
     Cache::get('actual-key');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -143,7 +143,7 @@ it('can provide regex flags in normalization key', function () {
         '/FOO/i' => 'uppercase-key',
     ]);
     Cache::get('FOO');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -162,7 +162,7 @@ it('can ignore keys', function () {
 
     Cache::get('laravel:pulse:foo:bar');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample', function () {
@@ -179,13 +179,13 @@ it('can sample', function () {
     Cache::get('foo');
     Cache::get('foo');
 
-    expect(Pulse::store())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
 });
 
 it('groups job exception keys', function () {
     Cache::get('job-exceptions:'.Str::uuid());
 
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);

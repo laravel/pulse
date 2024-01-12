@@ -13,7 +13,7 @@ Laravel Pulse is a real-time application performance monitoring tool and dashboa
 
 ## Official Documentation
 
-Documentation for Pulse can be found on the [Laravel website](https://laravel.com/docs).
+Documentation for Pulse can be found on the [Laravel website](https://laravel.com/docs/pulse).
 
 ## Contributing
 
