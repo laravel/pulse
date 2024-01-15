@@ -32,7 +32,7 @@ it('renders exceptions', function () {
     Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
     Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([

@@ -32,13 +32,33 @@ it('runs the same commands while ingesting entries', function ($driver) {
     expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:ingest" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":6:{s:15:\"\x00*\x00aggregations\";a:0:{}s:14:\"\x00*\x00onlyBuckets\";b:0;s:9:\"timestamp\";i:1700752211;s:4:\"type\";s:3:\"foo\";s:3:\"key\";s:3:\"bar\";s:5:\"value\";i:123;}"');
 })->with(['predis', 'phpredis']);
 
-it('runs the same commands while triming the stream', function ($driver) {
+it('keeps 7 days of data, by default, when trimming', function ($driver) {
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946177445000"');
+})->with(['predis', 'phpredis']);
+
+it('can configure days of data to keep when trimming', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
+    Config::set('pulse.ingest.trim.keep', '1 day');
+
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
+
+    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946695845000"');
+})->with(['predis', 'phpredis']);
+
+it('can configure the number of entries to keep when trimming', function ($driver) {
+    Config::set('database.redis.client', $driver);
+    Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
+    Config::set('pulse.ingest.trim.keep', 54321);
+
+    $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
+
+    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
 })->with(['predis', 'phpredis']);
 
 it('runs the same commands while storing', function ($driver) {
@@ -56,7 +76,7 @@ it('runs the same commands while storing', function ($driver) {
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
-    $commands = captureRedisCommands(fn () => $ingest->store(new StorageFake()));
+    $commands = captureRedisCommands(fn () => $ingest->digest(new StorageFake()));
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:ingest" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');

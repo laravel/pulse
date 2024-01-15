@@ -29,7 +29,7 @@ it('renders slow jobs', function () {
     Pulse::record('slow_job', 'App\Jobs\MyJob', 1000)->max()->count();
     Pulse::record('slow_job', 'App\Jobs\MyOtherJob', 1000)->max()->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(SlowJobs::class, ['lazy' => false])
         ->assertViewHas('slowJobs', collect([

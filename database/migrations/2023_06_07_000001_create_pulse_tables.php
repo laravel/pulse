@@ -1,54 +1,46 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Pulse\Support\PulseMigration;
 
-return new class extends Migration
+return new class extends PulseMigration
 {
-    /**
-     * Get the migration connection name.
-     */
-    public function getConnection(): ?string
-    {
-        return Config::get('pulse.storage.database.connection');
-    }
-
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        $connection = DB::connection($this->getConnection());
+        if (! $this->shouldRun()) {
+            return;
+        }
 
-        Schema::create('pulse_values', function (Blueprint $table) use ($connection) {
+        Schema::create('pulse_values', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
-            $table->text('key');
-            match ($driver = $connection->getDriverName()) {
+            $table->mediumText('key');
+            match ($this->driver()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
+                'sqlite' => $table->string('key_hash'),
             };
-            $table->text('value');
+            $table->mediumText('value');
 
             $table->index('timestamp'); // For trimming...
             $table->index('type'); // For fast lookups and purging...
             $table->unique(['type', 'key_hash']); // For data integrity and upserts...
         });
 
-        Schema::create('pulse_entries', function (Blueprint $table) use ($connection) {
+        Schema::create('pulse_entries', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
-            $table->text('key');
-            match ($driver = $connection->getDriverName()) {
+            $table->mediumText('key');
+            match ($this->driver()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
+                'sqlite' => $table->string('key_hash'),
             };
             $table->bigInteger('value')->nullable();
 
@@ -58,16 +50,16 @@ return new class extends Migration
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // For aggregate queries...
         });
 
-        Schema::create('pulse_aggregates', function (Blueprint $table) use ($connection) {
+        Schema::create('pulse_aggregates', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('bucket');
             $table->unsignedMediumInteger('period');
             $table->string('type');
-            $table->text('key');
-            match ($driver = $connection->getDriverName()) {
+            $table->mediumText('key');
+            match ($this->driver()) {
                 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
-                default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
+                'sqlite' => $table->string('key_hash'),
             };
             $table->string('aggregate');
             $table->decimal('value', 20, 2);

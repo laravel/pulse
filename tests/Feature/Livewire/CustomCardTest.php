@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Card;
@@ -17,6 +18,15 @@ it('loads custom css using a path', function () {
         }
         </style>
         HTML);
+});
+
+it('loads custom css using a HtmlString', function () {
+    Livewire::test(CustomCardWithCssHtmlString::class)
+        ->assertOk();
+
+    $css = Pulse::css();
+
+    expect($css)->toContain('<link rel="stylesheet" src="https://example.com/cdn/custom-card.css">');
 });
 
 it('loads custom css using a Htmlable', function () {
@@ -41,7 +51,7 @@ class CustomCardWithCssPath extends Card
     }
 }
 
-class CustomCardWithCssHtmlable extends Card
+class CustomCardWithCssHtmlString extends Card
 {
     public function render()
     {
@@ -51,5 +61,24 @@ class CustomCardWithCssHtmlable extends Card
     protected function css()
     {
         return new HtmlString('<link rel="stylesheet" src="https://example.com/cdn/custom-card.css">');
+    }
+}
+
+class CustomCardWithCssHtmlable extends Card
+{
+    public function render()
+    {
+        return '<div></div>';
+    }
+
+    protected function css()
+    {
+        return new class implements Htmlable
+        {
+            public function toHtml()
+            {
+                return '<link rel="stylesheet" src="https://example.com/cdn/custom-card.css">';
+            }
+        };
     }
 }

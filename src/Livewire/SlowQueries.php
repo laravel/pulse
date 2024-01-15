@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Livewire;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowQueries as SlowQueriesRecorder;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
@@ -16,8 +15,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowQueries extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * Ordering.
      *
@@ -32,10 +29,9 @@ class SlowQueries extends Card
     public function render(): Renderable
     {
         [$slowQueries, $time, $runAt] = $this->remember(
-            fn () => Pulse::aggregate(
+            fn () => $this->aggregate(
                 'slow_query',
                 ['max', 'count'],
-                $this->periodAsInterval(),
                 match ($this->orderBy) {
                     'count' => 'count',
                     default => 'max',
@@ -57,6 +53,7 @@ class SlowQueries extends Card
             'time' => $time,
             'runAt' => $runAt,
             'config' => [
+                // TODO remove fallback when tagging v1
                 'highlighting' => true,
                 ...Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             ],

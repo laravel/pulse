@@ -37,7 +37,7 @@ it('renders cache statistics', function () {
     Pulse::record('cache_miss', 'foo')->count();
     Pulse::record('cache_miss', 'bar')->count();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
         ->assertViewHas('allCacheInteractions', (object) [
@@ -55,7 +55,7 @@ it('does not round numbers up', function () {
         Pulse::record('cache_hit', 'foo')->count()->onlyBuckets();
     }
     Pulse::record('cache_miss', 'foo')->count()->onlyBuckets();
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
         ->assertDontSeeHtml("100.00%\n")
@@ -65,7 +65,7 @@ it('does not round numbers up', function () {
 it('does not show decimals for round numbers', function () {
     Pulse::record('cache_hit', 'foo')->count()->onlyBuckets();
     Pulse::record('cache_miss', 'foo')->count()->onlyBuckets();
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
         ->assertDontSeeHtml("50.00%\n")

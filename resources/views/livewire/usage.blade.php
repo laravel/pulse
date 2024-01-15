@@ -39,23 +39,17 @@
             <x-pulse::no-results />
         @else
             <div class="grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @6xl:grid-cols-4 gap-2">
+                @php
+                    $sampleRate = match($this->usage) {
+                        'requests' => $userRequestsConfig['sample_rate'],
+                        'slow_requests' => $slowRequestsConfig['sample_rate'],
+                        'jobs' => $jobsConfig['sample_rate'],
+                    };
+                @endphp
+
                 @foreach ($userRequestCounts as $userRequestCount)
-                    <x-pulse::user-card wire:key="{{ $userRequestCount->user->id }}" :name="$userRequestCount->user->name" :extra="$userRequestCount->user->extra">
-                        @if ($userRequestCount->user->avatar ?? false)
-                            <x-slot:avatar>
-                                <img height="32" width="32" src="{{ $userRequestCount->user->avatar }}" loading="lazy" class="rounded-full">
-                            </x-slot:avatar>
-                        @endif
-
+                    <x-pulse::user-card wire:key="{{ $userRequestCount->key }}" :user="$userRequestCount->user">
                         <x-slot:stats>
-                            @php
-                                $sampleRate = match($this->usage) {
-                                    'requests' => $userRequestsConfig['sample_rate'],
-                                    'slow_requests' => $slowRequestsConfig['sample_rate'],
-                                    'jobs' => $jobsConfig['sample_rate'],
-                                };
-                            @endphp
-
                             @if ($sampleRate < 1)
                                 <span title="Sample rate: {{ $sampleRate }}, Raw value: {{ number_format($userRequestCount->count) }}">~{{ number_format($userRequestCount->count * (1 / $sampleRate)) }}</span>
                             @else

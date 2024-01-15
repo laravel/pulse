@@ -13,7 +13,7 @@ it('ingests slow outgoing http requests', function () {
     Http::fake(fn () => Http::response('ok'));
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -48,7 +48,7 @@ it('ignores fast requests', function () {
 
     Http::get('https://laravel.com');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('captures failed requests', function () {
@@ -57,7 +57,7 @@ it('captures failed requests', function () {
     Http::fake(['https://laravel.com' => Http::response('error', status: 500)]);
 
     Http::get('https://laravel.com');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -75,7 +75,7 @@ it('stores the original URI by default', function () {
     Http::fake(['https://laravel.com*' => Http::response('ok')]);
 
     Http::get('https://laravel.com?foo=123');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -96,7 +96,7 @@ it('can normalize URI', function () {
         '#^https://github\.com/([^/]+)/([^/]+)/commits/([^/]+)$#' => 'github.com/{user}/{repo}/commits/{branch}',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -117,7 +117,7 @@ it('can use back references in normalized URI', function () {
         '#^https?://([^/]+).*$#' => '\1/*',
     ]);
     Http::get('https://github.com/laravel/pulse/commits/1.x');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -139,7 +139,7 @@ it('can provide regex flags in normalization key', function () {
         '/PARAMETER/i' => 'uppercase-parameter',
     ]);
     Http::get('https://github.com?PARAMETER=123');
-    Pulse::store();
+    Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
     expect($entries)->toHaveCount(1);
@@ -160,7 +160,7 @@ it('can ignore outgoing requests', function () {
 
     Http::get('http://127.0.0.1:13714/render');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample', function () {
@@ -179,7 +179,7 @@ it('can sample', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(Pulse::store())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -198,7 +198,7 @@ it('can sample at zero', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(Pulse::store())->toBe(0);
+    expect(Pulse::ingest())->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -217,5 +217,5 @@ it('can sample at one', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(Pulse::store())->toBe(10);
+    expect(Pulse::ingest())->toBe(10);
 });

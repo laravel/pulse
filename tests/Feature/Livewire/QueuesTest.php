@@ -33,7 +33,7 @@ it('renders queue statistics', function () {
     Pulse::record('processed', 'database:default')->count()->onlyBuckets();
     Pulse::record('released', 'database:default')->count()->onlyBuckets();
 
-    Pulse::store();
+    Pulse::ingest();
 
     Livewire::test(Queues::class, ['lazy' => false])
         ->assertViewHas('queues', collect([

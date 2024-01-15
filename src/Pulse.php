@@ -14,6 +14,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
@@ -62,20 +63,6 @@ class Pulse
     protected Collection $filters;
 
     /**
-     * The users resolver.
-     *
-     * @var ?callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
-     */
-    protected $usersResolver = null;
-
-    /**
-     * The authenticated user ID resolver.
-     *
-     * @var callable(): (int|string|null)
-     */
-    protected $authenticatedUserIdResolver = null;
-
-    /**
      * The remembered user's ID.
      */
     protected int|string|null $rememberedUserId = null;
@@ -98,6 +85,11 @@ class Pulse
      * @var list<string|Htmlable>
      */
     protected $css = [__DIR__.'/../dist/pulse.css'];
+
+    /**
+     * Indicates that Pulse is currently evaluating the buffer.
+     */
+    protected bool $evaluatingBuffer = false;
 
     /**
      * Create a new Pulse instance.
@@ -129,18 +121,16 @@ class Pulse
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
                 $recorder->listen,
-                fn ($event) => $this->rescue(fn () => Collection::wrap($recorder->record($event)))
+                fn ($event) => $this->rescue(fn () => $recorder->record($event))
             ))
         );
 
         $recorders
             ->filter(fn ($recorder) => method_exists($recorder, 'register'))
             ->each(function ($recorder) {
-                $record = function (...$args) use ($recorder) {
-                    $this->rescue(fn () => Collection::wrap($recorder->record(...$args)));
-                };
-
-                $this->app->call($recorder->register(...), ['record' => $record]);
+                $this->app->call($recorder->register(...), [
+                    'record' => fn (...$args) => $this->rescue(fn () => $recorder->record(...$args)),
+                ]);
             });
 
         $this->recorders = collect([...$this->recorders, ...$recorders]);
@@ -157,9 +147,7 @@ class Pulse
         ?int $value = null,
         DateTimeInterface|int|null $timestamp = null,
     ): Entry {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
@@ -170,6 +158,8 @@ class Pulse
 
         if ($this->shouldRecord) {
             $this->entries[] = $entry;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $entry;
@@ -184,9 +174,7 @@ class Pulse
         string $value,
         DateTimeInterface|int|null $timestamp = null,
     ): Value {
-        if ($timestamp === null) {
-            $timestamp = CarbonImmutable::now();
-        }
+        $timestamp ??= CarbonImmutable::now();
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
@@ -197,6 +185,8 @@ class Pulse
 
         if ($this->shouldRecord) {
             $this->entries[] = $value;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $value;
@@ -209,6 +199,8 @@ class Pulse
     {
         if ($this->shouldRecord) {
             $this->lazy[] = $closure;
+
+            $this->ingestWhenOverBufferSize();
         }
 
         return $this;
@@ -271,7 +263,10 @@ class Pulse
     public function flush(): self
     {
         $this->entries = collect([]);
+
         $this->lazy = collect([]);
+
+        $this->rememberedUserId = null;
 
         return $this;
     }
@@ -289,25 +284,98 @@ class Pulse
     }
 
     /**
-     * Store the queued items.
+     * Ingest the entries.
      */
-    public function store(): int
+    public function ingest(): int
     {
-        $ingest = $this->app->make(Ingest::class);
+        $this->resolveLazyEntries();
 
-        $this->lazy->each(fn ($lazy) => $lazy());
+        return $this->ignore(function () {
+            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
 
-        $this->rescue(fn () => $ingest->ingest(
-            $this->entries->filter($this->shouldRecord(...)),
-        ));
+            if ($entries->isEmpty()) {
+                $this->flush();
 
-        Lottery::odds(...$this->app->make('config')->get('pulse.ingest.trim_lottery'))
-            ->winner(fn () => $this->rescue($ingest->trim(...)))
-            ->choose();
+                return 0;
+            }
 
-        $this->rememberedUserId = null;
+            $ingest = $this->app->make(Ingest::class);
 
-        return tap($this->entries->count(), $this->flush(...));
+            $count = $this->rescue(function () use ($entries, $ingest) {
+                $ingest->ingest($entries);
+
+                return $entries->count();
+            }) ?? 0;
+
+            // TODO remove fallback when tagging v1
+            $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
+
+            Lottery::odds(...$odds)
+                ->winner(fn () => $this->rescue(fn () => $ingest->trim(...)))
+                ->choose();
+
+            $this->flush();
+
+            return $count;
+        });
+    }
+
+    /**
+     * Digest the entries.
+     */
+    public function digest(): int
+    {
+        return $this->ignore(
+            fn () => $this->app->make(Ingest::class)->digest($this->app->make(Storage::class))
+        );
+    }
+
+    /**
+     * Determine if Pulse wants to ingest entries.
+     */
+    public function wantsIngesting(): bool
+    {
+        return $this->lazy->isNotEmpty() || $this->entries->isNotEmpty();
+    }
+
+    /**
+     * Start ingesting entires if over buffer size.
+     */
+    protected function ingestWhenOverBufferSize(): void
+    {
+        // To prevent recursion, we track when we are already evaluating the
+        // buffer and resolving entries. When we are we may simply return
+        // and the continue execution. We set the value to false later.
+        if ($this->evaluatingBuffer) {
+            return;
+        }
+
+        // TODO remove fallback when tagging v1
+        $buffer = $this->app->make('config')->get('pulse.ingest.buffer') ?? 5_000;
+
+        if (($this->entries->count() + $this->lazy->count()) > $buffer) {
+            $this->evaluatingBuffer = true;
+
+            $this->resolveLazyEntries();
+        }
+
+        if ($this->entries->count() > $buffer) {
+            $this->evaluatingBuffer = true;
+
+            $this->ingest();
+        }
+
+        $this->evaluatingBuffer = false;
+    }
+
+    /**
+     * Resolve lazy entries.
+     */
+    protected function resolveLazyEntries(): void
+    {
+        $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
+
+        $this->lazy = collect([]);
     }
 
     /**
@@ -331,37 +399,43 @@ class Pulse
     /**
      * Resolve the user details for the given user IDs.
      *
-     * @param  \Illuminate\Support\Collection<int, string|int>  $ids
-     * @return  \Illuminate\Support\Collection<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>
+     * @param  \Illuminate\Support\Collection<int, string>  $keys
      */
-    public function resolveUsers(Collection $ids): Collection
+    public function resolveUsers(Collection $keys): ResolvesUsers
     {
-        if ($this->usersResolver) {
-            return collect(($this->usersResolver)($ids));
-        }
+        $resolver = $this->app->make(ResolvesUsers::class);
 
-        if (class_exists($class = \App\Models\User::class) || class_exists($class = \App\User::class)) {
-            return $class::whereKey($ids)->get()->map(fn ($user) => [
-                'id' => $user->getKey(),
-                'name' => $user->name,
-                'email' => $user->email,
-            ]);
-        }
+        return $resolver->load($keys);
+    }
 
-        return $ids->map(fn (string|int $id) => [
-            'id' => $id,
-            'name' => "User ID: {$id}",
-        ]);
+    /**
+     * Resolve the users' details using the given closure.
+     *
+     * @deprecated
+     *
+     * @param  callable(\Illuminate\Support\Collection<int, mixed>): ?iterable<int|string, array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}>  $callback
+     */
+    public function users(callable $callback): self
+    {
+        $this->app->instance(ResolvesUsers::class, new LegacyUsers($callback));
+
+        return $this;
     }
 
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  (callable(\Illuminate\Support\Collection<int, string|int>): iterable<int, array{id: string|int, name: string, email?: ?string, avatar?: ?string, extra?: ?string}>)  $callback
+     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}  $callback
      */
-    public function users(callable $callback): self
+    public function user(callable $callback): self
     {
-        $this->usersResolver = $callback;
+        $resolver = $this->app->make(ResolvesUsers::class);
+
+        if (! method_exists($resolver, 'setFieldResolver')) {
+            throw new RuntimeException('The configured user resolver does not support setting user fields');
+        }
+
+        $resolver->setFieldResolver($callback); // @phpstan-ignore method.nonObject
 
         return $this;
     }
@@ -373,19 +447,26 @@ class Pulse
      */
     public function authenticatedUserIdResolver(): callable
     {
-        if ($this->authenticatedUserIdResolver !== null) {
-            return $this->authenticatedUserIdResolver;
-        }
-
         $auth = $this->app->make('auth');
 
         if ($auth->hasUser()) {
-            $id = $auth->id();
+            $resolver = $this->app->make(ResolvesUsers::class);
+            $key = $resolver->key($auth->user());
 
-            return fn () => $id;
+            return fn () => $key;
         }
 
-        return fn () => $auth->id() ?? $this->rememberedUserId;
+        return function () {
+            $auth = $this->app->make('auth');
+
+            if ($auth->hasUser()) {
+                $resolver = $this->app->make(ResolvesUsers::class);
+
+                return $resolver->key($auth->user());
+            } else {
+                return $this->rememberedUserId;
+            }
+        };
     }
 
     /**
@@ -397,46 +478,13 @@ class Pulse
     }
 
     /**
-     * Resolve the authenticated user ID with the given callback.
-     */
-    public function resolveAuthenticatedUserIdUsing(callable $callback): self
-    {
-        $this->authenticatedUserIdResolver = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Set the user for the given callback.
-     *
-     * @template TReturn
-     *
-     * @param  (callable(): TReturn)  $callback
-     * @return TReturn
-     */
-    public function withUser(Authenticatable|int|string|null $user, callable $callback): mixed
-    {
-        $cachedUserIdResolver = $this->authenticatedUserIdResolver;
-
-        try {
-            $id = $user instanceof Authenticatable
-                ? $user->getAuthIdentifier()
-                : $user;
-
-            $this->authenticatedUserIdResolver = fn () => $id;
-
-            return $callback();
-        } finally {
-            $this->authenticatedUserIdResolver = $cachedUserIdResolver;
-        }
-    }
-
-    /**
      * Remember the authenticated user's ID.
      */
     public function rememberUser(Authenticatable $user): self
     {
-        $this->rememberedUserId = $user->getAuthIdentifier();
+        $resolver = $this->app->make(ResolvesUsers::class);
+
+        $this->rememberedUserId = $resolver->key($user);
 
         return $this;
     }
@@ -449,7 +497,7 @@ class Pulse
     public function css(string|Htmlable|array|null $css = null): string|self
     {
         if (func_num_args() === 1) {
-            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css))));
+            $this->css = array_values(array_unique(array_merge($this->css, Arr::wrap($css)), SORT_REGULAR));
 
             return $this;
         }
@@ -472,11 +520,35 @@ class Pulse
      */
     public function js(): string
     {
-        if (($content = file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
+        if (
+            ($livewire = @file_get_contents(__DIR__.'/../../../livewire/livewire/dist/livewire.js')) === false &&
+            ($livewire = @file_get_contents(__DIR__.'/../vendor/livewire/livewire/dist/livewire.js')) === false) {
+            throw new RuntimeException('Unable to load the Livewire JavaScript.');
+        }
+
+        if (($pulse = @file_get_contents(__DIR__.'/../dist/pulse.js')) === false) {
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return "<script>{$content}</script>".PHP_EOL;
+        return "<script>{$livewire}</script>".PHP_EOL."<script>{$pulse}</script>".PHP_EOL;
+    }
+
+    /**
+     * The default "vendor" cache keys that should be ignored by Pulse.
+     *
+     * @return list<string>
+     */
+    public static function defaultVendorCacheKeys(): array
+    {
+        return [
+            '/(^laravel_vapor_job_attemp(t?)s:)/', // Laravel Vapor keys...
+            '/^.+@.+\|(?:(?:\d+\.\d+\.\d+\.\d+)|[0-9a-fA-F:]+)(?::timer)?$/', // Breeze / Jetstream keys...
+            '/^[a-zA-Z0-9]{40}$/', // Session IDs...
+            '/^illuminate:/', // Laravel keys...
+            '/^laravel:pulse:/', // Pulse keys...
+            '/^nova/', // Nova keys...
+            '/^telescope:/', // Telescope keys...
+        ];
     }
 
     /**
@@ -512,15 +584,20 @@ class Pulse
     /**
      * Execute the given callback handling any exceptions.
      *
-     * @param  (callable(): mixed)  $callback
+     * @template TReturn
+     *
+     * @param  (callable(): TReturn)  $callback
+     * @return TReturn|null
      */
-    public function rescue(callable $callback): void
+    public function rescue(callable $callback): mixed
     {
         try {
-            $callback();
+            return $callback();
         } catch (Throwable $e) {
             ($this->handleExceptionsUsing ?? fn () => null)($e);
         }
+
+        return null;
     }
 
     /**
@@ -544,8 +621,6 @@ class Pulse
      */
     public function __call($method, $parameters): mixed
     {
-        $storage = $this->app->make(Storage::class);
-
-        return $this->forwardCallTo($storage, $method, $parameters);
+        return $this->ignore(fn () => $this->forwardCallTo($this->app->make(Storage::class), $method, $parameters));
     }
 }

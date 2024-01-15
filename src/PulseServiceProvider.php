@@ -2,12 +2,14 @@
 
 namespace Laravel\Pulse;
 
+use Composer\InstalledVersions;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
@@ -15,7 +17,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
+use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Ingests\NullIngest;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Ingests\StorageIngest;
 use Laravel\Pulse\Storage\DatabaseStorage;
@@ -36,12 +40,9 @@ class PulseServiceProvider extends ServiceProvider
             __DIR__.'/../config/pulse.php', 'pulse'
         );
 
-        if (! $this->app->make('config')->get('pulse.enabled')) {
-            return;
-        }
-
         $this->app->singleton(Pulse::class);
         $this->app->bind(Storage::class, DatabaseStorage::class);
+        $this->app->singletonIf(ResolvesUsers::class, Users::class);
 
         $this->registerIngest();
     }
@@ -54,6 +55,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->bind(Ingest::class, fn (Application $app) => match ($app->make('config')->get('pulse.ingest.driver')) {
             'storage' => $app->make(StorageIngest::class),
             'redis' => $app->make(RedisIngest::class),
+            null, 'null' => $app->make(NullIngest::class),
             default => throw new RuntimeException("Unknown ingest driver [{$app->make('config')->get('pulse.ingest.driver')}]."),
         });
     }
@@ -63,15 +65,15 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! $this->app->make('config')->get('pulse.enabled')) {
-            return;
+        if ($enabled = $this->app->make('config')->get('pulse.enabled')) {
+            $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
+            $this->listenForEvents();
+        } else {
+            $this->app->make(Pulse::class)->stopRecording();
         }
-
-        $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
 
         $this->registerAuthorization();
         $this->registerRoutes();
-        $this->listenForEvents();
         $this->registerComponents();
         $this->registerResources();
         $this->registerPublishing();
@@ -125,19 +127,19 @@ class PulseServiceProvider extends ServiceProvider
                     Looping::class,
                     WorkerStopping::class,
                 ], function () use ($app) {
-                    $app->make(Pulse::class)->store();
+                    $app->make(Pulse::class)->ingest();
                 });
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
                 $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app->make(Pulse::class)->store();
+                    $app->make(Pulse::class)->ingest();
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
                 $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
-                    $app->make(Pulse::class)->store();
+                    $app->make(Pulse::class)->ingest();
                 });
             });
         });
@@ -220,7 +222,12 @@ class PulseServiceProvider extends ServiceProvider
                 Commands\WorkCommand::class,
                 Commands\CheckCommand::class,
                 Commands\RestartCommand::class,
-                Commands\PurgeCommand::class,
+                Commands\ClearCommand::class,
+            ]);
+
+            AboutCommand::add('Pulse', fn () => [
+                'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
+                'Enabled' => AboutCommand::format(config('pulse.enabled'), console: fn ($value) => $value ? '<fg=yellow;options=bold>ENABLED</>' : 'OFF'),
             ]);
         }
     }

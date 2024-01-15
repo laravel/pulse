@@ -3,6 +3,7 @@
 namespace Laravel\Pulse\Ingests;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Illuminate\Config\Repository;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Collection;
@@ -55,18 +56,24 @@ class RedisIngest implements Ingest
      */
     public function trim(): void
     {
+        $keep = $this->config->get('pulse.ingest.trim.keep');
+
         $this->connection()->xtrim(
             $this->stream,
-            'MINID',
+            is_int($keep) ? 'MAXLEN' : 'MINID',
             '~',
-            CarbonImmutable::now()->subWeek()->getTimestampMs()
+            is_int($keep)
+                ? $keep
+                : CarbonImmutable::now()->subMilliseconds(
+                    (int) CarbonInterval::fromString($keep)->totalMilliseconds
+                )->getTimestampMs(),
         );
     }
 
     /**
-     * Store the ingested items.
+     * Digest the ingested items.
      */
-    public function store(Storage $storage): int
+    public function digest(Storage $storage): int
     {
         $total = 0;
 

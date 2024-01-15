@@ -18,8 +18,6 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class Usage extends Card
 {
-    use Concerns\HasPeriod, Concerns\RemembersQueries;
-
     /**
      * The type of usage to show.
      *
@@ -44,34 +42,23 @@ class Usage extends Card
 
         [$userRequestCounts, $time, $runAt] = $this->remember(
             function () use ($type) {
-                $counts = Pulse::aggregate(
+                $counts = $this->aggregate(
                     match ($type) {
                         'requests' => 'user_request',
                         'slow_requests' => 'slow_user_request',
                         'jobs' => 'user_job',
                     },
-                    'count', // @phpstan-ignore argument.type
-                    $this->periodAsInterval(),
+                    'count',
                     limit: 10,
                 );
 
                 $users = Pulse::resolveUsers($counts->pluck('key'));
 
-                return $counts->map(function ($row) use ($users) {
-                    $user = $users->firstWhere('id', $row->key);
-
-                    return (object) [
-                        'user' => (object) [
-                            'id' => $row->key,
-                            'name' => $user['name'] ?? 'Unknown',
-                            'extra' => $user['extra'] ?? $user['email'] ?? '',
-                            'avatar' => $user['avatar'] ?? (($user['email'] ?? false)
-                                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user['email']))))
-                                : null),
-                        ],
-                        'count' => (int) $row->count,
-                    ];
-                });
+                return $counts->map(fn ($row) => (object) [
+                    'key' => $row->key,
+                    'user' => $users->find($row->key),
+                    'count' => (int) $row->count,
+                ]);
             },
             $type
         );

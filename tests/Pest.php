@@ -33,12 +33,13 @@ uses(TestCase::class)
         Pulse::flush();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
         Gate::define('viewPulse', fn ($user = null) => true);
+        Config::set('pulse.ingest.trim.lottery', [1, 1]);
     })
     ->afterEach(function () {
         Str::createUuidsNormally();
 
-        if (Pulse::store() > 0) {
-            throw new RuntimeException('The queue is not empty');
+        if (Pulse::wantsIngesting()) {
+            throw new RuntimeException('There are pending entries.');
         }
     })
     ->in('Unit', 'Feature');
@@ -102,6 +103,7 @@ function keyHash(string $string): string
     return match (DB::connection()->getDriverName()) {
         'mysql' => hex2bin(md5($string)),
         'pgsql' => Uuid::fromString(md5($string)),
+        'sqlite' => md5($string),
     };
 }
 
