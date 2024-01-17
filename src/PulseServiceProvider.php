@@ -14,6 +14,7 @@ use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
@@ -167,7 +168,13 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $livewire->addPersistentMiddleware($app->make('config')->get('pulse.middleware', []));
+            $middleware = collect($app->make('config')->get('pulse.middleware'))
+                ->map(fn ($middleware) => is_string($middleware)
+                    ? Str::before($middleware, ':')
+                    : $middleware)
+                ->all();
+
+            $livewire->addPersistentMiddleware($middleware);
 
             $livewire->component('pulse.cache', Livewire\Cache::class);
             $livewire->component('pulse.usage', Livewire\Usage::class);
