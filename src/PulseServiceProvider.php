@@ -168,7 +168,7 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $middleware = collect($app->make('config')->get('pulse.middleware'))
+            $middleware = collect($app->make('config')->get('pulse.middleware')) // @phpstan-ignore argument.templateType argument.templateType
                 ->map(fn ($middleware) => is_string($middleware)
                     ? Str::before($middleware, ':')
                     : $middleware)
