@@ -5,11 +5,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Facade;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Value;
+use Livewire\LivewireManager;
 use Tests\StorageFake;
 use Tests\User;
 
@@ -221,3 +223,19 @@ it('rescues exceptions that occur while filtering', function () {
 
     expect($handled)->toBe(true);
 });
+
+it('strips arguments from persistent middleware', function () {
+    App::forgetInstance(LivewireManager::class);
+    Facade::clearResolvedInstance('livewire');
+    Config::set('pulse.middleware', [MyTestMiddleware::class.':admin']);
+
+    $persistentMiddleware = Livewire::getPersistentMiddleware();
+
+    expect($persistentMiddleware)->toContain(MyTestMiddleware::class);
+    expect($persistentMiddleware)->not->toContain(MyTestMiddleware::class.':admin');
+});
+
+class MyTestMiddleware
+{
+    //
+}
