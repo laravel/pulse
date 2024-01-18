@@ -13,6 +13,7 @@
                 label="Sort by"
                 :options="[
                     'slowest' => 'slowest',
+                    'average' => 'average',
                     'count' => 'count',
                 ]"
                 @change="loading = true"
@@ -29,11 +30,13 @@
                     <col width="100%" />
                     <col width="0%" />
                     <col width="0%" />
+                    <col width="0%" />
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
                         <x-pulse::th>Job</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
+                        <x-pulse::th class="text-right">Average</x-pulse::th>
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
@@ -51,6 +54,13 @@
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($job->count) }}">~{{ number_format($job->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
                                     {{ number_format($job->count) }}
+                                @endif
+                            </x-pulse::td>
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
+                                @if ($job->average === null)
+                                    <strong>Unknown</strong>
+                                @else
+                                    <strong>{{ number_format($job->average) ?: '<1' }}</strong> ms
                                 @endif
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">

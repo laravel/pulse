@@ -86,7 +86,7 @@ class SlowJobs
                 key: $name,
                 value: $duration,
                 timestamp: $timestamp,
-            )->max()->count();
+            )->max()->avg()->count();
         });
     }
 }

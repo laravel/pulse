@@ -31,14 +31,16 @@ class SlowJobs extends Card
         [$slowJobs, $time, $runAt] = $this->remember(
             fn () => $this->aggregate(
                 'slow_job',
-                ['max', 'count'],
+                ['max', 'avg', 'count'],
                 match ($this->orderBy) {
                     'count' => 'count',
+                    'average' => 'avg',
                     default => 'max',
                 },
             )->map(fn ($row) => (object) [
                 'job' => $row->key,
                 'slowest' => $row->max,
+                'average' => $row->avg,
                 'count' => $row->count,
             ]),
             $this->orderBy,
