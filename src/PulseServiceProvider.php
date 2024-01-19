@@ -66,7 +66,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($enabled = $this->app->make('config')->get('pulse.enabled')) {
+        if ($this->app->make('config')->get('pulse.enabled')) {
             $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
             $this->listenForEvents();
         } else {
