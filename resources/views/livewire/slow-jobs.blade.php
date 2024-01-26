@@ -29,14 +29,18 @@
                 <colgroup>
                     <col width="100%" />
                     <col width="0%" />
+                    @if ($config['average'] === true)
                     <col width="0%" />
+                    @endif
                     <col width="0%" />
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
                         <x-pulse::th>Job</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
+                        @if ($config['average'] === true)
                         <x-pulse::th class="text-right">Average</x-pulse::th>
+                        @endif
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
@@ -56,6 +60,7 @@
                                     {{ number_format($job->count) }}
                                 @endif
                             </x-pulse::td>
+                            @if ($config['average'] === true)
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($job->average === null)
                                     <strong>Unknown</strong>
@@ -63,6 +68,7 @@
                                     <strong>{{ number_format($job->average) ?: '<1' }}</strong> ms
                                 @endif
                             </x-pulse::td>
+                            @endif
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($job->slowest === null)
                                     <strong>Unknown</strong>
