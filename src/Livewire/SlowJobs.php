@@ -37,7 +37,9 @@ class SlowJobs extends Card
                     'average' => 'avg',
                     default => 'max',
                 },
-            )->map(fn ($row) => (object) [
+            )
+            ->reject(fn ($row) => is_null($row->max))
+            ->map(fn ($row) => (object) [
                 'job' => $row->key,
                 'slowest' => $row->max,
                 'average' => $row->avg,
