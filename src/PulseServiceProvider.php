@@ -14,6 +14,7 @@ use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
 use Laravel\Pulse\Contracts\Ingest;
@@ -65,7 +66,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($enabled = $this->app->make('config')->get('pulse.enabled')) {
+        if ($this->app->make('config')->get('pulse.enabled')) {
             $this->app->make(Pulse::class)->register($this->app->make('config')->get('pulse.recorders'));
             $this->listenForEvents();
         } else {
@@ -167,7 +168,13 @@ class PulseServiceProvider extends ServiceProvider
         });
 
         $this->callAfterResolving('livewire', function (LivewireManager $livewire, Application $app) {
-            $livewire->addPersistentMiddleware($app->make('config')->get('pulse.middleware', []));
+            $middleware = collect($app->make('config')->get('pulse.middleware')) // @phpstan-ignore argument.templateType argument.templateType
+                ->map(fn ($middleware) => is_string($middleware)
+                    ? Str::before($middleware, ':')
+                    : $middleware)
+                ->all();
+
+            $livewire->addPersistentMiddleware($middleware);
 
             $livewire->component('pulse.cache', Livewire\Cache::class);
             $livewire->component('pulse.usage', Livewire\Usage::class);

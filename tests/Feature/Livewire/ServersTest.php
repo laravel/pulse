@@ -59,3 +59,31 @@ it('renders server statistics', function () {
             ],
         ]));
 });
+
+it('sorts by server name', function () {
+    $data = [
+        'memory_used' => 1234,
+        'memory_total' => 2468,
+        'cpu' => 99,
+        'storage' => [
+            ['directory' => '/', 'used' => 123, 'total' => 456],
+        ],
+    ];
+    Pulse::set('system', 'b-web', json_encode([
+        'name' => 'B Web',
+        ...$data,
+    ]));
+    Pulse::set('system', 'a-web', json_encode([
+        'name' => 'A Web',
+        ...$data,
+    ]));
+    Pulse::set('system', 'c-web', json_encode([
+        'name' => 'C Web',
+        ...$data,
+    ]));
+
+    Pulse::ingest();
+
+    Livewire::test(Servers::class, ['lazy' => false])
+        ->assertSeeInOrder(['A Web', 'B Web', 'C Web']);
+});
