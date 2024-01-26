@@ -73,11 +73,22 @@ class SlowJobs
         ];
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
-            if (
-                $this->underThreshold($duration = $timestampMs - $lastJobStartedProcessingAt) ||
-                ! $this->shouldSample() ||
-                $this->shouldIgnore($name)
-            ) {
+            if (! $this->shouldSample() || $this->shouldIgnore($name)) {
+                return;
+            }
+
+            $duration = $timestampMs - $lastJobStartedProcessingAt;
+
+            if ($this->config->get('pulse.recorders.'.self::class.'.average')) {
+                $this->pulse->record(
+                    type: 'slow_job',
+                    key: $name,
+                    value: $duration,
+                    timestamp: $timestamp,
+                )->avg();
+            }
+
+            if ($this->underThreshold($duration)) {
                 return;
             }
 
@@ -86,7 +97,7 @@ class SlowJobs
                 key: $name,
                 value: $duration,
                 timestamp: $timestamp,
-            )->max()->avg()->count();
+            )->max()->count();
         });
     }
 }
