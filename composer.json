@@ -32,7 +32,7 @@
         "illuminate/support": "^10.34|^11.0",
         "illuminate/view": "^10.34|^11.0",
         "livewire/livewire": "^3.2",
-        "nesbot/carbon": "^3.0"
+        "nesbot/carbon": "^2.67|^3.0"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^7.7",
