@@ -52,7 +52,7 @@ class SlowRequests
     {
         if (
             ! $request->route() instanceof Route ||
-            $this->underThreshold($duration = $startedAt->diffInMilliseconds()) ||
+            $this->underThreshold($duration = ((int) $startedAt->diffInMilliseconds())) ||
             ! $this->shouldSample()
         ) {
             return;
