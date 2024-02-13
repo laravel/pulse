@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Events;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval;
 
 class SharedBeat
 {
@@ -12,7 +11,7 @@ class SharedBeat
      */
     public function __construct(
         public CarbonImmutable $time,
-        public CarbonInterval $interval,
+        public string $instance,
     ) {
         //
     }

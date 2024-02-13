@@ -3,11 +3,12 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Env;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 use Laravel\Pulse\Events\IsolatedBeat;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
@@ -25,7 +26,7 @@ class CheckCommand extends Command
      *
      * @var string
      */
-    public $signature = 'pulse:check';
+    public $signature = 'pulse:check {--once : Take a single snapshot}';
 
     /**
      * The command's description.
@@ -42,38 +43,36 @@ class CheckCommand extends Command
         CacheStoreResolver $cache,
         Dispatcher $event,
     ): int {
+        $isVapor = (bool) Env::get('VAPOR_SSM_PATH');
+
+        $instance = $isVapor ? 'vapor' : Str::random();
+
         $lastRestart = $cache->store()->get('laravel:pulse:restart');
 
-        $interval = CarbonInterval::seconds(5);
-
-        $lastSnapshotAt = CarbonImmutable::now()->floorSeconds((int) $interval->totalSeconds);
-
         $lock = ($store = $cache->store()->getStore()) instanceof LockProvider
-            ? $store->lock('laravel:pulse:check', (int) $interval->totalSeconds)
+            ? $store->lock('laravel:pulse:check', 1)
             : null;
 
         while (true) {
-            $now = CarbonImmutable::now();
-
-            if ($now->subSeconds((int) $interval->totalSeconds)->lessThan($lastSnapshotAt)) {
-                Sleep::for(500)->milliseconds();
-
-                continue;
-            }
-
             if ($lastRestart !== $cache->store()->get('laravel:pulse:restart')) {
                 return self::SUCCESS;
             }
 
-            $lastSnapshotAt = $now->floorSeconds((int) $interval->totalSeconds);
+            $now = CarbonImmutable::now();
 
             if ($lock?->get()) {
-                $event->dispatch(new IsolatedBeat($lastSnapshotAt, $interval));
+                $event->dispatch(new IsolatedBeat($now));
             }
 
-            $event->dispatch(new SharedBeat($lastSnapshotAt, $interval));
+            $event->dispatch(new SharedBeat($now, $instance));
 
             $pulse->ingest();
+
+            if ($isVapor || $this->option('once')) {
+                return self::SUCCESS;
+            }
+
+            Sleep::until($now->addSecond());
         }
     }
 }

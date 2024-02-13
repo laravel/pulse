@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Events;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterval;
 
 class IsolatedBeat
 {
@@ -12,7 +11,6 @@ class IsolatedBeat
      */
     public function __construct(
         public CarbonImmutable $time,
-        public CarbonInterval $interval,
     ) {
         //
     }
