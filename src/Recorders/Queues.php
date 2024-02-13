@@ -137,7 +137,7 @@ class Queues
     protected function resolveQueue(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): ?string
     {
         return match ($event::class) {
-            JobQueued::class => match(is_object($event->job) ? $event->job::class : $event->job) {
+            JobQueued::class => match (is_object($event->job) ? $event->job::class : $event->job) {
                 CallQueuedListener::class => $this->resolveQueuedListenerQueue($event),
                 default => $event->job->queue ?? null,
             },
