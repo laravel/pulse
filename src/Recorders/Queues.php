@@ -4,12 +4,14 @@ namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Config\Repository;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobReleasedAfterException;
 use Laravel\Pulse\Pulse;
+use ReflectionClass;
 
 /**
  * @internal
@@ -57,10 +59,7 @@ class Queues
                 JobQueued::class => $event->connectionName,
                 default => $event->job->getConnectionName(), // @phpstan-ignore method.nonObject
             },
-            match ($class) {
-                JobQueued::class => $event->job->queue ?? null,
-                default => $event->job->getQueue(), // @phpstan-ignore method.nonObject
-            },
+            $this->resolveQueue($event),
             match ($class) {
                 JobQueued::class => $event->payload()['uuid'], // @phpstan-ignore method.notFound
                 default => $event->job->uuid(), // @phpstan-ignore method.nonObject
@@ -130,5 +129,32 @@ class Queues
         }
 
         return $queue;
+    }
+
+    /**
+     * Resolve the queue.
+     */
+    protected function resolveQueue(JobReleasedAfterException|JobFailed|JobProcessed|JobProcessing|JobQueued $event): ?string
+    {
+        return match ($event::class) {
+            JobQueued::class => match(is_object($event->job) ? $event->job::class : $event->job) {
+                CallQueuedListener::class => $this->resolveQueuedListenerQueue($event),
+                default => $event->job->queue ?? null,
+            },
+            default => $event->job->getQueue(), // @phpstan-ignore method.nonObject
+        };
+    }
+
+    /**
+     * Resolve the queued listeners queue.
+     */
+    protected function resolveQueuedListenerQueue(JobQueued $event): ?string
+    {
+        return with(
+            (new ReflectionClass($event->job->class))->newInstanceWithoutConstructor(), // @phpstan-ignore property.nonObject
+            fn ($listener) => method_exists($listener, 'viaQueue')
+                ? $listener->viaQueue($event->job->data[0] ?? null)
+                : ($listener->queue ?? null)
+        );
     }
 }
