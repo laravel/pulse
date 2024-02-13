@@ -652,6 +652,28 @@ it('uses the connection default queue when a job has no queue specified', functi
     );
 });
 
+it('captures correct queue name for class based queued listeners', function () {
+    Config::set('queue.default', 'database');
+
+    Event::listen('my-event', MyListenerWithCustomQueue::class);
+    Event::listen(MyEvent::class, MyListenerWithCustomQueue::class);
+    Event::listen(MyEvent::class, MyListenerWithViaQueue::class);
+    Event::dispatch('my-event');
+    Event::dispatch(new MyEvent);
+    Pulse::ingest();
+    Artisan::call('queue:work', ['--queue' => 'custom_queue', '--max-jobs' => 3, '--tries' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
+
+    Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
+    $aggregates = queueAggregates();
+    expect($aggregates)->toHaveCount(12);
+    expect($aggregates)->toContainAggregateForAllPeriods(
+        type: ['queued', 'processing', 'processed'],
+        aggregate: 'count',
+        key: 'database:custom_queue',
+        value: '3.00',
+    );
+});
+
 class MyJob implements ShouldQueue
 {
     public function handle()
@@ -745,5 +767,32 @@ class MyJobThatManuallyFails implements ShouldQueue
     public function handle()
     {
         $this->fail();
+    }
+}
+
+class MyListenerWithCustomQueue implements ShouldQueue
+{
+    use InteractsWithQueue;
+
+    public $queue = 'custom_queue';
+
+    public function handle(): void
+    {
+        //
+    }
+}
+
+class MyListenerWithViaQueue implements ShouldQueue
+{
+    use InteractsWithQueue;
+
+    public function handle(): void
+    {
+        //
+    }
+
+    public function viaQueue(object $event)
+    {
+        return 'custom_queue';
     }
 }
