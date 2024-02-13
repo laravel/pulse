@@ -146,7 +146,7 @@ class Queues
     }
 
     /**
-     * Resolve the queued listeners queue.
+     * Resolve the queued listener's queue.
      */
     protected function resolveQueuedListenerQueue(JobQueued $event): ?string
     {
