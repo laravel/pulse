@@ -105,7 +105,7 @@ class Pulse
     /**
      * Register a recorder.
      *
-     * @param  array<class-string, array<mixed>|boolean>  $recorders
+     * @param  array<class-string, array<mixed>|bool>  $recorders
      */
     public function register(array $recorders): self
     {
