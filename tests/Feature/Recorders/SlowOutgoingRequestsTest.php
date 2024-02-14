@@ -23,7 +23,7 @@ it('ingests slow outgoing http requests', function () {
         'key' => json_encode(['GET', 'https://laravel.com']),
         'value' => 0,
     ]);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
         'bucket' => (int) (floor(now()->timestamp / 60) * 60),
