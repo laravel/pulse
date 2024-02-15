@@ -27,7 +27,7 @@ class Servers extends Card
             return $this->values('system')
                 ->map(function ($system, $slug) use ($graphs) {
                     $values = json_decode($system->value, flags: JSON_THROW_ON_ERROR);
-                    if (!CarbonImmutable::createFromTimestamp($system->timestamp)->isAfter(now()->subSeconds(30)) && Config::get('pulse.recorders.' . ServersRecorder::class . '.ignore_offline')) {
+                    if (!CarbonImmutable::createFromTimestamp($system->timestamp)->isAfter(now()->subSeconds(30)) && Config::get('pulse.recorders.' . ServersRecorder::class . '.ignore_offline', false)) {
                         //instead of returning null, we remove the value from the list
                         return null;
                     }
