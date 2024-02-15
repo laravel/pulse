@@ -165,7 +165,7 @@ return [
         Recorders\Servers::class => [
             'server_name' => env('PULSE_SERVER_NAME', gethostname()),
             'ignore_offline' => env('PULSE_SERVER_IGNORE_OFFLINE', false),
-            'ignore_offline_after' => env('PULSE_SERVER_IGNORE_OFFLINE_AFTER', 2),
+            'ignore_offline_after' => env('PULSE_SERVER_IGNORE_OFFLINE_AFTER', 0),
             'directories' => explode(':', env('PULSE_SERVER_DIRECTORIES', '/')),
         ],
 
