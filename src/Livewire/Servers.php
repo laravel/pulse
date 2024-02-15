@@ -7,6 +7,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
 use Livewire\Attributes\Lazy;
 use Livewire\Livewire;
+use Illuminate\Support\Facades\Config;
+use Laravel\Pulse\Recorders\Servers as ServersRecorder;
 
 /**
  * @internal
@@ -25,6 +27,10 @@ class Servers extends Card
             return $this->values('system')
                 ->map(function ($system, $slug) use ($graphs) {
                     $values = json_decode($system->value, flags: JSON_THROW_ON_ERROR);
+                    if (!CarbonImmutable::createFromTimestamp($system->timestamp)->isAfter(now()->subSeconds(30)) && Config::get('pulse.recorders.' . ServersRecorder::class . '.ignore_offline')) {
+                        //instead of returning null, we remove the value from the list
+                        return null;
+                    }
 
                     return (object) [
                         'name' => (string) $values->name,
@@ -38,6 +44,7 @@ class Servers extends Card
                         'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
                     ];
                 })
+                ->filter()
                 ->sortBy('name');
         });
 
