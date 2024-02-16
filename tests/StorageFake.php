@@ -31,7 +31,7 @@ class StorageFake implements Storage
      */
     public function trim(): void
     {
-        //
+        $this->stored = $this->stored->reject(fn($record) => $record->timestamp < now()->subWeek()->timestamp);
     }
 
     /**
