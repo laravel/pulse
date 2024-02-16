@@ -481,4 +481,4 @@ it('collapses values with the same key into a single upsert', function () {
     $values = Pulse::ignore(fn () => DB::table('pulse_values')->get());
     expect($values)->toHaveCount(1);
     expect($values[0]->value)->toBe('345');
-})->only();
+});
