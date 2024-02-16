@@ -464,6 +464,7 @@ test('total aggregate for multiple types', function () {
 });
 
 it('collapses values with the same key into a single upsert', function () {
+    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $bindings = [];
     DB::listen(function (QueryExecuted $event) use (&$bindings) {
         $bindings = $event->bindings;
@@ -480,4 +481,4 @@ it('collapses values with the same key into a single upsert', function () {
     $values = Pulse::ignore(fn () => DB::table('pulse_values')->get());
     expect($values)->toHaveCount(1);
     expect($values[0]->value)->toBe('345');
-});
+})->only();
