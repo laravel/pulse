@@ -34,6 +34,17 @@ it('can filter records', function () {
     expect($storage->stored[1]->key)->toBe('keep');
 });
 
+it('can trim records', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::record('foo', 'delete', 0, now()->subMonth());
+    Pulse::record('foo', 'keep', 0);
+
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+});
+
 it('can lazily capture entries', function () {
     App::instance(Storage::class, $storage = new StorageFake);
 

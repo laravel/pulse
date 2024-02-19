@@ -123,9 +123,12 @@ test('aggregation', function () {
 });
 
 it('combines duplicate count aggregates before upserting', function () {
-    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
-    DB::listen(fn ($query) => $queries[] = $query);
+    DB::listen(function (QueryExecuted $event) use (&$queries) {
+        if (str_starts_with($event->sql, 'insert')) {
+            $queries[] = $event;
+        }
+    });
 
     Pulse::record('type', 'key1')->count();
     Pulse::record('type', 'key1')->count();
@@ -150,9 +153,12 @@ it('combines duplicate count aggregates before upserting', function () {
 });
 
 it('combines duplicate min aggregates before upserting', function () {
-    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
-    DB::listen(fn ($query) => $queries[] = $query);
+    DB::listen(function (QueryExecuted $event) use (&$queries) {
+        if (str_starts_with($event->sql, 'insert')) {
+            $queries[] = $event;
+        }
+    });
 
     Pulse::record('type', 'key1', 200)->min();
     Pulse::record('type', 'key1', 100)->min();
@@ -177,9 +183,12 @@ it('combines duplicate min aggregates before upserting', function () {
 });
 
 it('combines duplicate max aggregates before upserting', function () {
-    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
-    DB::listen(fn ($query) => $queries[] = $query);
+    DB::listen(function (QueryExecuted $event) use (&$queries) {
+        if (str_starts_with($event->sql, 'insert')) {
+            $queries[] = $event;
+        }
+    });
 
     Pulse::record('type', 'key1', 100)->max();
     Pulse::record('type', 'key1', 300)->max();
@@ -204,9 +213,12 @@ it('combines duplicate max aggregates before upserting', function () {
 });
 
 it('combines duplicate sum aggregates before upserting', function () {
-    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
-    DB::listen(fn ($query) => $queries[] = $query);
+    DB::listen(function (QueryExecuted $event) use (&$queries) {
+        if (str_starts_with($event->sql, 'insert')) {
+            $queries[] = $event;
+        }
+    });
 
     Pulse::record('type', 'key1', 100)->sum();
     Pulse::record('type', 'key1', 300)->sum();
@@ -231,9 +243,12 @@ it('combines duplicate sum aggregates before upserting', function () {
 });
 
 it('combines duplicate average aggregates before upserting', function () {
-    Config::set('pulse.ingest.trim.lottery', [0, 1]);
     $queries = collect();
-    DB::listen(fn ($query) => $queries[] = $query);
+    DB::listen(function (QueryExecuted $event) use (&$queries) {
+        if (str_starts_with($event->sql, 'insert')) {
+            $queries[] = $event;
+        }
+    });
 
     Pulse::record('type', 'key1', 100)->avg();
     Pulse::record('type', 'key1', 300)->avg();
@@ -466,7 +481,9 @@ test('total aggregate for multiple types', function () {
 it('collapses values with the same key into a single upsert', function () {
     $bindings = [];
     DB::listen(function (QueryExecuted $event) use (&$bindings) {
-        $bindings = $event->bindings;
+        if (str_starts_with($event->sql, 'insert')) {
+            $bindings = $event->bindings;
+        }
     });
 
     Pulse::set('read_counter', 'post:321', 123);

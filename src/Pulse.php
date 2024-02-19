@@ -311,7 +311,7 @@ class Pulse
             $odds = $this->app->make('config')->get('pulse.ingest.trim.lottery') ?? $this->app->make('config')->get('pulse.ingest.trim_lottery');
 
             Lottery::odds(...$odds)
-                ->winner(fn () => $this->rescue(fn () => $ingest->trim(...)))
+                ->winner(fn () => $this->rescue($ingest->trim(...)))
                 ->choose();
 
             $this->flush();
