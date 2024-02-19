@@ -3,7 +3,6 @@
 use Carbon\CarbonInterval;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 
