@@ -101,7 +101,7 @@ class ValidationErrors
 
         // TODO test this
         return collect($bags)->flatMap(
-            fn ($bag, $bagName) =>  collect($bags[0]->keys())->map(fn ($inputName) => "{$bagName}:{$inputName}")
+            fn ($bag, $bagName) => collect($bag->keys())->map(fn ($inputName) => "{$bagName}:{$inputName}")
         );
     }
 
@@ -118,12 +118,12 @@ class ValidationErrors
             ! is_array($response->original) ||
             ! array_key_exists('errors', $response->original) ||
             ! is_array($response->original['errors']) ||
-            array_is_list($response->original['errors'])
+            array_is_list($errors = $response->original['errors'])
         ) {
             return null;
         }
 
-        return collect($response->original['errors'])->keys();
+        return collect($errors)->keys();
     }
 
     /**
@@ -140,13 +140,19 @@ class ValidationErrors
             ! array_key_exists('props', $response->original) ||
             ! is_array($response->original['props']) ||
             ! array_key_exists('errors', $response->original['props']) ||
-            ! $response->original['props']['errors'] instanceof stdClass
+            ! ($errors = $response->original['props']['errors']) instanceof stdClass
         ) {
             return null;
         }
 
-        // TODO error bags
-        return collect($response->original['props']['errors'])->keys();
+        if (is_string(($errors = collect($errors))->first())) {
+            return $errors->keys();
+        }
+
+        // TODO test this
+        return $errors->flatMap(
+            fn ($bag, $bagName) => collect($bag)->keys()->map(fn ($inputName) => "{$bagName}:{$inputName}")
+        );
     }
 
     /**
