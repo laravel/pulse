@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ViewErrorBag;
 use Laravel\Pulse\Pulse;
 use stdClass;
@@ -58,54 +59,58 @@ class ValidationErrors
                 return;
             }
 
-            foreach ($this->parseValidationErrors($request, $response) as $name) {
-                $this->pulse->record(
-                    'validation_error',
-                    json_encode([$request->method(), $path, $via, $name], flags: JSON_THROW_ON_ERROR),
-                )->count();
-            }
+            $this->parseValidationErrors($request, $response)->each(fn ($name) => $this->pulse->record(
+                'validation_error',
+                json_encode([$request->method(), $path, $via, $name], flags: JSON_THROW_ON_ERROR),
+            )->count());
         });
     }
 
     /**
      * Parse validation errors.
      *
-     * @return array<int, string>
+     * @return \Illuminate\Support\Collection<int, string>
      */
-    protected function parseValidationErrors(Request $request, BaseResponse $response): array
+    protected function parseValidationErrors(Request $request, BaseResponse $response): Collection
     {
         return $this->parseSessionValidationErrors($request, $response)
             ?? $this->parseJsonValidationErrors($request, $response)
             ?? $this->parseInertiaValidationErrors($request, $response)
             ?? $this->parseUnknownValidationErrors($request, $response)
-            ?? [];
+            ?? collect([]);
     }
 
     /**
      * Parse session validation errors.
      *
-     * @return null|array<int, string>
+     * @return null|\Illuminate\Support\Collection<int, string>
      */
-    protected function parseSessionValidationErrors(Request $request, BaseResponse $response): ?array
+    protected function parseSessionValidationErrors(Request $request, BaseResponse $response): ?Collection
     {
         if (
             $response->getStatusCode() !== 302 ||
             ! $request->hasSession() ||
-            ! $request->session()->get('errors', null) instanceof ViewErrorBag
+            ! ($errors = $request->session()->get('errors', null)) instanceof ViewErrorBag
         ) {
             return null;
         }
 
-        // TODO: error bags
-        return $request->session()->get('errors')->keys();
+        if (count($bags = $errors->getBags()) === 1) {
+            return collect($bags[0]->keys());
+        }
+
+        // TODO test this
+        return collect($bags)->flatMap(
+            fn ($bag, $bagName) =>  collect($bags[0]->keys())->map(fn ($inputName) => "{$bagName}:{$inputName}")
+        );
     }
 
     /**
      * Parse JSON validation errors.
      *
-     * @return null|array<int, string>
+     * @return null|\Illuminate\Support\Collection<int, string>
      */
-    protected function parseJsonValidationErrors(Request $request, BaseResponse $response): ?array
+    protected function parseJsonValidationErrors(Request $request, BaseResponse $response): ?Collection
     {
         if (
             $response->getStatusCode() !== 422 ||
@@ -118,15 +123,15 @@ class ValidationErrors
             return null;
         }
 
-        return array_keys($response->original['errors']);
+        return collect($response->original['errors'])->keys();
     }
 
     /**
      * Parse Inertia validation errors.
      *
-     * @return null|array<int, string>
+     * @return null|\Illuminate\Support\Collection<int, string>
      */
-    protected function parseInertiaValidationErrors(Request $request, BaseResponse $response): ?array
+    protected function parseInertiaValidationErrors(Request $request, BaseResponse $response): ?Collection
     {
         if (
             ! $request->header('X-Inertia') ||
@@ -140,20 +145,21 @@ class ValidationErrors
             return null;
         }
 
-        return array_keys((array) $response->original['props']['errors']);
+        // TODO error bags
+        return collect($response->original['props']['errors'])->keys();
     }
 
     /**
      * Parse unknown validation errors.
      *
-     * @return null|array<int, string>
+     * @return null|\Illuminate\Support\Collection<int, string>
      */
-    protected function parseUnknownValidationErrors(Request $request, BaseResponse $response): ?array
+    protected function parseUnknownValidationErrors(Request $request, BaseResponse $response): ?Collection
     {
         if ($response->getStatusCode() !== 422) {
             return null;
         }
 
-        return ['__unknown'];
+        return collect(['__unknown']);
     }
 }
