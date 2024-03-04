@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +11,7 @@ use Laravel\Pulse\Recorders\Servers;
 it('records server information', function () {
     Config::set('pulse.recorders.'.Servers::class.'.server_name', 'Foo');
     Date::setTestNow(Date::now()->startOfMinute());
-    event(app(SharedBeat::class));
+    event(new SharedBeat(CarbonImmutable::now(), 'instance-id'));
     Pulse::ingest();
 
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);

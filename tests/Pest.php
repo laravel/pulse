@@ -37,6 +37,7 @@ uses(TestCase::class)
     })
     ->afterEach(function () {
         Str::createUuidsNormally();
+        Sleep::fake(false);
 
         if (Pulse::wantsIngesting()) {
             throw new RuntimeException('There are pending entries.');
