@@ -4,7 +4,7 @@
 
 ## Required
 
-- [Added a `pulse.recorders.SlowQueries.highlight` configuration option](https://github.com/laravel/pulse/pull/185). You should update your configuration to match.
+- [Added a `pulse.recorders.SlowQueries.highlight` configuration option](https://github.com/laravel/pulse/pull/172). You should update your configuration to match.
 - [`pulse.ingest.trim_lottery` configuration key was renamed to `pulse.ingest.trim.lottery`](https://github.com/laravel/pulse/pull/184). You should update your configuration to match.
 - [Added a `pulse.ingest.trim.keep` configuration option](https://github.com/laravel/pulse/pull/184). You should update your configuration to match.
 
