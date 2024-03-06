@@ -57,7 +57,7 @@ class SlowQueries
 
             $this->pulse->record(
                 type: 'slow_query',
-                key: json_encode([$sql, $location], flags: JSON_THROW_ON_ERROR),
+                key: json_encode([Str::limit($sql, 65000), $location], flags: JSON_THROW_ON_ERROR),
                 value: $duration,
                 timestamp: (int) (($timestampMs - $duration) / 1000),
             )->max()->count();
