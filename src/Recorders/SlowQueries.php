@@ -55,9 +55,13 @@ class SlowQueries
                 return;
             }
 
+            if ($maxSqlLength = $this->config->get('pulse.recorders.'.self::class.'.max_sql_length')) {
+                $sql = Str::limit($sql, $maxSqlLength);
+            }
+
             $this->pulse->record(
                 type: 'slow_query',
-                key: json_encode([Str::limit($sql, 65000), $location], flags: JSON_THROW_ON_ERROR),
+                key: json_encode([$sql, $location], flags: JSON_THROW_ON_ERROR),
                 value: $duration,
                 timestamp: (int) (($timestampMs - $duration) / 1000),
             )->max()->count();
