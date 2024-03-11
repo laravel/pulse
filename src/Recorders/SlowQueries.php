@@ -55,8 +55,8 @@ class SlowQueries
                 return;
             }
 
-            if ($maxSqlLength = $this->config->get('pulse.recorders.'.self::class.'.max_sql_length')) {
-                $sql = Str::limit($sql, $maxSqlLength);
+            if ($maxQueryLength = $this->config->get('pulse.recorders.'.self::class.'.max_query_length')) {
+                $sql = Str::limit($sql, $maxQueryLength);
             }
 
             $this->pulse->record(
