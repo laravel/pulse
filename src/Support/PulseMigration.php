@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Support;
 
-use Illuminate\Database\Connection;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -24,7 +23,7 @@ class PulseMigration extends Migration
      */
     protected function shouldRun(): bool
     {
-        if (in_array($this->driver(), ['mariadb', 'mysql', 'pgsql', 'sqlite'])) {
+        if (in_array($this->driver(), ['mariadb', 'mysql', 'pgsql', 'sqlite', 'sqlsrv'])) {
             return true;
         }
 
