@@ -17,8 +17,10 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_DATABASE: forge
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: pulse
+          MYSQL_USER: pulse
+          MYSQL_PASSWORD: password
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -32,7 +34,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.1, 8.2, 8.3]
-        laravel: [10]
+        laravel: [10, 11]
         stability: [prefer-lowest, prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MySQL 5.7
@@ -61,17 +63,22 @@ jobs:
         run: vendor/bin/pest
         env:
           DB_CONNECTION: mysql
-          DB_USERNAME: root
+          DB_DATABASE: pulse
+          DB_USERNAME: pulse
+          DB_PASSWORD: password
+          DB_COLLATION: utf8mb4_unicode_ci
 
   mariadb:
     runs-on: ubuntu-22.04
 
     services:
       mysql:
-        image: mariadb:10.5
+        image: mariadb:10
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_DATABASE: forge
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: pulse
+          MYSQL_USER: pulse
+          MYSQL_PASSWORD: password
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -85,10 +92,10 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [10]
+        laravel: [11]
         stability: [prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MariaDB 10.5
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MariaDB 10
 
     steps:
       - name: Checkout code
@@ -113,8 +120,10 @@ jobs:
       - name: Execute tests
         run: vendor/bin/pest
         env:
-          DB_CONNECTION: mysql
-          DB_USERNAME: root
+          DB_CONNECTION: mariadb
+          DB_DATABASE: pulse
+          DB_USERNAME: pulse
+          DB_PASSWORD: password
 
   pgsql:
     runs-on: ubuntu-22.04
@@ -123,8 +132,8 @@ jobs:
       postgresql:
         image: postgres:14
         env:
-          POSTGRES_DB: forge
-          POSTGRES_USER: forge
+          POSTGRES_DB: pulse
+          POSTGRES_USER: pulse
           POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
@@ -139,7 +148,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [10]
+        laravel: [11]
         stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - PostgreSQL 14
@@ -169,6 +178,8 @@ jobs:
         run: vendor/bin/pest
         env:
           DB_CONNECTION: pgsql
+          DB_DATABASE: pulse
+          DB_USERNAME: pulse
           DB_PASSWORD: password
 
   sqlite:
@@ -185,7 +196,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [10]
+        laravel: [11]
         stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - SQLite

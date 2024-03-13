@@ -182,7 +182,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('`value` + values(`value`)'),
+                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
                     'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
@@ -202,7 +202,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('least(`value`, values(`value`))'),
+                    'mariadb', 'mysql' => new Expression('least(`value`, values(`value`))'),
                     'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
                     'sqlite' => new Expression('min("pulse_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
@@ -223,7 +223,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('greatest(`value`, values(`value`))'),
+                    'mariadb', 'mysql' => new Expression('greatest(`value`, values(`value`))'),
                     'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
                     'sqlite' => new Expression('max("pulse_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
@@ -244,7 +244,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mysql' => new Expression('`value` + values(`value`)'),
+                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
                     'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
@@ -263,7 +263,7 @@ class DatabaseStorage implements Storage
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             match ($driver = $this->connection()->getDriverName()) {
-                'mysql' => [
+                'mariadb', 'mysql' => [
                     'value' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
                     'count' => new Expression('`count` + values(`count`)'),
                 ],
