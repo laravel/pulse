@@ -55,7 +55,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-           composer update --with=laravel/framework:${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+           composer update --with=laravel/framework:^${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest
@@ -108,7 +108,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-           composer update --with=laravel/framework:${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+           composer update --with=laravel/framework:^${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest
@@ -162,7 +162,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-           composer update --with=laravel/framework:${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+           composer update --with=laravel/framework:^${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest
@@ -207,7 +207,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-           composer update --with=laravel/framework:${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+           composer update --with=laravel/framework:^${{ matrix.laravel }} --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest
