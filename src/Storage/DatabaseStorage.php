@@ -184,6 +184,7 @@ class DatabaseStorage implements Storage
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
                     'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'sqlsrv' => new Expression('value + laravel_source.value'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -205,6 +206,7 @@ class DatabaseStorage implements Storage
                     'mariadb', 'mysql' => new Expression('least(`value`, values(`value`))'),
                     'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
                     'sqlite' => new Expression('min("pulse_aggregates"."value", "excluded"."value")'),
+                    'sqlsrv' => new Expression('least(value, laravel_source.value)'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -226,6 +228,7 @@ class DatabaseStorage implements Storage
                     'mariadb', 'mysql' => new Expression('greatest(`value`, values(`value`))'),
                     'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
                     'sqlite' => new Expression('max("pulse_aggregates"."value", "excluded"."value")'),
+                    'sqlsrv' => new Expression('greatest(value, laravel_source.value)'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -246,6 +249,7 @@ class DatabaseStorage implements Storage
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
                     'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'sqlsrv' => new Expression('value + laravel_source.value'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -270,6 +274,10 @@ class DatabaseStorage implements Storage
                 'pgsql', 'sqlite' => [
                     'value' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
                     'count' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
+                ],
+                'sqlsrv' => [
+                    'value' => new Expression('(value * count + (laravel_source.value * laravel_source.count)) / (count + laravel_source.count)'),
+                    'count' => new Expression('count + laravel_source.count'),
                 ],
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
             }
