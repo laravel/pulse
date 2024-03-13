@@ -230,7 +230,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest --stop-on-error --stop-on-failure
         env:
           DB_CONNECTION: sqlsrv
           DB_DATABASE: master
