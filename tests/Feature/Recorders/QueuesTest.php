@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Queues;
 
+use function Pest\Laravel\freezeTime;
+
 function queueAggregates()
 {
     return Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereIn('type', [
@@ -31,6 +33,10 @@ function queueAggregates()
         'slow_job',
     ])->get());
 }
+
+beforeEach(function () {
+    freezeTime();
+});
 
 it('ingests bus dispatched jobs', function () {
     Config::set('queue.default', 'database');
@@ -376,6 +382,7 @@ it('handles a job throwing exceptions and failing', function () {
     Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
+    // Fail...
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
         aggregate: 'count',
