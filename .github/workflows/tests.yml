@@ -225,3 +225,97 @@ jobs:
         run: vendor/bin/pest
         env:
           DB_CONNECTION: sqlite
+
+  redis-cluster:
+    runs-on: ubuntu-22.04
+
+    services:
+      redis-node-0:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+
+      redis-node-1:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+
+      redis-node-2:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+
+      redis-node-3:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+
+      redis-node-4:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+
+      redis-node-5:
+        image: bitnami/redis-cluster
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+          REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+          REDIS_CLUSTER_REPLICAS: 1
+          REDIS_CLUSTER_CREATOR: yes
+        ports:
+          - 6379:6379
+
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: pulse
+          MYSQL_USER: pulse
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.3]
+        laravel: [11]
+        stability: [prefer-stable]
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - Redis Cluster (with MySQL 5.7)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, redis, pcntl, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install redis-cli
+        run: sudo apt-get install -qq redis-tools
+
+      - name: Install dependencies
+        run: |
+           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+
+      - name: Execute tests
+        run: vendor/bin/pest
+        env:
+          DB_CONNECTION: mysql
+          DB_DATABASE: pulse
+          DB_USERNAME: pulse
+          DB_PASSWORD: password
+          DB_COLLATION: utf8mb4_unicode_ci
+          PULSE_REDIS_CONNECTION: cluster-test

@@ -25,6 +25,8 @@ abstract class TestCase extends OrchestraTestCase
     {
         tap($app['config'], function (Repository $config) {
             $config->set('queue.failed.driver', 'null');
+
+            $config->set('database.redis.clusters.cluster-test.0', $config->get('database.redis.default'));
         });
     }
 }
