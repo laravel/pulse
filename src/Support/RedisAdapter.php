@@ -10,6 +10,7 @@ use Predis\Command\RawCommand;
 use Predis\Pipeline\Pipeline;
 use Predis\Response\ServerException as PredisServerException;
 use Redis as PhpRedis;
+use RedisCluster as PhpRedisCluster;
 
 /**
  * @internal
@@ -113,7 +114,7 @@ class RedisAdapter
     {
         try {
             return tap($this->run($args), function ($result) use ($args) {
-                if ($result === false && $this->client() instanceof PhpRedis) {
+                if ($result === false && ($this->client() instanceof PhpRedis || $this->client() instanceof PhpRedisCluster)) {
                     throw RedisServerException::whileRunningCommand(implode(' ', $args), $this->client()->getLastError() ?? 'An unknown error occurred.');
                 }
             });
@@ -130,7 +131,8 @@ class RedisAdapter
     protected function run(array $args): mixed
     {
         return match (true) {
-            $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
+            $this->client() instanceof PhpRedis,
+            $this->client() instanceof PhpRedisCluster => $this->client()->rawCommand(...$args),
             $this->client() instanceof Predis,
             $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
         };
@@ -139,7 +141,7 @@ class RedisAdapter
     /**
      * Retrieve the Redis client.
      */
-    protected function client(): PhpRedis|Predis|Pipeline
+    protected function client(): PhpRedis|Predis|Pipeline|PhpRedisCluster
     {
         return $this->client ?? $this->connection->client();
     }
