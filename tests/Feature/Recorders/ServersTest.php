@@ -57,7 +57,7 @@ it('can customise CPU and memory resolution', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->get());
     expect($aggregates->count())->toBe(8);
     expect($aggregates->pluck('type')->unique()->values()->all())->toBe(['cpu', 'memory']);
-    expect($aggregates->pluck('value')->unique()->values()->all())->toBe(['987654321.00', '1234.00']);
+    expect($aggregates->pluck('value')->unique()->values()->all())->toEqual(['987654321.00', '1234.00']);
 
     Servers::detectCpuUsing(null);
     Servers::detectMemoryUsing(null);
