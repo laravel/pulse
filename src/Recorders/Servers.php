@@ -51,7 +51,7 @@ class Servers
      *
      * @param  null|(callable(): int)  $callback
      */
-    public static function detectCpuUsing(?callable $callback)
+    public static function detectCpuUsing(?callable $callback): void
     {
         self::$detectCpuUsing = $callback;
     }
@@ -61,7 +61,7 @@ class Servers
      *
      * @param  null|(callable(): array{total: int, used: int})  $callback
      */
-    public static function detectMemoryUsing(?callable $callback)
+    public static function detectMemoryUsing(?callable $callback): void
     {
         self::$detectMemoryUsing = $callback;
     }
