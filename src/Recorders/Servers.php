@@ -59,7 +59,7 @@ class Servers
     /**
      * Detect memory via the given callback.
      *
-     * @param  null|(callable(): array{total: int, used: int})   $callback
+     * @param  null|(callable(): array{total: int, used: int})  $callback
      */
     public static function detectMemoryUsing(?callable $callback)
     {
@@ -130,7 +130,7 @@ class Servers
             'Linux' => intval(`cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'` / 1024),
             'Windows' => intval(((int) trim(`wmic ComputerSystem get TotalPhysicalMemory | more +1`)) / 1024 / 1024),
             'BSD' => intval(`sysctl hw.physmem | grep -Eo '[0-9]+'` / 1024 / 1024),
-default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
+            default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
         $memoryUsed = match (PHP_OS_FAMILY) {
@@ -138,7 +138,7 @@ default => throw new RuntimeException('The pulse:check command does not currentl
             'Linux' => $memoryTotal - intval(`cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'` / 1024), // MB
             'Windows' => $memoryTotal - intval(((int) trim(`wmic OS get FreePhysicalMemory | more +1`)) / 1024), // MB
             'BSD' => intval(intval(`( sysctl vm.stats.vm.v_cache_count | grep -Eo '[0-9]+' ; sysctl vm.stats.vm.v_inactive_count | grep -Eo '[0-9]+' ; sysctl vm.stats.vm.v_active_count | grep -Eo '[0-9]+' ) | awk '{s+=$1} END {print s}'`) * intval(`pagesize`) / 1024 / 1024), // MB
-default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
+            default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
 
         return [
