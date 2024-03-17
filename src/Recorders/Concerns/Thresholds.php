@@ -18,9 +18,10 @@ trait Thresholds
      */
     protected function threshold(string $value): int
     {
+        // @phpstan-ignore argument.templateType, argument.templateType
         $custom = collect($this->config->get('pulse.recorders.'.static::class.'.threshold'))
             ->except(['default'])
-            ->first(fn (int|float $threshold, string $pattern) => preg_match($pattern, $value));
+            ->first(fn ($threshold, string $pattern) => !! preg_match($pattern, $value));
 
         return $custom ?? $this->config->get('pulse.recorders.'.static::class.'.threshold.default');
     }
