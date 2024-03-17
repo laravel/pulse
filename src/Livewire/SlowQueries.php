@@ -15,6 +15,8 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowQueries extends Card
 {
+    use Concerns\HasThreshold;
+
     /**
      * Ordering.
      *
@@ -55,9 +57,19 @@ class SlowQueries extends Card
             'config' => [
                 // TODO remove fallback when tagging v1
                 'highlighting' => true,
-                ...Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
+                ...Config::get('pulse.recorders.'.$this->recorder()),
             ],
             'slowQueries' => $slowQueries,
         ]);
+    }
+
+    /**
+     * Get the recorder class.
+     *
+     * @return  class-string
+     */
+    protected function recorder(): string
+    {
+        return SlowQueriesRecorder::class;
     }
 }

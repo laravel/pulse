@@ -7,8 +7,21 @@ trait Thresholds
     /**
      * Determine if the duration is under the configured threshold.
      */
-    protected function underThreshold(int|float $duration): bool
+    protected function underThreshold(int|float $duration, string $value): bool
     {
-        return $duration < $this->config->get('pulse.recorders.'.static::class.'.threshold');
+        return $duration < $this->threshold($value);
+    }
+
+
+    /**
+     * Get the threshold for the given value.
+     */
+    protected function threshold(string $value): int
+    {
+        $custom = collect($this->config->get('pulse.recorders.'.static::class.'.threshold'))
+            ->except(['default'])
+            ->first(fn (int|float $threshold, string $pattern) => preg_match($pattern, $value));
+
+        return $custom ?? $this->config->get('pulse.recorders.'.static::class.'.threshold.default');
     }
 }

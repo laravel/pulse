@@ -15,6 +15,8 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowRequests extends Card
 {
+    use Concerns\HasThreshold;
+
     /**
      * Ordering.
      *
@@ -55,9 +57,18 @@ class SlowRequests extends Card
             'runAt' => $runAt,
             'slowRequests' => $slowRequests,
             'config' => [
-                'threshold' => Config::get('pulse.recorders.'.SlowRequestsRecorder::class.'.threshold'),
-                'sample_rate' => Config::get('pulse.recorders.'.SlowRequestsRecorder::class.'.sample_rate'),
+                'sample_rate' => Config::get('pulse.recorders.'.$this->recorder().'.sample_rate'),
             ],
         ]);
+    }
+
+    /**
+     * Get the recorder class.
+     *
+     * @return  class-string
+     */
+    protected function recorder(): string
+    {
+        return SlowRequestsRecorder::class;
     }
 }

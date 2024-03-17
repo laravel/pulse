@@ -7,7 +7,7 @@
             default => 'Application Usage'
         }"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $this->usage === 'slow_requests' ? ($slowRequestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
+        details="{{ $this->usage === 'slow_requests' ? ($slowRequestsConfig['threshold']['default'].'ms default threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {

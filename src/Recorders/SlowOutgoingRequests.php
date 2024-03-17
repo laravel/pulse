@@ -56,7 +56,7 @@ class SlowOutgoingRequests
 
         $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
             if (
-                $this->underThreshold($duration = $endedAt - $startedAt) ||
+                $this->underThreshold($duration = $endedAt - $startedAt, $uri) ||
                 ! $this->shouldSample() ||
                 $this->shouldIgnore($uri)
             ) {

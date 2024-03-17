@@ -170,7 +170,11 @@ return [
         Recorders\SlowJobs::class => [
             'enabled' => env('PULSE_SLOW_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_JOBS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_JOBS_THRESHOLD', 1000),
+            'threshold' => [
+                'default' => env('PULSE_SLOW_JOBS_THRESHOLD', 1000),
+                // '/^Package\\\\Jobs\\\\Reports\\\\SlowestReport/' => 2000,
+                // '/^Package\\\\Jobs\\\\Reports\\\\.*$/' => 1500,
+            ],
             'ignore' => [
                 // '/^Package\\\\Jobs\\\\/',
             ],
@@ -179,7 +183,11 @@ return [
         Recorders\SlowOutgoingRequests::class => [
             'enabled' => env('PULSE_SLOW_OUTGOING_REQUESTS_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_OUTGOING_REQUESTS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_OUTGOING_REQUESTS_THRESHOLD', 1000),
+            'threshold' => [
+                'default' => env('PULSE_SLOW_OUTGOING_REQUESTS_THRESHOLD', 1000),
+                // '#^https://api\.github\.com/repos/.*$#' => 1500,
+                // '#^https://api\.github\.com/something-slow$#' => 2000,
+            ],
             'ignore' => [
                 // '#^http://127\.0\.0\.1:13714#', // Inertia SSR...
             ],
@@ -193,7 +201,10 @@ return [
         Recorders\SlowQueries::class => [
             'enabled' => env('PULSE_SLOW_QUERIES_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_QUERIES_THRESHOLD', 1000),
+            'threshold' => [
+                'default' => env('PULSE_SLOW_QUERIES_THRESHOLD', 1000),
+                // '/["`]slow_table["`]/' => 1500,
+            ],
             'location' => env('PULSE_SLOW_QUERIES_LOCATION', true),
             'highlighting' => env('PULSE_SLOW_QUERIES_HIGHLIGHTING', true),
             'max_query_length' => env('PULSE_SLOW_QUERIES_MAX_QUERY_LENGTH', null),
@@ -206,7 +217,10 @@ return [
         Recorders\SlowRequests::class => [
             'enabled' => env('PULSE_SLOW_REQUESTS_ENABLED', true),
             'sample_rate' => env('PULSE_SLOW_REQUESTS_SAMPLE_RATE', 1),
-            'threshold' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
+            'threshold' => [
+                'default' => env('PULSE_SLOW_REQUESTS_THRESHOLD', 1000),
+                // '#/slow-endpoint$#' => 1500,
+            ],
             'ignore' => [
                 '#^/pulse$#', // Pulse dashboard...
                 '#^/telescope#', // Telescope dashboard...

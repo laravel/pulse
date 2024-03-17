@@ -15,6 +15,8 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowJobs extends Card
 {
+    use Concerns\HasThreshold;
+
     /**
      * Ordering.
      *
@@ -47,8 +49,18 @@ class SlowJobs extends Card
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.SlowJobsRecorder::class),
+            'config' => Config::get('pulse.recorders.'.$this->recorder()),
             'slowJobs' => $slowJobs,
         ]);
+    }
+
+    /**
+     * Get the recorder class.
+     *
+     * @return  class-string
+     */
+    protected function recorder(): string
+    {
+        return SlowJobsRecorder::class;
     }
 }
