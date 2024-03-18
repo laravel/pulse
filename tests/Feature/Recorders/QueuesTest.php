@@ -382,7 +382,6 @@ it('handles a job throwing exceptions and failing', function () {
     Pulse::ignore(fn () => expect(Queue::size())->toBe(1));
     $aggregates = queueAggregates();
     expect($aggregates)->toHaveCount(12);
-    // Fail...
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'queued',
         aggregate: 'count',
