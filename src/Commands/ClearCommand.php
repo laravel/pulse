@@ -10,7 +10,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 /**
  * @internal
  */
-#[AsCommand(name: 'pulse:clear')]
+#[AsCommand(name: 'pulse:clear', aliases: ['pulse:purge'])]
 class ClearCommand extends Command
 {
     use ConfirmableTrait;
