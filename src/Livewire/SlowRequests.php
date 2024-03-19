@@ -57,18 +57,16 @@ class SlowRequests extends Card
             'runAt' => $runAt,
             'slowRequests' => $slowRequests,
             'config' => [
-                'sample_rate' => Config::get('pulse.recorders.'.$this->recorder().'.sample_rate'),
+                'sample_rate' => Config::get('pulse.recorders.'.SlowRequestsRecorder::class.'.sample_rate'),
             ],
         ]);
     }
 
     /**
      * Get the recorder class.
-     *
-     * @return  class-string
      */
-    protected function recorder(): string
+    protected function thresholdValue(string $value): int
     {
-        return SlowRequestsRecorder::class;
+        return $this->threshold($value, SlowRequestsRecorder::class);
     }
 }

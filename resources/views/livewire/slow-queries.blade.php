@@ -69,7 +69,7 @@ if ($config['highlighting']) {
                                             </p>
                                         @endif
                                         <p class="px-3 mt-3 text-xs leading-none text-gray-400 dark:text-gray-500">
-                                            {{ $this->threshold($query->sql) }}ms threshold
+                                            {{ $this->thresholdValue($query->sql) }}ms threshold
                                         </p>
                                     </div>
                                     <div class="absolute top-0 right-0 bottom-0 rounded-r-md w-3 bg-gradient-to-r from-transparent to-gray-700 dark:to-gray-800 pointer-events-none"></div>

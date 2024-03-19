@@ -72,7 +72,7 @@
                                     </code>
                                 </div>
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $this->threshold($request->uri) }}ms threshold
+                                    {{ $this->thresholdValue($request->uri) }}ms threshold
                                 </p>
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">

@@ -56,7 +56,7 @@
                                     </p>
                                 @endif
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $this->threshold($slowRequest->uri) }}ms threshold
+                                    {{ $this->thresholdValue($slowRequest->uri) }}ms threshold
                                 </p>
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">

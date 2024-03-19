@@ -57,7 +57,7 @@ class SlowQueries extends Card
             'config' => [
                 // TODO remove fallback when tagging v1
                 'highlighting' => true,
-                ...Config::get('pulse.recorders.'.$this->recorder()),
+                ...Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             ],
             'slowQueries' => $slowQueries,
         ]);
@@ -65,11 +65,9 @@ class SlowQueries extends Card
 
     /**
      * Get the recorder class.
-     *
-     * @return  class-string
      */
-    protected function recorder(): string
+    protected function thresholdValue(string $value): int
     {
-        return SlowQueriesRecorder::class;
+        return $this->threshold($value, SlowQueriesRecorder::class);
     }
 }

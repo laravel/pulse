@@ -54,18 +54,16 @@ class SlowOutgoingRequests extends Card
         return View::make('pulse::livewire.slow-outgoing-requests', [
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.$this->recorder()),
+            'config' => Config::get('pulse.recorders.'.SlowOutgoingRequestsRecorder::class),
             'slowOutgoingRequests' => $slowOutgoingRequests,
         ]);
     }
 
     /**
      * Get the recorder class.
-     *
-     * @return  class-string
      */
-    protected function recorder(): string
+    protected function thresholdValue(string $value): int
     {
-        return SlowOutgoingRequestsRecorder::class;
+        return $this->threshold($value, SlowOutgoingRequestsRecorder::class);
     }
 }

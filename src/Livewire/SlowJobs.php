@@ -49,18 +49,16 @@ class SlowJobs extends Card
         return View::make('pulse::livewire.slow-jobs', [
             'time' => $time,
             'runAt' => $runAt,
-            'config' => Config::get('pulse.recorders.'.$this->recorder()),
+            'config' => Config::get('pulse.recorders.'.SlowJobsRecorder::class),
             'slowJobs' => $slowJobs,
         ]);
     }
 
     /**
      * Get the recorder class.
-     *
-     * @return  class-string
      */
-    protected function recorder(): string
+    protected function thresholdValue(string $value): int
     {
-        return SlowJobsRecorder::class;
+        return $this->threshold($value, SlowJobsRecorder::class);
     }
 }
