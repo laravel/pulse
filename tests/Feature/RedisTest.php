@@ -58,7 +58,9 @@ it('can configure the number of entries to keep when trimming', function ($drive
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
-    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
+    $commands->dump();
+
+    expect($commands)->toContain('"172.18.0.2:6379", "XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
 })->with(['phpredis']);
 
 it('runs the same commands while storing', function ($driver) {
