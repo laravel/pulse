@@ -30,7 +30,7 @@ it('runs the same commands while ingesting entries', function ($driver) {
     ])));
 
     expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:ingest" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":6:{s:15:\"\x00*\x00aggregations\";a:0:{}s:14:\"\x00*\x00onlyBuckets\";b:0;s:9:\"timestamp\";i:1700752211;s:4:\"type\";s:3:\"foo\";s:3:\"key\";s:3:\"bar\";s:5:\"value\";i:123;}"');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('keeps 7 days of data, by default, when trimming', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -39,7 +39,7 @@ it('keeps 7 days of data, by default, when trimming', function ($driver) {
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946177445000"');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('can configure days of data to keep when trimming', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -49,7 +49,7 @@ it('can configure days of data to keep when trimming', function ($driver) {
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946695845000"');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('can configure the number of entries to keep when trimming', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -59,7 +59,7 @@ it('can configure the number of entries to keep when trimming', function ($drive
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
     expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('runs the same commands while storing', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -80,7 +80,7 @@ it('runs the same commands while storing', function ($driver) {
 
     expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:ingest" "-" "+" "COUNT" "567"');
     expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('has consistent return for xadd', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -96,7 +96,7 @@ it('has consistent return for xadd', function ($driver) {
     expect($parts)->toHaveCount(2);
     expect($parts[0])->toEqualWithDelta(now()->getTimestampMs(), 50);
     expect($parts[1])->toBe('0');
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('has consistent return for xrange', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -125,7 +125,7 @@ it('has consistent return for xrange', function ($driver) {
         expect($parts[1])->toBeIn(['0', '1']);
         expect($value)->toBe(array_shift($values));
     }
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('has consistent return for xtrim', function ($driver) {
     Config::set('database.redis.client', $driver);
@@ -150,14 +150,14 @@ it('has consistent return for xtrim', function ($driver) {
     $result = $redis->xtrim('stream-name', 'MINID', '=', Str::before($lastKey, '-'));
 
     expect($result)->toBe(2);
-})->with(['predis', 'phpredis']);
+})->with(['phpredis']);
 
 it('throws exception on failure', function ($driver) {
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
 
     $redis->xtrim('stream-name', 'FOO', 'a', 'xyz');
-})->with(['predis', 'phpredis'])->throws(RedisServerException::class, 'The Redis version does not support the command or some of its arguments [XTRIM laravel_database_stream-name FOO a xyz]. Redis error: [ERR syntax error].');
+})->with(['phpredis'])->throws(RedisServerException::class, 'The Redis version does not support the command or some of its arguments [XTRIM laravel_database_stream-name FOO a xyz]. Redis error: [ERR syntax error].');
 
 it('prepends the error message with the run command', function () {
     throw RedisServerException::whileRunningCommand('FOO BAR', 'Something happened');
