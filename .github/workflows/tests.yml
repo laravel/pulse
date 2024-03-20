@@ -50,7 +50,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: sqlite
 
@@ -139,7 +139,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: mysql
           DB_DATABASE: pulse
