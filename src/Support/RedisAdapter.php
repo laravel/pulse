@@ -132,7 +132,7 @@ class RedisAdapter
     {
         return match (true) {
             $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
-            $this->client() instanceof PhpRedisCluster => $this->client()->rawCommand(['redis-node-0', 6379], ...$args),
+            $this->client() instanceof PhpRedisCluster => $this->client()->rawCommand(['redis-node-5', 6379], ...$args),
             $this->client() instanceof Predis,
             $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
         };
