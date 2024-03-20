@@ -131,8 +131,8 @@ class RedisAdapter
     protected function run(array $args): mixed
     {
         return match (true) {
-            $this->client() instanceof PhpRedis,
-            $this->client() instanceof PhpRedisCluster => $this->client()->rawCommand(...$args),
+            $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
+            $this->client() instanceof PhpRedisCluster => $this->client()->rawCommand('redis-node-0', ...$args),
             $this->client() instanceof Predis,
             $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
         };
