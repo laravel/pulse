@@ -13,7 +13,7 @@ use Laravel\Pulse\Recorders\SlowJobs;
 
 it('records slow jobs', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 100);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 100);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -60,7 +60,7 @@ it('records slow jobs', function () {
 
 it('skips jobs under the threshold', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 200);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 200);
     Str::createUuidsUsingSequence(['e2cb5fa7-6c2e-4bc5-82c9-45e79c3e8fdd']);
 
     /*
@@ -87,7 +87,7 @@ it('skips jobs under the threshold', function () {
 
 it('can ignore jobs', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowJobs::class.'.ignore', [
         '/My/',
     ]);
@@ -115,7 +115,7 @@ it('can ignore jobs', function () {
 
 it('can sample', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowJobs::class.'.sample_rate', 0.1);
 
     /*
@@ -150,7 +150,7 @@ it('can sample', function () {
 
 it('can sample at zero', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowJobs::class.'.sample_rate', 0);
 
     /*
@@ -185,7 +185,7 @@ it('can sample at zero', function () {
 
 it('can sample at one', function () {
     Config::set('queue.default', 'database');
-    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowJobs::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowJobs::class.'.sample_rate', 1);
 
     /*

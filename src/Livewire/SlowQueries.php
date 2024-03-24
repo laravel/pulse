@@ -15,6 +15,8 @@ use Livewire\Attributes\Url;
 #[Lazy]
 class SlowQueries extends Card
 {
+    use Concerns\HasThreshold;
+
     /**
      * Ordering.
      *
@@ -59,5 +61,13 @@ class SlowQueries extends Card
             ],
             'slowQueries' => $slowQueries,
         ]);
+    }
+
+    /**
+     * Get the recorder class.
+     */
+    protected function thresholdValue(string $value): int
+    {
+        return $this->threshold($value, SlowQueriesRecorder::class);
     }
 }

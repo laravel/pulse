@@ -16,7 +16,7 @@ use function Pest\Laravel\post;
 
 it('captures requests over the threshold', function () {
     Date::setTestNow('2000-01-02 03:04:05');
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:09');
     });
@@ -101,7 +101,7 @@ it('captures requests over the threshold', function () {
 
 it('captures slow requests per user', function () {
     Date::setTestNow('2000-01-02 03:04:05');
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:09');
     });
@@ -155,7 +155,7 @@ it('captures slow requests per user', function () {
 });
 
 it('captures requests equal to the threshold', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 1001);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 1001);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:06.001');
@@ -169,7 +169,7 @@ it('captures requests equal to the threshold', function () {
 });
 
 it('ignores requests under the threshold', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 1001);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 1001);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:06.000');
@@ -183,7 +183,7 @@ it('ignores requests under the threshold', function () {
 });
 
 it('can ignore requests based on config', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.ignore', [
         '#^/test-route#',
     ]);
@@ -200,7 +200,7 @@ it('can ignore requests based on config', function () {
 });
 
 it('quietly fails if an exception is thrown while preparing the entry payload', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Date::setTestNow('2000-01-02 03:04:05');
     Pulse::register([ExceptionThrowingRecorder::class => []]);
     $exceptions = [];
@@ -218,7 +218,7 @@ it('quietly fails if an exception is thrown while preparing the entry payload', 
 });
 
 it('ignores livewire update requests from an ignored path', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::post('livewire/update', function () {
         Date::setTestNow('2000-01-02 03:04:09');
@@ -245,7 +245,7 @@ it('ignores livewire update requests from an ignored path', function () {
 });
 
 it('captures the requests "via" route when using livewire', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::post('livewire/update', function () {
         Date::setTestNow('2000-01-02 03:04:09');
@@ -342,7 +342,7 @@ it('captures the requests "via" route when using livewire', function () {
 });
 
 it('only records known routes', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Date::setTestNow('2000-01-02 03:04:05');
 
     get('some-route-that-does-not-exit')->assertNotFound();
@@ -353,7 +353,7 @@ it('only records known routes', function () {
 });
 
 it('handles routes with domains', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::domain('{account}.example.com')->get('users', fn () => 'account users');
     Route::get('users', fn () => 'global users');
@@ -371,7 +371,7 @@ it('handles routes with domains', function () {
 });
 
 it('can sample', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.sample_rate', 0.1);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
@@ -393,7 +393,7 @@ it('can sample', function () {
 });
 
 it('can sample at zero', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.sample_rate', 0);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
@@ -417,7 +417,7 @@ it('can sample at zero', function () {
 });
 
 it('can sample at one', function () {
-    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold.default', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.sample_rate', 1);
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {

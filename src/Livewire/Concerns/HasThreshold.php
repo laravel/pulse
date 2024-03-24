@@ -1,24 +1,18 @@
 <?php
 
-namespace Laravel\Pulse\Recorders\Concerns;
+namespace Laravel\Pulse\Livewire\Concerns;
 
-trait Thresholds
+use Illuminate\Support\Facades\Config;
+
+trait HasThreshold
 {
     /**
-     * Determine if the duration is under the configured threshold.
-     */
-    protected function underThreshold(int|float $duration, string $value): bool
-    {
-        return $duration < $this->threshold($value);
-    }
-
-
-    /**
      * Get the threshold for the given value.
+     * @param  class-string  $recorder
      */
-    protected function threshold(string $value): int
+    public function threshold(string $value, string $recorder): int
     {
-        $thresholdConfig = $this->config->get('pulse.recorders.'.static::class.'.threshold');
+        $thresholdConfig = Config::get('pulse.recorders.'.$recorder.'.threshold');
         if (!is_array($thresholdConfig)) {
             return $thresholdConfig;
         }

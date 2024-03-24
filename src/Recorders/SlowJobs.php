@@ -74,7 +74,7 @@ class SlowJobs
 
         $this->pulse->lazy(function () use ($timestamp, $timestampMs, $name, $lastJobStartedProcessingAt) {
             if (
-                $this->underThreshold($duration = $timestampMs - $lastJobStartedProcessingAt) ||
+                $this->underThreshold($duration = $timestampMs - $lastJobStartedProcessingAt, $name) ||
                 ! $this->shouldSample() ||
                 $this->shouldIgnore($name)
             ) {

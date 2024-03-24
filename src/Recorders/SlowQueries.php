@@ -48,7 +48,7 @@ class SlowQueries
 
         $this->pulse->lazy(function () use ($timestampMs, $duration, $sql, $location) {
             if (
-                $this->underThreshold($duration) ||
+                $this->underThreshold($duration, $sql) ||
                 ! $this->shouldSample() ||
                 $this->shouldIgnore($sql)
             ) {

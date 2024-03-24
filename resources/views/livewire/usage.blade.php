@@ -1,3 +1,11 @@
+@php
+    $thresholdConfig = $slowRequestsConfig['threshold'];
+    $thresholdValue = is_array($thresholdConfig) ? $thresholdConfig['default'] : $thresholdConfig;
+    $thresholdDisclaimer = is_array($thresholdConfig) && count($thresholdConfig) > 1 ?
+        "You are using customised thresholds.\nMaybe some requests with customised threshold not be shown" :
+        '';
+@endphp
+
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         :name="match ($this->type) {
@@ -7,7 +15,7 @@
             default => 'Application Usage'
         }"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
-        details="{{ $this->usage === 'slow_requests' ? ($slowRequestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
+        details="{{ $this->usage === 'slow_requests' ? ($thresholdValue.'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
             <x-dynamic-component :component="'pulse::icons.' . match ($this->type) {
@@ -30,6 +38,11 @@
                     class="flex-1"
                     @change="loading = true"
                 />
+            @endif
+            @if ($this->usage === 'slow_requests' && $thresholdDisclaimer)
+                <button title="{{ $thresholdDisclaimer }}" @click="alert('{{ str_replace("\n", '\n', $thresholdDisclaimer) }}')">
+                    <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
+                </button>
             @endif
         </x-slot:actions>
     </x-pulse::card-header>
