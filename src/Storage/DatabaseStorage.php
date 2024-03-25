@@ -447,7 +447,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @param  list<string>  $keys  
+     * @param  list<string>|null  $keys  
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval, ?array $keys = null): Collection
@@ -469,10 +469,10 @@ class DatabaseStorage implements Storage
 
         $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
 
-        return $this->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
+        return $this->connection()->table('pulse_aggregates')
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
-            ->when($keys, fn($query) => $query->whereIn('key_hash', collect($keys)->map(fn($key) => hex2bin(md5($key)))))
+            ->when($keys, fn ($query) => $query->whereIn('key_hash', collect($keys)->map(fn ($key) => hex2bin(md5($key)))))
             ->where('aggregate', $aggregate)
             ->where('period', $period)
             ->where('bucket', '>=', $firstBucket)
