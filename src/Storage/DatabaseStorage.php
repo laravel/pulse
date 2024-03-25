@@ -447,9 +447,10 @@ class DatabaseStorage implements Storage
      *
      * @param  list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
+     * @param  list<string>  $keys  
      * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
      */
-    public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
+    public function graph(array $types, string $aggregate, CarbonInterval $interval, ?array $keys = null): Collection
     {
         if (! in_array($aggregate, $allowed = ['count', 'min', 'max', 'sum', 'avg'])) {
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
@@ -471,6 +472,7 @@ class DatabaseStorage implements Storage
         return $this->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
+            ->when($keys, fn($query) => $query->whereIn('key_hash', collect($keys)->map(fn($key) => hex2bin(md5($key)))))
             ->where('aggregate', $aggregate)
             ->where('period', $period)
             ->where('bucket', '>=', $firstBucket)
