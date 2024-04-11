@@ -147,6 +147,7 @@ return [
 
         Recorders\Exceptions::class => [
             'enabled' => env('PULSE_EXCEPTIONS_ENABLED', true),
+            'tags_enabled' => env('PULSE_EXCEPTIONS_TAGS_ENABLED', true),
             'sample_rate' => env('PULSE_EXCEPTIONS_SAMPLE_RATE', 1),
             'location' => env('PULSE_EXCEPTIONS_LOCATION', true),
             'ignore' => [

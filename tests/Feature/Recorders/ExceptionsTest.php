@@ -61,7 +61,7 @@ it('can disable capturing the location', function () {
         'value' => now()->timestamp,
     ]);
     $key = json_decode($entries[0]->key);
-    expect($key)->toBe(['RuntimeException', null]);
+    expect($key)->toBe(['RuntimeException', null, []]);
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(8);
     expect($aggregates[0])->toHaveProperties([
@@ -72,7 +72,7 @@ it('can disable capturing the location', function () {
         'value' => 1,
     ]);
     $key = json_decode($aggregates[0]->key);
-    expect($key)->toBe(['RuntimeException', null]);
+    expect($key)->toBe(['RuntimeException', null, []]);
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) (floor(now()->timestamp / 60) * 60),
         'period' => 60,
@@ -81,7 +81,7 @@ it('can disable capturing the location', function () {
         'value' => now()->timestamp,
     ]);
     $key = json_decode($aggregates[1]->key);
-    expect($key)->toBe(['RuntimeException', null]);
+    expect($key)->toBe(['RuntimeException', null, []]);
 });
 
 it('can manually report exceptions', function () {
@@ -161,6 +161,27 @@ it('can sample at one', function () {
     report(new MyReportedException());
 
     expect(Pulse::ingest())->toBe(10);
+});
+
+it('can tag exceptions', function () {
+    Pulse::tag(fn () => 'tag1');
+    Pulse::tag(fn () => 'tag2');
+
+    report(new MyReportedException('Hello, Pulse!'));
+    Pulse::ingest();
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $key = json_decode($entries[0]->key);
+
+    expect($entries)->toHaveCount(1);
+    expect($entries[0])->toHaveProperties([
+        'timestamp' => now()->timestamp,
+        'type' => 'exception',
+        'value' => now()->timestamp,
+    ]);
+    expect($key[0])->toBe('MyReportedException');
+    expect($key[1])->toStartWith(__FILE__ . ':');
+    expect($key[2])->toBe(["tag1", "tag2"]);
 });
 
 class MyReportedException extends Exception

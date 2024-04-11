@@ -58,11 +58,16 @@ class Exceptions
                 ? $this->resolveLocation($e)
                 : null;
 
+            $key = [$class, $location];
+            if ($this->config->get('pulse.recorders.' . self::class . '.tags_enabled')) {
+                $key[] = $this->pulse->resolveTags();
+            }
+
             $this->pulse->record(
                 type: 'exception',
-                key: json_encode([$class, $location], flags: JSON_THROW_ON_ERROR),
-                timestamp: $timestamp,
+                key: json_encode($key, flags: JSON_THROW_ON_ERROR),
                 value: $timestamp,
+                timestamp: $timestamp,
             )->max()->count();
         });
     }

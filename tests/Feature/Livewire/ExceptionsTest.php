@@ -36,7 +36,37 @@ it('renders exceptions', function () {
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now()],
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now()],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now(), 'tags' => null],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now(), 'tags' => null],
+        ]));
+});
+
+it('renders exceptions with tags', function () {
+    $exception1 = json_encode(['RuntimeException', 'app/Foo.php:123', ['tag1', 'tag2']]);
+    $exception2 = json_encode(['RuntimeException', 'app/Bar.php:123', ['tag1', 'tag2']]);
+
+    // Add entries outside of the window.
+    Carbon::setTestNow('2000-01-01 12:00:00');
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
+
+    // Add entries to the "tail".
+    Carbon::setTestNow('2000-01-01 12:00:01');
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
+
+    // Add entries to the current buckets.
+    Carbon::setTestNow('2000-01-01 13:00:00');
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception1, now()->timestamp)->max()->count();
+    Pulse::record('exception', $exception2, now()->timestamp)->max()->count();
+
+    Pulse::ingest();
+
+    Livewire::test(Exceptions::class, ['lazy' => false])
+        ->assertViewHas('exceptions', collect([
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now(), 'tags' => ['tag1', 'tag2']],
+            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now(), 'tags' => ['tag1', 'tag2']],
         ]));
 });

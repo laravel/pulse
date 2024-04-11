@@ -29,6 +29,8 @@ class Exceptions extends Card
      */
     public function render(): Renderable
     {
+        $isTagsEnabled = Config::get('pulse.recorders.'.ExceptionsRecorder::class.'.tags_enabled');
+
         [$exceptions, $time, $runAt] = $this->remember(
             fn () => $this->aggregate(
                 'exception',
@@ -37,12 +39,12 @@ class Exceptions extends Card
                     'latest' => 'max',
                     default => 'count'
                 },
-            )->map(function ($row) {
-                [$class, $location] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
-
+            )->map(function ($row) use ($isTagsEnabled) {
+                $keys = json_decode(json: $row->key,associative: true, flags: JSON_THROW_ON_ERROR);
                 return (object) [
-                    'class' => $class,
-                    'location' => $location,
+                    'class' => $keys[0],
+                    'location' => $keys[1],
+                    'tags' => $isTagsEnabled ? ($keys[2] ?? null) : null,
                     'latest' => CarbonImmutable::createFromTimestamp($row->max),
                     'count' => $row->count,
                 ];

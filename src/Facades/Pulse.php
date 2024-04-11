@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static mixed ignore(callable $callback)
  * @method static \Laravel\Pulse\Pulse flush()
  * @method static \Laravel\Pulse\Pulse filter(callable $filter)
+ * @method static \Laravel\Pulse\Pulse tag(callable $tag)
  * @method static int ingest()
  * @method static int digest()
  * @method static bool wantsIngesting()

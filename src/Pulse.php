@@ -63,6 +63,13 @@ class Pulse
     protected Collection $filters;
 
     /**
+     * The list of tags.
+     *
+     * @var \Illuminate\Support\Collection<int, callable(): string>
+     */
+    protected Collection $tags;
+
+    /**
      * The remembered user's ID.
      */
     protected int|string|null $rememberedUserId = null;
@@ -97,6 +104,7 @@ class Pulse
     public function __construct(protected Application $app)
     {
         $this->filters = collect([]);
+        $this->tags = collect([]);
         $this->recorders = collect([]);
         $this->entries = collect([]);
         $this->lazy = collect([]);
@@ -281,6 +289,26 @@ class Pulse
         $this->filters[] = $filter;
 
         return $this;
+    }
+
+    /**
+     * Tag the items.
+     *
+     * @param callable(): string $tag
+     */
+    public function tag(callable $tag): self
+    {
+        $this->tags[] = $tag;
+
+        return $this;
+    }
+
+    /**
+     * Resolve the tags for the given entry.
+     */
+    public function resolveTags(): array
+    {
+        return $this->tags->map(fn ($tag) => $tag())->all();
     }
 
     /**

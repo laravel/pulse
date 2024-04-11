@@ -49,6 +49,16 @@
                                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $exception->location }}">
                                         {{ $exception->location }}
                                     </p>
+                                    @if ($exception->tags)
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+                                            Tags:
+                                            @foreach ($exception->tags as $tag)
+                                                <span class="inline-block px-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 mr-1">
+                                                {{ $tag }}
+                                                </span>
+                                            @endforeach
+                                        </p>
+                                    @endif
                                 </x-pulse::td>
                                 <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                     {{ $exception->latest->ago(syntax: Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) }}
