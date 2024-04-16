@@ -305,6 +305,8 @@ class Pulse
 
     /**
      * Resolve the tags for the given entry.
+     *
+     * @return array<string>
      */
     public function resolveTags(): array
     {
