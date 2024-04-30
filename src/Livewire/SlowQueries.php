@@ -53,7 +53,6 @@ class SlowQueries extends Card
             'time' => $time,
             'runAt' => $runAt,
             'config' => [
-                // TODO remove fallback when tagging v1
                 'highlighting' => true,
                 ...Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             ],
