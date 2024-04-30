@@ -24,6 +24,11 @@ class SlowQueries extends Card
     public string $orderBy = 'slowest';
 
     /**
+     * Indicates that SQL highlighting should be disabled.
+     */
+    public bool $disableHighlighting = false;
+
+    /**
      * Render the component.
      */
     public function render(): Renderable
@@ -52,10 +57,7 @@ class SlowQueries extends Card
         return View::make('pulse::livewire.slow-queries', [
             'time' => $time,
             'runAt' => $runAt,
-            'config' => [
-                'highlighting' => true,
-                ...Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
-            ],
+            'config' => Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             'slowQueries' => $slowQueries,
         ]);
     }
