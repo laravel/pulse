@@ -36,6 +36,7 @@
         "nesbot/carbon": "^2.67|^3.0"
     },
     "require-dev": {
+        "cachewerk/relay": "^0.7.0",
         "guzzlehttp/guzzle": "^7.7",
         "mockery/mockery": "^1.0",
         "orchestra/testbench": "^8.23.1|^9.0",
