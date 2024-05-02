@@ -134,7 +134,7 @@ class RedisAdapter
             $this->client() instanceof PhpRedis => $this->client()->rawCommand(...$args),
             $this->client() instanceof Relay => $this->client()->rawCommand(...$args),
             $this->client() instanceof Predis,
-                $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
+            $this->client() instanceof Pipeline => $this->client()->executeCommand(RawCommand::create(...$args)),
         };
     }
 
