@@ -26,6 +26,13 @@ class SlowQueries extends Card
     /**
      * Indicates that SQL highlighting should be disabled.
      */
+    public bool $withoutHighlighting = false;
+
+    /**
+     * Indicates that SQL highlighting should be disabled.
+     *
+     * @deprecated
+     */
     public bool $disableHighlighting = false;
 
     /**
@@ -60,5 +67,13 @@ class SlowQueries extends Card
             'config' => Config::get('pulse.recorders.'.SlowQueriesRecorder::class),
             'slowQueries' => $slowQueries,
         ]);
+    }
+
+    /**
+     * Determine if the view should highlight SQL queries.
+     */
+    protected function wantsHighlighting(): bool
+    {
+        return ! ($this->withoutHighlighting || $this->disableHighlighting);
     }
 }
