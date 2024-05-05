@@ -60,7 +60,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: mysql
           DB_DATABASE: pulse
@@ -118,7 +118,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: mariadb
           DB_DATABASE: pulse
@@ -175,7 +175,7 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: pgsql
           DB_DATABASE: pulse
@@ -222,6 +222,6 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest -vvv
         env:
           DB_CONNECTION: sqlite
