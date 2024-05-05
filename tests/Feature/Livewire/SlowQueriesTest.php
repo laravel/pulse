@@ -42,11 +42,10 @@ it('renders slow queries', function () {
 });
 
 it('highlights SQL queries', function () {
+    Carbon::setTestNow('2000-01-01 13:00:00');
     $query = json_encode(['select * from `users`', 'app/Foo.php:123']);
 
-    Carbon::setTestNow('2000-01-01 13:00:00');
     Pulse::record('slow_query', $query, 1000)->max()->count();
-
     Pulse::ingest();
 
     Livewire::test(SlowQueries::class, ['lazy' => false])
@@ -56,11 +55,10 @@ it('highlights SQL queries', function () {
 });
 
 it('can opt out of syntax highlighting', function () {
+    Carbon::setTestNow('2000-01-01 13:00:00');
     $query = json_encode(['select * from `users`', 'app/Foo.php:123']);
 
-    Carbon::setTestNow('2000-01-01 13:00:00');
     Pulse::record('slow_query', $query, 1000)->max()->count();
-
     Pulse::ingest();
 
     Livewire::test(SlowQueries::class, ['lazy' => false, 'withoutHighlighting' => true])
@@ -70,11 +68,10 @@ it('can opt out of syntax highlighting', function () {
 });
 
 it('can opt out of syntax highlighting with deprecated property', function () {
+    Carbon::setTestNow('2000-01-01 13:00:00');
     $query = json_encode(['select * from `users`', 'app/Foo.php:123']);
 
-    Carbon::setTestNow('2000-01-01 13:00:00');
     Pulse::record('slow_query', $query, 1000)->max()->count();
-
     Pulse::ingest();
 
     Livewire::test(SlowQueries::class, ['lazy' => false, 'disableHighlighting' => true])
