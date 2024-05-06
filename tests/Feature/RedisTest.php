@@ -16,7 +16,8 @@ use Tests\StorageFake;
 
 $drivers = ['predis', 'phpredis', 'relay'];
 
-function skipWhenExtensionMissing($driver) {
+function skipWhenExtensionMissing($driver)
+{
     $extension = match ($driver) {
         'phpredis' => 'redis',
         default => $driver,
