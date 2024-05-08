@@ -119,6 +119,10 @@ class PulseServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
                 $event->listen(function (Logout $event) use ($app) {
+                    if ($event->user === null) {
+                        return;
+                    }
+
                     $pulse = $app->make(Pulse::class);
 
                     $pulse->rescue(fn () => $pulse->rememberUser($event->user));

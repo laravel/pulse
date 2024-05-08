@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Facade;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
@@ -244,6 +246,13 @@ it('strips arguments from persistent middleware', function () {
 
     expect($persistentMiddleware)->toContain(MyTestMiddleware::class);
     expect($persistentMiddleware)->not->toContain(MyTestMiddleware::class.':admin');
+});
+
+it('handles logout events when there is no user', function () {
+    // This will throw a type error when unhandled...
+    Event::dispatch(new Logout('session', user: null));
+
+    expect(true)->toBe(true);
 });
 
 class MyTestMiddleware
