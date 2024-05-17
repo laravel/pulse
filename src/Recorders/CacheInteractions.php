@@ -5,7 +5,6 @@ namespace Laravel\Pulse\Recorders;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
-use Illuminate\Config\Repository;
 use Laravel\Pulse\Pulse;
 
 /**
@@ -30,7 +29,6 @@ class CacheInteractions
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Repository $config,
     ) {
         //
     }

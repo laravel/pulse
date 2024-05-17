@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Config\Repository;
 use Illuminate\Queue\Events\JobQueued;
 use Laravel\Pulse\Pulse;
 
@@ -28,7 +27,6 @@ class UserJobs
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Repository $config,
     ) {
         //
     }

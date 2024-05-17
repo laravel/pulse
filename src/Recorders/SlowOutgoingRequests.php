@@ -4,7 +4,6 @@ namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
 use GuzzleHttp\Promise\RejectedPromise;
-use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Factory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
@@ -29,7 +28,6 @@ class SlowOutgoingRequests
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Repository $config,
     ) {
         //
     }

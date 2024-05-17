@@ -2,6 +2,8 @@
 
 namespace Laravel\Pulse\Recorders\Concerns;
 
+use Illuminate\Support\Facades\Config;
+
 trait Groups
 {
     /**
@@ -9,7 +11,7 @@ trait Groups
      */
     protected function group(string $value): string
     {
-        foreach ($this->config->get('pulse.recorders.'.static::class.'.groups', []) as $pattern => $replacement) {
+        foreach (Config::get('pulse.recorders.'.static::class.'.groups', []) as $pattern => $replacement) {
             $group = preg_replace($pattern, $replacement, $value, count: $count);
 
             if ($count > 0 && $group !== null) {

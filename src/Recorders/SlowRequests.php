@@ -2,7 +2,6 @@
 
 namespace Laravel\Pulse\Recorders;
 
-use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -28,7 +27,6 @@ class SlowRequests
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Repository $config,
     ) {
         //
     }

@@ -21,7 +21,7 @@ trait Thresholds
     {
         $recorder ??= static::class;
 
-        $config = Config::get("pulse.recorders.{$recorder}.threshold");
+        $config = Config::get("pulse.recorders.{$recorder}.threshold", 1_000);
 
         if (! is_array($config)) {
             return $config;

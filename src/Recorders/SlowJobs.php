@@ -3,7 +3,6 @@
 namespace Laravel\Pulse\Recorders;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Config\Repository;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -39,7 +38,6 @@ class SlowJobs
      */
     public function __construct(
         protected Pulse $pulse,
-        protected Repository $config,
     ) {
         //
     }
