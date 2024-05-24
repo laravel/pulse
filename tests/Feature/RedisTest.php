@@ -16,7 +16,7 @@ use Tests\StorageFake;
 
 $drivers = ['predis', 'phpredis', 'relay'];
 
-function skipWhenExtensionMissing($driver)
+function prepareForDriver($driver)
 {
     $extension = match ($driver) {
         'phpredis' => 'redis',
@@ -29,6 +29,11 @@ function skipWhenExtensionMissing($driver)
             ? test()->markTestSkipped("PHP extension [{$extension}] missing for Redis driver [{$driver}].")
             : null,
     };
+
+    // Relay version 0.8.0 introduced a breaking change that requires the port be an integer.
+    if ($driver === 'relay') {
+        Config::set('database.redis.default.port', (int) Config::get('database.redis.default.port'));
+    };
 }
 
 beforeEach(function () {
@@ -40,7 +45,7 @@ beforeEach(function () {
 });
 
 it('runs the same commands while ingesting entries', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
 
@@ -52,7 +57,7 @@ it('runs the same commands while ingesting entries', function ($driver) {
 })->with($drivers);
 
 it('keeps 7 days of data, by default, when trimming', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
@@ -63,7 +68,7 @@ it('keeps 7 days of data, by default, when trimming', function ($driver) {
 })->with($drivers);
 
 it('can configure days of data to keep when trimming', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
@@ -75,7 +80,7 @@ it('can configure days of data to keep when trimming', function ($driver) {
 })->with($drivers);
 
 it('can configure the number of entries to keep when trimming', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
@@ -87,7 +92,7 @@ it('can configure the number of entries to keep when trimming', function ($drive
 })->with($drivers);
 
 it('runs the same commands while storing', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     Config::set('pulse.ingest.redis.chunk', 567);
@@ -110,7 +115,7 @@ it('runs the same commands while storing', function ($driver) {
 })->with($drivers);
 
 it('has consistent return for xadd', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
@@ -128,7 +133,7 @@ it('has consistent return for xadd', function ($driver) {
 })->with($drivers);
 
 it('has consistent return for xrange', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
@@ -159,7 +164,7 @@ it('has consistent return for xrange', function ($driver) {
 })->with($drivers);
 
 it('has consistent return for xtrim', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
@@ -186,7 +191,7 @@ it('has consistent return for xtrim', function ($driver) {
 })->with($drivers);
 
 it('throws exception on failure', function ($driver) {
-    skipWhenExtensionMissing($driver);
+    prepareForDriver($driver);
 
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
