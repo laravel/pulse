@@ -33,7 +33,7 @@ function prepareForDriver($driver)
     // Relay version 0.8.0 introduced a breaking change that requires the port be an integer.
     if ($driver === 'relay') {
         Config::set('database.redis.default.port', (int) Config::get('database.redis.default.port'));
-    };
+    }
 }
 
 beforeEach(function () {
