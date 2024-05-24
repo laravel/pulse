@@ -5,7 +5,7 @@ namespace Laravel\Pulse\Commands;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Cache\LockProvider;
-use Illuminate\Events\Dispatcher;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Env;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
