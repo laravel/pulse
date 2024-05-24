@@ -2,7 +2,7 @@
 
 namespace Laravel\Pulse\Recorders;
 
-use Illuminate\Config\Repository;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
