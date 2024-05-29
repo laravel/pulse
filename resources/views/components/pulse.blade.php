@@ -6,7 +6,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>Laravel Pulse</title>
+        <title inertia>{{ config('app.name') }} Pulse</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -34,7 +34,7 @@
                                     </linearGradient>
                                 </defs>
                             </svg>
-                            <span class="ml-2 text-lg sm:text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">Laravel</b> Pulse</span>
+                            <span class="ml-2 text-lg sm:text-2xl text-gray-700 dark:text-gray-300 font-medium"><b class="font-bold">{{ config('app.name') }}</b> Pulse</span>
                         </div>
                         <div class="flex items-center gap-3 sm:gap-6">
                             <livewire:pulse.period-selector />
