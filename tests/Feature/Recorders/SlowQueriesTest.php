@@ -14,7 +14,7 @@ it('ingests queries', function () {
         $event->time = 5000;
     });
 
-    DB::connection()->statement('select * from users');
+    DB::connection()->statement($sql = 'select * from '.DB::getTablePrefix().'users');
 
     Pulse::ingest();
 
@@ -26,7 +26,7 @@ it('ingests queries', function () {
         'value' => 5000,
     ]);
     $key = json_decode($entries[0]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->not->toBeNull();
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
@@ -38,7 +38,7 @@ it('ingests queries', function () {
         'value' => 1,
     ]);
     $key = json_decode($aggregates[0]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->not->toBeNull();
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
@@ -48,7 +48,7 @@ it('ingests queries', function () {
         'value' => 5000,
     ]);
     $key = json_decode($aggregates[1]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->not->toBeNull();
 });
 
@@ -59,7 +59,8 @@ it('can disable capturing the location', function () {
         $event->time = 5000;
     });
 
-    DB::connection()->statement('select * from users');
+    DB::connection()->statement($sql = 'select * from '.DB::getTablePrefix().'users');
+
     Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
@@ -70,7 +71,7 @@ it('can disable capturing the location', function () {
         'value' => 5000,
     ]);
     $key = json_decode($entries[0]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->toBeNull();
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->get());
     expect($aggregates)->toHaveCount(8);
@@ -82,7 +83,7 @@ it('can disable capturing the location', function () {
         'value' => 1,
     ]);
     $key = json_decode($aggregates[0]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->toBeNull();
     expect($aggregates[1])->toHaveProperties([
         'bucket' => (int) (floor((now()->timestamp - 5) / 60) * 60),
@@ -92,7 +93,7 @@ it('can disable capturing the location', function () {
         'value' => 5000,
     ]);
     $key = json_decode($aggregates[1]->key);
-    expect($key[0])->toBe('select * from users');
+    expect($key[0])->toBe($sql);
     expect($key[1])->toBeNull();
 });
 
@@ -130,7 +131,7 @@ it('can configure threshold per query', function () {
     expect($entries[0]->key)->toContain('one_second_threshold');
     expect($entries[0]->value)->toBe(1_000);
 
-    DB::table('pulse_entries')->delete();
+    Pulse::ignore(fn () => DB::table('pulse_entries')->delete());
 
     $queryDuration = 2_000;
     DB::pretend(function () {

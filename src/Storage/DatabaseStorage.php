@@ -179,7 +179,9 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression(<<<SQL
+                        {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
+                        SQL),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -199,8 +201,12 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('least(`value`, values(`value`))'),
-                    'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
-                    'sqlite' => new Expression('min("pulse_aggregates"."value", "excluded"."value")'),
+                    'pgsql' => new Expression(<<<SQL
+                        least({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
+                        SQL),
+                    'sqlite' => new Expression(<<<SQL
+                        min({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
+                        SQL),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -220,8 +226,12 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('greatest(`value`, values(`value`))'),
-                    'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
-                    'sqlite' => new Expression('max("pulse_aggregates"."value", "excluded"."value")'),
+                    'pgsql' => new Expression(<<<SQL
+                        greatest({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
+                        SQL),
+                    'sqlite' => new Expression(<<<SQL
+                        max({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
+                        SQL),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -241,7 +251,9 @@ class DatabaseStorage implements Storage
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression(<<<SQL
+                        {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
+                        SQL),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -264,8 +276,12 @@ class DatabaseStorage implements Storage
                     'count' => new Expression('`count` + values(`count`)'),
                 ],
                 'pgsql', 'sqlite' => [
-                    'value' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
-                    'count' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
+                    'value' => new Expression(<<<SQL
+                        ({$this->wrap('pulse_aggregates.value')} * {$this->wrap('pulse_aggregates.count')} + ("excluded"."value" * "excluded"."count")) / ({$this->wrap('pulse_aggregates.count')} + "excluded"."count")
+                        SQL),
+                    'count' => new Expression(<<<SQL
+                        {$this->wrap('pulse_aggregates.count')} + "excluded"."count"
+                        SQL),
                 ],
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
             }
