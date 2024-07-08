@@ -96,10 +96,10 @@ class Pulse
      */
     public function __construct(protected Application $app)
     {
-        $this->filters = collect([]);
-        $this->recorders = collect([]);
-        $this->entries = collect([]);
-        $this->lazy = collect([]);
+        $this->filters = collect();
+        $this->recorders = collect();
+        $this->entries = collect();
+        $this->lazy = collect();
     }
 
     /**
@@ -262,9 +262,9 @@ class Pulse
      */
     public function flush(): self
     {
-        $this->entries = collect([]);
+        $this->entries = collect();
 
-        $this->lazy = collect([]);
+        $this->lazy = collect();
 
         $this->rememberedUserId = null;
 
@@ -291,7 +291,7 @@ class Pulse
         $this->resolveLazyEntries();
 
         return $this->ignore(function () {
-            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect([]);
+            $entries = $this->rescue(fn () => $this->entries->filter($this->shouldRecord(...))) ?? collect();
 
             if ($entries->isEmpty()) {
                 $this->flush();
@@ -373,7 +373,7 @@ class Pulse
     {
         $this->rescue(fn () => $this->lazy->each(fn ($lazy) => $lazy()));
 
-        $this->lazy = collect([]);
+        $this->lazy = collect();
     }
 
     /**
