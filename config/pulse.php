@@ -60,7 +60,7 @@ return [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
         'database' => [
-            'connection' => env('PULSE_DB_CONNECTION', null),
+            'connection' => env('PULSE_DB_CONNECTION'),
             'chunk' => 1000,
         ],
     ],
@@ -195,7 +195,7 @@ return [
             'sample_rate' => env('PULSE_SLOW_QUERIES_SAMPLE_RATE', 1),
             'threshold' => env('PULSE_SLOW_QUERIES_THRESHOLD', 1000),
             'location' => env('PULSE_SLOW_QUERIES_LOCATION', true),
-            'max_query_length' => env('PULSE_SLOW_QUERIES_MAX_QUERY_LENGTH', null),
+            'max_query_length' => env('PULSE_SLOW_QUERIES_MAX_QUERY_LENGTH'),
             'ignore' => [
                 '/(["`])pulse_[\w]+?\1/', // Pulse tables...
                 '/(["`])telescope_[\w]+?\1/', // Telescope tables...
