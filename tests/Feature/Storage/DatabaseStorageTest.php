@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 
 test('aggregation', function () {
-    Pulse::record('type', 'key1', 200)->count()->min()->max()->sum()->avg();
-    Pulse::record('type', 'key1', 100)->count()->min()->max()->sum()->avg();
-    Pulse::record('type', 'key2', 400)->count()->min()->max()->sum()->avg();
+    Pulse::record('type', 'key1', 200)->count()->min()->max()->sum()->avg()->var();
+    Pulse::record('type', 'key1', 100)->count()->min()->max()->sum()->avg()->var();
+    Pulse::record('type', 'key2', 400)->count()->min()->max()->sum()->avg()->var();
     Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->orderBy('id')->get());
@@ -19,7 +19,7 @@ test('aggregation', function () {
     expect($entries[2])->toHaveProperties(['type' => 'type', 'key' => 'key2', 'value' => 400]);
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->orderBy('aggregate')->orderBy('key')->get());
-    expect($aggregates)->toHaveCount(40); // 2 entries * 5 aggregates * 4 periods
+    expect($aggregates)->toHaveCount(46); // 2 entries * 6 aggregates * 4 periods
     expect($aggregates[0])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
     expect($aggregates[1])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
     expect($aggregates[2])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
@@ -30,41 +30,49 @@ test('aggregation', function () {
     expect($aggregates[7])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
     expect($aggregates[8])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
     expect($aggregates[9])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[9])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'var', 'key' => 'key1', 'value' => 5000]);
+    expect($aggregates[10])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]); // variance is not defined for a single value
 
-    expect($aggregates[10])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
-    expect($aggregates[11])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[12])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
-    expect($aggregates[13])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[14])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
-    expect($aggregates[15])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[16])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[17])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[18])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[19])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[11])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
+    expect($aggregates[12])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[13])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
+    expect($aggregates[14])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[15])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
+    expect($aggregates[16])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[17])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[18])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[19])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[20])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[21])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'var', 'key' => 'key1', 'value' => 5000]);
+    expect($aggregates[22])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]); // variance is not defined for a single value
 
-    expect($aggregates[20])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
-    expect($aggregates[21])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[22])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
-    expect($aggregates[23])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[24])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
-    expect($aggregates[25])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[26])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[27])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[28])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[29])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[23])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
+    expect($aggregates[24])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[25])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
+    expect($aggregates[26])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[27])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
+    expect($aggregates[28])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[29])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[30])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[31])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[32])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[33])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'var', 'key' => 'key1', 'value' => 5000]);
+    expect($aggregates[34])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]); // variance is not defined for a single value
 
-    expect($aggregates[30])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
-    expect($aggregates[31])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[32])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
-    expect($aggregates[33])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[34])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
-    expect($aggregates[35])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[36])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[37])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[38])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[39])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[35])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 150]);
+    expect($aggregates[36])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[37])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key1', 'value' => 2]);
+    expect($aggregates[38])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[39])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key1', 'value' => 200]);
+    expect($aggregates[40])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[41])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[42])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[43])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[44])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[45])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'var', 'key' => 'key1', 'value' => 5000]);
+    expect($aggregates[46])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]); // variance is not defined for a single value
 
-    Pulse::record('type', 'key1', 600)->count()->min()->max()->sum()->avg();
+    Pulse::record('type', 'key1', 600)->count()->min()->max()->sum()->avg()->var();
     Pulse::ingest();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->orderBy('id')->get());
@@ -86,39 +94,47 @@ test('aggregation', function () {
     expect($aggregates[7])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
     expect($aggregates[8])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
     expect($aggregates[9])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[10])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'var', 'key' => 'key1', 'value' => 70000]);
+    expect($aggregates[11])->toHaveProperties(['type' => 'type', 'period' => 60, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]);
 
-    expect($aggregates[10])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[11])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[12])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
-    expect($aggregates[13])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[14])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
-    expect($aggregates[15])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[16])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[17])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[18])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
-    expect($aggregates[19])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[12])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[13])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[14])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
+    expect($aggregates[15])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[16])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
+    expect($aggregates[17])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[18])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[19])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[20])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
+    expect($aggregates[21])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[22])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'var', 'key' => 'key1', 'value' => 70000]);
+    expect($aggregates[23])->toHaveProperties(['type' => 'type', 'period' => 360, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]);
 
-    expect($aggregates[20])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[21])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[22])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
-    expect($aggregates[23])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[24])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
-    expect($aggregates[25])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[26])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[27])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[28])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
-    expect($aggregates[29])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[24])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[25])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[26])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
+    expect($aggregates[27])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[28])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
+    expect($aggregates[29])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[30])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[31])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[32])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
+    expect($aggregates[33])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[34])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'var', 'key' => 'key1', 'value' => 70000]);
+    expect($aggregates[35])->toHaveProperties(['type' => 'type', 'period' => 1440, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]);
 
-    expect($aggregates[30])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
-    expect($aggregates[31])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[32])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
-    expect($aggregates[33])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
-    expect($aggregates[34])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
-    expect($aggregates[35])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[36])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
-    expect($aggregates[37])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
-    expect($aggregates[38])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
-    expect($aggregates[39])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[36])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key1', 'value' => 300]);
+    expect($aggregates[37])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'avg', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[38])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key1', 'value' => 3]);
+    expect($aggregates[39])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'count', 'key' => 'key2', 'value' => 1]);
+    expect($aggregates[40])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key1', 'value' => 600]);
+    expect($aggregates[41])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'max', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[42])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key1', 'value' => 100]);
+    expect($aggregates[43])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'min', 'key' => 'key2', 'value' => 400]);
+    expect($aggregates[44])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key1', 'value' => 900]);
+    expect($aggregates[45])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'sum', 'key' => 'key2', 'value' => 400 
+    expect($aggregates[46])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'var', 'key' => 'key1', 'value' => 70000]);
+    expect($aggregates[47])->toHaveProperties(['type' => 'type', 'period' => 10080, 'aggregate' => 'var', 'key' => 'key2', 'value' => null]);
 });
 
 it('combines duplicate count aggregates before upserting', function () {
