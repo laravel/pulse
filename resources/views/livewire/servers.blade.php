@@ -49,7 +49,7 @@ $rows = ! empty($rows) ? $rows : 1;
                 </div>
                 <div wire:key="{{ $slug }}-name" class="flex items-center pr-8 xl:pr-12 {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     <x-pulse::icons.server class="w-6 h-6 mr-2 stroke-gray-500 dark:stroke-gray-400" />
-                    <span class="text-base font-bold text-gray-600 dark:text-gray-300" title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};">{{ $server->name }}</span>
+                    <span class="text-base font-bold text-gray-600 dark:text-gray-300" x-bind:title="`Time: {{ number_format($time) }}ms; Run at: ${formatDate('{{ $runAt }}')};`">{{ $server->name }}</span>
                 </div>
                 <div wire:key="{{ $slug }}-cpu" class="flex items-center {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     <div class="text-xl font-bold text-gray-700 dark:text-gray-200 w-14 whitespace-nowrap tabular-nums">
@@ -129,7 +129,7 @@ Alpine.data('cpuChart', (config) => ({
             {
                 type: 'line',
                 data: {
-                    labels: config.labels,
+                    labels: config.labels.map(formatDate),
                     datasets: [
                         {
                             label: 'CPU Percent',
@@ -209,7 +209,7 @@ Alpine.data('memoryChart', (config) => ({
             {
                 type: 'line',
                 data: {
-                    labels: config.labels,
+                    labels: config.labels.map(formatDate),
                     datasets: [
                         {
                             label: 'Memory Used',
