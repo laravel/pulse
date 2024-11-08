@@ -2,7 +2,7 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Cache"
-        title="Global Time: {{ number_format($allTime) }}ms; Global run at: {{ $allRunAt }}; Key Time: {{ number_format($keyTime) }}ms; Key run at: {{ $keyRunAt }};"
+        x-bind:title="`Global Time: {{ number_format($allTime) }}ms; Global run at: ${formatDate('{{ $allRunAt }}')}; Key Time: {{ number_format($keyTime) }}ms; Key run at: ${formatDate('{{ $keyRunAt }}')};`"
         details="past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>

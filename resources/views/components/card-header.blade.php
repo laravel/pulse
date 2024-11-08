@@ -8,7 +8,7 @@
                 </div>
             @endif
             <hgroup class="flex flex-wrap items-baseline gap-x-2 overflow-hidden">
-                <h2 class="text-base font-bold text-gray-600 dark:text-gray-300 truncate" title="{{ $title }}">{{ $name }}</h2>
+                <h2 class="text-base font-bold text-gray-600 dark:text-gray-300 truncate" @if($attributes->has('x-bind:title')) x-bind:title="{{ $attributes->get('x-bind:title') }}" @else title="{{ $title }}" @endif>{{ $name }}</h2>
                 @if ($details)
                     <p class="text-gray-400 dark:text-gray-600 font-medium truncate"><small class="text-xs">{{ $details }}</small></p>
                 @endif
