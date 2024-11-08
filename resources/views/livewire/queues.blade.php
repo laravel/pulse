@@ -2,7 +2,7 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Queues"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
+        x-bind:title="`Time: {{ number_format($time) }}ms; Run at: ${formatDate('{{ $runAt }}')};`"
         details="past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
@@ -196,7 +196,7 @@ Alpine.data('queueChart', (config) => ({
         })
     },
     labels(readings) {
-        return Object.keys(readings.queued)
+        return Object.keys(readings.queued).map(formatDate)
     },
     scale(data) {
         return Object.values(data).map(value => value * (1 / config.sampleRate ))
