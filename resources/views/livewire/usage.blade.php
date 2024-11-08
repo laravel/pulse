@@ -6,7 +6,7 @@
             'jobs' => 'Top 10 Users Dispatching Jobs',
             default => 'Application Usage'
         }"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
+        x-bind:title="`Time: {{ number_format($time) }}ms; Run at: ${formatDate('{{ $runAt }}')};`"
         details="{{ $this->usage === 'slow_requests' ? (is_array($slowRequestsConfig['threshold']) ? '' : $slowRequestsConfig['threshold'].'ms threshold, ') : '' }}past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
