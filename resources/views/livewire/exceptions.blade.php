@@ -1,7 +1,7 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Exceptions"
-        title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
+        x-bind:title="`Time: {{ number_format($time) }}ms; Run at: ${formatDate('{{ $runAt }}')};`"
         details="past {{ $this->periodForHumans() }}"
     >
         <x-slot:icon>
