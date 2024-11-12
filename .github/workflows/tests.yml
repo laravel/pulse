@@ -36,6 +36,10 @@ jobs:
         php: [8.1, 8.2, 8.3]
         laravel: [10, 11]
         stability: [prefer-lowest, prefer-stable]
+        include:
+          - php: 8.4
+            laravel: 11
+            stability: prefer-stable
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MySQL 5.7
 
