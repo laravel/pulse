@@ -445,6 +445,7 @@ class DatabaseStorage implements Storage
      */
     public function values(string $type, ?array $keys = null): Collection
     {
+        /** @phpstan-ignore return.type */
         return $this->connection()
             ->table('pulse_values')
             ->select('timestamp', 'key', 'value')
@@ -529,6 +530,7 @@ class DatabaseStorage implements Storage
 
         $orderBy ??= $aggregates[0];
 
+        /** @phpstan-ignore return.type */
         return $this->connection()
             ->query()
             ->select([
