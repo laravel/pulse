@@ -62,7 +62,6 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.4
           
       - name: Install dependencies
         run: |
@@ -125,7 +124,6 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.4
           
       - name: Install dependencies
         run: |
@@ -186,7 +184,6 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.4
 
       - name: Install dependencies
         run: |
@@ -238,7 +235,6 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.4
 
       - name: Install dependencies
         run: |
