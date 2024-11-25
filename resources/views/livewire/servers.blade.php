@@ -195,7 +195,7 @@ Alpine.data('cpuChart', (config) => ({
                 return
             }
 
-            chart.data.labels = Object.keys(servers[config.slug].cpu)
+            chart.data.labels = Object.keys(servers[config.slug].cpu).map(formatDate)
             chart.data.datasets[0].data = Object.values(servers[config.slug].cpu)
             chart.update()
         })
@@ -275,7 +275,7 @@ Alpine.data('memoryChart', (config) => ({
                 return
             }
 
-            chart.data.labels = Object.keys(servers[config.slug].memory)
+            chart.data.labels = Object.keys(servers[config.slug].memory).map(formatDate)
             chart.data.datasets[0].data = Object.values(servers[config.slug].memory)
             chart.update()
         })
