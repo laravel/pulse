@@ -13,4 +13,3 @@ it('always returns the run at date in UTC time', function () {
             Run at: ${formatDate(&#039;2000-01-01 13:00:00&#039;)}
             HTML);
 });
-
