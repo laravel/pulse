@@ -20,7 +20,7 @@ trait RemembersQueries
     public function remember(callable $query, string $key = '', DateTimeInterface|DateInterval|Closure|int|null $ttl = 5): array
     {
         return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, $ttl, function () use ($query) {
-            $start = CarbonImmutable::now()->toDateTimeString();
+            $start = CarbonImmutable::now('UTC')->toDateTimeString();
 
             [$value, $duration] = Benchmark::value(fn () => $query($this->periodAsInterval()));
 
