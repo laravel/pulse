@@ -125,16 +125,24 @@ class DatabaseStorage implements Storage
     {
         $now = CarbonImmutable::now();
 
-        $keep = $this->config->get('pulse.ingest.trim.keep');
+        $keep = $this->config->get('pulse.storage.trim.keep') ?? '7 days';
+
+        $before = $now->subMilliseconds(
+            (int) CarbonInterval::fromString($keep)->totalMilliseconds
+        );
+
+        if ($now->subDays(7)->isAfter($before)) {
+            $before = $now->subDays(7);
+        }
 
         $this->connection()
             ->table('pulse_values')
-            ->where('timestamp', '<=', $now->sub($keep)->getTimestamp())
+            ->where('timestamp', '<=', $before->getTimestamp())
             ->delete();
 
         $this->connection()
             ->table('pulse_entries')
-            ->where('timestamp', '<=', $now->sub($keep)->getTimestamp())
+            ->where('timestamp', '<=', $before->getTimestamp())
             ->delete();
 
         $this->connection()
@@ -144,7 +152,7 @@ class DatabaseStorage implements Storage
             ->each(fn (int $period) => $this->connection()
                 ->table('pulse_aggregates')
                 ->where('period', $period)
-                ->where('bucket', '<=', $now->subMinutes($period)->getTimestamp())
+                ->where('bucket', '<=', max($now->subMinutes($period)->getTimestamp(), $before->getTimestamp()))
                 ->delete());
     }
 

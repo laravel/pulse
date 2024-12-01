@@ -59,6 +59,10 @@ return [
     'storage' => [
         'driver' => env('PULSE_STORAGE_DRIVER', 'database'),
 
+        'trim' => [
+            'keep' => env('PULSE_STORAGE_KEEP', '7 days'),
+        ],
+
         'database' => [
             'connection' => env('PULSE_DB_CONNECTION'),
             'chunk' => 1000,

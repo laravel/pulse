@@ -102,6 +102,23 @@ it('trims aggregates once the 24 hour bucket is no longer relevant', function ()
     expect(DB::table('pulse_aggregates')->where('period', 1440)->count())->toBe(1);
 });
 
+it('trims aggregates to the configured storage duration when configured trim is shorter than the bucket period duration', function () {
+    Config::set('pulse.storage.trim.keep', '23 minutes');
+    Date::setTestNow('2000-01-01 00:00:00'); // Bucket: 2000-01-01 00:00:00
+    Pulse::record('foo', 'xxxx', 1)->count();
+    Pulse::ingest();
+    Pulse::stopRecording();
+    expect(DB::table('pulse_aggregates')->where('period', 1440)->count())->toBe(1);
+
+    Date::setTestNow('2000-01-01 00:22:59');
+    App::make(DatabaseStorage::class)->trim();
+    expect(DB::table('pulse_aggregates')->where('period', 1440)->count())->toBe(1);
+
+    Date::setTestNow('2000-01-01 00:23:00');
+    Pulse::ignore(fn () => App::make(DatabaseStorage::class)->trim());
+    expect(DB::table('pulse_aggregates')->where('period', 1440)->count())->toBe(0);
+});
+
 it('trims aggregates once the 7 day bucket is no longer relevant', function () {
     Date::setTestNow('2000-01-01 02:23:59'); // Bucket: 1999-12-31 23:36:00
     Pulse::record('foo', 'xxxx', 1)->count();
@@ -124,19 +141,45 @@ it('trims aggregates once the 7 day bucket is no longer relevant', function () {
 });
 
 it('can configure days of data to keep when trimming', function () {
-    Config::set('pulse.ingest.trim.keep', '14 days');
+    Config::set('pulse.storage.trim.keep', '2 days');
 
     Date::setTestNow('2000-01-01 00:00:04');
-    Pulse::record('foo', 'xxxx', 1);
+    Pulse::record('foo', 'xxxx', 1)->count();
+    Pulse::set('type', 'foo', 'value');
     Date::setTestNow('2000-01-01 00:00:05');
-    Pulse::record('bar', 'xxxx', 1);
+    Pulse::record('bar', 'xxxx', 1)->count();
+    Pulse::set('type', 'bar', 'value');
     Date::setTestNow('2000-01-01 00:00:06');
-    Pulse::record('baz', 'xxxx', 1);
+    Pulse::record('baz', 'xxxx', 1)->count();
+    Pulse::set('type', 'baz', 'value');
     Pulse::ingest();
 
     Pulse::stopRecording();
-    Date::setTestNow('2000-01-15 00:00:05');
+    Date::setTestNow('2000-01-03 00:00:05');
     App::make(DatabaseStorage::class)->trim();
 
     expect(DB::table('pulse_entries')->pluck('type')->all())->toBe(['baz']);
+    expect(DB::table('pulse_values')->pluck('key')->all())->toBe(['baz']);
+});
+
+it('restricts trim duration to 7 days', function () {
+    Config::set('pulse.storage.trim.keep', '7 days');
+
+    Date::setTestNow('2000-01-01 00:00:04');
+    Pulse::record('foo', 'xxxx', 1)->count();
+    Pulse::set('type', 'foo', 'value');
+    Date::setTestNow('2000-01-01 00:00:05');
+    Pulse::record('bar', 'xxxx', 1)->count();
+    Pulse::set('type', 'bar', 'value');
+    Date::setTestNow('2000-01-01 00:00:06');
+    Pulse::record('baz', 'xxxx', 1)->count();
+    Pulse::set('type', 'baz', 'value');
+    Pulse::ingest();
+
+    Pulse::stopRecording();
+    Date::setTestNow('2000-01-08 00:00:05');
+    App::make(DatabaseStorage::class)->trim();
+
+    expect(DB::table('pulse_entries')->pluck('type')->all())->toBe(['baz']);
+    expect(DB::table('pulse_values')->pluck('key')->all())->toBe(['baz']);
 });

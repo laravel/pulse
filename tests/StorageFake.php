@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
@@ -31,9 +32,15 @@ class StorageFake implements Storage
      */
     public function trim(): void
     {
-        $keep = config('pulse.ingest.trim.keep');
+        $now = CarbonImmutable::now();
 
-        $this->stored = $this->stored->reject(fn ($record) => $record->timestamp <= now()->sub($keep)->timestamp);
+        $keep = config('pulse.storage.trim.keep') ?? '7 days';
+
+        $before = $now->subMilliseconds(
+            (int) CarbonInterval::fromString($keep)->totalMilliseconds
+        );
+
+        $this->stored = $this->stored->reject(fn ($record) => $record->timestamp <= $before->timestamp);
     }
 
     /**

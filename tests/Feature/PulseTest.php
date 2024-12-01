@@ -49,7 +49,7 @@ it('can trim records', function () {
 });
 
 it('can configure days of data to keep when trimming', function () {
-    Config::set('pulse.ingest.trim.keep', '30 days');
+    Config::set('pulse.storage.trim.keep', '30 days');
     App::instance(Storage::class, $storage = new StorageFake);
 
     Pulse::record('foo', 'delete', 0, now()->subMonth());
