@@ -17,7 +17,7 @@ trait RemembersQueries
      *
      * @return array{0: mixed, 1: float, 2: string}
      */
-    public function remember(callable $query, string $key = '', DateTimeInterface|DateInterval|Closure|int|null $ttl = 5): array
+    protected function remember(callable $query, string $key = '', DateTimeInterface|DateInterval|Closure|int|null $ttl = 5): array
     {
         return App::make(CacheStoreResolver::class)->store()->remember('laravel:pulse:'.static::class.':'.$key.':'.$this->period, $ttl, function () use ($query) {
             $start = CarbonImmutable::now('UTC')->toDateTimeString();
