@@ -50,7 +50,7 @@ class RedisAdapter
      */
     public function xrange(string $key, string $start, string $end, ?int $count = null): array
     {
-        return collect($this->handle([ // @phpstan-ignore return.type, argument.templateType, argument.templateType
+        return collect($this->handle([ // @phpstan-ignore argument.templateType, argument.templateType
             'XRANGE',
             $this->config->get('database.redis.options.prefix').$key,
             $start,
