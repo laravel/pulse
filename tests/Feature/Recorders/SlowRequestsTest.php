@@ -488,6 +488,30 @@ it('can sample at one', function () {
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
+it('handles controller nested route groups', function () {
+    Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
+
+    Route::controller(MyController::class)->group(function () {
+        Route::get('index', 'index')->name('test')->withoutMiddleware('auth:admin');
+    })->withoutMiddleware('auth');
+
+    $response = get('/index');
+    Pulse::stopRecording();
+
+    $response->assertContent('ok');
+    $entries = DB::table('pulse_entries')->get();
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe(json_encode(['GET', '/index', 'MyController@index']));
+});
+
+class MyController
+{
+    public function index()
+    {
+        return 'ok';
+    }
+}
+
 class ExceptionThrowingRecorder
 {
     public function register(callable $record, Application $app): void
