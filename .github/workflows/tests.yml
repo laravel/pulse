@@ -33,13 +33,16 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.1, 8.2, 8.3]
-        laravel: [10, 11]
+        php: [8.1, 8.2, 8.3, 8.4]
+        laravel: [10, 11, 12]
         stability: [prefer-lowest, prefer-stable]
-        include:
-          - php: 8.4
+        exclude:
+          - php: 8.1
             laravel: 11
-            stability: prefer-stable
+          - php: 8.1
+            laravel: 12
+          - php: 8.4
+            laravel: 10
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MySQL 5.7
 
