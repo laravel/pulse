@@ -10,6 +10,7 @@
         <x-slot:actions>
             <x-pulse::select
                 wire:model.live="orderBy"
+                id="select-slow-requests-order-by"
                 label="Sort by"
                 :options="[
                     'slowest' => 'slowest',

@@ -21,6 +21,7 @@
             @if (! $this->type)
                 <x-pulse::select
                     wire:model.live="usage"
+                    id="select-usage-by"
                     label="Top 10 users"
                     :options="[
                         'requests' => 'making requests',

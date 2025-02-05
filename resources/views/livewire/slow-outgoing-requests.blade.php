@@ -24,6 +24,7 @@
 
             <x-pulse::select
                 wire:model.live="orderBy"
+                id="select-slow-outgoing-requests-order-by"
                 label="Sort by"
                 :options="[
                     'slowest' => 'slowest',
