@@ -19,8 +19,8 @@
         {!! Pulse::js() !!}
         @livewireScriptConfig
     </head>
-    <body class="font-sans antialiased">
-        <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <body class="bg-gray-50 dark:bg-gray-950 font-sans antialiased">
+        <div class="min-h-screen">
             <header class="px-5">
                 <div class="{{ $fullWidth ? '' : 'container' }} py-3 sm:py-5 mx-auto border-b border-gray-200 dark:border-gray-900">
                     <div class="flex items-center justify-between">
