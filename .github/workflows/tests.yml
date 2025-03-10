@@ -103,7 +103,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [11]
+        laravel: [12]
         stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MariaDB 10
@@ -163,7 +163,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [11]
+        laravel: [12]
         stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - PostgreSQL 14
@@ -214,7 +214,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [11]
+        laravel: [12]
         stability: [prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - SQLite
