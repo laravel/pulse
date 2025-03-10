@@ -113,7 +113,7 @@ class DatabaseStorage implements Storage
 
             $valueChunks->each(fn ($chunk) => $this->connection()
                 ->table('pulse_values')
-                ->upsert($chunk->all(), ['type', 'key_hash'], ['timestamp', 'value'])
+                ->upsert($chunk->all(), ['type', 'key_hash'], ['timestamp', 'value']) // @phpstan-ignore method.nonObject
             );
         }, 3);
     }

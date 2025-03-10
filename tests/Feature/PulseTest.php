@@ -52,7 +52,7 @@ it('can configure days of data to keep when trimming', function () {
     Config::set('pulse.storage.trim.keep', '30 days');
     App::instance(Storage::class, $storage = new StorageFake);
 
-    Pulse::record('foo', 'delete', 0, now()->subMonth());
+    Pulse::record('foo', 'delete', 0, now()->subDays(30));
     Pulse::record('foo', 'keep', 0, now()->subWeek());
     Pulse::record('foo', 'keep', 0);
 
