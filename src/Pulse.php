@@ -302,7 +302,7 @@ class Pulse
             $ingest = $this->app->make(Ingest::class);
 
             $count = $this->rescue(function () use ($entries, $ingest) {
-                $ingest->ingest($entries);
+                $ingest->ingest($entries); // @phpstan-ignore argument.type
 
                 return $entries->count();
             }) ?? 0;
@@ -433,7 +433,7 @@ class Pulse
             throw new RuntimeException('The configured user resolver does not support setting user fields');
         }
 
-        $resolver->setFieldResolver($callback); // @phpstan-ignore method.nonObject
+        $resolver->setFieldResolver($callback);
 
         return $this;
     }
