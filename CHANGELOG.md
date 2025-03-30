@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.1...1.x)
+
+## [v1.4.1](https://github.com/laravel/pulse/compare/v1.4.0...v1.4.1) - 2025-03-30
+
+* Test Improvements by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/449
+* [1.x] Make `PulseMigration` compatible with Laravel v12.4: `public shouldRun()` by [@onlime](https://github.com/onlime) in https://github.com/laravel/pulse/pull/451
 
 ## [v1.4.0](https://github.com/laravel/pulse/compare/v1.3.4...v1.4.0) - 2025-02-11
 
