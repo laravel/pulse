@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.1...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.2...1.x)
+
+## [v1.4.2](https://github.com/laravel/pulse/compare/v1.4.1...v1.4.2) - 2025-05-19
+
+* Update logo by [@iamdavidhill](https://github.com/iamdavidhill) in https://github.com/laravel/pulse/pull/453
+* [1.x] Fix Dropdown Hover Effect by [@devajmeireles](https://github.com/devajmeireles) in https://github.com/laravel/pulse/pull/456
+* [1.x] Adding Missing `space-y-1` by [@devajmeireles](https://github.com/devajmeireles) in https://github.com/laravel/pulse/pull/458
 
 ## [v1.4.1](https://github.com/laravel/pulse/compare/v1.4.0...v1.4.1) - 2025-03-30
 
