@@ -3,17 +3,22 @@
 namespace Laravel\Pulse\Commands;
 
 use Carbon\CarbonImmutable;
+use DateInterval;
+use DateTimeInterface;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\Isolatable;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Support\CacheStoreResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @internal
  */
 #[AsCommand(name: 'pulse:work')]
-class WorkCommand extends Command
+class WorkCommand extends Command implements Isolatable
 {
     /**
      * The command's signature.
@@ -73,5 +78,26 @@ class WorkCommand extends Command
         if ($this->laravel->bound(\Laravel\Telescope\Contracts\EntriesRepository::class)) {
             \Laravel\Telescope\Telescope::store($this->laravel->make(\Laravel\Telescope\Contracts\EntriesRepository::class));
         }
+    }
+    public function isolationLockExpiresAt(): DateTimeInterface|DateInterval
+    {
+        return now()->addSeconds(5);
+    }
+    /**
+     * Execute the console command.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     */
+    #[\Override]
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        while ($exitCode = parent::execute($input, $output) && is_numeric($this->option('isolated'))) {
+            if ($exitCode !== (int) $this->option('isolated'))
+                break;
+            sleep(10);
+
+        }
+        return $exitCode;
     }
 }
