@@ -182,7 +182,6 @@ class Servers
                         if (!empty($matches)) {
                             $usage1 = (int) $matches[1];
                             usleep(100000); // 100ms
-                            $stat = file_get_contents('/sys/fs/cgroup/cpu.stat');
                             preg_match('/usage_usec\s+(\d+)/', $stat, $matches);
                             if (!empty($matches)) {
                                 $usage2 = (int) $matches[1];
