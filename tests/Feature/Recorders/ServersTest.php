@@ -78,3 +78,55 @@ it('skips missing filesystems when recording events', function () {
     $payload = json_decode($value->value);
     expect($payload->storage)->toHaveCount(1);
 });
+
+it('includes container information in server name when in a container', function () {
+    Config::set('pulse.recorders.'.Servers::class.'.server_name', 'Foo');
+    Date::setTestNow(Date::now()->startOfMinute());
+
+    // Set container detection to return true
+    Servers::detectContainerUsing(fn () => true);
+
+    event(new SharedBeat(CarbonImmutable::now(), 'instance-id'));
+    Pulse::ingest();
+
+    $value = Pulse::ignore(fn () => DB::table('pulse_values')->sole());
+    $payload = json_decode($value->value);
+
+    // Verify server name includes container information
+    expect($payload->name)->toContain('Foo');
+    expect($payload->name)->toContain('[containerized]');
+
+    // Reset container detection
+    Servers::detectContainerUsing(null);
+});
+
+it('uses container-specific methods for CPU and memory when in a container', function () {
+    Config::set('pulse.recorders.'.Servers::class.'.server_name', 'Foo');
+    Date::setTestNow(Date::now()->startOfMinute());
+
+    // Set container detection to return true
+    Servers::detectContainerUsing(fn () => true);
+
+    // Set custom CPU and memory detection to simulate container-specific methods
+    Servers::detectCpuUsing(fn () => 42);
+    Servers::detectMemoryUsing(fn () => [
+        'total' => 8192, // 8GB
+        'used' => 4096,  // 4GB
+    ]);
+
+    event(new SharedBeat(CarbonImmutable::now(), 'instance-id'));
+    Pulse::ingest();
+
+    $value = Pulse::ignore(fn () => DB::table('pulse_values')->sole());
+    $payload = json_decode($value->value);
+
+    // Verify CPU and memory values
+    expect($payload->cpu)->toBe(42);
+    expect($payload->memory_total)->toBe(8192);
+    expect($payload->memory_used)->toBe(4096);
+
+    // Reset container, CPU, and memory detection
+    Servers::detectContainerUsing(null);
+    Servers::detectCpuUsing(null);
+    Servers::detectMemoryUsing(null);
+});
