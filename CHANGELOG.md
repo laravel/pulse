@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.2...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.3...1.x)
+
+## [v1.4.3](https://github.com/laravel/pulse/compare/v1.4.2...v1.4.3) - 2025-07-18
+
+* Remove `--with` flag from test runner by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/pulse/pull/459
+* Prevent usage of unpatched livewire version by [@BertvanHoekelen](https://github.com/BertvanHoekelen) in https://github.com/laravel/pulse/pull/464
 
 ## [v1.4.2](https://github.com/laravel/pulse/compare/v1.4.1...v1.4.2) - 2025-05-19
 
