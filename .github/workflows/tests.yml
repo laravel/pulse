@@ -36,6 +36,10 @@ jobs:
         php: [8.1, 8.2, 8.3, 8.4]
         laravel: [10, 11, 12]
         stability: [prefer-lowest, prefer-stable]
+        include:
+          - php: 8.5
+            laravel: 12
+            stability: prefer-stable
         exclude:
           - php: 8.1
             laravel: 11
@@ -65,6 +69,7 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
+        if: matrix.php != 8.5
           
       - name: Install dependencies
         run: |
@@ -127,6 +132,7 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
+        if: matrix.php != 8.5
           
       - name: Install dependencies
         run: |
@@ -187,6 +193,7 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
+        if: matrix.php != 8.5
 
       - name: Install dependencies
         run: |
@@ -238,6 +245,7 @@ jobs:
       - name: Require cachewerk/relay
         run: |
            composer require cachewerk/relay --no-interaction --no-update
+        if: matrix.php != 8.5
 
       - name: Install dependencies
         run: |
