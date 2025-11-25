@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.3...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.4...1.x)
+
+## [v1.4.4](https://github.com/laravel/pulse/compare/v1.4.3...v1.4.4) - 2025-11-24
+
+* [1.x] PHP 8.5 Compatibility by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/467
 
 ## [v1.4.3](https://github.com/laravel/pulse/compare/v1.4.2...v1.4.3) - 2025-07-18
 
