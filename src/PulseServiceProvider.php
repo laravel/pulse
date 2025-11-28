@@ -240,6 +240,10 @@ class PulseServiceProvider extends ServiceProvider
                 'Version' => InstalledVersions::getPrettyVersion('laravel/pulse'),
                 'Enabled' => AboutCommand::format(config('pulse.enabled'), console: fn ($value) => $value ? '<fg=yellow;options=bold>ENABLED</>' : 'OFF'),
             ]);
+
+            if (method_exists($this, 'reloads')) {
+                $this->reloads('pulse:restart', 'pulse');
+            }
         }
     }
 }
