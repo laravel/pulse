@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.4...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.5...1.x)
+
+## [v1.4.5](https://github.com/laravel/pulse/compare/v1.4.4...v1.4.5) - 2025-11-28
+
+* Add reload command by [@barryvdh](https://github.com/barryvdh) in https://github.com/laravel/pulse/pull/469
 
 ## [v1.4.4](https://github.com/laravel/pulse/compare/v1.4.3...v1.4.4) - 2025-11-24
 
