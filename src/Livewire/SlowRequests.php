@@ -34,12 +34,15 @@ class SlowRequests extends Card
         [$slowRequests, $time, $runAt] = $this->remember(
             fn () => $this->aggregate(
                 'slow_request',
-                ['max', 'count'],
+                ['max', 'count', 'avg'],
                 match ($this->orderBy) {
                     'count' => 'count',
+                    'average' => 'avg',
+                    'total' => 'avg_count',
                     default => 'max',
                 },
-            )->map(function ($row) {
+            )
+            ->map(function ($row) {
                 [$method, $uri, $action] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
                 return (object) [
@@ -48,6 +51,8 @@ class SlowRequests extends Card
                     'action' => $action,
                     'count' => $row->count,
                     'slowest' => $row->max,
+                    'avg' => $row->avg,
+                    'total' => $row->avg_count,
                     'threshold' => $this->threshold($uri, SlowRequestsRecorder::class),
                 ];
             }),

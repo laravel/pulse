@@ -8,6 +8,19 @@
             <x-pulse::icons.arrows-left-right />
         </x-slot:icon>
         <x-slot:actions>
+            @php
+                $message = <<<MESSAGE
+                Count: X / Y → X requests above threshold out of Y total requests
+
+                Average: average request duration across all requests
+
+                Slowest: maximum request duration across all requests
+                MESSAGE;
+            @endphp
+            <button title="{{ $message }}" @click="alert(@js($message))">
+                <x-pulse::icons.information-circle class="w-5 h-5 stroke-gray-400 dark:stroke-gray-600" />
+            </button>
+
             <x-pulse::select
                 wire:model.live="orderBy"
                 id="select-slow-requests-order-by"
@@ -15,6 +28,8 @@
                 :options="[
                     'slowest' => 'slowest',
                     'count' => 'count',
+                    'average' => 'average',
+                    'total' => 'total',
                 ]"
                 @change="loading = true"
             />
@@ -31,12 +46,14 @@
                     <col width="100%" />
                     <col width="0%" />
                     <col width="0%" />
+                    <col width="0%" />
                 </colgroup>
                 <x-pulse::thead>
                     <tr>
                         <x-pulse::th>Method</x-pulse::th>
                         <x-pulse::th>Route</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
+                        <x-pulse::th class="text-right">Average</x-pulse::th>
                         <x-pulse::th class="text-right">Slowest</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
@@ -66,8 +83,11 @@
                                 @if ($config['sample_rate'] < 1)
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($slowRequest->count) }}">~{{ number_format($slowRequest->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
-                                    {{ number_format($slowRequest->count) }}
+                                    {{ number_format($slowRequest->count) }} / {{ number_format($slowRequest->total) }}
                                 @endif
+                            </x-pulse::td>
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
+                                <strong>{{ number_format($slowRequest->avg) }}</strong> ms
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300">
                                 @if ($slowRequest->slowest === null)
