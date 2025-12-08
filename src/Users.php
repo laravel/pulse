@@ -47,9 +47,10 @@ class Users implements ResolvesUsers
         if ($provider instanceof EloquentUserProvider) {
             $model = $provider->getModel();
 
+            // @phpstan-ignore staticMethod.notFound
             $this->resolvedUsers = $model::findMany($keys);
         } else {
-            $this->resolvedUsers = $keys->map(fn ($key) => $provider->retrieveById($key));
+            $this->resolvedUsers = $keys->map(fn($key) => $provider->retrieveById($key));
         }
 
         return $this;
@@ -62,7 +63,7 @@ class Users implements ResolvesUsers
      */
     public function find(int|string|null $key): object
     {
-        $user = $this->resolvedUsers->first(fn ($user) => $this->key($user) == $key);
+        $user = $this->resolvedUsers->first(fn($user) => $this->key($user) == $key);
 
         if ($this->fieldResolver !== null && $user !== null) {
             return (object) ($this->fieldResolver)($user);
