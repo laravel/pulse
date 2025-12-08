@@ -17,7 +17,7 @@
         }
     ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.1",
         "guzzlehttp/promises": "^1.0|^2.0",
         "doctrine/sql-formatter": "^1.4.1",
         "illuminate/auth": "^10.48.4|^11.0.8|^12.0",
