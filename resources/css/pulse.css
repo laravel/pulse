@@ -1,20 +1,57 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@theme {
+  /* Custom font family */
+  --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Custom height extension */
+  --spacing-128: 32rem;
+}
+
+/* Custom variant for default styles */
+@variant default {
+  :where(html &) {
+    @slot;
+  }
+}
+
+/* Custom scrollbar variants */
+@variant scrollbar {
+  &::-webkit-scrollbar {
+    @slot;
+  }
+}
+
+@variant scrollbar-track {
+  &::-webkit-scrollbar-track {
+    @slot;
+  }
+}
+
+@variant scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
+    @slot;
+  }
+}
+
+/* Custom CSS */
 [x-cloak] {
-    display: none;
+  display: none;
 }
 
 @keyframes detect-scroll {
-  from, to { --can-scroll: ; }
+
+  from,
+  to {
+    --can-scroll: ;
+  }
 }
 
 @supports selector(::-webkit-scrollbar) {
-    .supports-scrollbars {
-        animation: detect-scroll linear;
-        animation-timeline: scroll(self);
+  .supports-scrollbars {
+    animation: detect-scroll linear;
+    animation-timeline: scroll(self);
 
-        padding-right: var(--can-scroll) theme('spacing.3');
-    }
+    padding-right: var(--can-scroll) 0.75rem;
+  }
 }

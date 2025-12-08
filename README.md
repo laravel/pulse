@@ -11,9 +11,31 @@
 
 Laravel Pulse is a real-time application performance monitoring tool and dashboard for your Laravel application.
 
+## Requirements
+
+- Node.js 18.0 or higher
+- Tailwind CSS 4.0 or higher
+
 ## Official Documentation
 
 Documentation for Pulse can be found on the [Laravel website](https://laravel.com/docs/pulse).
+
+## Building Assets
+
+To build the frontend assets for development:
+
+```bash
+npm install
+npm run build
+```
+
+To watch for changes during development:
+
+```bash
+npm run watch
+```
+
+**Note:** This package uses Tailwind CSS 4, which introduces a new CSS-first configuration approach. The Tailwind configuration is now defined in `resources/css/pulse.css` using the `@theme` directive instead of `tailwind.config.js`.
 
 ## Contributing
 
