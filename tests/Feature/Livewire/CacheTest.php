@@ -58,8 +58,8 @@ it('does not round numbers up', function () {
     Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
-        ->assertDontSeeHtml("100.00%\n")
-        ->assertSeeHtml("99.99%\n");
+        ->assertDontSeeHtml("100.00%" . PHP_EOL)
+        ->assertSeeHtml("99.99%" . PHP_EOL);
 });
 
 it('does not show decimals for round numbers', function () {
@@ -68,6 +68,6 @@ it('does not show decimals for round numbers', function () {
     Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
-        ->assertDontSeeHtml("50.00%\n")
-        ->assertSeeHtml("50%\n");
+        ->assertDontSeeHtml("50.00%" . PHP_EOL)
+        ->assertSeeHtml("50%" . PHP_EOL);
 });
