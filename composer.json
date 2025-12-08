@@ -1,14 +1,18 @@
 {
-    "name": "laravel/pulse",
-    "description": "Laravel Pulse is a real-time application performance monitoring tool and dashboard for your Laravel application.",
-    "keywords": ["laravel"],
-    "homepage": "https://github.com/laravel/pulse",
+    "name": "mohaphez/pulse",
+    "description": "Laravel Pulse with Tailwind CSS 4 - A real-time application performance monitoring tool and dashboard for your Laravel application.",
+    "keywords": ["laravel", "pulse", "monitoring", "tailwindcss", "tailwind-4"],
+    "homepage": "https://github.com/mohaphez/pulse",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/laravel/pulse/issues",
-        "source": "https://github.com/laravel/pulse"
+        "issues": "https://github.com/mohaphez/pulse/issues",
+        "source": "https://github.com/mohaphez/pulse"
     },
     "authors": [
+        {
+            "name": "Mohaphez",
+            "email": "mohaphez@example.com"
+        },
         {
             "name": "Taylor Otwell",
             "email": "taylor@laravel.com"
