@@ -1,7 +1,9 @@
 {
     "name": "laravel/pulse",
     "description": "Laravel Pulse is a real-time application performance monitoring tool and dashboard for your Laravel application.",
-    "keywords": ["laravel"],
+    "keywords": [
+        "laravel"
+    ],
     "homepage": "https://github.com/laravel/pulse",
     "license": "MIT",
     "support": {
@@ -15,7 +17,7 @@
         }
     ],
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "guzzlehttp/promises": "^1.0|^2.0",
         "doctrine/sql-formatter": "^1.4.1",
         "illuminate/auth": "^10.48.4|^11.0.8|^12.0",
@@ -40,7 +42,7 @@
         "mockery/mockery": "^1.0",
         "orchestra/testbench": "^8.36|^9.15|^10.8",
         "pestphp/pest": "^2.0|^3.0|^4.0",
-        "pestphp/pest-plugin-laravel": "^2.2",
+        "pestphp/pest-plugin-laravel": "^2.2|^3.0|^4.0",
         "phpstan/phpstan": "^1.12.21",
         "predis/predis": "^1.0|^2.0"
     },
