@@ -17,26 +17,26 @@ it('renders slow requests', function () {
 
     // Add entries outside of the window.
     Carbon::setTestNow('2000-01-01 12:00:00');
-    Pulse::record('slow_request', $request1, 1)->max()->count();
-    Pulse::record('slow_request', $request2, 1)->max()->count();
+    Pulse::record('slow_request', $request1, 1)->avg()->max()->count();
+    Pulse::record('slow_request', $request2, 1)->avg()->max()->count();
 
     // Add entries to the "tail".
     Carbon::setTestNow('2000-01-01 12:00:01');
-    Pulse::record('slow_request', $request1, 1234)->max()->count();
-    Pulse::record('slow_request', $request1, 2468)->max()->count();
-    Pulse::record('slow_request', $request2, 1234)->max()->count();
+    Pulse::record('slow_request', $request1, 1234)->avg()->max()->count();
+    Pulse::record('slow_request', $request1, 2468)->avg()->max()->count();
+    Pulse::record('slow_request', $request2, 1234)->avg()->max()->count();
 
     // Add entries to the current buckets.
     Carbon::setTestNow('2000-01-01 13:00:00');
-    Pulse::record('slow_request', $request1, 1000)->max()->count();
-    Pulse::record('slow_request', $request1, 1000)->max()->count();
-    Pulse::record('slow_request', $request2, 1000)->max()->count();
+    Pulse::record('slow_request', $request1, 1000)->avg()->max()->count();
+    Pulse::record('slow_request', $request1, 1000)->avg()->max()->count();
+    Pulse::record('slow_request', $request2, 1000)->avg()->max()->count();
 
     Pulse::ingest();
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
         ->assertViewHas('slowRequests', collect([
-            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 4, 'slowest' => 2468, 'threshold' => 1_000],
-            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000],
+            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 4, 'slowest' => 2468, 'threshold' => 1_000, 'avg' => 1425.5, 'total' => 4],
+            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000, 'avg' => 1117, 'total' => 2],
         ]));
 });

@@ -33,69 +33,107 @@ it('captures requests over the threshold', function () {
     expect($entries[0]->value)->toBe(4000);
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderBy('period')->orderBy('aggregate')->get());
-    expect($aggregates)->toHaveCount(8);
+    expect($aggregates)->toHaveCount(12);
 
     expect($aggregates[0]->bucket)->toBe(946782240);
     expect($aggregates[0]->period)->toBe(60);
     expect($aggregates[0]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('count');
+    expect($aggregates[0]->aggregate)->toBe('avg');
     expect($aggregates[0]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[0]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
-    expect($aggregates[0]->value)->toEqual(1);
+    expect($aggregates[0]->value)->toEqual(4000);
+    expect($aggregates[0]->count)->toEqual(1);
 
     expect($aggregates[1]->bucket)->toBe(946782240);
     expect($aggregates[1]->period)->toBe(60);
     expect($aggregates[1]->type)->toBe('slow_request');
-    expect($aggregates[1]->aggregate)->toBe('max');
+    expect($aggregates[1]->aggregate)->toBe('count');
     expect($aggregates[1]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[1]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
-    expect($aggregates[1]->value)->toEqual(4000);
+    expect($aggregates[1]->value)->toEqual(1);
 
-    expect($aggregates[2]->bucket)->toBe(946782000);
-    expect($aggregates[2]->period)->toBe(360);
+    expect($aggregates[2]->bucket)->toBe(946782240);
+    expect($aggregates[2]->period)->toBe(60);
     expect($aggregates[2]->type)->toBe('slow_request');
-    expect($aggregates[2]->aggregate)->toBe('count');
+    expect($aggregates[2]->aggregate)->toBe('max');
     expect($aggregates[2]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[2]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
-    expect($aggregates[2]->value)->toEqual(1);
+    expect($aggregates[2]->value)->toEqual(4000);
 
     expect($aggregates[3]->bucket)->toBe(946782000);
     expect($aggregates[3]->period)->toBe(360);
     expect($aggregates[3]->type)->toBe('slow_request');
-    expect($aggregates[3]->aggregate)->toBe('max');
+    expect($aggregates[3]->aggregate)->toBe('avg');
     expect($aggregates[3]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[3]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
     expect($aggregates[3]->value)->toEqual(4000);
+    expect($aggregates[3]->count)->toEqual(1);
 
-    expect($aggregates[4]->bucket)->toBe(946781280);
-    expect($aggregates[4]->period)->toBe(1440);
+    expect($aggregates[4]->bucket)->toBe(946782000);
+    expect($aggregates[4]->period)->toBe(360);
     expect($aggregates[4]->type)->toBe('slow_request');
     expect($aggregates[4]->aggregate)->toBe('count');
     expect($aggregates[4]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[4]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
     expect($aggregates[4]->value)->toEqual(1);
 
-    expect($aggregates[5]->bucket)->toBe(946781280);
-    expect($aggregates[5]->period)->toBe(1440);
+    expect($aggregates[5]->bucket)->toBe(946782000);
+    expect($aggregates[5]->period)->toBe(360);
     expect($aggregates[5]->type)->toBe('slow_request');
     expect($aggregates[5]->aggregate)->toBe('max');
     expect($aggregates[5]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[5]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
     expect($aggregates[5]->value)->toEqual(4000);
 
-    expect($aggregates[6]->period)->toBe(10080);
+    expect($aggregates[6]->bucket)->toBe(946781280);
+    expect($aggregates[6]->period)->toBe(1440);
     expect($aggregates[6]->type)->toBe('slow_request');
-    expect($aggregates[6]->aggregate)->toBe('count');
+    expect($aggregates[6]->aggregate)->toBe('avg');
     expect($aggregates[6]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[6]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
-    expect($aggregates[6]->value)->toEqual(1);
+    expect($aggregates[6]->value)->toEqual(4000);
+    expect($aggregates[6]->count)->toEqual(1);
 
-    expect($aggregates[7]->period)->toBe(10080);
+    expect($aggregates[7]->bucket)->toBe(946781280);
+    expect($aggregates[7]->period)->toBe(1440);
     expect($aggregates[7]->type)->toBe('slow_request');
-    expect($aggregates[7]->aggregate)->toBe('max');
+    expect($aggregates[7]->aggregate)->toBe('count');
     expect($aggregates[7]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
     expect($aggregates[7]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
-    expect($aggregates[7]->value)->toEqual(4000);
+    expect($aggregates[7]->value)->toEqual(1);
+
+    expect($aggregates[8]->bucket)->toBe(946781280);
+    expect($aggregates[8]->period)->toBe(1440);
+    expect($aggregates[8]->type)->toBe('slow_request');
+    expect($aggregates[8]->aggregate)->toBe('max');
+    expect($aggregates[8]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
+    expect($aggregates[8]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
+    expect($aggregates[8]->value)->toEqual(4000);
+
+    expect($aggregates[9]->bucket)->toBe(946774080);
+    expect($aggregates[9]->period)->toBe(10080);
+    expect($aggregates[9]->type)->toBe('slow_request');
+    expect($aggregates[9]->aggregate)->toBe('avg');
+    expect($aggregates[9]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
+    expect($aggregates[9]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
+    expect($aggregates[9]->value)->toEqual(4000);
+    expect($aggregates[9]->count)->toEqual(1);
+
+    expect($aggregates[10]->bucket)->toBe(946774080);
+    expect($aggregates[10]->period)->toBe(10080);
+    expect($aggregates[10]->type)->toBe('slow_request');
+    expect($aggregates[10]->aggregate)->toBe('count');
+    expect($aggregates[10]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
+    expect($aggregates[10]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
+    expect($aggregates[10]->value)->toEqual(1);
+
+    expect($aggregates[11]->bucket)->toBe(946774080);
+    expect($aggregates[11]->period)->toBe(10080);
+    expect($aggregates[11]->type)->toBe('slow_request');
+    expect($aggregates[11]->aggregate)->toBe('max');
+    expect($aggregates[11]->key)->toBe(json_encode(['GET', '/test-route', 'Closure']));
+    expect($aggregates[11]->key_hash)->toBe(keyHash(json_encode(['GET', '/test-route', 'Closure'])));
+    expect($aggregates[11]->value)->toEqual(4000);
 
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
@@ -122,11 +160,22 @@ it('can configure threshold per route', function () {
     get('default-threshold')->assertOk();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
-    expect($entries)->toHaveCount(1);
+    expect($entries)->toHaveCount(3);
+
     expect($entries[0]->type)->toBe('slow_request');
     expect($entries[0]->key)->toBe(json_encode(['GET', '/one-second-threshold', 'Closure']));
     expect($entries[0]->key_hash)->toBe(keyHash(json_encode(['GET', '/one-second-threshold', 'Closure'])));
     expect($entries[0]->value)->toBe(1000);
+
+    expect($entries[1]->type)->toBe('slow_request');
+    expect($entries[1]->key)->toBe(json_encode(['GET', '/two-second-threshold', 'Closure']));
+    expect($entries[1]->key_hash)->toBe(keyHash(json_encode(['GET', '/two-second-threshold', 'Closure'])));
+    expect($entries[1]->value)->toBe(1000);
+
+    expect($entries[2]->type)->toBe('slow_request');
+    expect($entries[2]->key)->toBe(json_encode(['GET', '/default-threshold', 'Closure']));
+    expect($entries[2]->key_hash)->toBe(keyHash(json_encode(['GET', '/default-threshold', 'Closure'])));
+    expect($entries[2]->value)->toBe(0);
 
     DB::table('pulse_entries')->delete();
 
@@ -136,15 +185,21 @@ it('can configure threshold per route', function () {
     get('default-threshold')->assertOk();
 
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->orderBy('key')->get());
-    expect($entries)->toHaveCount(2);
+    expect($entries)->toHaveCount(3);
     expect($entries[0]->type)->toBe('slow_request');
-    expect($entries[0]->key)->toBe(json_encode(['GET', '/one-second-threshold', 'Closure']));
-    expect($entries[0]->key_hash)->toBe(keyHash(json_encode(['GET', '/one-second-threshold', 'Closure'])));
-    expect($entries[0]->value)->toBe(2000);
+    expect($entries[0]->key)->toBe(json_encode(['GET', '/default-threshold', 'Closure']));
+    expect($entries[0]->key_hash)->toBe(keyHash(json_encode(['GET', '/default-threshold', 'Closure'])));
+    expect($entries[0]->value)->toBe(0);
+
     expect($entries[1]->type)->toBe('slow_request');
-    expect($entries[1]->key)->toBe(json_encode(['GET', '/two-second-threshold', 'Closure']));
-    expect($entries[1]->key_hash)->toBe(keyHash(json_encode(['GET', '/two-second-threshold', 'Closure'])));
+    expect($entries[1]->key)->toBe(json_encode(['GET', '/one-second-threshold', 'Closure']));
+    expect($entries[1]->key_hash)->toBe(keyHash(json_encode(['GET', '/one-second-threshold', 'Closure'])));
     expect($entries[1]->value)->toBe(2000);
+
+    expect($entries[2]->type)->toBe('slow_request');
+    expect($entries[2]->key)->toBe(json_encode(['GET', '/two-second-threshold', 'Closure']));
+    expect($entries[2]->key_hash)->toBe(keyHash(json_encode(['GET', '/two-second-threshold', 'Closure'])));
+    expect($entries[2]->value)->toBe(2000);
 });
 
 it('captures slow requests per user', function () {
@@ -212,7 +267,7 @@ it('captures requests equal to the threshold', function () {
     get('test-route');
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->get())->toHaveCount(1));
-    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->get())->toHaveCount(8));
+    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->get())->toHaveCount(12));
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
@@ -225,8 +280,8 @@ it('ignores requests under the threshold', function () {
 
     get('test-route');
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(0));
-    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(0));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
+    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(8));
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
@@ -320,71 +375,107 @@ it('captures the requests "via" route when using livewire', function () {
     expect($entries[0]->value)->toBe(4000);
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('type')->orderBy('period')->orderBy('aggregate')->get());
-    expect($aggregates)->toHaveCount(8);
+    expect($aggregates)->toHaveCount(12);
 
     expect($aggregates[0]->bucket)->toBe(946782240);
     expect($aggregates[0]->period)->toBe(60);
     expect($aggregates[0]->type)->toBe('slow_request');
-    expect($aggregates[0]->aggregate)->toBe('count');
+    expect($aggregates[0]->aggregate)->toBe('avg');
     expect($aggregates[0]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[0]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
-    expect($aggregates[0]->value)->toEqual(1);
+    expect($aggregates[0]->value)->toEqual(4000);
+    expect($aggregates[0]->count)->toEqual(1);
 
     expect($aggregates[1]->bucket)->toBe(946782240);
     expect($aggregates[1]->period)->toBe(60);
     expect($aggregates[1]->type)->toBe('slow_request');
-    expect($aggregates[1]->aggregate)->toBe('max');
+    expect($aggregates[1]->aggregate)->toBe('count');
     expect($aggregates[1]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[1]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
-    expect($aggregates[1]->value)->toEqual(4000);
+    expect($aggregates[1]->value)->toEqual(1);
 
-    expect($aggregates[2]->bucket)->toBe(946782000);
-    expect($aggregates[2]->period)->toBe(360);
+    expect($aggregates[2]->bucket)->toBe(946782240);
+    expect($aggregates[2]->period)->toBe(60);
     expect($aggregates[2]->type)->toBe('slow_request');
-    expect($aggregates[2]->aggregate)->toBe('count');
+    expect($aggregates[2]->aggregate)->toBe('max');
     expect($aggregates[2]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[2]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
-    expect($aggregates[2]->value)->toEqual(1);
+    expect($aggregates[2]->value)->toEqual(4000);
 
     expect($aggregates[3]->bucket)->toBe(946782000);
     expect($aggregates[3]->period)->toBe(360);
     expect($aggregates[3]->type)->toBe('slow_request');
-    expect($aggregates[3]->aggregate)->toBe('max');
+    expect($aggregates[3]->aggregate)->toBe('avg');
     expect($aggregates[3]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[3]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
     expect($aggregates[3]->value)->toEqual(4000);
+    expect($aggregates[3]->count)->toEqual(1);
 
-    expect($aggregates[4]->bucket)->toBe(946781280);
-    expect($aggregates[4]->period)->toBe(1440);
+    expect($aggregates[4]->bucket)->toBe(946782000);
+    expect($aggregates[4]->period)->toBe(360);
     expect($aggregates[4]->type)->toBe('slow_request');
     expect($aggregates[4]->aggregate)->toBe('count');
     expect($aggregates[4]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[4]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
     expect($aggregates[4]->value)->toEqual(1);
 
-    expect($aggregates[5]->bucket)->toBe(946781280);
-    expect($aggregates[5]->period)->toBe(1440);
+    expect($aggregates[5]->bucket)->toBe(946782000);
+    expect($aggregates[5]->period)->toBe(360);
     expect($aggregates[5]->type)->toBe('slow_request');
     expect($aggregates[5]->aggregate)->toBe('max');
     expect($aggregates[5]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[5]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
     expect($aggregates[5]->value)->toEqual(4000);
 
-    expect($aggregates[6]->bucket)->toBe(946774080);
-    expect($aggregates[6]->period)->toBe(10080);
+    expect($aggregates[6]->bucket)->toBe(946781280);
+    expect($aggregates[6]->period)->toBe(1440);
     expect($aggregates[6]->type)->toBe('slow_request');
-    expect($aggregates[6]->aggregate)->toBe('count');
+    expect($aggregates[6]->aggregate)->toBe('avg');
     expect($aggregates[6]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[6]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
-    expect($aggregates[6]->value)->toEqual(1);
+    expect($aggregates[6]->value)->toEqual(4000);
+    expect($aggregates[6]->count)->toEqual(1);
 
-    expect($aggregates[7]->bucket)->toBe(946774080);
-    expect($aggregates[7]->period)->toBe(10080);
+    expect($aggregates[7]->bucket)->toBe(946781280);
+    expect($aggregates[7]->period)->toBe(1440);
     expect($aggregates[7]->type)->toBe('slow_request');
-    expect($aggregates[7]->aggregate)->toBe('max');
+    expect($aggregates[7]->aggregate)->toBe('count');
     expect($aggregates[7]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
     expect($aggregates[7]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
-    expect($aggregates[7]->value)->toEqual(4000);
+    expect($aggregates[7]->value)->toEqual(1);
+
+    expect($aggregates[8]->bucket)->toBe(946781280);
+    expect($aggregates[8]->period)->toBe(1440);
+    expect($aggregates[8]->type)->toBe('slow_request');
+    expect($aggregates[8]->aggregate)->toBe('max');
+    expect($aggregates[8]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
+    expect($aggregates[8]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
+    expect($aggregates[8]->value)->toEqual(4000);
+
+    expect($aggregates[9]->bucket)->toBe(946774080);
+    expect($aggregates[9]->period)->toBe(10080);
+    expect($aggregates[9]->type)->toBe('slow_request');
+    expect($aggregates[9]->aggregate)->toBe('avg');
+    expect($aggregates[9]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
+    expect($aggregates[9]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
+    expect($aggregates[9]->value)->toEqual(4000);
+    expect($aggregates[9]->count)->toEqual(1);
+
+    expect($aggregates[10]->bucket)->toBe(946774080);
+    expect($aggregates[10]->period)->toBe(10080);
+    expect($aggregates[10]->type)->toBe('slow_request');
+    expect($aggregates[10]->aggregate)->toBe('count');
+    expect($aggregates[10]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
+    expect($aggregates[10]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
+    expect($aggregates[10]->value)->toEqual(1);
+
+    expect($aggregates[11]->bucket)->toBe(946774080);
+    expect($aggregates[11]->period)->toBe(10080);
+    expect($aggregates[11]->type)->toBe('slow_request');
+    expect($aggregates[11]->aggregate)->toBe('max');
+    expect($aggregates[11]->key)->toBe(json_encode(['POST', '/test-route', 'via /livewire/update']));
+    expect($aggregates[11]->key_hash)->toBe(keyHash(json_encode(['POST', '/test-route', 'via /livewire/update'])));
+    expect($aggregates[11]->value)->toEqual(4000);
 
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
@@ -414,7 +505,7 @@ it('handles routes with domains', function () {
 
     expect($entries[0]->key)->toBe(json_encode(['GET', '{account}.example.com/users', 'Closure']));
     expect($entries[1]->key)->toBe(json_encode(['GET', '/users', 'Closure']));
-    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(16));
+    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(24));
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 
@@ -484,7 +575,7 @@ it('can sample at one', function () {
     get('test-route');
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(10));
-    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(8));
+    Pulse::ignore(fn () => expect(DB::table('pulse_aggregates')->count())->toBe(12));
     Pulse::ignore(fn () => expect(DB::table('pulse_values')->count())->toBe(0));
 });
 

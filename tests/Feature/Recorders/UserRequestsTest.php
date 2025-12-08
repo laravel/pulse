@@ -21,7 +21,7 @@ it('captures authenticated requests', function () {
 
     actingAs(User::make(['id' => '567']))->get('users');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0])->toHaveProperties([
         'timestamp' => 946782245,
@@ -29,7 +29,7 @@ it('captures authenticated requests', function () {
         'key' => '567',
         'value' => null,
     ]);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'user_request')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(4);
     expect($aggregates)->toContainAggregateForAllPeriods(
         type: 'user_request',
@@ -44,7 +44,7 @@ it('ignores unauthenticated requests', function () {
 
     get('users');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->get());
     expect($entries)->toHaveCount(0);
 });
 
@@ -53,7 +53,7 @@ it('captures the authenticated user if they login during the request', function 
 
     post('login');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('567');
 });
@@ -63,7 +63,7 @@ it('captures the authenticated user if they logout during the request', function
 
     actingAs(User::make(['id' => '567']))->post('logout');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('567');
 });
@@ -94,7 +94,7 @@ it('does not trigger an infinite loop when retrieving the authenticated user fro
 
     get('users');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->get());
     expect($entries)->toHaveCount(0);
 });
 
@@ -106,7 +106,7 @@ it('can ignore requests', function () {
 
     actingAs(User::make(['id' => '567']))->get('users');
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(0);
 });
 
 it('ignores livewire update requests from an ignored path', function () {
@@ -129,7 +129,7 @@ it('ignores livewire update requests from an ignored path', function () {
             ],
         ]);
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(0);
 });
 
 it('can sample', function () {
@@ -148,7 +148,7 @@ it('can sample', function () {
     get('users');
     get('users');
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toEqualWithDelta(1, 4);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toEqualWithDelta(1, 4);
 });
 
 it('can sample at zero', function () {
@@ -167,7 +167,7 @@ it('can sample at zero', function () {
     get('users');
     get('users');
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(0);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(0);
 });
 
 it('can sample at one', function () {
@@ -186,5 +186,5 @@ it('can sample at one', function () {
     get('users');
     get('users');
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(10);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(10);
 });

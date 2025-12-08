@@ -328,8 +328,8 @@ test('one or more aggregates for a single type', function () {
     $results = Pulse::aggregate('slow_request', ['min', 'max', 'sum', 'avg', 'count'], CarbonInterval::hour());
 
     expect($results->all())->toEqual([
-        (object) ['key' => 'GET /bar', 'min' => 200, 'max' => 600, 'sum' => 2400, 'avg' => 400, 'count' => 6],
-        (object) ['key' => 'GET /foo', 'min' => 100, 'max' => 400, 'sum' => 2000, 'avg' => 250, 'count' => 8],
+        (object) ['key' => 'GET /bar', 'min' => 200, 'max' => 600, 'sum' => 2400, 'avg' => 400, 'count' => 6, 'avg_count' => 6],
+        (object) ['key' => 'GET /foo', 'min' => 100, 'max' => 400, 'sum' => 2000, 'avg' => 250, 'count' => 8, 'avg_count' => 8],
     ]);
 });
 
