@@ -21,7 +21,7 @@ class SlowRequests extends Card
     /**
      * Ordering.
      *
-     * @var 'slowest'|'count'
+     * @var 'slowest'|'count'|'average'|'total'
      */
     #[Url(as: 'slow-requests')]
     public string $orderBy = 'slowest';
