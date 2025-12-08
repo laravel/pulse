@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - master
-      - '*.x'
+      - "*.x"
   pull_request:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   mysql:
@@ -68,12 +68,11 @@ jobs:
 
       - name: Require cachewerk/relay
         run: |
-           composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.5
-          
+          composer require cachewerk/relay --no-interaction --no-update
+
       - name: Install dependencies
         run: |
-           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+          composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest -vvv
@@ -131,12 +130,11 @@ jobs:
 
       - name: Require cachewerk/relay
         run: |
-           composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.5
-          
+          composer require cachewerk/relay --no-interaction --no-update
+
       - name: Install dependencies
         run: |
-           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+          composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest -vvv
@@ -192,12 +190,11 @@ jobs:
 
       - name: Require cachewerk/relay
         run: |
-           composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.5
+          composer require cachewerk/relay --no-interaction --no-update
 
       - name: Install dependencies
         run: |
-           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+          composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest -vvv
@@ -244,12 +241,11 @@ jobs:
 
       - name: Require cachewerk/relay
         run: |
-           composer require cachewerk/relay --no-interaction --no-update
-        if: matrix.php != 8.5
+          composer require cachewerk/relay --no-interaction --no-update
 
       - name: Install dependencies
         run: |
-           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+          composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
         run: vendor/bin/pest -vvv
