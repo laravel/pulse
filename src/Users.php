@@ -47,6 +47,7 @@ class Users implements ResolvesUsers
         if ($provider instanceof EloquentUserProvider) {
             $model = $provider->getModel();
 
+            // @phpstan-ignore staticMethod.notFound
             $this->resolvedUsers = $model::findMany($keys);
         } else {
             $this->resolvedUsers = $keys->map(fn ($key) => $provider->retrieveById($key));
