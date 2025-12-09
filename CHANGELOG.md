@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.5...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.6...1.x)
+
+## [v1.4.6](https://github.com/laravel/pulse/compare/v1.4.5...v1.4.6) - 2025-12-08
+
+* Remove deprecated backticks by [@TomatoPana](https://github.com/TomatoPana) in https://github.com/laravel/pulse/pull/471
 
 ## [v1.4.5](https://github.com/laravel/pulse/compare/v1.4.4...v1.4.5) - 2025-11-28
 
