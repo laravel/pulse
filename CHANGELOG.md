@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.6...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.4.7...1.x)
+
+## [v1.4.7](https://github.com/laravel/pulse/compare/v1.4.6...v1.4.7) - 2025-12-16
+
+* Cast Server used memory division result to int for Linux by [@hosni](https://github.com/hosni) in https://github.com/laravel/pulse/pull/473
 
 ## [v1.4.6](https://github.com/laravel/pulse/compare/v1.4.5...v1.4.6) - 2025-12-08
 
