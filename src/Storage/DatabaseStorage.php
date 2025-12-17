@@ -540,6 +540,10 @@ class DatabaseStorage implements Storage
 
         $orderBy ??= $aggregates[0];
 
+        if (in_array('avg', $aggregates)) {
+            $aggregates[] = 'avg_count';
+        }
+
         /** @phpstan-ignore return.type */
         return $this->connection()
             ->query()
@@ -561,6 +565,7 @@ class DatabaseStorage implements Storage
                         'max' => "max({$this->wrap('max')})",
                         'sum' => "sum({$this->wrap('sum')})",
                         'avg' => "avg({$this->wrap('avg')})",
+                        'avg_count' => "sum({$this->wrap('avg_count')})",
                     }." as {$this->wrap($aggregate)}");
                 }
 
@@ -581,6 +586,7 @@ class DatabaseStorage implements Storage
                             'max' => "max({$this->wrap('value')})",
                             'sum' => "sum({$this->wrap('value')})",
                             'avg' => "avg({$this->wrap('value')})",
+                            'avg_count' => 'count(*)',
                         }." as {$this->wrap($aggregate)}");
                     }
 
@@ -593,6 +599,10 @@ class DatabaseStorage implements Storage
 
                     // Buckets
                     foreach ($aggregates as $currentAggregate) {
+                        if ($currentAggregate === 'avg_count') {
+                            continue;
+                        }
+
                         $query->unionAll(function (Builder $query) use ($type, $aggregates, $currentAggregate, $period, $oldestBucket) {
                             $query->select('key_hash');
 
@@ -605,6 +615,8 @@ class DatabaseStorage implements Storage
                                         'sum' => "sum({$this->wrap('value')})",
                                         'avg' => "avg({$this->wrap('value')})",
                                     }." as {$this->wrap($aggregate)}");
+                                } elseif ($aggregate === 'avg_count' && $currentAggregate === 'avg') {
+                                    $query->selectRaw("sum({$this->wrap('count')}) as {$this->wrap('avg_count')}");
                                 } else {
                                     $query->selectRaw("null as {$this->wrap($aggregate)}");
                                 }

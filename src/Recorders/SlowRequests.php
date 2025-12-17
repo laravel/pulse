@@ -54,19 +54,26 @@ class SlowRequests
 
         [$path, $via] = $this->resolveRoutePath($request);
 
-        if (
-            $this->shouldIgnore($path) ||
-            $this->underThreshold($duration = ((int) $startedAt->diffInMilliseconds()), $path)
-        ) {
+        if ($this->shouldIgnore($path)) {
             return;
         }
 
-        $this->pulse->record(
+        $duration = ((int) $startedAt->diffInMilliseconds());
+
+        // Record average and max duration for all requests.
+        $entry = $this->pulse->record(
             type: 'slow_request',
             key: json_encode([$request->method(), $path, $via], flags: JSON_THROW_ON_ERROR),
             value: $duration,
             timestamp: $startedAt,
-        )->max()->count();
+        )->avg()->max();
+
+        if ($this->underThreshold($duration, $path)) {
+            return;
+        }
+
+        // Record count of slow requests
+        $entry->count();
 
         if ($userId = $this->pulse->resolveAuthenticatedUserId()) {
             $this->pulse->record(
