@@ -49,7 +49,7 @@ it('requires authentication on livewire requests', function () {
         ->first(fn ($component) => $component->memo->name === 'pulse.servers');
 
     $this
-        ->post('/livewire/update', [
+        ->post(livewireUpdateEndpoint(), [
             '_token' => csrf_token(),
             'components' => [
                 [
@@ -68,7 +68,7 @@ it('doesnt use pulse middleware on other livewire requests', function () {
     Gate::define('viewPulse', fn ($user = null) => false);
 
     $this
-        ->post('/livewire/update', [
+        ->post(livewireUpdateEndpoint(), [
             '_token' => csrf_token(),
             'components' => [],
         ])

@@ -114,10 +114,10 @@ it('ignores livewire update requests from an ignored path', function () {
         '#^/users#',
     ]);
     Route::get('users', fn () => []);
-    Route::post('livewire/update', fn () => [])->name('livewire.update');
+    Route::post(livewireUpdateEndpoint(), fn () => [])->name('livewire.update');
 
     actingAs(User::make(['id' => '567']))
-        ->post('/livewire/update', [
+        ->post(livewireUpdateEndpoint(), [
             'components' => [
                 [
                     'snapshot' => json_encode([
