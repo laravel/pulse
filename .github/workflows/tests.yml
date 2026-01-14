@@ -35,10 +35,12 @@ jobs:
       matrix:
         php: [8.1, 8.2, 8.3, 8.4]
         laravel: [10, 11, 12]
+        livewire: [3, 4]
         stability: [prefer-lowest, prefer-stable]
         include:
           - php: 8.5
             laravel: 12
+            livewire: 4
             stability: prefer-stable
         exclude:
           - php: 8.1
@@ -48,7 +50,7 @@ jobs:
           - php: 8.4
             laravel: 10
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MySQL 5.7
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Livewire ${{ matrix.livewire }} - Stability ${{ matrix.stability }} - MySQL 5.7
 
     steps:
       - name: Checkout code
@@ -69,6 +71,10 @@ jobs:
       - name: Require cachewerk/relay
         run: |
           composer require cachewerk/relay --no-interaction --no-update
+
+      - name: Require Livewire ${{ matrix.livewire }}
+        run: |
+          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -108,9 +114,10 @@ jobs:
       matrix:
         php: [8.3]
         laravel: [12]
+        livewire: [3, 4]
         stability: [prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - MariaDB 10
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Livewire ${{ matrix.livewire }} - Stability ${{ matrix.stability }} - MariaDB 10
 
     steps:
       - name: Checkout code
@@ -131,6 +138,10 @@ jobs:
       - name: Require cachewerk/relay
         run: |
           composer require cachewerk/relay --no-interaction --no-update
+
+      - name: Require Livewire ${{ matrix.livewire }}
+        run: |
+          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -168,9 +179,10 @@ jobs:
       matrix:
         php: [8.3]
         laravel: [12]
+        livewire: [3, 4]
         stability: [prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - PostgreSQL 14
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Livewire ${{ matrix.livewire }} - Stability ${{ matrix.stability }} - PostgreSQL 14
 
     steps:
       - name: Checkout code
@@ -191,6 +203,10 @@ jobs:
       - name: Require cachewerk/relay
         run: |
           composer require cachewerk/relay --no-interaction --no-update
+
+      - name: Require Livewire ${{ matrix.livewire }}
+        run: |
+          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -219,9 +235,10 @@ jobs:
       matrix:
         php: [8.3]
         laravel: [12]
+        livewire: [3, 4]
         stability: [prefer-stable]
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Stability ${{ matrix.stability }} - SQLite
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Livewire ${{ matrix.livewire }} - Stability ${{ matrix.stability }} - SQLite
 
     steps:
       - name: Checkout code
@@ -242,6 +259,10 @@ jobs:
       - name: Require cachewerk/relay
         run: |
           composer require cachewerk/relay --no-interaction --no-update
+
+      - name: Require Livewire ${{ matrix.livewire }}
+        run: |
+          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
 
       - name: Install dependencies
         run: |
