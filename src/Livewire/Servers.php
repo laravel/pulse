@@ -19,6 +19,7 @@ class Servers extends Card
     use InteractsWithTime;
 
     public int|string|null $ignoreAfter = null;
+    public string|null $sortBy = 'name';
 
     /**
      * Render the component.
@@ -49,7 +50,7 @@ class Servers extends Card
                     ];
                 })
                 ->filter()
-                ->sortBy('name');
+                ->sortBy($this->sortBy);
         });
 
         if (Livewire::isLivewireRequest()) {
