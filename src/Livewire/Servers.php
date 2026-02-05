@@ -20,6 +20,7 @@ class Servers extends Card
 
     public int|string|null $ignoreAfter = null;
     public string|null $sortBy = 'name';
+    public string|null $sortDirection = 'asc';
 
     /**
      * Render the component.
@@ -50,7 +51,7 @@ class Servers extends Card
                     ];
                 })
                 ->filter()
-                ->sortBy($this->sortBy);
+                ->sortBy($this->sortBy, descending: $this->sortDirection === 'desc');
         });
 
         if (Livewire::isLivewireRequest()) {

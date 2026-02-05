@@ -88,6 +88,34 @@ it('sorts by server name', function () {
         ->assertSeeInOrder(['A Web', 'B Web', 'C Web']);
 });
 
+it('sorts descending', function () {
+    $data = [
+        'memory_used' => 1234,
+        'memory_total' => 2468,
+        'cpu' => 99,
+        'storage' => [
+            ['directory' => '/', 'used' => 123, 'total' => 456],
+        ],
+    ];
+    Pulse::set('system', 'b-web', json_encode([
+        'name' => 'B Web',
+        ...$data,
+    ]), now()->subSeconds(2));
+    Pulse::set('system', 'a-web', json_encode([
+        'name' => 'A Web',
+        ...$data,
+    ]), now()->subSeconds(3));
+    Pulse::set('system', 'c-web', json_encode([
+        'name' => 'C Web',
+        ...$data,
+    ]), now()->subSeconds(1));
+
+    Pulse::ingest();
+
+    Livewire::test(Servers::class, ['lazy' => false, 'sortDirection' => 'desc'])
+        ->assertSeeInOrder(['C Web', 'B Web', 'A Web']);
+});
+
 it('sorts by updated at', function () {
     $data = [
         'memory_used' => 1234,
