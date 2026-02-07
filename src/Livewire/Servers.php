@@ -19,8 +19,8 @@ class Servers extends Card
     use InteractsWithTime;
 
     public int|string|null $ignoreAfter = null;
-    public string|null $sortBy = 'name';
-    public string|null $sortDirection = 'asc';
+    public string $sortBy = 'name';
+    public string $sortDirection = 'asc';
 
     /**
      * Render the component.
