@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Support\PulseMigration;
 
@@ -21,7 +22,7 @@ return new class extends PulseMigration
             $table->string('type');
             $table->mediumText('key');
             match ($this->driver()) {
-                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
+                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
                 'sqlite' => $table->string('key_hash'),
             };
@@ -32,13 +33,29 @@ return new class extends PulseMigration
             $table->unique(['type', 'key_hash']); // For data integrity and upserts...
         });
 
+        if (in_array($this->driver(), ['mariadb', 'mysql'])) {
+            DB::unprepared('
+                CREATE TRIGGER pulse_values_before_insert
+                BEFORE INSERT ON pulse_values
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+
+            DB::unprepared('
+                CREATE TRIGGER pulse_values_before_update
+                BEFORE UPDATE ON pulse_values
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+        }
+
         Schema::create('pulse_entries', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
             $table->mediumText('key');
             match ($this->driver()) {
-                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
+                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
                 'sqlite' => $table->string('key_hash'),
             };
@@ -50,6 +67,22 @@ return new class extends PulseMigration
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // For aggregate queries...
         });
 
+        if (in_array($this->driver(), ['mariadb', 'mysql'])) {
+            DB::unprepared('
+                CREATE TRIGGER pulse_entries_before_insert
+                BEFORE INSERT ON pulse_entries
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+
+            DB::unprepared('
+                CREATE TRIGGER pulse_entries_before_update
+                BEFORE UPDATE ON pulse_entries
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+        }
+
         Schema::create('pulse_aggregates', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('bucket');
@@ -57,7 +90,7 @@ return new class extends PulseMigration
             $table->string('type');
             $table->mediumText('key');
             match ($this->driver()) {
-                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary')->virtualAs('unhex(md5(`key`))'),
+                'mariadb', 'mysql' => $table->char('key_hash', 16)->charset('binary'),
                 'pgsql' => $table->uuid('key_hash')->storedAs('md5("key")::uuid'),
                 'sqlite' => $table->string('key_hash'),
             };
@@ -70,6 +103,22 @@ return new class extends PulseMigration
             $table->index('type'); // For purging...
             $table->index(['period', 'type', 'aggregate', 'bucket']); // For aggregate queries...
         });
+
+        if (in_array($this->driver(), ['mariadb', 'mysql'])) {
+            DB::unprepared('
+                CREATE TRIGGER pulse_aggregates_before_insert
+                BEFORE INSERT ON pulse_aggregates
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+
+            DB::unprepared('
+                CREATE TRIGGER pulse_aggregates_before_update
+                BEFORE UPDATE ON pulse_aggregates
+                FOR EACH ROW
+                SET NEW.key_hash = UNHEX(MD5(NEW.key))
+            ');
+        }
     }
 
     /**
@@ -77,6 +126,15 @@ return new class extends PulseMigration
      */
     public function down(): void
     {
+        if (in_array($this->driver(), ['mariadb', 'mysql'])) {
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_values_before_insert');
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_values_before_update');
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_insert');
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_update');
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_insert');
+            DB::unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_update');
+        }
+
         Schema::dropIfExists('pulse_values');
         Schema::dropIfExists('pulse_entries');
         Schema::dropIfExists('pulse_aggregates');
