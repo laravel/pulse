@@ -34,14 +34,14 @@ return new class extends PulseMigration
         });
 
         if (in_array($this->driver(), ['mariadb', 'mysql'])) {
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_values_before_insert
                 BEFORE INSERT ON pulse_values
                 FOR EACH ROW
                 SET NEW.key_hash = UNHEX(MD5(NEW.key))
             ');
 
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_values_before_update
                 BEFORE UPDATE ON pulse_values
                 FOR EACH ROW
@@ -68,14 +68,14 @@ return new class extends PulseMigration
         });
 
         if (in_array($this->driver(), ['mariadb', 'mysql'])) {
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_entries_before_insert
                 BEFORE INSERT ON pulse_entries
                 FOR EACH ROW
                 SET NEW.key_hash = UNHEX(MD5(NEW.key))
             ');
 
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_entries_before_update
                 BEFORE UPDATE ON pulse_entries
                 FOR EACH ROW
@@ -105,14 +105,14 @@ return new class extends PulseMigration
         });
 
         if (in_array($this->driver(), ['mariadb', 'mysql'])) {
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_aggregates_before_insert
                 BEFORE INSERT ON pulse_aggregates
                 FOR EACH ROW
                 SET NEW.key_hash = UNHEX(MD5(NEW.key))
             ');
 
-            DB::unprepared('
+            DB::connection($this->getConnection())->unprepared('
                 CREATE TRIGGER pulse_aggregates_before_update
                 BEFORE UPDATE ON pulse_aggregates
                 FOR EACH ROW
@@ -127,12 +127,12 @@ return new class extends PulseMigration
     public function down(): void
     {
         if (in_array($this->driver(), ['mariadb', 'mysql'])) {
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_values_before_insert');
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_values_before_update');
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_insert');
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_update');
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_insert');
-            DB::unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_update');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_values_before_insert');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_values_before_update');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_insert');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_entries_before_update');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_insert');
+            DB::connection($this->getConnection())->unprepared('DROP TRIGGER IF EXISTS pulse_aggregates_before_update');
         }
 
         Schema::dropIfExists('pulse_values');
