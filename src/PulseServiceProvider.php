@@ -13,6 +13,7 @@ use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -24,6 +25,7 @@ use Laravel\Pulse\Ingests\NullIngest;
 use Laravel\Pulse\Ingests\RedisIngest;
 use Laravel\Pulse\Ingests\StorageIngest;
 use Laravel\Pulse\Storage\DatabaseStorage;
+use Laravel\Sentinel\Http\Middleware\SentinelMiddleware;
 use Livewire\LivewireManager;
 use RuntimeException;
 
@@ -73,6 +75,11 @@ class PulseServiceProvider extends ServiceProvider
             $this->app->make(Pulse::class)->stopRecording();
         }
 
+        Route::middlewareGroup('pulse', [
+            SentinelMiddleware::class.':pulse',
+            ...$this->app->make('config')->get('pulse.middleware', []),
+        ]);
+
         $this->registerAuthorization();
         $this->registerRoutes();
         $this->registerComponents();
@@ -101,7 +108,7 @@ class PulseServiceProvider extends ServiceProvider
                 $router->group([
                     'domain' => $app->make('config')->get('pulse.domain', null),
                     'prefix' => $app->make('config')->get('pulse.path'),
-                    'middleware' => $app->make('config')->get('pulse.middleware'),
+                    'middleware' => 'pulse',
                 ], function (Router $router) {
                     $router->get('/', function (Pulse $pulse, ViewFactory $view) {
                         return $view->make('pulse::dashboard');
