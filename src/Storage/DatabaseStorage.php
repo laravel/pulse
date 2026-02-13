@@ -49,14 +49,10 @@ class DatabaseStorage implements Storage
 
         $entryChunks = $entries
             ->reject->isOnlyBuckets()
-            ->when(
-                $this->requiresManualKeyHash(),
-                fn ($entries) => $entries->map(fn ($entry) => [
-                    ...($attributes = $entry->attributes()),
-                    'key_hash' => md5($attributes['key']),
-                ]),
-                fn ($entries) => $entries->map->attributes()
-            )
+            ->map(fn ($entry) => [
+                ...($attributes = $entry->attributes()),
+                'key_hash' => $this->keyHash($attributes['key']),
+            ])
             ->chunk($this->config->get('pulse.storage.database.chunk'));
 
         [$counts, $minimums, $maximums, $sums, $averages] = array_values($entries
@@ -86,14 +82,10 @@ class DatabaseStorage implements Storage
 
         $valueChunks = $this // @phpstan-ignore method.nonObject
             ->collapseValues($values)
-            ->when(
-                $this->requiresManualKeyHash(),
-                fn ($values) => $values->map(fn ($value) => [
-                    ...($attributes = $value->attributes()),
-                    'key_hash' => md5($attributes['key']),
-                ]),
-                fn ($values) => $values->map->attributes()
-            )
+            ->map(fn ($value) => [
+                ...($attributes = $value->attributes()),
+                'key_hash' => $this->keyHash($attributes['key']),
+            ])
             ->chunk($this->config->get('pulse.storage.database.chunk'));
 
         $this->connection()->transaction(function () use ($entryChunks, $countChunks, $minimumChunks, $maximumChunks, $sumChunks, $averageChunks, $valueChunks) {
@@ -416,9 +408,7 @@ class DatabaseStorage implements Storage
                         'key' => $entry->key,
                     ], $entry);
 
-                    if ($this->requiresManualKeyHash()) {
-                        $aggregates[$key]['key_hash'] = md5($entry->key);
-                    }
+                    $aggregates[$key]['key_hash'] = $this->keyHash($entry->key);
                 } else {
                     $aggregates[$key] = $callback($aggregates[$key], $entry);
                 }
@@ -828,10 +818,22 @@ class DatabaseStorage implements Storage
     }
 
     /**
-     * Determine whether a manually generated key hash is required.
+     * Hash a key using the current database driver's storage format.
      */
-    protected function requiresManualKeyHash(): bool
+    protected function keyHash(string $key): string
     {
-        return $this->connection()->getDriverName() === 'sqlite';
+        return match ($this->connection()->getDriverName()) {
+            'mariadb', 'mysql' => hex2bin(md5($key)),
+            'pgsql' => sprintf(
+                '%s-%s-%s-%s-%s',
+                substr($hash = md5($key), 0, 8),
+                substr($hash, 8, 4),
+                substr($hash, 12, 4),
+                substr($hash, 16, 4),
+                substr($hash, 20, 12)
+            ),
+            'sqlite' => md5($key),
+            default => throw new RuntimeException('Unsupported database driver.'),
+        };
     }
 }
