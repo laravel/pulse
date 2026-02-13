@@ -823,7 +823,7 @@ class DatabaseStorage implements Storage
     protected function keyHash(string $key): string
     {
         return match ($this->connection()->getDriverName()) {
-            'mariadb', 'mysql' => hex2bin(md5($key)),
+            'mariadb', 'mysql' => pack('H*', md5($key)),
             'pgsql' => sprintf(
                 '%s-%s-%s-%s-%s',
                 substr($hash = md5($key), 0, 8),
