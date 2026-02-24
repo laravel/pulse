@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.5.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.6.0...1.x)
+
+## [v1.6.0](https://github.com/laravel/pulse/compare/v1.5.0...v1.6.0) - 2026-02-12
+
+* Add sortBy option to Server Livewire card for customizable sorting by [@NilLlisterri](https://github.com/NilLlisterri) in https://github.com/laravel/pulse/pull/477
+* [1.x] Supports restricting private tunnel requests for `local` environment by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/475
 
 ## [v1.5.0](https://github.com/laravel/pulse/compare/v1.4.7...v1.5.0) - 2026-01-14
 
