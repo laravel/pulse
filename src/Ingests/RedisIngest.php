@@ -92,7 +92,7 @@ class RedisIngest implements Ingest
             $keys = $entries->keys();
 
             $storage->store(
-                $entries->map(fn (array $payload): Entry|Value => unserialize($payload['data']))->values()
+                $entries->map(fn (array $payload): Entry|Value => unserialize($payload['data'], ['allowed_classes' => [Entry::class, Value::class]]))->values()
             );
 
             $this->connection()->xdel($this->stream, $keys);
