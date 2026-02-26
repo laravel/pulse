@@ -105,7 +105,7 @@ $rows = ! empty($rows) ? $rows : 1;
                                 wire:ignore
                                 x-data="storageChart({
                                     slug: '{{ $slug }}',
-                                    directory: '{{ $storage->directory }}',
+                                    directory: @js($storage->directory),
                                     used: {{ $storage->used }},
                                     total: {{ $storage->total }},
                                 })"
