@@ -37,11 +37,12 @@ class SlowQueries
      */
     public function record(QueryExecuted $event): void
     {
-        [$timestampMs, $duration, $sql, $location] = [
+        $duration = (int) $event->time;
+        $sql = $event->sql;
+
+        [$timestampMs, $location] = [
             CarbonImmutable::now()->getTimestampMs(),
-            (int) $event->time,
-            $event->sql,
-            $this->config->get('pulse.recorders.'.self::class.'.location')
+            $this->config->get('pulse.recorders.'.self::class.'.location') && ! $this->underThreshold($duration, $sql)
                 ? $this->resolveLocation()
                 : null,
         ];
