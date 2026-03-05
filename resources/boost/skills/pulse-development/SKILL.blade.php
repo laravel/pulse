@@ -6,7 +6,7 @@ metadata:
   author: laravel
 ---
 @php
-/** @var \Laravel\Boost\Install\GuidelineAssist $assist */
+/ @var \Laravel\Boost\Install\GuidelineAssist $assist */
 @endphp
 # Laravel Pulse Development
 
@@ -205,14 +205,14 @@ Use `search-docs` for Vite/CSS integration, Tailwind scoping, blade card compone
 
 ## Common Pitfalls
 
-- **SQLite is not supported** — Pulse requires MySQL, MariaDB, or PostgreSQL
-- **`/pulse` returns 404** until `php artisan migrate` has been run
-- **Dashboard is local-only by default** — define the `viewPulse` gate for production access
-- **Servers card shows no data** unless `pulse:check` runs as a persistent process
-- **Redis ingest silently queues data** — the dashboard appears empty if `pulse:work` is not running
-- **`pulse:restart` requires a working cache driver** — without it the signal is never received
-- **Pulse exceptions fail silently** — use `Pulse::handleExceptionsUsing()` to surface errors during development
-- **Multiple `Authenticatable` models cause incorrect tracking** — use `Pulse::resolveAuthenticatedUserId()` when recording user-keyed entries
-- **SQS queues appear duplicated** in the Queue card — use `ignore` regex patterns to suppress them
-- **Sampled dashboard values are approximate** — prefixed with `~`, not suitable for financial or audit reporting
-- **Not using `search-docs` for the latest Pulse documentation**
+- SQLite is not supported — Pulse requires MySQL, MariaDB, or PostgreSQL
+- `/pulse` returns 404 until `php artisan migrate` has been run
+- Dashboard is local-only by default — define the `viewPulse` gate for production access
+- Servers card shows no data unless `pulse:check` runs as a persistent process
+- Redis ingest silently queues data — the dashboard appears empty if `pulse:work` is not running
+- `pulse:restart` requires a working cache driver — without it the signal is never received
+- Pulse exceptions fail silently — use `Pulse::handleExceptionsUsing()` to surface errors during development
+- Multiple `Authenticatable` models cause incorrect tracking — use `Pulse::resolveAuthenticatedUserId()` when recording user-keyed entries
+- SQS queues appear duplicated in the Queue card — use `ignore` regex patterns to suppress them
+- Sampled dashboard values are approximate — prefixed with `~`, not suitable for financial or audit reporting
+- Not using `search-docs` for the latest Pulse documentation
