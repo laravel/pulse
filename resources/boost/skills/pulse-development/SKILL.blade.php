@@ -6,7 +6,7 @@ metadata:
   author: laravel
 ---
 @php
-/ @var \Laravel\Boost\Install\GuidelineAssist $assist */
+/** @var \Laravel\Boost\Install\GuidelineAssist $assist */
 @endphp
 # Laravel Pulse Development
 
@@ -49,7 +49,7 @@ Gate::define('viewPulse', function (User $user) {
 });
 @endboostsnippet
 
-Without this gate defined, the dashboard is blocked in all non-local environments.
+Without this gate, the dashboard is inaccessible in all non-local environments.
 
 Use `search-docs` for card layout customization (`cols`, `rows` props) and user resolver (`Pulse::user()`).
 
@@ -215,4 +215,4 @@ Use `search-docs` for Vite/CSS integration, Tailwind scoping, blade card compone
 - Multiple `Authenticatable` models cause incorrect tracking — use `Pulse::resolveAuthenticatedUserId()` when recording user-keyed entries
 - SQS queues appear duplicated in the Queue card — use `ignore` regex patterns to suppress them
 - Sampled dashboard values are approximate — prefixed with `~`, not suitable for financial or audit reporting
-- Not using `search-docs` for the latest Pulse documentation
+- Always use `search-docs` for the latest Pulse documentation rather than relying on this skill alone
