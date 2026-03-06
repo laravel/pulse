@@ -48,6 +48,7 @@ class Servers extends Card
                         'memory_total' => (int) $values->memory_total,
                         'memory' => $graphs->get($slug)?->get('memory') ?? collect(),
                         'storage' => collect($values->storage), // @phpstan-ignore argument.templateType, argument.templateType
+                        'booted_at' => isset($values->booted_at) ? (int) $values->booted_at : null,
                         'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
                         'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
                     ];

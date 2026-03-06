@@ -29,7 +29,7 @@ $rows = ! empty($rows) ? $rows : 1;
     :class="loading && 'opacity-25 animate-pulse'"
 >
     @if ($servers->isNotEmpty())
-        <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(min-content,2fr),max-content,minmax(min-content,2fr),minmax(max-content,1fr)]">
+        <div class="grid grid-cols-[max-content,minmax(max-content,1fr),max-content,minmax(min-content,2fr),max-content,minmax(min-content,2fr),minmax(max-content,1fr),max-content]">
             <div></div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">CPU</div>
@@ -37,6 +37,7 @@ $rows = ! empty($rows) ? $rows : 1;
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Memory</div>
             <div></div>
             <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold">Storage</div>
+            <div class="text-xs uppercase text-left text-gray-500 dark:text-gray-400 font-bold pl-8 xl:pl-12">Uptime</div>
             @foreach ($servers as $slug => $server)
                 <div wire:key="{{ $slug }}-indicator" class="flex items-center {{ $servers->count() > 1 ? 'py-2' : '' }}" title="{{ $server->updated_at->fromNow() }}">
                     @if ($server->recently_reported)
@@ -93,7 +94,7 @@ $rows = ! empty($rows) ? $rows : 1;
                         <canvas x-ref="canvas" class="w-full ring-1 ring-gray-900/5 bg-white dark:bg-gray-900 rounded-md shadow-sm"></canvas>
                     </div>
                 </div>
-                <div wire:key="{{ $slug }}-storage" class="flex items-center gap-8 {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                <div wire:key="{{ $slug }}-storage" class="flex items-center gap-8 pr-8 xl:pr-12 {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
                     @foreach ($server->storage as $storage)
                         <div wire:key="{{ $slug.'-storage-'.$storage->directory }}" class="flex items-center gap-4" title="Directory: {{ $storage->directory }}">
                             <div class="whitespace-nowrap tabular-nums">
@@ -114,6 +115,18 @@ $rows = ! empty($rows) ? $rows : 1;
                             </div>
                         </div>
                     @endforeach
+                </div>
+                <div wire:key="{{ $slug }}-uptime" class="flex items-center {{ $servers->count() > 1 ? 'py-2' : '' }} {{ ! $server->recently_reported ? 'opacity-25 animate-pulse' : '' }}">
+                    @if ($server->booted_at !== null)
+                        <div
+                            x-data="uptimeCounter({ bootedAt: {{ $server->booted_at }} })"
+                            x-text="uptime"
+                            :title="bootedAtFormatted"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-200 tabular-nums whitespace-nowrap"
+                        ></div>
+                    @else
+                        <span class="text-sm text-gray-500 dark:text-gray-400">—</span>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -280,6 +293,32 @@ Alpine.data('memoryChart', (config) => ({
             chart.update()
         })
     }
+}))
+
+Alpine.data('uptimeCounter', (config) => ({
+    uptime: '',
+    bootedAtFormatted: '',
+    init() {
+        this.update()
+        setInterval(() => this.update(), 1000)
+    },
+    update() {
+        const seconds = Math.floor(Date.now() / 1000) - config.bootedAt
+        const days = Math.floor(seconds / 86400)
+        const hours = Math.floor((seconds % 86400) / 3600)
+        const minutes = Math.floor((seconds % 3600) / 60)
+        const secs = seconds % 60
+
+        if (days > 0) {
+            this.uptime = `${days}d ${hours}h ${minutes}m`
+        } else if (hours > 0) {
+            this.uptime = `${hours}h ${minutes}m ${secs}s`
+        } else {
+            this.uptime = `${minutes}m ${secs}s`
+        }
+
+        this.bootedAtFormatted = 'Booted at: ' + new Date(config.bootedAt * 1000).toLocaleString()
+    },
 }))
 
 Alpine.data('storageChart', (config) => ({

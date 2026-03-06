@@ -48,6 +48,7 @@ it('renders server statistics', function () {
                 'storage' => collect([
                     (object) ['directory' => '/', 'used' => 123, 'total' => 456],
                 ]),
+                'booted_at' => null,
                 'cpu' => collect()->range(59, 1)
                     ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
                     ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 50),

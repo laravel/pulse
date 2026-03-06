@@ -93,6 +93,7 @@ class Servers
                         'used' => intval(round($total - (disk_free_space($directory) / 1024 / 1024))), // MB
                     ])
                     ->all(),
+                'booted_at' => $this->bootedAt(),
             ], flags: JSON_THROW_ON_ERROR), $event->time);
         });
     }
@@ -113,6 +114,72 @@ class Servers
             'BSD' => (int) shell_exec("top -b -d 2| grep 'CPU: ' | tail -1 | awk '{print$10}' | grep -Eo '[0-9]+\.[0-9]+' | awk '{ print 100 - $1 }'"),
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
+    }
+
+    /**
+     * Server boot timestamp (Unix epoch seconds).
+     */
+    protected function bootedAt(): ?int
+    {
+        return match (PHP_OS_FAMILY) {
+            'Linux' => $this->linuxBootedAt(),
+            'Darwin', 'BSD' => $this->darwinBsdBootedAt(),
+            'Windows' => $this->windowsBootedAt(),
+            default => null,
+        };
+    }
+
+    /**
+     * Boot time on Linux via /proc/stat (btime), falling back to /proc/uptime.
+     */
+    protected function linuxBootedAt(): ?int
+    {
+        if (is_readable('/proc/stat')) {
+            foreach (file('/proc/stat') ?: [] as $line) {
+                if (str_starts_with($line, 'btime ')) {
+                    return (int) trim(substr($line, 6));
+                }
+            }
+        }
+
+        if (is_readable('/proc/uptime')) {
+            $contents = file_get_contents('/proc/uptime');
+            if ($contents !== false) {
+                return (int) round(time() - (float) explode(' ', $contents)[0]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Boot time on Darwin/BSD via sysctl kern.boottime.
+     */
+    protected function darwinBsdBootedAt(): ?int
+    {
+        $output = shell_exec('sysctl kern.boottime');
+
+        if ($output && preg_match('/sec = (\d+)/', $output, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Boot time on Windows via wmic os get LastBootUpTime.
+     */
+    protected function windowsBootedAt(): ?int
+    {
+        $output = shell_exec('wmic os get LastBootUpTime /value');
+
+        if ($output && preg_match('/LastBootUpTime=(\d{14})/', $output, $matches)) {
+            $dt = \DateTime::createFromFormat('YmdHis', $matches[1]);
+
+            return $dt ? $dt->getTimestamp() : null;
+        }
+
+        return null;
     }
 
     /**

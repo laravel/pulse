@@ -26,6 +26,10 @@ it('records server information', function () {
     expect($payload->cpu)->toBeLessThanOrEqual(100);
     expect($payload->memory_used)->toBeGreaterThan(0);
     expect($payload->memory_total)->toBeGreaterThan(0);
+    expect($payload->booted_at === null || is_int($payload->booted_at))->toBeTrue();
+    if ($payload->booted_at !== null) {
+        expect($payload->booted_at)->toBeGreaterThan(0)->toBeLessThanOrEqual(time());
+    }
 
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->get());
     expect($aggregates->count())->toBe(8);
