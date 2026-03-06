@@ -27,9 +27,10 @@ Use `search-docs` for detailed Laravel Pulse patterns and documentation, includi
 
 ## Installation
 
-Requires MySQL, MariaDB, or PostgreSQL. SQLite is not supported.
+Pulse stores data in your application's database. The current package supports MySQL, MariaDB, PostgreSQL, and SQLite.
 
 ```bash
+composer require laravel/pulse
 {{ $assist->artisanCommand('vendor:publish --provider="Laravel\Pulse\PulseServiceProvider"') }}
 {{ $assist->artisanCommand('migrate') }}
 ```
@@ -58,11 +59,11 @@ All 10 built-in recorders are configurable in `config/pulse.php`:
 | Recorder | Key Config Options |
 |---|---|
 | `CacheInteractions` | `sample_rate`, `ignore`, `groups` (regex find/replace) |
-| `Exceptions` | `sample_rate`, `ignore`, `capture_location` |
+| `Exceptions` | `sample_rate`, `ignore`, `location` |
 | `Queues` | `sample_rate`, `ignore` |
 | `SlowJobs` | `threshold` (ms, per-job regex map), `sample_rate`, `ignore` |
 | `SlowOutgoingRequests` | `threshold` (ms, per-URL regex map), `sample_rate`, `ignore`, `groups` |
-| `SlowQueries` | `threshold` (ms, per-query regex map), `sample_rate`, `ignore`, `capture_location` |
+| `SlowQueries` | `threshold` (ms, per-query regex map), `sample_rate`, `ignore`, `location` |
 | `SlowRequests` | `threshold` (ms, per-route regex map), `sample_rate`, `ignore` |
 | `Servers` | `PULSE_SERVER_NAME` env var, monitored disk paths |
 | `UserJobs` | `sample_rate`, `ignore` |
@@ -89,6 +90,7 @@ Use `Pulse::filter()` in `AppServiceProvider::boot()` to exclude entries globall
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Value;
+use Illuminate\Support\Facades\Auth;
 
 Pulse::filter(function (Entry|Value $entry) {
     return Auth::user()?->isNotAdmin() ?? true;
@@ -179,7 +181,7 @@ class SaleRecorder
 
     public function record(\App\Events\SaleCompleted $event): void
     {
-        Pulse::record('user_sale', $event->user->id, $event->sale->amount)
+        \Laravel\Pulse\Facades\Pulse::record('user_sale', $event->user->id, $event->sale->amount)
             ->sum()
             ->count();
     }
@@ -197,8 +199,7 @@ Register the recorder in the `recorders` array in `config/pulse.php`.
 
 ## Common Pitfalls
 
-- SQLite is not supported. Pulse requires MySQL, MariaDB, or PostgreSQL.
-- `/pulse` returns 404 until `php artisan migrate` has been run.
+- An empty dashboard or database errors usually mean the Pulse tables have not been published and migrated yet.
 - The dashboard is local-only by default. Define the `viewPulse` gate to enable production access.
 - The Servers card shows no data unless `pulse:check` runs as a persistent process. Supervisor is recommended.
 - Redis ingest silently queues data. The dashboard appears empty if `pulse:work` is not running.
