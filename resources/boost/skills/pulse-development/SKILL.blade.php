@@ -27,7 +27,7 @@ Use `search-docs` for detailed Laravel Pulse patterns and documentation, includi
 
 ## Installation
 
-Requires MySQL, MariaDB, or PostgreSQL — SQLite is not supported.
+Requires MySQL, MariaDB, or PostgreSQL. SQLite is not supported.
 
 ```bash
 {{ $assist->artisanCommand('vendor:publish --provider="Laravel\Pulse\PulseServiceProvider"') }}
@@ -124,7 +124,7 @@ Custom cards are Livewire components extending Pulse's base `Card` class.
 
 ### Recording Entries
 
-Call `Pulse::record()` from a recorder, listener, or observer. Aggregation methods (`avg`, `count`, `max`, `min`, `sum`) can be chained — multiple in one call:
+Call `Pulse::record()` from a recorder, listener, or observer. Chain aggregation methods (`avg`, `count`, `max`, `min`, `sum`) in a single call:
 
 @boostsnippet("Record Pulse Entry", "php")
 use Laravel\Pulse\Facades\Pulse;
@@ -197,14 +197,14 @@ Register the recorder in the `recorders` array in `config/pulse.php`.
 
 ## Common Pitfalls
 
-- SQLite is not supported — Pulse requires MySQL, MariaDB, or PostgreSQL
-- `/pulse` returns 404 until `php artisan migrate` has been run
-- Dashboard is local-only by default — define the `viewPulse` gate for production access
-- Servers card shows no data unless `pulse:check` runs as a persistent process
-- Redis ingest silently queues data — the dashboard appears empty if `pulse:work` is not running
-- `pulse:restart` requires a working cache driver — without it the signal is never received
-- Pulse exceptions fail silently — use `Pulse::handleExceptionsUsing()` to surface errors during development
-- Multiple `Authenticatable` models cause incorrect tracking — use `Pulse::resolveAuthenticatedUserId()` when recording user-keyed entries
-- SQS queues appear duplicated in the Queue card — use `ignore` regex patterns to suppress them
-- Sampled dashboard values are approximate — prefixed with `~`, not suitable for financial or audit reporting
-- Always use `search-docs` for the latest Pulse documentation rather than relying on this skill alone
+- SQLite is not supported. Pulse requires MySQL, MariaDB, or PostgreSQL.
+- `/pulse` returns 404 until `php artisan migrate` has been run.
+- The dashboard is local-only by default. Define the `viewPulse` gate to enable production access.
+- The Servers card shows no data unless `pulse:check` runs as a persistent process. Supervisor is recommended.
+- Redis ingest silently queues data. The dashboard appears empty if `pulse:work` is not running.
+- `pulse:restart` requires a working cache driver. Without it, the signal is never received.
+- Pulse exceptions fail silently. Use `Pulse::handleExceptionsUsing()` to surface errors during development.
+- Multiple `Authenticatable` models can cause incorrect user tracking. Use `Pulse::resolveAuthenticatedUserId()` when recording user-keyed entries.
+- SQS queues may appear duplicated in the Queue card. Use `ignore` regex patterns to suppress them.
+- Sampled dashboard values are approximate and prefixed with `~`. They are not suitable for financial or audit reporting.
+- Always use `search-docs` for the latest Pulse documentation rather than relying on this skill alone.
