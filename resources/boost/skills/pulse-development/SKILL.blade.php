@@ -23,7 +23,7 @@ Activate this skill when:
 
 ## Documentation
 
-Use `search-docs` for detailed Laravel Pulse patterns and documentation.
+Use `search-docs` for detailed Laravel Pulse patterns and documentation, including card layout customization, user resolver configuration, all recorder options, sampling, dedicated database connections, Vite/CSS integration, Tailwind scoping, blade card components, and lazy loading.
 
 ## Installation
 
@@ -50,8 +50,6 @@ Gate::define('viewPulse', function (User $user) {
 @endboostsnippet
 
 Without this gate, the dashboard is inaccessible in all non-local environments.
-
-Use `search-docs` for card layout customization (`cols`, `rows` props) and user resolver (`Pulse::user()`).
 
 ## Recorders
 
@@ -97,8 +95,6 @@ Pulse::filter(function (Entry|Value $entry) {
 });
 @endboostsnippet
 
-Use `search-docs` for all recorder options and filtering patterns.
-
 ## Performance
 
 ### Redis Ingest
@@ -121,8 +117,6 @@ Signal a graceful restart during deployment (requires a working cache driver):
 ```bash
 {{ $assist->artisanCommand('pulse:restart') }}
 ```
-
-Use `search-docs` for sampling configuration (`sample_rate`) and dedicated database connection (`PULSE_DB_CONNECTION`).
 
 ## Custom Cards
 
@@ -193,8 +187,6 @@ class SaleRecorder
 @endboostsnippet
 
 Register the recorder in the `recorders` array in `config/pulse.php`.
-
-Use `search-docs` for Vite/CSS integration, Tailwind scoping, blade card components, and lazy loading.
 
 ## Verification
 
