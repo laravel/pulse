@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.6.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.0...1.x)
+
+## [v1.7.0](https://github.com/laravel/pulse/compare/v1.6.0...v1.7.0) - 2026-03-06
+
+* Restrict unserialize in RedisIngest by [@sulimanbenhalim](https://github.com/sulimanbenhalim) in https://github.com/laravel/pulse/pull/479
+* Add pulse-development Boost skill by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pulse/pull/484
 
 ## [v1.6.0](https://github.com/laravel/pulse/compare/v1.5.0...v1.6.0) - 2026-02-12
 
