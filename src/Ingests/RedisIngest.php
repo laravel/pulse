@@ -36,7 +36,7 @@ class RedisIngest implements Ingest
     /**
      * Ingest the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>  $items
+     * @param  Collection<int, Entry|Value>  $items
      */
     public function ingest(Collection $items): void
     {

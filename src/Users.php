@@ -12,14 +12,14 @@ class Users implements ResolvesUsers
     /**
      * The resolved users.
      *
-     * @var Collection<int, \Illuminate\Contracts\Auth\Authenticatable>
+     * @var Collection<int, Authenticatable>
      */
     protected Collection $resolvedUsers;
 
     /**
      * The field resolver.
      *
-     * @var ?callable(\Illuminate\Contracts\Auth\Authenticatable): object{name: string, extra?: string, avatar?: string}
+     * @var ?callable(Authenticatable): object{name: string, extra?: string, avatar?: string}
      */
     protected $fieldResolver = null;
 
@@ -82,7 +82,7 @@ class Users implements ResolvesUsers
     /**
      * Override the field resolver.
      *
-     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): object{name: string, extra?: string, avatar?: string}  $resolver
+     * @param  callable(Authenticatable): object{name: string, extra?: string, avatar?: string}  $resolver
      */
     public function setFieldResolver(callable $resolver): self
     {

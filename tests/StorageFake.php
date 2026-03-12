@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Entry;
 
 class StorageFake implements Storage
 {
@@ -20,7 +21,7 @@ class StorageFake implements Storage
     /**
      * Store the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
+     * @param  Collection<int, Entry>  $items
      */
     public function store(Collection $items): void
     {
@@ -57,7 +58,7 @@ class StorageFake implements Storage
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<
+     * @return Collection<
      *     int,
      *     array<
      *         string,
@@ -79,7 +80,7 @@ class StorageFake implements Storage
      * Retrieve aggregate values for plotting on a graph.
      *
      * @param  list<string>  $types
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
+     * @return Collection<string, Collection<string, Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
@@ -90,7 +91,7 @@ class StorageFake implements Storage
      * Retrieve aggregate values for the given type.
      *
      * @param  list<string>  $aggregates
-     * @return \Illuminate\Support\Collection<int, object{
+     * @return Collection<int, object{
      *     key: string,
      *     max?: int,
      *     sum?: int,
@@ -113,7 +114,7 @@ class StorageFake implements Storage
      * Retrieve aggregate values for the given types.
      *
      * @param  string|list<string>  $types
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     public function aggregateTypes(
         string|array $types,
@@ -130,7 +131,7 @@ class StorageFake implements Storage
      * Retrieve an aggregate total for the given types.
      *
      * @param  string|list<string>  $types
-     * @return \Illuminate\Support\Collection<string, int>
+     * @return Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,

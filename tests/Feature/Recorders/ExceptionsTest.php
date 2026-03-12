@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\Exceptions;
+use Tests\Feature\Exceptions\MyException;
 
 it('ingests exceptions', function () {
     Carbon::setTestNow('2000-01-02 03:04:05');
@@ -107,7 +108,7 @@ it('can ignore exceptions', function () {
         '/^Tests\\\\Feature\\\\Exceptions/',
     ]);
 
-    report(new \Tests\Feature\Exceptions\MyException('Ignored exception'));
+    report(new MyException('Ignored exception'));
 
     expect(Pulse::ingest())->toBe(0);
 });

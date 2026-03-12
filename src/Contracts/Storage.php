@@ -4,13 +4,15 @@ namespace Laravel\Pulse\Contracts;
 
 use Carbon\CarbonInterval;
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Entry;
+use Laravel\Pulse\Value;
 
 interface Storage
 {
     /**
      * Store the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>  $items
+     * @param  Collection<int, Entry|Value>  $items
      */
     public function store(Collection $items): void;
 
@@ -30,7 +32,7 @@ interface Storage
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<string, object{
+     * @return Collection<string, object{
      *     timestamp: int,
      *     key: string,
      *     value: string
@@ -43,7 +45,7 @@ interface Storage
      *
      * @param  list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
+     * @return Collection<string, Collection<string, Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection;
 
@@ -51,7 +53,7 @@ interface Storage
      * Retrieve aggregate values for the given type.
      *
      * @param  'count'|'min'|'max'|'sum'|'avg'|list<'count'|'min'|'max'|'sum'|'avg'>  $aggregates
-     * @return \Illuminate\Support\Collection<int, object{
+     * @return Collection<int, object{
      *     key: string,
      *     min?: int,
      *     max?: int,
@@ -74,7 +76,7 @@ interface Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     public function aggregateTypes(
         string|array $types,
@@ -90,7 +92,7 @@ interface Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return float|\Illuminate\Support\Collection<string, int>
+     * @return float|Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,

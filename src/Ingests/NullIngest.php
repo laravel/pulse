@@ -5,13 +5,14 @@ namespace Laravel\Pulse\Ingests;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\Storage;
+use Laravel\Pulse\Entry;
 
 class NullIngest implements Ingest
 {
     /**
      * Ingest the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
+     * @param  Collection<int, Entry>  $items
      */
     public function ingest(Collection $items): void
     {

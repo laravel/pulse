@@ -8,6 +8,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Str;
+use Illuminate\View\ViewException;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Events\ExceptionReported;
 use Laravel\Pulse\Pulse;
@@ -77,7 +78,7 @@ class Exceptions
         $previous = $e->getPrevious();
 
         return match (true) {
-            $e instanceof \Illuminate\View\ViewException && $previous,
+            $e instanceof ViewException && $previous,
             $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException && $previous => $previous::class, // @phpstan-ignore class.notFound
             default => $e::class,
         };
@@ -89,7 +90,7 @@ class Exceptions
     protected function resolveLocation(Throwable $e): string
     {
         return match (true) {
-            $e instanceof \Illuminate\View\ViewException => $this->resolveLocationFromViewException($e),
+            $e instanceof ViewException => $this->resolveLocationFromViewException($e),
             $e instanceof \Spatie\LaravelIgnition\Exceptions\ViewException => $this->formatLocation($e->getFile(), $e->getLine()), // @phpstan-ignore class.notFound, class.notFound, class.notFound
             default => $this->resolveLocationFromTrace($e)
         };

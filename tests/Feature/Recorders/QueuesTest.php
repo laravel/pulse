@@ -502,7 +502,7 @@ it('handles a job that was manually failed', function () {
      * Work the job for the first time.
      */
 
-    app(ExceptionHandler::class)->reportable(fn (\Throwable $e) => throw $e);
+    app(ExceptionHandler::class)->reportable(fn (Throwable $e) => throw $e);
     Artisan::call('queue:work', ['--max-jobs' => 1, '--stop-when-empty' => true, '--sleep' => 0]);
     app()->forgetInstance(ExceptionHandler::class);
     Pulse::ignore(fn () => expect(Queue::size())->toBe(0));

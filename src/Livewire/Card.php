@@ -2,6 +2,7 @@
 
 namespace Laravel\Pulse\Livewire;
 
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
@@ -66,7 +67,7 @@ abstract class Card extends Component
     /**
      * Define any CSS that should be loaded for the component.
      *
-     * @return string|\Illuminate\Contracts\Support\Htmlable|array<int, string|\Illuminate\Contracts\Support\Htmlable>|null
+     * @return string|Htmlable|array<int, string|Htmlable>|null
      */
     protected function css()
     {
@@ -77,7 +78,7 @@ abstract class Card extends Component
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<string, object{
+     * @return Collection<string, object{
      *     timestamp: int,
      *     key: string,
      *     value: string
@@ -93,7 +94,7 @@ abstract class Card extends Component
      *
      * @param  list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
+     * @return Collection<string, Collection<string, Collection<string, int|null>>>
      */
     protected function graph(array $types, string $aggregate): Collection
     {
@@ -104,7 +105,7 @@ abstract class Card extends Component
      * Retrieve aggregate values for the given type.
      *
      * @param  'count'|'min'|'max'|'sum'|'avg'|list<'count'|'min'|'max'|'sum'|'avg'>  $aggregates
-     * @return \Illuminate\Support\Collection<int, mixed>
+     * @return Collection<int, mixed>
      */
     protected function aggregate(
         string $type,
@@ -121,7 +122,7 @@ abstract class Card extends Component
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<int, mixed>
+     * @return Collection<int, mixed>
      */
     protected function aggregateTypes(
         string|array $types,
@@ -138,7 +139,7 @@ abstract class Card extends Component
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return float|\Illuminate\Support\Collection<string, int>
+     * @return float|Collection<string, int>
      */
     protected function aggregateTotal(
         array|string $types,

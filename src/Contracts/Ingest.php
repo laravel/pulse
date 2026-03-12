@@ -3,13 +3,14 @@
 namespace Laravel\Pulse\Contracts;
 
 use Illuminate\Support\Collection;
+use Laravel\Pulse\Entry;
 
 interface Ingest
 {
     /**
      * Ingest the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $items
+     * @param  Collection<int, Entry>  $items
      */
     public function ingest(Collection $items): void;
 

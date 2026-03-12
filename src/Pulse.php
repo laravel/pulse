@@ -26,7 +26,7 @@ use function Illuminate\Support\enum_value;
 /**
  * @internal
  *
- * @mixin \Laravel\Pulse\Contracts\Storage
+ * @mixin Storage
  */
 class Pulse
 {
@@ -35,21 +35,21 @@ class Pulse
     /**
      * The list of metric recorders.
      *
-     * @var \Illuminate\Support\Collection<int, object>
+     * @var Collection<int, object>
      */
     protected Collection $recorders;
 
     /**
      * The list of queued items.
      *
-     * @var \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>
+     * @var Collection<int, Entry|Value>
      */
     protected Collection $entries;
 
     /**
      * The list of queued lazy entry and value resolvers.
      *
-     * @var \Illuminate\Support\Collection<int, callable>
+     * @var Collection<int, callable>
      */
     protected Collection $lazy;
 
@@ -61,7 +61,7 @@ class Pulse
     /**
      * The entry filters.
      *
-     * @var \Illuminate\Support\Collection<int, (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)>
+     * @var Collection<int, (callable(Entry|Value): bool)>
      */
     protected Collection $filters;
 
@@ -78,7 +78,7 @@ class Pulse
     /**
      * Handle exceptions using the given callback.
      *
-     * @var ?callable(\Throwable): mixed
+     * @var ?callable(Throwable): mixed
      */
     protected $handleExceptionsUsing = null;
 
@@ -277,7 +277,7 @@ class Pulse
     /**
      * Filter items before storage using the provided filter.
      *
-     * @param  (callable(\Laravel\Pulse\Entry|\Laravel\Pulse\Value): bool)  $filter
+     * @param  (callable(Entry|Value): bool)  $filter
      */
     public function filter(callable $filter): self
     {
@@ -390,7 +390,7 @@ class Pulse
     /**
      * Get the registered recorders.
      *
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     public function recorders(): Collection
     {
@@ -400,7 +400,7 @@ class Pulse
     /**
      * Resolve the user details for the given user IDs.
      *
-     * @param  \Illuminate\Support\Collection<int, string>  $keys
+     * @param  Collection<int, string>  $keys
      */
     public function resolveUsers(Collection $keys): ResolvesUsers
     {
@@ -414,7 +414,7 @@ class Pulse
      *
      * @deprecated
      *
-     * @param  callable(\Illuminate\Support\Collection<int, mixed>): ?iterable<int|string, array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}>  $callback
+     * @param  callable(Collection<int, mixed>): ?iterable<int|string, array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}>  $callback
      */
     public function users(callable $callback): self
     {
@@ -426,7 +426,7 @@ class Pulse
     /**
      * Resolve the user's details using the given closure.
      *
-     * @param  callable(\Illuminate\Contracts\Auth\Authenticatable): array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}  $callback
+     * @param  callable(Authenticatable): array{name: string, email?: ?string, avatar?: ?string, extra?: ?string}  $callback
      */
     public function user(callable $callback): self
     {
@@ -574,7 +574,7 @@ class Pulse
     /**
      * Handle exceptions using the given callback.
      *
-     * @param  (callable(\Throwable): mixed)  $callback
+     * @param  (callable(Throwable): mixed)  $callback
      */
     public function handleExceptionsUsing(callable $callback): self
     {
@@ -605,7 +605,7 @@ class Pulse
     /**
      * Set the container instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application  $container
+     * @param  Application  $container
      * @return $this
      */
     public function setContainer($container)

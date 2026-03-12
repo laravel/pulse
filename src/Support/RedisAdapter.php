@@ -82,7 +82,7 @@ class RedisAdapter
     /**
      * Delete the items from the stream.
      *
-     * @param  \Illuminate\Support\Collection<int, string>|array<int, string>  $keys
+     * @param  Collection<int, string>|array<int, string>  $keys
      */
     public function xdel(string $stream, Collection|array $keys): int
     {

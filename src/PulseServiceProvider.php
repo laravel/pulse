@@ -18,6 +18,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
+use Laravel\Octane\Events\RequestReceived;
+use Laravel\Octane\Events\TaskReceived;
+use Laravel\Octane\Events\TickReceived;
 use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
@@ -158,9 +161,9 @@ class PulseServiceProvider extends ServiceProvider
 
         $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
             $event->listen([
-                \Laravel\Octane\Events\RequestReceived::class, // @phpstan-ignore class.notFound
-                \Laravel\Octane\Events\TaskReceived::class, // @phpstan-ignore class.notFound
-                \Laravel\Octane\Events\TickReceived::class, // @phpstan-ignore class.notFound
+                RequestReceived::class, // @phpstan-ignore class.notFound
+                TaskReceived::class, // @phpstan-ignore class.notFound
+                TickReceived::class, // @phpstan-ignore class.notFound
             ], function ($event) {
                 if ($event->sandbox->resolved(Pulse::class)) {
                     $event->sandbox->make(Pulse::class)->setContainer($event->sandbox);

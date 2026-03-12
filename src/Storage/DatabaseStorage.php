@@ -37,7 +37,7 @@ class DatabaseStorage implements Storage
     /**
      * Store the items.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry|\Laravel\Pulse\Value>  $items
+     * @param  Collection<int, Entry|Value>  $items
      */
     public function store(Collection $items): void
     {
@@ -301,8 +301,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entry counts.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregateCounts(Collection $entries): Collection
     {
@@ -315,8 +315,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entry minimums.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregateMinimums(Collection $entries): Collection
     {
@@ -331,8 +331,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entry maximums.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregateMaximums(Collection $entries): Collection
     {
@@ -347,8 +347,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entry sums.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregateSums(Collection $entries): Collection
     {
@@ -361,8 +361,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entry averages.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregateAverages(Collection $entries): Collection
     {
@@ -378,8 +378,8 @@ class DatabaseStorage implements Storage
     /**
      * Collapse the given values.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>  $values
-     * @return \Illuminate\Support\Collection<int, \Laravel\Pulse\Value>
+     * @param  Collection<int, Value>  $values
+     * @return Collection<int, Value>
      */
     protected function collapseValues(Collection $values): Collection
     {
@@ -389,8 +389,8 @@ class DatabaseStorage implements Storage
     /**
      * Pre-aggregate entries with a callback.
      *
-     * @param  \Illuminate\Support\Collection<int, \Laravel\Pulse\Entry>  $entries
-     * @return \Illuminate\Support\Collection<int, AggregateRow>
+     * @param  Collection<int, Entry>  $entries
+     * @return Collection<int, AggregateRow>
      */
     protected function preaggregate(Collection $entries, string $aggregate, Closure $callback): Collection
     {
@@ -447,7 +447,7 @@ class DatabaseStorage implements Storage
      * Retrieve values for the given type.
      *
      * @param  list<string>  $keys
-     * @return \Illuminate\Support\Collection<string, object{
+     * @return Collection<string, object{
      *     timestamp: int,
      *     key: string,
      *     value: string
@@ -470,7 +470,7 @@ class DatabaseStorage implements Storage
      *
      * @param  list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, int|null>>>
+     * @return Collection<string, Collection<string, Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, CarbonInterval $interval): Collection
     {
@@ -515,7 +515,7 @@ class DatabaseStorage implements Storage
      * Retrieve aggregate values for the given type.
      *
      * @param  'count'|'min'|'max'|'sum'|'avg'|list<'count'|'min'|'max'|'sum'|'avg'>  $aggregates
-     * @return \Illuminate\Support\Collection<int, object{
+     * @return Collection<int, object{
      *     key: string,
      *     min?: int,
      *     max?: int,
@@ -632,7 +632,7 @@ class DatabaseStorage implements Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     public function aggregateTypes(
         string|array $types,
@@ -734,7 +734,7 @@ class DatabaseStorage implements Storage
      *
      * @param  string|list<string>  $types
      * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
-     * @return float|\Illuminate\Support\Collection<string, int>
+     * @return float|Collection<string, int>
      */
     public function aggregateTotal(
         array|string $types,

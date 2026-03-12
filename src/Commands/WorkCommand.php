@@ -7,6 +7,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Support\CacheStoreResolver;
+use Laravel\Telescope\Contracts\EntriesRepository;
+use Laravel\Telescope\Telescope;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
@@ -70,8 +72,8 @@ class WorkCommand extends Command
      */
     protected function ensureTelescopeEntriesAreCollected(): void
     {
-        if ($this->laravel->bound(\Laravel\Telescope\Contracts\EntriesRepository::class)) {
-            \Laravel\Telescope\Telescope::store($this->laravel->make(\Laravel\Telescope\Contracts\EntriesRepository::class));
+        if ($this->laravel->bound(EntriesRepository::class)) {
+            Telescope::store($this->laravel->make(EntriesRepository::class));
         }
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
+use Livewire\Mechanisms\HandleRequests\EndpointResolver;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
@@ -174,8 +175,8 @@ function avatar(string $email)
 function livewireUpdateEndpoint()
 {
     // Livewire v4
-    if (class_exists(\Livewire\Mechanisms\HandleRequests\EndpointResolver::class)) {
-        return \Livewire\Mechanisms\HandleRequests\EndpointResolver::updatePath();
+    if (class_exists(EndpointResolver::class)) {
+        return EndpointResolver::updatePath();
     }
 
     // Livewire v3
