@@ -19,6 +19,9 @@ use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
 use RuntimeException;
 use Throwable;
+use UnitEnum;
+
+use function Illuminate\Support\enum_value;
 
 /**
  * @internal
@@ -142,8 +145,8 @@ class Pulse
      * Record an entry.
      */
     public function record(
-        string $type,
-        string $key,
+        UnitEnum|string $type,
+        UnitEnum|string $key,
         ?int $value = null,
         DateTimeInterface|int|null $timestamp = null,
     ): Entry {
@@ -151,8 +154,8 @@ class Pulse
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: $type,
-            key: $key,
+            type: enum_value($type),
+            key: enum_value($key),
             value: $value,
         );
 
@@ -169,8 +172,8 @@ class Pulse
      * Record a value.
      */
     public function set(
-        string $type,
-        string $key,
+        UnitEnum|string $type,
+        UnitEnum|string $key,
         string $value,
         DateTimeInterface|int|null $timestamp = null,
     ): Value {
@@ -178,8 +181,8 @@ class Pulse
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: $type,
-            key: $key,
+            type: enum_value($type),
+            key: enum_value($key),
             value: $value,
         );
 

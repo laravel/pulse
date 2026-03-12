@@ -269,7 +269,74 @@ it('handles logout events when there is no user', function () {
     expect(true)->toBe(true);
 });
 
+it('accepts backed enums for record type', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::record(PulseTestBackedEnum::Slow, 'key', 100);
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+    expect($storage->stored[0])->toBeInstanceOf(Entry::class);
+    expect($storage->stored[0]->type)->toBe('slow_request');
+});
+
+it('accepts backed enums for record key', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::record('type', PulseTestBackedEnum::Slow, 100);
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+    expect($storage->stored[0])->toBeInstanceOf(Entry::class);
+    expect($storage->stored[0]->key)->toBe('slow_request');
+});
+
+it('accepts backed enums for set type', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::set(PulseTestBackedEnum::Slow, 'key', 'value');
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+    expect($storage->stored[0])->toBeInstanceOf(Value::class);
+    expect($storage->stored[0]->type)->toBe('slow_request');
+});
+
+it('accepts backed enums for set key', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::set('type', PulseTestBackedEnum::Slow, 'value');
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+    expect($storage->stored[0])->toBeInstanceOf(Value::class);
+    expect($storage->stored[0]->key)->toBe('slow_request');
+});
+
+it('accepts unit enums for record type', function () {
+    App::instance(Storage::class, $storage = new StorageFake);
+
+    Pulse::record(PulseTestUnitEnum::Slow, 'key', 100);
+    Pulse::ingest();
+
+    expect($storage->stored)->toHaveCount(1);
+    expect($storage->stored[0])->toBeInstanceOf(Entry::class);
+    expect($storage->stored[0]->type)->toBe('Slow');
+});
+
 class MyTestMiddleware
 {
     //
+}
+
+enum PulseTestBackedEnum: string
+{
+    case Slow = 'slow_request';
+    case Fast = 'fast_request';
+}
+
+enum PulseTestUnitEnum
+{
+    case Slow;
+    case Fast;
 }
