@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.1...1.x)
+
+## [v1.7.1](https://github.com/laravel/pulse/compare/v1.7.0...v1.7.1) - 2026-03-12
+
+* Allow `Pulse::record()` and `Pulse::set()` to accept enums by [@devajmeireles](https://github.com/devajmeireles) in https://github.com/laravel/pulse/pull/486
 
 ## [v1.7.0](https://github.com/laravel/pulse/compare/v1.6.0...v1.7.0) - 2026-03-06
 
