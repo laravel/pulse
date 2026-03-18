@@ -32,7 +32,7 @@
         "illuminate/redis": "^10.48.4|^11.0.8|^12.0",
         "illuminate/routing": "^10.48.4|^11.0.8|^12.0",
         "illuminate/support": "^10.48.4|^11.0.8|^12.0",
-        "illuminate/view": "^10.48.4|^11.0.8|^12.0",
+        "illuminate/view": "^10.48.4|^11.0.8|^12.0|^13.0",
         "laravel/sentinel": "^1.0",
         "livewire/livewire": "^3.6.4|^4.0",
         "symfony/console": "^6.0|^7.0",
