@@ -155,7 +155,7 @@ class Pulse
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
             type: enum_value($type),
-            key: enum_value($key),
+            key: $this->sanitizeKey(enum_value($key)),
             value: $value,
         );
 
@@ -182,7 +182,7 @@ class Pulse
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
             type: enum_value($type),
-            key: enum_value($key),
+            key: $this->sanitizeKey(enum_value($key)),
             value: $value,
         );
 
@@ -613,6 +613,18 @@ class Pulse
         $this->app = $container;
 
         return $this;
+    }
+
+    /**
+     * Sanitize a key to ensure it contains only valid UTF-8 characters.
+     */
+    protected function sanitizeKey(string $key): string
+    {
+        if (! mb_check_encoding($key, 'UTF-8')) {
+            $key = mb_convert_encoding($key, 'UTF-8', 'UTF-8');
+        }
+
+        return $key;
     }
 
     /**
