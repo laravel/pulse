@@ -10,17 +10,6 @@ metadata:
 @endphp
 # Laravel Pulse Development
 
-## When to Apply
-
-Activate this skill when:
-
-- Installing or configuring Laravel Pulse in a Laravel application
-- Setting up or restricting access to the `/pulse` dashboard
-- Configuring built-in recorders, thresholds, sampling, or entry filtering
-- Building custom Livewire cards or custom recorders
-- Optimizing Pulse for high-traffic apps with Redis ingest or sampling
-- Diagnosing missing data, 404 errors, or silent failures in Pulse
-
 ## Documentation
 
 Use `search-docs` for detailed Laravel Pulse patterns and documentation, including card layout customization, user resolver configuration, all recorder options, sampling, dedicated database connections, Vite/CSS integration, Tailwind scoping, blade card components, and lazy loading.
