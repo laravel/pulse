@@ -21,7 +21,7 @@ use RuntimeException;
 use Throwable;
 use UnitEnum;
 
-use function Illuminate\Support\enum_value;
+use function Laravel\Pulse\Support\enum_value;
 
 /**
  * @internal
