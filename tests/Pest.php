@@ -35,7 +35,10 @@ uses(TestCase::class)
         Pulse::flush();
         Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
         Gate::define('viewPulse', fn ($user = null) => true);
-        Config::set('pulse.ingest.trim.lottery', [1, 1]);
+        Config::set([
+            'database.redis.options.prefix' => 'laravel_database_',
+            'pulse.ingest.trim.lottery' => [1, 1],
+        ]);
     })
     ->afterEach(function () {
         Str::createUuidsNormally();
@@ -104,9 +107,9 @@ expect()->extend('toContainAggregateForAllPeriods', function (string|array $type
 function keyHash(string $string): string
 {
     return match (DB::connection()->getDriverName()) {
-        'mariadb', 'mysql' => hex2bin(md5($string)),
+        'mariadb' => hex2bin(md5($string)),
         'pgsql' => Uuid::fromString(md5($string)),
-        'sqlite' => md5($string),
+        'mysql', 'sqlite' => md5($string),
     };
 }
 

@@ -2,6 +2,8 @@
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Laravel\Pulse\Http\Middleware\Authorize;
 
 it('authorizes dashboard access', function ($environment, $status) {
     Gate::define('viewPulse', fn ($user = null) => $this->app->environment('local'));
@@ -49,7 +51,7 @@ it('requires authentication on livewire requests', function () {
         ->first(fn ($component) => $component->memo->name === 'pulse.servers');
 
     $this
-        ->post(livewireUpdateEndpoint(), [
+        ->postJson(livewireUpdateEndpoint(), [
             '_token' => csrf_token(),
             'components' => [
                 [
@@ -58,6 +60,8 @@ it('requires authentication on livewire requests', function () {
                     'updates' => [],
                 ],
             ],
+        ], [
+            'X-Livewire' => 'true',
         ])
         ->assertOk();
 
@@ -65,12 +69,7 @@ it('requires authentication on livewire requests', function () {
 });
 
 it('doesnt use pulse middleware on other livewire requests', function () {
-    Gate::define('viewPulse', fn ($user = null) => false);
-
-    $this
-        ->post(livewireUpdateEndpoint(), [
-            '_token' => csrf_token(),
-            'components' => [],
-        ])
-        ->assertOk();
+    expect(Route::getRoutes()->get('POST')[ltrim(livewireUpdateEndpoint(), '/')]->gatherMiddleware())
+        ->not
+        ->toContain(Authorize::class);
 });

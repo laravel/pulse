@@ -832,6 +832,6 @@ class DatabaseStorage implements Storage
      */
     protected function requiresManualKeyHash(): bool
     {
-        return $this->connection()->getDriverName() === 'sqlite';
+        return in_array($this->connection()->getDriverName(), ['mysql', 'sqlite']);
     }
 }

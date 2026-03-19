@@ -106,7 +106,11 @@ it('runs the same commands while storing', function ($driver) {
         ->run('redis-cli -p '.Config::get('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:ingest')
         ->throw()
         ->output();
-    [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
+    $lines = collect(explode("\n", $output));
+    [$firstEntryKey, $lastEntryKey] = [
+        $lines[$lines->search('first-entry') + 1],
+        $lines[$lines->search('last-entry') + 1],
+    ];
 
     $commands = captureRedisCommands(fn () => $ingest->digest(new StorageFake));
 

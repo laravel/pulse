@@ -93,6 +93,73 @@ jobs:
           DB_PASSWORD: password
           DB_COLLATION: utf8mb4_unicode_ci
 
+  mysql-9:
+    runs-on: ubuntu-22.04
+
+    services:
+      mysql:
+        image: mysql:9
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: pulse
+          MYSQL_USER: pulse
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.4]
+        laravel: [13]
+        livewire: [3, 4]
+        stability: [prefer-stable]
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Livewire ${{ matrix.livewire }} - Stability ${{ matrix.stability }} - MySQL 9
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, redis, pcntl, zip, relay
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install redis-cli
+        run: sudo apt-get install -qq redis-tools
+
+      - name: Require cachewerk/relay
+        run: |
+          composer require cachewerk/relay --no-interaction --no-update
+
+      - name: Require Livewire ${{ matrix.livewire }}
+        run: |
+          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
+
+      - name: Install dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
+
+      - name: Execute tests
+        run: vendor/bin/pest -vvv
+        env:
+          DB_CONNECTION: mysql
+          DB_DATABASE: pulse
+          DB_USERNAME: pulse
+          DB_PASSWORD: password
+
+
   mariadb:
     runs-on: ubuntu-22.04
 
@@ -116,8 +183,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.3]
-        laravel: [12]
+        php: [8.4]
+        laravel: [13]
         livewire: [3, 4]
         stability: [prefer-stable]
 
@@ -181,8 +248,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.3]
-        laravel: [12]
+        php: [8.4]
+        laravel: [13]
         livewire: [3, 4]
         stability: [prefer-stable]
 
@@ -238,7 +305,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [12]
+        laravel: [13]
         livewire: [3, 4]
         stability: [prefer-stable]
 
