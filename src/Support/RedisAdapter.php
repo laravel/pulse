@@ -94,6 +94,42 @@ class RedisAdapter
     }
 
     /**
+     * Set a key with an expiry only if it does not already exist.
+     */
+    public function setnx(string $key, int $seconds): bool
+    {
+        $args = [
+            'SET',
+            $this->config->get('database.redis.options.prefix').$key,
+            '1',
+            'EX',
+            (string) $seconds,
+            'NX',
+        ];
+
+        try {
+            $result = $this->run($args);
+        } catch (PredisServerException $e) {
+            throw RedisServerException::whileRunningCommand(implode(' ', $args), $e->getMessage(), previous: $e);
+        }
+
+        // PhpRedis/Relay return true on success, false when the key already exists.
+        // Predis returns an OK status on success, null when the key already exists.
+        return $result !== null && $result !== false;
+    }
+
+    /**
+     * Delete one or more keys.
+     */
+    public function del(string $key): int
+    {
+        return (int) $this->handle([
+            'DEL',
+            $this->config->get('database.redis.options.prefix').$key,
+        ]);
+    }
+
+    /**
      * Run commands within a pipeline.
      *
      * @param  (callable(self): void)  $closure

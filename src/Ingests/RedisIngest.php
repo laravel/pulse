@@ -75,6 +75,22 @@ class RedisIngest implements Ingest
      */
     public function digest(Storage $storage): int
     {
+        if (! $this->acquireLock()) {
+            return 0;
+        }
+
+        try {
+            return $this->digestEntries($storage);
+        } finally {
+            $this->releaseLock();
+        }
+    }
+
+    /**
+     * Process the entries from the stream.
+     */
+    protected function digestEntries(Storage $storage): int
+    {
         $total = 0;
 
         while (true) {
@@ -103,6 +119,25 @@ class RedisIngest implements Ingest
 
             $total = $total + $entries->count();
         }
+    }
+
+    /**
+     * Acquire an exclusive lock for digesting entries.
+     */
+    protected function acquireLock(): bool
+    {
+        return $this->connection()->setnx(
+            $this->stream.':lock',
+            (int) $this->config->get('pulse.ingest.redis.lock_timeout', 30),
+        );
+    }
+
+    /**
+     * Release the digest lock.
+     */
+    protected function releaseLock(): void
+    {
+        $this->connection()->del($this->stream.':lock');
     }
 
     /**
