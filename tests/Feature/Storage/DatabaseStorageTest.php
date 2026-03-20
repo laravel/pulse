@@ -138,7 +138,7 @@ it('combines duplicate count aggregates before upserting', function () {
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
     expect($queries[1]->sql)->toContain('pulse_aggregates');
-    if (DB::connection()->getDriverName() === 'sqlite') {
+    if (in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
         expect($queries[0]->bindings)->toHaveCount(4 * 5); // 4 entries, 5 columns each
         expect($queries[1]->bindings)->toHaveCount(2 * 7 * 4); // 2 entries, 7 columns each, 4 periods
     } else {
@@ -168,7 +168,7 @@ it('combines duplicate min aggregates before upserting', function () {
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
     expect($queries[1]->sql)->toContain('pulse_aggregates');
-    if (DB::connection()->getDriverName() === 'sqlite') {
+    if (in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
         expect($queries[0]->bindings)->toHaveCount(4 * 5); // 4 entries, 5 columns each
         expect($queries[1]->bindings)->toHaveCount(2 * 7 * 4); // 2 entries, 7 columns each, 4 periods
     } else {
@@ -198,7 +198,7 @@ it('combines duplicate max aggregates before upserting', function () {
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
     expect($queries[1]->sql)->toContain('pulse_aggregates');
-    if (DB::connection()->getDriverName() === 'sqlite') {
+    if (in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
         expect($queries[0]->bindings)->toHaveCount(4 * 5); // 4 entries, 5 columns each
         expect($queries[1]->bindings)->toHaveCount(2 * 7 * 4); // 2 entries, 7 columns each, 4 periods
     } else {
@@ -228,7 +228,7 @@ it('combines duplicate sum aggregates before upserting', function () {
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
     expect($queries[1]->sql)->toContain('pulse_aggregates');
-    if (DB::connection()->getDriverName() === 'sqlite') {
+    if (in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
         expect($queries[0]->bindings)->toHaveCount(4 * 5); // 4 entries, 5 columns each
         expect($queries[1]->bindings)->toHaveCount(2 * 7 * 4); // 2 entries, 7 columns each, 4 periods
     } else {
@@ -258,7 +258,7 @@ it('combines duplicate average aggregates before upserting', function () {
     expect($queries)->toHaveCount(2);
     expect($queries[0]->sql)->toContain('pulse_entries');
     expect($queries[1]->sql)->toContain('pulse_aggregates');
-    if (DB::connection()->getDriverName() === 'sqlite') {
+    if (in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
         expect($queries[0]->bindings)->toHaveCount(4 * 5); // 4 entries, 5 columns each
         expect($queries[1]->bindings)->toHaveCount(2 * 8 * 4); // 2 entries, 8 columns each, 4 periods
     } else {
