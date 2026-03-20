@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.1...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.2...1.x)
+
+## [v1.7.2](https://github.com/laravel/pulse/compare/v1.7.1...v1.7.2) - 2026-03-18
+
+* Remove redundant "When to Apply" section from skill body by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pulse/pull/491
+* [1.x] Add Laravel 13 support by [@hamedelasma](https://github.com/hamedelasma) in https://github.com/laravel/pulse/pull/489
 
 ## [v1.7.1](https://github.com/laravel/pulse/compare/v1.7.0...v1.7.1) - 2026-03-12
 
