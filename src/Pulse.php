@@ -152,8 +152,8 @@ class Pulse
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof \UnitEnum ? $type->name : $type)),
-            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof \UnitEnum ? $key->name : $key)),
+            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof UnitEnum ? $type->name : $type)),
+            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof UnitEnum ? $key->name : $key)),
             value: $value,
         );
 
@@ -179,8 +179,8 @@ class Pulse
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof \UnitEnum ? $type->name : $type)),
-            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof \UnitEnum ? $key->name : $key)),
+            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof UnitEnum ? $type->name : $type)),
+            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof UnitEnum ? $key->name : $key)),
             value: $value,
         );
 
