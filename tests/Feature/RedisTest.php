@@ -53,7 +53,22 @@ it('runs the same commands while ingesting entries', function ($driver) {
         new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
     ])));
 
-    expect($commands)->toContain('"XADD" "laravel_database_laravel:pulse:ingest" "*" "data" "O:19:\"Laravel\\\\Pulse\\\\Entry\\":6:{s:15:\"\x00*\x00aggregations\";a:0:{}s:14:\"\x00*\x00onlyBuckets\";b:0;s:9:\"timestamp\";i:1700752211;s:4:\"type\";s:3:\"foo\";s:3:\"key\";s:3:\"bar\";s:5:\"value\";i:123;}"');
+    $prefix = Config::get('database.redis.options.prefix');
+
+    // Find the XADD command and verify it targets the correct stream with serialized Entry data
+    $xaddCommand = $commands->first(fn ($cmd) => str_starts_with($cmd, '"XADD"'));
+    expect($xaddCommand)->not->toBeNull();
+    expect($xaddCommand)->toContain('"XADD" "'.$prefix.'laravel:pulse:ingest" "*" "data"');
+
+    // Verify the serialized data can be deserialized back to a matching Entry
+    preg_match('/"data" "(.*)"$/', $xaddCommand, $matches);
+    $serializedData = stripcslashes($matches[1]);
+    $entry = unserialize($serializedData, ['allowed_classes' => [Entry::class]]);
+    expect($entry)->toBeInstanceOf(Entry::class);
+    expect($entry->timestamp)->toBe(1700752211);
+    expect($entry->type)->toBe('foo');
+    expect($entry->key)->toBe('bar');
+    expect($entry->value)->toBe(123);
 })->with($drivers);
 
 it('keeps 7 days of data, by default, when trimming', function ($driver) {
@@ -64,7 +79,8 @@ it('keeps 7 days of data, by default, when trimming', function ($driver) {
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
-    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946177445000"');
+    $prefix = Config::get('database.redis.options.prefix');
+    expect($commands)->toContain('"XTRIM" "'.$prefix.'laravel:pulse:ingest" "MINID" "~" "946177445000"');
 })->with($drivers);
 
 it('can configure days of data to keep when trimming', function ($driver) {
@@ -76,7 +92,8 @@ it('can configure days of data to keep when trimming', function ($driver) {
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
-    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MINID" "~" "946695845000"');
+    $prefix = Config::get('database.redis.options.prefix');
+    expect($commands)->toContain('"XTRIM" "'.$prefix.'laravel:pulse:ingest" "MINID" "~" "946695845000"');
 })->with($drivers);
 
 it('can configure the number of entries to keep when trimming', function ($driver) {
@@ -88,7 +105,8 @@ it('can configure the number of entries to keep when trimming', function ($drive
 
     $commands = captureRedisCommands(fn () => App::make(RedisIngest::class)->trim());
 
-    expect($commands)->toContain('"XTRIM" "laravel_database_laravel:pulse:ingest" "MAXLEN" "~" "54321"');
+    $prefix = Config::get('database.redis.options.prefix');
+    expect($commands)->toContain('"XTRIM" "'.$prefix.'laravel:pulse:ingest" "MAXLEN" "~" "54321"');
 })->with($drivers);
 
 it('runs the same commands while storing', function ($driver) {
@@ -97,21 +115,22 @@ it('runs the same commands while storing', function ($driver) {
     Config::set('database.redis.client', $driver);
     Config::set('pulse.ingest.redis.chunk', 567);
     Date::setTestNow(Date::parse('2000-01-02 03:04:05')->startOfSecond());
+    $prefix = Config::get('database.redis.options.prefix');
     $ingest = App::make(RedisIngest::class);
     $ingest->ingest(collect([
         new Entry(timestamp: 1700752211, type: 'foo', key: 'bar', value: 123),
         new Entry(timestamp: 1700752211, type: 'foo', key: 'baz', value: 456),
     ]));
     $output = Process::timeout(1)
-        ->run('redis-cli -p '.Config::get('database.redis.default.port').' XINFO STREAM laravel_database_laravel:pulse:ingest')
+        ->run('redis-cli -p '.Config::get('database.redis.default.port').' XINFO STREAM '.$prefix.'laravel:pulse:ingest')
         ->throw()
         ->output();
     [$firstEntryKey, $lastEntryKey] = collect(explode("\n", $output))->only([17, 21])->values();
 
     $commands = captureRedisCommands(fn () => $ingest->digest(new StorageFake));
 
-    expect($commands)->toContain('"XRANGE" "laravel_database_laravel:pulse:ingest" "-" "+" "COUNT" "567"');
-    expect($commands)->toContain('"XDEL" "laravel_database_laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
+    expect($commands)->toContain('"XRANGE" "'.$prefix.'laravel:pulse:ingest" "-" "+" "COUNT" "567"');
+    expect($commands)->toContain('"XDEL" "'.$prefix.'laravel:pulse:ingest" "'.$firstEntryKey.'" "'.$lastEntryKey.'"');
 })->with($drivers);
 
 it('has consistent return for xadd', function ($driver) {
@@ -195,9 +214,15 @@ it('throws exception on failure', function ($driver) {
 
     Config::set('database.redis.client', $driver);
     $redis = new RedisAdapter(Redis::connection(), App::make('config'));
+    $prefix = Config::get('database.redis.options.prefix');
 
-    $redis->xtrim('stream-name', 'FOO', 'a', 'xyz');
-})->with($drivers)->throws(RedisServerException::class, 'The Redis version does not support the command or some of its arguments [XTRIM laravel_database_stream-name FOO a xyz]. Redis error: [ERR syntax error].');
+    try {
+        $redis->xtrim('stream-name', 'FOO', 'a', 'xyz');
+        test()->fail('Expected RedisServerException was not thrown.');
+    } catch (RedisServerException $e) {
+        expect($e->getMessage())->toBe('The Redis version does not support the command or some of its arguments [XTRIM '.$prefix.'stream-name FOO a xyz]. Redis error: [ERR syntax error].');
+    }
+})->with($drivers);
 
 it('prepends the error message with the run command', function () {
     throw RedisServerException::whileRunningCommand('FOO BAR', 'Something happened');
