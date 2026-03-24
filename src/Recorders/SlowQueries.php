@@ -37,24 +37,23 @@ class SlowQueries
      */
     public function record(QueryExecuted $event): void
     {
-        [$timestampMs, $duration, $sql, $location] = [
-            CarbonImmutable::now()->getTimestampMs(),
-            (int) $event->time,
-            $event->sql,
-            $this->config->get('pulse.recorders.'.self::class.'.location')
-                ? $this->resolveLocation()
-                : null,
-        ];
+        $duration = (int) $event->time;
+        $sql = $event->sql;
+
+        if (
+            ! $this->shouldSample() ||
+            $this->shouldIgnore($sql) ||
+            $this->underThreshold($duration, $sql)
+        ) {
+            return;
+        }
+
+        $timestampMs = CarbonImmutable::now()->getTimestampMs();
+        $location = $this->config->get('pulse.recorders.'.self::class.'.location')
+            ? $this->resolveLocation()
+            : null;
 
         $this->pulse->lazy(function () use ($timestampMs, $duration, $sql, $location) {
-            if (
-                ! $this->shouldSample() ||
-                $this->shouldIgnore($sql) ||
-                $this->underThreshold($duration, $sql)
-            ) {
-                return;
-            }
-
             if ($maxQueryLength = $this->config->get('pulse.recorders.'.self::class.'.max_query_length')) {
                 $sql = Str::limit($sql, $maxQueryLength);
             }
