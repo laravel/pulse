@@ -21,8 +21,6 @@ use RuntimeException;
 use Throwable;
 use UnitEnum;
 
-use function Illuminate\Support\enum_value;
-
 /**
  * @internal
  *
@@ -154,8 +152,8 @@ class Pulse
 
         $entry = new Entry(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: enum_value($type),
-            key: enum_value($key),
+            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof \UnitEnum ? $type->name : $type)),
+            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof \UnitEnum ? $key->name : $key)),
             value: $value,
         );
 
@@ -181,8 +179,8 @@ class Pulse
 
         $value = new Value(
             timestamp: $timestamp instanceof DateTimeInterface ? $timestamp->getTimestamp() : $timestamp,
-            type: enum_value($type),
-            key: enum_value($key),
+            type: (string) ($type instanceof \BackedEnum ? $type->value : ($type instanceof \UnitEnum ? $type->name : $type)),
+            key: (string) ($key instanceof \BackedEnum ? $key->value : ($key instanceof \UnitEnum ? $key->name : $key)),
             value: $value,
         );
 
