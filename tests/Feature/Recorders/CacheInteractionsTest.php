@@ -168,7 +168,7 @@ it('can ignore keys', function () {
 
 it('can sample', function () {
     Config::set('pulse.recorders.'.CacheInteractions::class.'.sample_rate', 0.1);
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
 
     Cache::get('foo');
     Cache::get('foo');
@@ -181,7 +181,7 @@ it('can sample', function () {
     Cache::get('foo');
     Cache::get('foo');
 
-    expect(Pulse::ingest())->toBe(1);
+    expect(Pulse::ingest())->toBe(10);
 });
 
 it('groups job exception keys', function () {

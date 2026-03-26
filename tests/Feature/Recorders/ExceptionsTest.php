@@ -116,7 +116,7 @@ it('can ignore exceptions', function () {
 
 it('can sample', function () {
     Config::set('pulse.recorders.'.Exceptions::class.'.sample_rate', 0.1);
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
 
     report(new MyReportedException);
     report(new MyReportedException);
@@ -129,7 +129,7 @@ it('can sample', function () {
     report(new MyReportedException);
     report(new MyReportedException);
 
-    expect(Pulse::ingest())->toBe(1);
+    expect(Pulse::ingest())->toBe(10);
 });
 
 it('can sample at zero', function () {

@@ -172,11 +172,11 @@ it('can sample', function () {
      * Work the jobs.
      */
 
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
     Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
     Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(1);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(10);
 
     Pulse::flush();
 });

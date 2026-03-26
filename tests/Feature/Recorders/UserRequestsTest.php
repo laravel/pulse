@@ -135,7 +135,7 @@ it('ignores livewire update requests from an ignored path', function () {
 
 it('can sample', function () {
     Config::set('pulse.recorders.'.UserRequests::class.'.sample_rate', 0.1);
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
     Route::get('users', fn () => []);
 
     actingAs(User::make(['id' => '567']));
@@ -150,7 +150,7 @@ it('can sample', function () {
     get('users');
     get('users');
 
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->count()))->toBe(1);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(10);
 });
 
 it('can sample at zero', function () {

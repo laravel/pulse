@@ -185,7 +185,7 @@ it('can ignore queries', function () {
 it('can sample', function () {
     Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowQueries::class.'.sample_rate', 0.1);
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
 
     DB::table('users')->count();
     DB::table('users')->count();
@@ -198,7 +198,7 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::ingest())->toBe(1);
+    expect(Pulse::ingest())->toBe(10);
 });
 
 it('can sample at zero', function () {

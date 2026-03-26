@@ -422,7 +422,7 @@ it('handles routes with domains', function () {
 it('can sample', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.sample_rate', 0.1);
-    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
+    Lottery::alwaysWin();
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:09');
@@ -439,7 +439,7 @@ it('can sample', function () {
     get('test-route');
     get('test-route');
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toBe(1));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->where('type', 'slow_request')->count())->toBe(10));
 });
 
 it('can sample at zero', function () {

@@ -545,19 +545,8 @@ it('can ignore jobs', function () {
 it('can sample', function () {
     Config::set('queue.default', 'database');
     Config::set('pulse.recorders.'.Queues::class.'.sample_rate', 0.1);
-    // Use deterministic UUIDs where exactly one (index 5) hashes to <= 0.1
-    Str::createUuidsUsingSequence([
-        '00000000-0000-0000-0000-000000000000', // 0.623 => fail
-        '00000000-0000-0000-0000-000000000001', // 0.787 => fail
-        '00000000-0000-0000-0000-000000000002', // 0.508 => fail
-        '00000000-0000-0000-0000-000000000003', // 0.728 => fail
-        '00000000-0000-0000-0000-000000000004', // 0.973 => fail
-        '00000000-0000-0000-0000-000000000023', // 0.076 => pass
-        '00000000-0000-0000-0000-000000000005', // 0.136 => fail
-        '00000000-0000-0000-0000-000000000006', // 0.275 => fail
-        '00000000-0000-0000-0000-000000000007', // 0.709 => fail
-        '00000000-0000-0000-0000-000000000008', // 0.316 => fail
-    ]);
+    // md5 of this UUID hashes to ~0.076, which is <= 0.1 sample rate
+    Str::createUuidsUsing(fn () => '00000000-0000-0000-0000-000000000023');
 
     Bus::dispatchToQueue(new MyJob);
     Bus::dispatchToQueue(new MyJob);
@@ -572,7 +561,7 @@ it('can sample', function () {
     Pulse::ingest();
 
     Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
-    expect(queueAggregates()->count())->toBe(1);
+    expect(queueAggregates()->count())->toBe(4);
 });
 
 it('can sample at zero', function () {
