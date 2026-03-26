@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowRequests;
@@ -421,6 +422,7 @@ it('handles routes with domains', function () {
 it('can sample', function () {
     Config::set('pulse.recorders.'.SlowRequests::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowRequests::class.'.sample_rate', 0.1);
+    Lottery::alwaysWin();
     Date::setTestNow('2000-01-02 03:04:05');
     Route::get('test-route', function () {
         Date::setTestNow('2000-01-02 03:04:09');
@@ -437,7 +439,9 @@ it('can sample', function () {
     get('test-route');
     get('test-route');
 
-    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->count())->toEqualWithDelta(1, 4));
+    Pulse::ignore(fn () => expect(DB::table('pulse_entries')->where('type', 'slow_request')->count())->toBe(10));
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {

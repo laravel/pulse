@@ -4,6 +4,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Sleep;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowOutgoingRequests;
@@ -170,6 +171,7 @@ it('can sample', function () {
     Config::set('pulse.recorders.'.SlowOutgoingRequests::class.'.threshold', 0);
     Http::fake(fn () => Http::response('ok'));
     Config::set('pulse.recorders.'.SlowOutgoingRequests::class.'.sample_rate', 0.1);
+    Lottery::alwaysWin();
 
     Http::get('http://example.com');
     Http::get('http://example.com');
@@ -182,7 +184,9 @@ it('can sample', function () {
     Http::get('http://example.com');
     Http::get('http://example.com');
 
-    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {
