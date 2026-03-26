@@ -77,9 +77,8 @@ jobs:
           composer require cachewerk/relay --no-interaction --no-update
 
       - name: Require Livewire ${{ matrix.livewire }}
-        if: ${{ matrix.livewire != 3 }}
         run: |
-          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
+          composer require "livewire/livewire:${{ matrix.livewire == 3 && '^3.6.4' || '^4.0' }}" --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -145,9 +144,8 @@ jobs:
           composer require cachewerk/relay --no-interaction --no-update
 
       - name: Require Livewire ${{ matrix.livewire }}
-        if: ${{ matrix.livewire != 3 }}
         run: |
-          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
+          composer require "livewire/livewire:${{ matrix.livewire == 3 && '^3.6.4' || '^4.0' }}" --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -211,9 +209,8 @@ jobs:
           composer require cachewerk/relay --no-interaction --no-update
 
       - name: Require Livewire ${{ matrix.livewire }}
-        if: ${{ matrix.livewire != 3 }}
         run: |
-          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
+          composer require "livewire/livewire:${{ matrix.livewire == 3 && '^3.6.4' || '^4.0' }}" --no-interaction --no-update
 
       - name: Install dependencies
         run: |
@@ -268,9 +265,8 @@ jobs:
           composer require cachewerk/relay --no-interaction --no-update
 
       - name: Require Livewire ${{ matrix.livewire }}
-        if: ${{ matrix.livewire != 3 }}
         run: |
-          composer require livewire/livewire:^${{ matrix.livewire }}.0 --no-interaction --no-update
+          composer require "livewire/livewire:${{ matrix.livewire == 3 && '^3.6.4' || '^4.0' }}" --no-interaction --no-update
 
       - name: Install dependencies
         run: |
