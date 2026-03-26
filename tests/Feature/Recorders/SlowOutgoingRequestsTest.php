@@ -185,6 +185,8 @@ it('can sample', function () {
     Http::get('http://example.com');
 
     expect(Pulse::ingest())->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {

@@ -130,6 +130,8 @@ it('can sample', function () {
     report(new MyReportedException);
 
     expect(Pulse::ingest())->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {

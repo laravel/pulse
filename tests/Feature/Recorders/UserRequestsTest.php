@@ -151,6 +151,8 @@ it('can sample', function () {
     get('users');
 
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'user_request')->count()))->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {

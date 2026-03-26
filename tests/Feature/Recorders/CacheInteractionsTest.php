@@ -182,6 +182,8 @@ it('can sample', function () {
     Cache::get('foo');
 
     expect(Pulse::ingest())->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('groups job exception keys', function () {

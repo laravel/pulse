@@ -199,6 +199,8 @@ it('can sample', function () {
     DB::table('users')->count();
 
     expect(Pulse::ingest())->toBe(10);
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {

@@ -178,6 +178,7 @@ it('can sample', function () {
     Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
     expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(10);
 
+    Lottery::determineResultNormally();
     Pulse::flush();
 });
 

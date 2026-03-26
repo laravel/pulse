@@ -562,6 +562,8 @@ it('can sample', function () {
 
     Pulse::ignore(fn () => expect(Queue::size())->toBe(10));
     expect(queueAggregates()->count())->toBe(4);
+
+    Str::createUuidsUsing();
 });
 
 it('can sample at zero', function () {

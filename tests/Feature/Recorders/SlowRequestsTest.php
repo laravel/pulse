@@ -440,6 +440,8 @@ it('can sample', function () {
     get('test-route');
 
     Pulse::ignore(fn () => expect(DB::table('pulse_entries')->where('type', 'slow_request')->count())->toBe(10));
+
+    Lottery::determineResultNormally();
 });
 
 it('can sample at zero', function () {
