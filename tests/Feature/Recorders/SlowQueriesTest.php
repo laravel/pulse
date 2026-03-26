@@ -4,6 +4,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowQueries;
 
@@ -184,6 +185,7 @@ it('can ignore queries', function () {
 it('can sample', function () {
     Config::set('pulse.recorders.'.SlowQueries::class.'.threshold', 0);
     Config::set('pulse.recorders.'.SlowQueries::class.'.sample_rate', 0.1);
+    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
 
     DB::table('users')->count();
     DB::table('users')->count();
@@ -196,7 +198,7 @@ it('can sample', function () {
     DB::table('users')->count();
     DB::table('users')->count();
 
-    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toBe(1);
 });
 
 it('can sample at zero', function () {

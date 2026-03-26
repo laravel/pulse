@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowJobs;
@@ -171,10 +172,11 @@ it('can sample', function () {
      * Work the jobs.
      */
 
+    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
     Artisan::call('queue:work', ['--stop-when-empty' => true, '--sleep' => 0]);
 
     Pulse::ignore(fn () => expect(Queue::size())->toBe(0));
-    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toEqualWithDelta(1, 4);
+    expect(Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'slow_job')->count()))->toBe(1);
 
     Pulse::flush();
 });

@@ -4,6 +4,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\CacheInteractions;
@@ -167,6 +168,7 @@ it('can ignore keys', function () {
 
 it('can sample', function () {
     Config::set('pulse.recorders.'.CacheInteractions::class.'.sample_rate', 0.1);
+    Lottery::fix([true, false, false, false, false, false, false, false, false, false]);
 
     Cache::get('foo');
     Cache::get('foo');
@@ -179,7 +181,7 @@ it('can sample', function () {
     Cache::get('foo');
     Cache::get('foo');
 
-    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
+    expect(Pulse::ingest())->toBe(1);
 });
 
 it('groups job exception keys', function () {
