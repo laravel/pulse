@@ -129,7 +129,6 @@ class Servers
         $memoryTotal = match (PHP_OS_FAMILY) {
             'Darwin' => intval(intval(shell_exec("sysctl hw.memsize | grep -Eo '[0-9]+'")) / 1024 / 1024),
             'Linux' => intval(intval(shell_exec("cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'")) / 1024),
-            // 'Windows' => intval(((int) trim((string) shell_exec('wmic ComputerSystem get TotalPhysicalMemory | more +1'))) / 1024 / 1024),
             'Windows' => self::getWindowsTotalMemoryMB(),
             'BSD' => intval(intval(shell_exec("sysctl hw.physmem | grep -Eo '[0-9]+'")) / 1024 / 1024),
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
