@@ -157,13 +157,13 @@ class Servers
         $output = shell_exec('powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory"');
         $output = trim((string) $output);
 
-        if (is_numeric($output))) {
+        if (is_numeric($output)) {
             return intval((int) $output / 1024 / 1024);
         }
 
         // Fall back to wmic for older Windows versions
         $wmicOutput = shell_exec('wmic ComputerSystem get TotalPhysicalMemory | more +1');
-        $wmicOutput = trim((string) $wmicOutput ?? '0');
+        $wmicOutput = trim((string) $wmicOutput) ?: '0';
 
         return intval((int) $wmicOutput / 1024 / 1024);
     }
@@ -179,12 +179,12 @@ class Servers
         $output = trim((string) $output);
 
         if (is_numeric($output)) {
-            return intval((int) $output) / 1024);
+            return intval((int) $output / 1024);
         }
 
         // Fall back to wmic for older Windows versions
         $wmicOutput = shell_exec('wmic OS get FreePhysicalMemory | more +1');
-        $wmicOutput = trim((string) $wmicOutput ?? '0');
+        $wmicOutput = trim((string) $wmicOutput) ?: '0';
 
         return intval((int) $wmicOutput / 1024);
     }
