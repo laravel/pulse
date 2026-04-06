@@ -152,14 +152,14 @@ class Servers
     {
         // Try PowerShell CIM first — wmic is deprecated and removed in Windows 11 24H2+
         $output = shell_exec('powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory"');
-        if ($output !== null && is_numeric(trim($output))) {
+        if ($output !== null && is_numeric(trim((string) $output))) {
             return intval(intval(trim($output)) / 1024 / 1024);
         }
 
         // Fall back to wmic for older Windows versions
         $wmicOutput = shell_exec('wmic ComputerSystem get TotalPhysicalMemory | more +1');
 
-        return intval(intval(trim($wmicOutput ?? '0')) / 1024 / 1024);
+        return intval(intval(trim((string) $wmicOutput ?? '0')) / 1024 / 1024);
     }
 
     private static function getWindowsFreeMemoryMB(): int
@@ -168,12 +168,12 @@ class Servers
         // FreePhysicalMemory from Win32_OperatingSystem is in KB
         $output = shell_exec('powershell -NoProfile -Command "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"');
         if ($output !== null && is_numeric(trim($output))) {
-            return intval(intval(trim($output)) / 1024);
+            return intval(intval(trim((string) $output)) / 1024);
         }
 
         // Fall back to wmic for older Windows versions
         $wmicOutput = shell_exec('wmic OS get FreePhysicalMemory | more +1');
 
-        return intval(intval(trim($wmicOutput ?? '0')) / 1024);
+        return intval(intval(trim((string) $wmicOutput ?? '0')) / 1024);
     }
 }
