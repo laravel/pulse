@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.2...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.3...1.x)
+
+## [v1.7.3](https://github.com/laravel/pulse/compare/v1.7.2...v1.7.3) - 2026-03-26
+
+* [1.x] Fix AuthTest for Livewire v4 RequireLivewireHeaders middleware by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/pulse/pull/499
+* [1.x] Fix RedisTest for Laravel 13 Redis prefix change and updated serialization by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/pulse/pull/500
+* [1.x] Fix enum_value() undefined on older Laravel versions by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/pulse/pull/501
+* Fix CI: Livewire 3 version constraint and flaky sampling tests by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/pulse/pull/502
 
 ## [v1.7.2](https://github.com/laravel/pulse/compare/v1.7.1...v1.7.2) - 2026-03-18
 
