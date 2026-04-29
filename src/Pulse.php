@@ -529,7 +529,7 @@ class Pulse
             throw new RuntimeException('Unable to load the Pulse dashboard JavaScript.');
         }
 
-        return "<script>{$livewire}</script>".PHP_EOL."<script>{$pulse}</script>".PHP_EOL;
+        return "<script defer>{$livewire}</script>".PHP_EOL."<script defer>{$pulse}</script>".PHP_EOL;
     }
 
     /**
