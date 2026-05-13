@@ -6,6 +6,9 @@ on:
       - master
       - '*.x'
 
+permissions:
+  contents: read
+
 jobs:
   update:
     runs-on: ubuntu-22.04
@@ -17,10 +20,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: 8.1
           extensions: relay
@@ -28,7 +33,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -38,7 +43,7 @@ jobs:
         run: php -f vendor/bin/facade.php -- Laravel\\Pulse\\Facades\\Pulse
 
       - name: Commit facade docblocks
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
         with:
           commit_message: Update facade docblocks
           file_pattern: src/
