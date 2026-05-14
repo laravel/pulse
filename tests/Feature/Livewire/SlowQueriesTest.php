@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowQueries;
+use Laravel\Pulse\Structs\SlowQueryStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -36,8 +37,8 @@ it('renders slow queries', function () {
 
     Livewire::test(SlowQueries::class, ['lazy' => false])
         ->assertViewHas('slowQueries', collect([
-            (object) ['sql' => 'select * from `users`', 'location' => 'app/Foo.php:123', 'count' => 4, 'slowest' => 2468, 'threshold' => 1_000],
-            (object) ['sql' => 'select * from `users` where `id` = ?', 'location' => 'app/Bar.php:456', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000],
+            new SlowQueryStruct(sql: 'select * from `users`', location: 'app/Foo.php:123', count: 4, slowest: 2468, threshold: 1_000),
+            new SlowQueryStruct(sql: 'select * from `users` where `id` = ?', location: 'app/Bar.php:456', count: 2, slowest: 1234, threshold: 1_000),
         ]));
 });
 

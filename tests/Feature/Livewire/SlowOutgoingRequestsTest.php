@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowOutgoingRequests;
+use Laravel\Pulse\Structs\SlowOutgoingRequestStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -33,7 +34,7 @@ it('renders slow outgoing requests', function () {
 
     Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
         ->assertViewHas('slowOutgoingRequests', collect([
-            (object) ['method' => 'GET', 'uri' => 'http://example.com', 'count' => 4, 'slowest' => 2468, 'threshold' => 1_000],
-            (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000],
+            new SlowOutgoingRequestStruct(method: 'GET', uri: 'http://example.com', count: 4, slowest: 2468, threshold: 1_000),
+            new SlowOutgoingRequestStruct(method: 'GET', uri: 'http://example.org', count: 2, slowest: 1234, threshold: 1_000),
         ]));
 });

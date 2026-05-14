@@ -4,6 +4,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Servers;
+use Laravel\Pulse\Structs\ServerStruct;
+use Laravel\Pulse\Structs\StorageDirectoryStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -40,23 +42,23 @@ it('renders server statistics', function () {
 
     Livewire::test(Servers::class, ['lazy' => false])
         ->assertViewHas('servers', collect([
-            'web-1' => (object) [
-                'name' => 'Web 1',
-                'cpu_current' => 99,
-                'memory_current' => 1234,
-                'memory_total' => 2468,
-                'storage' => collect([
-                    (object) ['directory' => '/', 'used' => 123, 'total' => 456],
+            'web-1' => new ServerStruct(
+                name: 'Web 1',
+                cpu_current: 99,
+                memory_current: 1234,
+                memory_total: 2468,
+                storage: collect([
+                    new StorageDirectoryStruct(directory: '/', used: 123, total: 456),
                 ]),
-                'cpu' => collect()->range(59, 1)
+                cpu: collect()->range(59, 1)
                     ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
                     ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 50),
-                'memory' => collect()->range(59, 1)
+                memory: collect()->range(59, 1)
                     ->mapWithKeys(fn ($i) => [Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->subMinutes($i)->toDateTimeString() => null])
                     ->put(Carbon::createFromTimestamp(now()->timestamp)->startOfMinute()->toDateTimeString(), 1500),
-                'updated_at' => CarbonImmutable::createFromTimestamp(now()->timestamp),
-                'recently_reported' => true,
-            ],
+                updated_at: CarbonImmutable::createFromTimestamp(now()->timestamp),
+                recently_reported: true,
+            ),
         ]));
 });
 

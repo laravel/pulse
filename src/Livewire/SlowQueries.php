@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Recorders\Concerns\Thresholds;
 use Laravel\Pulse\Recorders\SlowQueries as SlowQueriesRecorder;
+use Laravel\Pulse\Structs\SlowQueryStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -54,13 +55,13 @@ class SlowQueries extends Card
             )->map(function ($row) {
                 [$sql, $location] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
-                return (object) [
-                    'sql' => $sql,
-                    'location' => $location,
-                    'slowest' => $row->max,
-                    'count' => $row->count,
-                    'threshold' => $this->threshold($sql, SlowQueriesRecorder::class),
-                ];
+                return new SlowQueryStruct(
+                    sql: $sql,
+                    location: $location,
+                    slowest: $row->max,
+                    count: $row->count,
+                    threshold: $this->threshold($sql, SlowQueriesRecorder::class),
+                );
             }),
             $this->orderBy,
         );

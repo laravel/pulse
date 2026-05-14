@@ -7,6 +7,8 @@ use Carbon\CarbonInterval;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\InteractsWithTime;
+use Laravel\Pulse\Structs\ServerStruct;
+use Laravel\Pulse\Structs\StorageDirectoryStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Livewire;
 
@@ -40,17 +42,22 @@ class Servers extends Card
 
                     $values = json_decode($system->value, flags: JSON_THROW_ON_ERROR);
 
-                    return (object) [
-                        'name' => (string) $values->name,
-                        'cpu_current' => (int) $values->cpu,
-                        'cpu' => $graphs->get($slug)?->get('cpu') ?? collect(),
-                        'memory_current' => (int) $values->memory_used,
-                        'memory_total' => (int) $values->memory_total,
-                        'memory' => $graphs->get($slug)?->get('memory') ?? collect(),
-                        'storage' => collect($values->storage), // @phpstan-ignore argument.templateType, argument.templateType
-                        'updated_at' => $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
-                        'recently_reported' => $updatedAt->isAfter(now()->subSeconds(30)),
-                    ];
+                    return new ServerStruct(
+                        name: (string) $values->name,
+                        cpu_current: (int) $values->cpu,
+                        cpu: $graphs->get($slug)?->get('cpu') ?? collect(),
+                        memory_current: (int) $values->memory_used,
+                        memory_total: (int) $values->memory_total,
+                        memory: $graphs->get($slug)?->get('memory') ?? collect(),
+                        storage: collect($values->storage) // @phpstan-ignore argument.templateType, argument.templateType
+                            ->map(fn ($row) => new StorageDirectoryStruct(
+                                directory: $row->directory,
+                                total: $row->total,
+                                used: $row->used,
+                            )),
+                        updated_at: $updatedAt = CarbonImmutable::createFromTimestamp($system->timestamp),
+                        recently_reported: $updatedAt->isAfter(now()->subSeconds(30)),
+                    );
                 })
                 ->filter()
                 ->sortBy($this->sortBy, descending: $this->sortDirection === 'desc');

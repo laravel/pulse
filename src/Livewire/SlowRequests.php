@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Recorders\Concerns\Thresholds;
 use Laravel\Pulse\Recorders\SlowRequests as SlowRequestsRecorder;
+use Laravel\Pulse\Structs\SlowRequestStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -42,14 +43,14 @@ class SlowRequests extends Card
             )->map(function ($row) {
                 [$method, $uri, $action] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
-                return (object) [
-                    'uri' => $uri,
-                    'method' => $method,
-                    'action' => $action,
-                    'count' => $row->count,
-                    'slowest' => $row->max,
-                    'threshold' => $this->threshold($uri, SlowRequestsRecorder::class),
-                ];
+                return new SlowRequestStruct(
+                    uri: $uri,
+                    method: $method,
+                    action: $action,
+                    count: $row->count,
+                    slowest: $row->max,
+                    threshold: $this->threshold($uri, SlowRequestsRecorder::class),
+                );
             }),
             $this->orderBy,
         );

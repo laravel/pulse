@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\SlowRequests;
+use Laravel\Pulse\Structs\SlowRequestStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -36,7 +37,7 @@ it('renders slow requests', function () {
 
     Livewire::test(SlowRequests::class, ['lazy' => false])
         ->assertViewHas('slowRequests', collect([
-            (object) ['method' => 'GET', 'uri' => '/users', 'action' => 'FooController@index', 'count' => 4, 'slowest' => 2468, 'threshold' => 1_000],
-            (object) ['method' => 'GET', 'uri' => '/users/{user}', 'action' => 'Closure', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000],
+            new SlowRequestStruct(method: 'GET', uri: '/users', action: 'FooController@index', count: 4, slowest: 2468, threshold: 1_000),
+            new SlowRequestStruct(method: 'GET', uri: '/users/{user}', action: 'Closure', count: 2, slowest: 1234, threshold: 1_000),
         ]));
 });

@@ -5,6 +5,8 @@ use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Usage;
+use Laravel\Pulse\Structs\ResolvedUserStruct;
+use Laravel\Pulse\Structs\UsageStruct;
 use Livewire\Livewire;
 use Orchestra\Testbench\Factories\UserFactory;
 
@@ -46,9 +48,9 @@ it('renders top 10 users making requests', function (string $query, string $type
     Livewire::withQueryParams(['usage' => $query])
         ->test(Usage::class, ['lazy' => false])
         ->assertViewHas('userRequestCounts', collect([
-            (object) ['key' => $users[0]->id, 'count' => 6, 'user' => (object) ['name' => $users[0]->name, 'extra' => $users[0]->email, 'avatar' => avatar($users[0]->email)]],
-            (object) ['key' => $users[1]->id, 'count' => 4, 'user' => (object) ['name' => $users[1]->name, 'extra' => $users[1]->email, 'avatar' => avatar($users[1]->email)]],
-            (object) ['key' => $users[2]->id, 'count' => 2, 'user' => (object) ['name' => $users[2]->name, 'extra' => $users[2]->email, 'avatar' => avatar($users[2]->email)]],
+            new UsageStruct(key: $users[0]->id, count: 6, user: new ResolvedUserStruct(name: $users[0]->name, extra: $users[0]->email, avatar: avatar($users[0]->email))),
+            new UsageStruct(key: $users[1]->id, count: 4, user: new ResolvedUserStruct(name: $users[1]->name, extra: $users[1]->email, avatar: avatar($users[1]->email))),
+            new UsageStruct(key: $users[2]->id, count: 2, user: new ResolvedUserStruct(name: $users[2]->name, extra: $users[2]->email, avatar: avatar($users[2]->email))),
         ]));
 })->with([
     ['requests', 'user_request'],

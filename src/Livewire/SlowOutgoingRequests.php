@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Recorders\Concerns\Thresholds;
 use Laravel\Pulse\Recorders\SlowOutgoingRequests as SlowOutgoingRequestsRecorder;
+use Laravel\Pulse\Structs\SlowOutgoingRequestStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -42,13 +43,13 @@ class SlowOutgoingRequests extends Card
             )->map(function ($row) {
                 [$method, $uri] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
 
-                return (object) [
-                    'method' => $method,
-                    'uri' => $uri,
-                    'slowest' => $row->max,
-                    'count' => $row->count,
-                    'threshold' => $this->threshold($uri, SlowOutgoingRequestsRecorder::class),
-                ];
+                return new SlowOutgoingRequestStruct(
+                    method: $method,
+                    uri: $uri,
+                    slowest: $row->max,
+                    count: $row->count,
+                    threshold: $this->threshold($uri, SlowOutgoingRequestsRecorder::class),
+                );
             }),
             $this->orderBy,
         );

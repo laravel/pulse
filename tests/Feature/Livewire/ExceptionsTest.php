@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Exceptions;
+use Laravel\Pulse\Structs\ExceptionStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -36,7 +37,7 @@ it('renders exceptions', function () {
 
     Livewire::test(Exceptions::class, ['lazy' => false])
         ->assertViewHas('exceptions', collect([
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Foo.php:123', 'count' => 4, 'latest' => now()],
-            (object) ['class' => 'RuntimeException', 'location' => 'app/Bar.php:123', 'count' => 2, 'latest' => now()],
+            new ExceptionStruct(class: 'RuntimeException', location: 'app/Foo.php:123', count: 4, latest: now()),
+            new ExceptionStruct(class: 'RuntimeException', location: 'app/Bar.php:123', count: 2, latest: now()),
         ]));
 });

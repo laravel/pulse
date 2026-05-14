@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Laravel\Pulse\Recorders\Concerns\Thresholds;
 use Laravel\Pulse\Recorders\SlowJobs as SlowJobsRecorder;
+use Laravel\Pulse\Structs\SlowJobStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -39,12 +40,12 @@ class SlowJobs extends Card
                     'count' => 'count',
                     default => 'max',
                 },
-            )->map(fn ($row) => (object) [
-                'job' => $row->key,
-                'slowest' => $row->max,
-                'count' => $row->count,
-                'threshold' => $this->threshold($row->key, SlowJobsRecorder::class),
-            ]),
+            )->map(fn ($row) => new SlowJobStruct(
+                job: $row->key,
+                slowest: $row->max,
+                count: $row->count,
+                threshold: $this->threshold($row->key, SlowJobsRecorder::class),
+            )),
             $this->orderBy,
         );
 

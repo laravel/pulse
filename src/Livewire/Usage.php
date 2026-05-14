@@ -9,6 +9,8 @@ use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Recorders\SlowRequests;
 use Laravel\Pulse\Recorders\UserJobs;
 use Laravel\Pulse\Recorders\UserRequests;
+use Laravel\Pulse\Structs\ResolvedUserStruct;
+use Laravel\Pulse\Structs\UsageStruct;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 
@@ -54,11 +56,18 @@ class Usage extends Card
 
                 $users = Pulse::resolveUsers($counts->pluck('key'));
 
-                return $counts->map(fn ($row) => (object) [
-                    'key' => $row->key,
-                    'user' => $users->find($row->key),
-                    'count' => (int) $row->count,
-                ]);
+                return $counts->map(function ($row) use ($users) {
+                    $resolved_user = $users->find($row->key);
+                    return new UsageStruct(
+                        key: $row->key,
+                        user: new ResolvedUserStruct(
+                            $resolved_user->name,
+                            $resolved_user->extra ?? '',
+                            $resolved_user->avatar ?? '',
+                        ),
+                        count: (int) $row->count,
+                    );
+                });
             },
             $type
         );

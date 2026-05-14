@@ -3,6 +3,8 @@
 use Illuminate\Support\Carbon;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Cache;
+use Laravel\Pulse\Structs\CacheStruct;
+use Laravel\Pulse\Structs\CacheTotalStruct;
 use Livewire\Livewire;
 
 it('includes the card on the dashboard', function () {
@@ -40,13 +42,13 @@ it('renders cache statistics', function () {
     Pulse::ingest();
 
     Livewire::test(Cache::class, ['lazy' => false])
-        ->assertViewHas('allCacheInteractions', (object) [
-            'hits' => 6,
-            'misses' => 6,
-        ])
+        ->assertViewHas('allCacheInteractions', new CacheTotalStruct(
+            hits: 6,
+            misses: 6,
+        ))
         ->assertViewHas('cacheKeyInteractions', collect([
-            (object) ['key' => 'foo', 'hits' => 4, 'misses' => 4],
-            (object) ['key' => 'bar', 'hits' => 2, 'misses' => 2],
+            new CacheStruct(key: 'foo', hits: 4, misses: 4),
+            new CacheStruct(key: 'bar', hits: 2, misses: 2),
         ]));
 });
 
