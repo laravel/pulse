@@ -17,6 +17,17 @@ use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
+use Laravel\Pulse\Structs\CacheStruct;
+use Laravel\Pulse\Structs\CacheTotalStruct;
+use Laravel\Pulse\Structs\ExceptionStruct;
+use Laravel\Pulse\Structs\ResolvedUserStruct;
+use Laravel\Pulse\Structs\ServerStruct;
+use Laravel\Pulse\Structs\SlowJobStruct;
+use Laravel\Pulse\Structs\SlowOutgoingRequestStruct;
+use Laravel\Pulse\Structs\SlowQueryStruct;
+use Laravel\Pulse\Structs\SlowRequestStruct;
+use Laravel\Pulse\Structs\StorageDirectoryStruct;
+use Laravel\Pulse\Structs\UsageStruct;
 use RuntimeException;
 use Throwable;
 use UnitEnum;
@@ -548,6 +559,30 @@ class Pulse
             '/^laravel:reverb:/', // Reverb keys...
             '/^nova/', // Nova keys...
             '/^telescope:/', // Telescope keys...
+        ];
+    }
+
+    /**
+     * The classes that must be allowed to be serialized to render all default Pulse cards.
+     *
+     * @return list<class-string>
+     */
+    public static function serializableClasses(): array
+    {
+        return [
+            CarbonImmutable::class,
+            Collection::class,
+            CacheStruct::class,
+            CacheTotalStruct::class,
+            ExceptionStruct::class,
+            ResolvedUserStruct::class,
+            ServerStruct::class,
+            SlowJobStruct::class,
+            SlowOutgoingRequestStruct::class,
+            SlowQueryStruct::class,
+            SlowRequestStruct::class,
+            StorageDirectoryStruct::class,
+            UsageStruct::class,
         ];
     }
 
