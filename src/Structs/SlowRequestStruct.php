@@ -9,7 +9,7 @@ class SlowRequestStruct
         public string $method,
         public ?string $action,
         public int $count,
-        public string $slowest,
+        public int $slowest,
         public int $threshold,
     ) {
         //
