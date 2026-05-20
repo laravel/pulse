@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Storage\DatabaseStorage;
 use Livewire\Mechanisms\HandleRequests\EndpointResolver;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
@@ -181,4 +182,36 @@ function livewireUpdateEndpoint()
 
     // Livewire v3
     return '/livewire/update';
+}
+
+function skipUnlessMySql(): void
+{
+    if (! in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        test()->markTestSkipped('MySQL or MariaDB is required for use_upsert_alias tests.');
+    }
+}
+
+function configureUpsertAlias(bool $enabled): void
+{
+    $connection = DB::getDefaultConnection();
+
+    Config::set("database.connections.{$connection}.use_upsert_alias", $enabled);
+
+    DB::purge($connection);
+}
+
+function invokeMysqlUpsertIncomingColumn(DatabaseStorage $storage, string $column): string
+{
+    $method = new ReflectionMethod(DatabaseStorage::class, 'mysqlUpsertIncomingColumn');
+    $method->setAccessible(true);
+
+    return $method->invoke($storage, $column);
+}
+
+function invokeMysqlUpsertTableColumn(DatabaseStorage $storage, string $column): string
+{
+    $method = new ReflectionMethod(DatabaseStorage::class, 'mysqlUpsertTableColumn');
+    $method->setAccessible(true);
+
+    return $method->invoke($storage, $column);
 }
