@@ -188,7 +188,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
+                    'mariadb', 'mysql' => new Expression($this->mysqlUpsertTableColumn('value').' + '.$this->mysqlUpsertIncomingColumn('value')),
                     'pgsql', 'sqlite' => new Expression(<<<SQL
                         {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
                         SQL),
@@ -210,7 +210,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('least(`value`, values(`value`))'),
+                    'mariadb', 'mysql' => new Expression('least('.$this->mysqlUpsertTableColumn('value').', '.$this->mysqlUpsertIncomingColumn('value').')'),
                     'pgsql' => new Expression(<<<SQL
                         least({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
                         SQL),
@@ -235,7 +235,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('greatest(`value`, values(`value`))'),
+                    'mariadb', 'mysql' => new Expression('greatest('.$this->mysqlUpsertTableColumn('value').', '.$this->mysqlUpsertIncomingColumn('value').')'),
                     'pgsql' => new Expression(<<<SQL
                         greatest({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
                         SQL),
@@ -260,7 +260,7 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
+                    'mariadb', 'mysql' => new Expression($this->mysqlUpsertTableColumn('value').' + '.$this->mysqlUpsertIncomingColumn('value')),
                     'pgsql', 'sqlite' => new Expression(<<<SQL
                         {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
                         SQL),
@@ -282,8 +282,10 @@ class DatabaseStorage implements Storage
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             match ($driver = $this->connection()->getDriverName()) {
                 'mariadb', 'mysql' => [
-                    'value' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
-                    'count' => new Expression('`count` + values(`count`)'),
+                    'value' => new Expression(
+                        '('.$this->mysqlUpsertTableColumn('value').' * '.$this->mysqlUpsertTableColumn('count').' + ('.$this->mysqlUpsertIncomingColumn('value').' * '.$this->mysqlUpsertIncomingColumn('count').')) / ('.$this->mysqlUpsertTableColumn('count').' + '.$this->mysqlUpsertIncomingColumn('count').')'
+                    ),
+                    'count' => new Expression($this->mysqlUpsertTableColumn('count').' + '.$this->mysqlUpsertIncomingColumn('count')),
                 ],
                 'pgsql', 'sqlite' => [
                     'value' => new Expression(<<<SQL
@@ -809,6 +811,35 @@ class DatabaseStorage implements Storage
                 fn ($query) => $query->pluck($aggregate, 'type'),
                 fn ($query) => (float) $query->value($aggregate)
             );
+    }
+
+    /**
+     * Determine if the connection uses row aliases for upsert statements.
+     */
+    protected function usesUpsertAlias(): bool
+    {
+        return in_array($this->connection()->getDriverName(), ['mysql', 'mariadb'], true)
+            && (bool) $this->connection()->getConfig('use_upsert_alias');
+    }
+
+    /**
+     * Reference an existing aggregate column in a MySQL upsert update clause.
+     */
+    protected function mysqlUpsertTableColumn(string $column): string
+    {
+        return $this->usesUpsertAlias()
+            ? $this->wrap('pulse_aggregates').'.'.$this->wrap($column)
+            : $this->wrap($column);
+    }
+
+    /**
+     * Reference an incoming aggregate column in a MySQL upsert update clause.
+     */
+    protected function mysqlUpsertIncomingColumn(string $column): string
+    {
+        return $this->usesUpsertAlias()
+            ? $this->wrap('laravel_upsert_alias').'.'.$this->wrap($column)
+            : 'values('.$this->wrap($column).')';
     }
 
     /**
