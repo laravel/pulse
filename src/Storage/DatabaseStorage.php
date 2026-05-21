@@ -183,12 +183,18 @@ class DatabaseStorage implements Storage
      */
     protected function upsertCount(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        $connection = $this->connection();
+
+        return $connection->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
-                'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
+                'value' => match ($driver = $connection->getDriverName()) {
+                    'mariadb', 'mysql' => new Expression(
+                        $connection->getConfig('use_upsert_alias')
+                            ? "{$this->wrap('pulse_aggregates.value')} + {$this->wrap('laravel_upsert_alias.value')}"
+                            : '`value` + values(`value`)'
+                    ),
                     'pgsql', 'sqlite' => new Expression(<<<SQL
                         {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
                         SQL),
@@ -205,12 +211,18 @@ class DatabaseStorage implements Storage
      */
     protected function upsertMin(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        $connection = $this->connection();
+
+        return $connection->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
-                'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('least(`value`, values(`value`))'),
+                'value' => match ($driver = $connection->getDriverName()) {
+                    'mariadb', 'mysql' => new Expression(
+                        $connection->getConfig('use_upsert_alias')
+                            ? "least({$this->wrap('pulse_aggregates.value')}, {$this->wrap('laravel_upsert_alias.value')})"
+                            : 'least(`value`, values(`value`))'
+                    ),
                     'pgsql' => new Expression(<<<SQL
                         least({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
                         SQL),
@@ -230,12 +242,18 @@ class DatabaseStorage implements Storage
      */
     protected function upsertMax(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        $connection = $this->connection();
+
+        return $connection->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
-                'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('greatest(`value`, values(`value`))'),
+                'value' => match ($driver = $connection->getDriverName()) {
+                    'mariadb', 'mysql' => new Expression(
+                        $connection->getConfig('use_upsert_alias')
+                            ? "greatest({$this->wrap('pulse_aggregates.value')}, {$this->wrap('laravel_upsert_alias.value')})"
+                            : 'greatest(`value`, values(`value`))'
+                    ),
                     'pgsql' => new Expression(<<<SQL
                         greatest({$this->wrap('pulse_aggregates.value')}, "excluded"."value")
                         SQL),
@@ -255,12 +273,18 @@ class DatabaseStorage implements Storage
      */
     protected function upsertSum(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        $connection = $this->connection();
+
+        return $connection->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
-                'value' => match ($driver = $this->connection()->getDriverName()) {
-                    'mariadb', 'mysql' => new Expression('`value` + values(`value`)'),
+                'value' => match ($driver = $connection->getDriverName()) {
+                    'mariadb', 'mysql' => new Expression(
+                        $connection->getConfig('use_upsert_alias')
+                            ? "{$this->wrap('pulse_aggregates.value')} + {$this->wrap('laravel_upsert_alias.value')}"
+                            : '`value` + values(`value`)'
+                    ),
                     'pgsql', 'sqlite' => new Expression(<<<SQL
                         {$this->wrap('pulse_aggregates.value')} + "excluded"."value"
                         SQL),
@@ -277,11 +301,20 @@ class DatabaseStorage implements Storage
      */
     protected function upsertAvg(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        $connection = $this->connection();
+
+        return $connection->table('pulse_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
-            match ($driver = $this->connection()->getDriverName()) {
-                'mariadb', 'mysql' => [
+            match ($driver = $connection->getDriverName()) {
+                'mariadb', 'mysql' => $connection->getConfig('use_upsert_alias') ? [
+                    'value' => new Expression(
+                        "({$this->wrap('pulse_aggregates.value')} * {$this->wrap('pulse_aggregates.count')} + ({$this->wrap('laravel_upsert_alias.value')} * {$this->wrap('laravel_upsert_alias.count')})) / ({$this->wrap('pulse_aggregates.count')} + {$this->wrap('laravel_upsert_alias.count')})"
+                    ),
+                    'count' => new Expression(
+                        "{$this->wrap('pulse_aggregates.count')} + {$this->wrap('laravel_upsert_alias.count')}"
+                    ),
+                ] : [
                     'value' => new Expression('(`value` * `count` + (values(`value`) * values(`count`))) / (`count` + values(`count`))'),
                     'count' => new Expression('`count` + values(`count`)'),
                 ],
