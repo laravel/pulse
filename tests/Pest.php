@@ -182,3 +182,19 @@ function livewireUpdateEndpoint()
     // Livewire v3
     return '/livewire/update';
 }
+
+function skipUnlessMySql(): void
+{
+    if (! in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+        test()->markTestSkipped('MySQL or MariaDB is required for use_upsert_alias tests.');
+    }
+}
+
+function configureUpsertAlias(bool $enabled): void
+{
+    $connection = DB::getDefaultConnection();
+
+    Config::set("database.connections.{$connection}.use_upsert_alias", $enabled);
+
+    DB::purge($connection);
+}
