@@ -1,6 +1,18 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.3...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.4...1.x)
+
+## [v1.7.4](https://github.com/laravel/pulse/compare/v1.7.3...v1.7.4) - 2026-06-03
+
+* Pin GitHub Actions to commit SHAs and add Dependabot config by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/pulse/pull/507
+* Support `use_upsert_alias` to prevent ingest failure  by [@JonPurvis](https://github.com/JonPurvis) in https://github.com/laravel/pulse/pull/511
+* Bump shivammathur/setup-php from 2.37.0 to 2.37.1 in the github-actions group across 1 directory by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/509
+* GitHub Actions hardening by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pulse/pull/512
+* Bump rollup from 3.29.5 to 3.30.0 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/517
+* Bump postcss from 8.4.33 to 8.5.15 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/516
+* Bump picomatch from 2.3.1 to 2.3.2 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/514
+* Bump glob from 10.3.10 to 10.5.0 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/515
+* Bump minimatch from 9.0.3 to 9.0.9 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/513
 
 ## [v1.7.3](https://github.com/laravel/pulse/compare/v1.7.2...v1.7.3) - 2026-03-26
 
