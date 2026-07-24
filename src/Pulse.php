@@ -560,7 +560,8 @@ class Pulse
         $uri = Uri::new($url);
 
         return $uri->withUserInfo(
-            Str::mask($uri->getUsername(), '*', 0), Str::mask($uri->getPassword(), '*', 0),
+            ! is_null($uri->getUsername()) ? Str::mask($uri->getUsername(), '*', 0) : null,
+            ! is_null($uri->getPassword()) ? Str::mask($uri->getPassword(), '*', 0) : null,
         )->toString();
     }
 
