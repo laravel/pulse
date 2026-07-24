@@ -17,6 +17,7 @@ use Laravel\Pulse\Contracts\Ingest;
 use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Contracts\Storage;
 use Laravel\Pulse\Events\ExceptionReported;
+use League\Uri\Uri;
 use RuntimeException;
 use Throwable;
 use UnitEnum;
@@ -549,6 +550,18 @@ class Pulse
             '/^nova/', // Nova keys...
             '/^telescope:/', // Telescope keys...
         ];
+    }
+
+    /**
+     * Normalize the given URL and mask user & password information.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        $uri = Uri::new($url);
+
+        return $uri->withUserInfo(
+            Str::mask($uri->getUsername(), '*', 0), Str::mask($uri->getPassword(), '*', 0),
+        )->toString();
     }
 
     /**
