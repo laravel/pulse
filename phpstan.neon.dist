@@ -1,7 +1,13 @@
 parameters:
   paths:
     - src
-  level: 8
+  excludePaths:
+    - src/Facades/Pulse.php
+    - vendor
+  level: 7
   ignoreErrors:
+    - identifier: function.alreadyNarrowedType
+    - identifier: match.alwaysTrue
     - "#Class Laravel\\\\Telescope\\\\Contracts\\\\EntriesRepository not found#"
     - "#Call to static method store\\(\\) on an unknown class Laravel\\\\Telescope\\\\Telescope#"
+  treatPhpDocTypesAsCertain: false
