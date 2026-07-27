@@ -121,20 +121,21 @@ class Pulse
         $this->afterResolving($this->app, 'events', fn (Dispatcher $event) => $recorders
             ->filter(fn ($recorder) => $recorder->listen ?? null)
             ->each(fn ($recorder) => $event->listen(
-                $recorder->listen, // @phpstan-ignore property.notFound
-                fn ($event) => $this->rescue(fn () => $recorder->record($event)) // @phpstan-ignore method.notFound,argument.templateType
+                $recorder->listen, // @phpstan-ignore property.nonObject
+                fn ($event) => $this->rescue(fn () => $recorder->record($event)) // @phpstan-ignore method.nonObject,argument.templateType
             ))
         );
 
         $recorders
-            ->filter(fn ($recorder) => method_exists($recorder, 'register'))
+            ->filter(fn ($recorder) => method_exists($recorder, 'register')) // @phpstan-ignore argument.type
             ->each(function ($recorder) {
-                /* @phpstan-ignore method.notFound */
+                /* @phpstan-ignore method.nonObject */
                 $this->app->call($recorder->register(...), [
-                    'record' => fn (...$args) => $this->rescue(fn () => $recorder->record(...$args)), // @phpstan-ignore method.notFound,argument.templateType
+                    'record' => fn (...$args) => $this->rescue(fn () => $recorder->record(...$args)), // @phpstan-ignore method.nonObject,argument.templateType
                 ]);
             });
 
+        /* @phpstan-ignore assign.propertyType */
         $this->recorders = collect([...$this->recorders, ...$recorders]);
 
         return $this;

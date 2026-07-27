@@ -73,7 +73,7 @@ class Users implements ResolvesUsers
             'name' => $user->name ?? "ID: $key",
             'extra' => $user->email ?? '',
             'avatar' => $user->avatar ?? (($user->email ?? false)
-                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user->email))))
+                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user->email)))) /* @phpstan-ignore property.nonObject */
                 : sprintf('https://gravatar.com/avatar?d=mp')
             ),
         ];

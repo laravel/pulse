@@ -3,8 +3,7 @@ parameters:
     - src
   excludePaths:
     - src/Facades/Pulse.php
-    - vendor
-  level: 7
+  level: 8
   ignoreErrors:
     - identifier: function.alreadyNarrowedType
     - identifier: match.alwaysTrue
