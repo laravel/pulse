@@ -64,7 +64,7 @@ class SlowOutgoingRequests
             $now->getTimestamp(),
             $now->getTimestampMs(),
             $request->getMethod(),
-            Pulse::normalizeUrl($request->getUri()),
+            static::normalizeUrl($request->getUri()),
         ]);
 
         $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
