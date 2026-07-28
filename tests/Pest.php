@@ -185,7 +185,9 @@ function livewireUpdateEndpoint()
 
 function skipUnlessMySql(): void
 {
-    if (! in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+    $connection = DB::connection();
+
+    if (! (in_array($connection->getDriverName(), ['mysql'], true) && version_compare($connection->getServerVersion(), '8.0.19', '>='))) {
         test()->markTestSkipped('MySQL or MariaDB is required for use_upsert_alias tests.');
     }
 }
