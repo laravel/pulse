@@ -97,4 +97,4 @@ describe('MySQL aggregate upserts and use_upsert_alias', function () {
             Pulse::flush();
         }
     });
-});
+})->group('db-upsert-alias');
