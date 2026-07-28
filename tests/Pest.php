@@ -13,7 +13,6 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Mechanisms\HandleRequests\EndpointResolver;
-use PDO;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
