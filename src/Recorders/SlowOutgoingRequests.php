@@ -44,7 +44,7 @@ class SlowOutgoingRequests
             return $url;
         }
 
-        return $uri->withUserInfo($uri->getUsername(), null)->toString();
+        return $uri->withUserInfo('', null)->toString();
     }
 
     /**
