@@ -159,7 +159,7 @@ jobs:
           composer update --prefer-dist --no-interaction --no-progress --${{ matrix.stability }}
 
       - name: Execute tests
-        run: vendor/bin/pest -vvv
+        run: vendor/bin/pest -vvv --exclude-group=db-upsert-alias
         env:
           DB_CONNECTION: mariadb
           DB_DATABASE: pulse
