@@ -13,6 +13,7 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Mechanisms\HandleRequests\EndpointResolver;
+use PDO;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
@@ -187,7 +188,11 @@ function skipUnlessMySql(): void
 {
     $connection = DB::connection();
 
-    if (! (in_array($connection->getDriverName(), ['mysql'], true) && version_compare($connection->getServerVersion(), '8.0.19', '>='))) {
+    $serverVersion = method_exists($connection, 'getServerVersion')
+        ? $connection->getServerVersion()
+        : $connection->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
+
+    if (! (in_array($connection->getDriverName(), ['mysql'], true) && version_compare($serverVersion, '8.0.19', '>='))) {
         test()->markTestSkipped('MySQL or MariaDB is required for use_upsert_alias tests.');
     }
 }
