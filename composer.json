@@ -44,7 +44,7 @@
         "orchestra/testbench": "^8.36|^9.15|^10.8|^11.0",
         "pestphp/pest": "^2.0|^3.0|^4.0",
         "pestphp/pest-plugin-laravel": "^2.2|^3.0|^4.0",
-        "phpstan/phpstan": "^1.12.21",
+        "phpstan/phpstan": "^2.1.33",
         "predis/predis": "^1.0|^2.0"
     },
     "conflict": {
