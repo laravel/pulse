@@ -34,20 +34,6 @@ class SlowOutgoingRequests
     }
 
     /**
-     * Normalize the given URL and mask user & password information.
-     */
-    public static function normalizeUrl(string $url): string
-    {
-        $uri = Uri::new($url);
-
-        if (is_null($uri->getUsername())) {
-            return $url;
-        }
-
-        return $uri->withUserInfo('', null)->toString();
-    }
-
-    /**
      * Register the recorder.
      */
     public function register(callable $record, Application $app): void
@@ -103,5 +89,19 @@ class SlowOutgoingRequests
                 return new RejectedPromise($exception);
             });
         };
+    }
+
+    /**
+     * Normalize the given URL and mask user & password information.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        $uri = Uri::new($url);
+
+        if (is_null($uri->getUsername())) {
+            return $url;
+        }
+
+        return $uri->withUserInfo('', null)->toString();
     }
 }
