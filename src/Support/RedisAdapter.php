@@ -35,6 +35,7 @@ class RedisAdapter
      */
     public function xadd(string $key, array $dictionary): string|Pipeline|PhpRedis|Relay
     {
+        /** @phpstan-ignore argument.type */
         return $this->handle([
             'XADD',
             $this->config->get('database.redis.options.prefix').$key,
@@ -102,7 +103,10 @@ class RedisAdapter
     public function pipeline(callable $closure): array
     {
         // Create a pipeline and wrap the Redis client in an instance of this class to ensure our wrapper methods are used within the pipeline...
-        return $this->connection->pipeline(fn (Pipeline|PhpRedis|Relay $client) => $closure(new self($this->connection, $this->config, $client))); // @phpstan-ignore method.notFound
+        /** @phpstan-ignore return.type,arguments.count */
+        return $this->connection->pipeline(
+            fn (Pipeline|PhpRedis|Relay $client) => $closure(new self($this->connection, $this->config, $client))
+        );
     }
 
     /**

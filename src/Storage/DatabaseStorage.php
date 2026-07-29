@@ -48,7 +48,7 @@ class DatabaseStorage implements Storage
         [$entries, $values] = $items->partition(fn (Entry|Value $entry) => $entry instanceof Entry);
 
         $entryChunks = $entries
-            ->reject->isOnlyBuckets()
+            ->reject->isOnlyBuckets() // @phpstan-ignore method.notFound
             ->when(
                 $this->requiresManualKeyHash(),
                 fn ($entries) => $entries->map(fn ($entry) => [
@@ -84,7 +84,7 @@ class DatabaseStorage implements Storage
         $averageChunks = $this->preaggregateAverages(collect($averages)) // @phpstan-ignore argument.templateType, argument.templateType
             ->chunk($this->config->get('pulse.storage.database.chunk'));
 
-        $valueChunks = $this // @phpstan-ignore method.nonObject
+        $valueChunks = $this
             ->collapseValues($values)
             ->when(
                 $this->requiresManualKeyHash(),
@@ -113,7 +113,7 @@ class DatabaseStorage implements Storage
 
             $valueChunks->each(fn ($chunk) => $this->connection()
                 ->table('pulse_values')
-                ->upsert($chunk->all(), ['type', 'key_hash'], ['timestamp', 'value']) // @phpstan-ignore method.nonObject
+                ->upsert($chunk->all(), ['type', 'key_hash'], ['timestamp', 'value'])
             );
         }, 3);
     }
@@ -488,7 +488,6 @@ class DatabaseStorage implements Storage
      */
     public function values(string $type, ?array $keys = null): Collection
     {
-        /** @phpstan-ignore return.type */
         return $this->connection()
             ->table('pulse_values')
             ->select('timestamp', 'key', 'value')
@@ -573,7 +572,6 @@ class DatabaseStorage implements Storage
 
         $orderBy ??= $aggregates[0];
 
-        /** @phpstan-ignore return.type */
         return $this->connection()
             ->query()
             ->select([
@@ -786,7 +784,7 @@ class DatabaseStorage implements Storage
         $tailStart = $windowStart;
         $tailEnd = $oldestBucket - 1;
 
-        return $this->connection()->query() // @phpstan-ignore return.type
+        return $this->connection()->query()
             ->when(is_array($types), fn ($query) => $query->addSelect('type'))
             ->selectRaw(match ($aggregate) {
                 'count' => "sum({$this->wrap('count')})",

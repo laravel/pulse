@@ -49,7 +49,7 @@ class ClearCommand extends Command
         if (is_array($this->option('type')) && count($this->option('type')) > 0) {
             $this->components->task(
                 'Purging Pulse data for ['.implode(', ', $this->option('type')).']',
-                fn () => $pulse->purge($this->option('type'))
+                fn () => $pulse->purge($this->option('type')) // @phpstan-ignore argument.type
             );
         } else {
             $this->components->task(

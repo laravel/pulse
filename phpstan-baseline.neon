@@ -1,0 +1,91 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method Laravel\\Pulse\\Entry\|Laravel\\Pulse\\Value\:\:aggregations\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Cannot call method chunk\(\) on array\<string, mixed\>\|Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|Illuminate\\Support\\Collection\<int, Laravel\\Pulse\\Value\>\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:aggregate\(\) should return Illuminate\\Support\\Collection\<int, object\{key\: string, min\?\: int, max\?\: int, sum\?\: int, avg\?\: int, count\?\: int\}\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:aggregateTotal\(\) should return float\|Illuminate\\Support\\Collection\<string, int\> but returns float\|Illuminate\\Database\\Query\\Builder\|Illuminate\\Support\\Collection\<\(int\|string\), mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:values\(\) should return Illuminate\\Support\\Collection\<string, object\{timestamp\: int, key\: string, value\: string\}\> but returns Illuminate\\Support\\Collection\<\(int\|string\), stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_values expects array, array\|ArrayAccess\|TReduceInitial\|TReduceReturnType given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Query\\Builder\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 10
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$value of class Illuminate\\Database\\Query\\Expression constructor expects TValue of float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 14
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:collapseValues\(\) expects Illuminate\\Support\\Collection\<int, Laravel\\Pulse\\Value\>, Illuminate\\Support\\Collection\<int, Laravel\\Pulse\\Entry\|Laravel\\Pulse\\Value\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:upsertAvg\(\) expects list\<array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\>, array\<int, array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:upsertCount\(\) expects list\<array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\>, array\<int, array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:upsertMax\(\) expects list\<array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\>, array\<int, array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:upsertMin\(\) expects list\<array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\>, array\<int, array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#1 \$values of method Laravel\\Pulse\\Storage\\DatabaseStorage\:\:upsertSum\(\) expects list\<array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\>, array\<int, array\{bucket\: int, period\: int, type\: string, aggregate\: string, key\: string, value\: float\|int, count\?\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/DatabaseStorage.php
+
+		-
+			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Query\\Builder\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Storage/DatabaseStorage.php
