@@ -8,6 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Factory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
+use League\Uri\Uri;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -49,7 +50,7 @@ class SlowOutgoingRequests
             $now->getTimestamp(),
             $now->getTimestampMs(),
             $request->getMethod(),
-            $request->getUri(),
+            static::normalizeUrl($request->getUri()),
         ]);
 
         $this->pulse->lazy(function () use ($startedAt, $timestamp, $endedAt, $method, $uri) {
@@ -88,5 +89,19 @@ class SlowOutgoingRequests
                 return new RejectedPromise($exception);
             });
         };
+    }
+
+    /**
+     * Normalize the given URL and mask user & password information.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        $uri = Uri::new($url);
+
+        if (is_null($uri->getUsername())) {
+            return $url;
+        }
+
+        return $uri->withUserInfo('', null)->toString();
     }
 }
