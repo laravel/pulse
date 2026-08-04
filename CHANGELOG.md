@@ -1,6 +1,21 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.7.4...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.8.0...1.x)
+
+## [v1.8.0](https://github.com/laravel/pulse/compare/v1.7.4...v1.8.0) - 2026-07-29
+
+* Add Dependabot cooldown of 5 days by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pulse/pull/519
+* Enable Dependabot auto-merge by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pulse/pull/521
+* Bump actions/checkout from 6.0.2 to 6.0.3 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/522
+* Bump shivammathur/setup-php from 2.37.1 to 2.37.2 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/524
+* Bump actions/checkout from 6.0.3 to 7.0.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/525
+* Bump stefanzweifel/git-auto-commit-action from 7.1.0 to 7.2.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/527
+* [1.x] Test Improvements by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/531
+* Bump actions/checkout from 7.0.0 to 7.0.1 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/534
+* Bump brace-expansion and sucrase by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/532
+* Bump postcss from 8.5.15 to 8.5.23 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/533
+* [1.x] Use PHPStan 2 by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/530
+* [1.x] Remove userinfo credential from slow outgoing requests by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pulse/pull/529
 
 ## [v1.7.4](https://github.com/laravel/pulse/compare/v1.7.3...v1.7.4) - 2026-06-03
 
