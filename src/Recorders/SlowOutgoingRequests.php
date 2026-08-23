@@ -8,6 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Factory;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
+use League\Uri\Exceptions\SyntaxError;
 use League\Uri\Uri;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -96,7 +97,13 @@ class SlowOutgoingRequests
      */
     public static function normalizeUrl(string $url): string
     {
-        $uri = Uri::new($url);
+        try {
+            $uri = Uri::new($url);
+        } catch (SyntaxError) {
+            // Guzzle accepted this URI, but it cannot be parsed here. Strip any
+            // user info conservatively rather than failing the request pipeline.
+            return preg_replace('~://[^/?#]*@~', '://', $url);
+        }
 
         if (is_null($uri->getUsername())) {
             return $url;
