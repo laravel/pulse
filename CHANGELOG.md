@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.8.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.8.1...1.x)
+
+## [v1.8.1](https://github.com/laravel/pulse/compare/v1.8.0...v1.8.1) - 2026-08-20
+
+* [1.x] Allow guzzlehttp/promises ^3.0 by [@chrismurrayawd](https://github.com/chrismurrayawd) in https://github.com/laravel/pulse/pull/536
 
 ## [v1.8.0](https://github.com/laravel/pulse/compare/v1.7.4...v1.8.0) - 2026-07-29
 
