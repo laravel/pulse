@@ -129,7 +129,7 @@ class Servers
         $memoryTotal = match (PHP_OS_FAMILY) {
             'Darwin' => intval(intval(shell_exec("sysctl hw.memsize | grep -Eo '[0-9]+'")) / 1024 / 1024),
             'Linux' => intval(intval(shell_exec("cat /proc/meminfo | grep MemTotal | grep -E -o '[0-9]+'")) / 1024),
-            'Windows' => intval(((int) trim((string) shell_exec('wmic ComputerSystem get TotalPhysicalMemory | more +1'))) / 1024 / 1024),
+            'Windows' => $this->getWindowsTotalMemoryMB(),
             'BSD' => intval(intval(shell_exec("sysctl hw.physmem | grep -Eo '[0-9]+'")) / 1024 / 1024),
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
@@ -137,7 +137,7 @@ class Servers
         $memoryUsed = match (PHP_OS_FAMILY) {
             'Darwin' => $memoryTotal - intval(intval(shell_exec("vm_stat | grep 'Pages free' | grep -Eo '[0-9]+'")) * intval(shell_exec('pagesize')) / 1024 / 1024), // MB
             'Linux' => $memoryTotal - intval(intval(shell_exec("cat /proc/meminfo | grep MemAvailable | grep -E -o '[0-9]+'")) / 1024), // MB
-            'Windows' => $memoryTotal - intval(((int) trim((string) shell_exec('wmic OS get FreePhysicalMemory | more +1'))) / 1024), // MB
+            'Windows' => $memoryTotal - $this->getWindowsFreeMemoryMB(), // MB
             'BSD' => intval(intval(shell_exec("( sysctl vm.stats.vm.v_cache_count | grep -Eo '[0-9]+' ; sysctl vm.stats.vm.v_inactive_count | grep -Eo '[0-9]+' ; sysctl vm.stats.vm.v_active_count | grep -Eo '[0-9]+' ) | awk '{s+=$1} END {print s}'")) * intval(shell_exec('pagesize')) / 1024 / 1024), // MB
             default => throw new RuntimeException('The pulse:check command does not currently support '.PHP_OS_FAMILY),
         };
@@ -146,5 +146,46 @@ class Servers
             'total' => $memoryTotal,
             'used' => $memoryUsed,
         ];
+    }
+
+    /**
+     * Total Memory on Windows.
+     */
+    private function getWindowsTotalMemoryMB(): int
+    {
+        // Try PowerShell CIM first — wmic is deprecated and removed in Windows 11 24H2+
+        $output = shell_exec('powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory"');
+        $output = trim((string) $output);
+
+        if (is_numeric($output)) {
+            return intval((int) $output / 1024 / 1024);
+        }
+
+        // Fall back to wmic for older Windows versions
+        $wmicOutput = shell_exec('wmic ComputerSystem get TotalPhysicalMemory | more +1');
+        $wmicOutput = trim((string) $wmicOutput) ?: '0';
+
+        return intval((int) $wmicOutput / 1024 / 1024);
+    }
+
+    /**
+     * Free Memory on Windows.
+     */
+    private function getWindowsFreeMemoryMB(): int
+    {
+        // Try PowerShell CIM first — wmic is deprecated and removed in Windows 11 24H2+
+        // FreePhysicalMemory from Win32_OperatingSystem is in KB
+        $output = shell_exec('powershell -NoProfile -Command "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"');
+        $output = trim((string) $output);
+
+        if (is_numeric($output)) {
+            return intval((int) $output / 1024);
+        }
+
+        // Fall back to wmic for older Windows versions
+        $wmicOutput = shell_exec('wmic OS get FreePhysicalMemory | more +1');
+        $wmicOutput = trim((string) $wmicOutput) ?: '0';
+
+        return intval((int) $wmicOutput / 1024);
     }
 }
