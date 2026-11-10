@@ -1,6 +1,20 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.8.1...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/1.9.0...1.x)
+
+## [1.9.0](https://github.com/laravel/pulse/compare/v1.8.1...1.9.0) - 2026-11-06
+
+### What's Changed
+
+* Bump browserslist from 4.22.2 to 4.28.8 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/538
+* Remove security policy in favor of the org-wide default by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pulse/pull/542
+* Bump shivammathur/setup-php from 2.37.2 to 2.40.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/543
+* Bump source-map-js from 1.2.1 to 1.2.2 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/544
+* Bump postcss-selector-parser and tailwindcss by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/545
+* Bump stefanzweifel/git-auto-commit-action from 7.2.0 to 7.2.1 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pulse/pull/547
+* Dependency bumps by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/pulse/pull/548
+
+**Full Changelog**: https://github.com/laravel/pulse/compare/v1.8.1...1.9.0
 
 ## [v1.8.1](https://github.com/laravel/pulse/compare/v1.8.0...v1.8.1) - 2026-08-20
 
