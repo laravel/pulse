@@ -27,6 +27,11 @@ class SlowOutgoingRequests extends Card
     public string $orderBy = 'slowest';
 
     /**
+     * Indicates that outgoing request icons should be disabled.
+     */
+    public bool $withoutIcons = false;
+
+    /**
      * Render the component.
      */
     public function render(): Renderable

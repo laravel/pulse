@@ -37,3 +37,29 @@ it('renders slow outgoing requests', function () {
             (object) ['method' => 'GET', 'uri' => 'http://example.org', 'count' => 2, 'slowest' => 1234, 'threshold' => 1_000],
         ]));
 });
+
+it('renders outgoing request icons', function () {
+    Carbon::setTestNow('2000-01-01 13:00:00');
+
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'http://example.com']), 1000)->max()->count();
+    Pulse::ingest();
+
+    Livewire::test(SlowOutgoingRequests::class, ['lazy' => false])
+        ->assertSeeHtml('src="https://unavatar.io/example.com?fallback=false"');
+});
+
+it('can opt out of outgoing request icons', function () {
+    Carbon::setTestNow('2000-01-01 13:00:00');
+
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'https://api.internal.example/status']), 1234)->max()->count();
+    Pulse::record('slow_outgoing_request', json_encode(['GET', 'https://api.internal.example/status']), 2468)->max()->count();
+    Pulse::ingest();
+
+    Livewire::test(SlowOutgoingRequests::class, ['lazy' => false, 'withoutIcons' => true])
+        ->assertDontSeeHtml('https://unavatar.io/')
+        ->assertSeeText('https://api.internal.example/status')
+        ->assertSeeHtml('<strong>2,468</strong> ms')
+        ->assertViewHas('slowOutgoingRequests', collect([
+            (object) ['method' => 'GET', 'uri' => 'https://api.internal.example/status', 'count' => 2, 'slowest' => 2468, 'threshold' => 1_000],
+        ]));
+});
