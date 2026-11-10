@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/1.9.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.10.0...1.x)
+
+## [v1.10.0](https://github.com/laravel/pulse/compare/1.9.0...v1.10.0) - 2026-11-10
+
+**Full Changelog**: https://github.com/laravel/pulse/compare/1.9.0...v1.10.0
 
 ## [1.9.0](https://github.com/laravel/pulse/compare/v1.8.1...1.9.0) - 2026-11-06
 
