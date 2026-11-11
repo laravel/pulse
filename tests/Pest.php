@@ -187,9 +187,7 @@ function skipUnlessMySql(): void
 {
     $connection = DB::connection();
 
-    $serverVersion = method_exists($connection, 'getServerVersion')
-        ? $connection->getServerVersion()
-        : $connection->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
+    $serverVersion = $connection->getServerVersion();
 
     if (! (in_array($connection->getDriverName(), ['mysql'], true) && version_compare($serverVersion, '8.0.19', '>='))) {
         test()->markTestSkipped('MySQL or MariaDB is required for use_upsert_alias tests.');
