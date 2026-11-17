@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pulse/compare/v1.10.0...1.x)
+## [Unreleased](https://github.com/laravel/pulse/compare/v1.11.0...1.x)
+
+## [v1.11.0](https://github.com/laravel/pulse/compare/v1.10.0...v1.11.0) - 2026-11-11
+
+### What's Changed
+
+* Dependency floor bump by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pulse/pull/550
+
+**Full Changelog**: https://github.com/laravel/pulse/compare/v1.10.0...v1.11.0
 
 ## [v1.10.0](https://github.com/laravel/pulse/compare/1.9.0...v1.10.0) - 2026-11-10
 
